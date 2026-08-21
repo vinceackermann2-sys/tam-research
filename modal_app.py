@@ -106,14 +106,18 @@ def profile_h100(
         result = profile_components(seq_len=seq_len, batch_size=8)
         rows = []
         for name, record in result["results"].items():
+            if "error" in record:
+                err = str(record["error"]).replace("|", "/").replace("\n", " ")[:180]
+                rows.append(f"| {name} | error | error | — | — | `{err}` |")
+                continue
             rows.append(
                 f"| {name} | {record['forward_ms_median']:.3f} | "
                 f"{record['train_ms_median']:.3f} | {record['peak_vram_gib']:.2f} | "
-                f"{record['train_vs_transformer_block']:.2f}× |"
+                f"{record['train_vs_transformer_block']:.2f}× | — |"
             )
         table = (
-            "| component | forward ms | fwd+bwd ms | peak GiB | vs Transformer block |\n"
-            "|---|---:|---:|---:|---:|\n" + "\n".join(rows)
+            "| component | forward ms | fwd+bwd ms | peak GiB | vs Transformer block | note |\n"
+            "|---|---:|---:|---:|---:|---|\n" + "\n".join(rows)
         )
         _comment_on_issue(
             repo_full_name,
@@ -236,7 +240,6 @@ def main(
     if action != "suite":
         raise ValueError("action must be profile, prepare, train-one, or suite")
 
-    # Data preparation is blocking so every GPU run sees the exact same committed token stream.
     prepare_data.remote(
         train_tokens=token_budget + 10_000_000,
         val_tokens=2_000_000,
@@ -259,8 +262,4 @@ def main(
                 {"call_id": call.object_id, "architecture": arch, "seed": seed}
             )
 
-    # Do not call _comment_on_issue here: the local entrypoint executes on the GitHub runner,
-    # not inside the Modal image that contains PyGithub/github-secret. The workflow itself
-    # records successful handoff; remote functions own all subsequent status callbacks.
     print(json.dumps({"spawned": spawned}, indent=2), flush=True)
-    # Intentionally return immediately. `modal run --detach` leaves spawned GPU jobs alive.
