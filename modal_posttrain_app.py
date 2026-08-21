@@ -5,11 +5,10 @@ import modal
 
 APP_NAME = "tam-research-posttrain"
 VOLUME_NAME = "tam-research-data"
-MAX_GPU_SECONDS = 260
+MAX_GPU_SECONDS = 150
 SEED = 7400
 SEQ_LEN = 512
-MICRO_BATCH = 64
-GRAD_ACCUM = 2
+SFT_TRAIN_EXAMPLES = 10_000
 
 app = modal.App(APP_NAME)
 volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
@@ -48,6 +47,33 @@ def _comment(repo_full_name: str, issue_number: int, body: str) -> None:
         print(f"[status-report-nonfatal] {type(exc).__name__}: {exc}; body={body}", flush=True)
 
 
+def _prepare_sft_subset(source_dir: str, destination_dir: str, rows: int) -> str:
+    """Create a deterministic small SFT train shard in local ephemeral storage.
+
+    The original 20k UltraFeedback arrays on the persistent Volume remain untouched.
+    Evaluation arrays are copied in full so held-out metrics stay comparable.
+    """
+    import shutil
+    from pathlib import Path
+
+    import numpy as np
+
+    src = Path(source_dir)
+    dst = Path(destination_dir)
+    dst.mkdir(parents=True, exist_ok=True)
+
+    train_inputs = np.load(src / "sft_train_inputs.npy", mmap_mode="r")
+    train_labels = np.load(src / "sft_train_labels.npy", mmap_mode="r")
+    n = min(rows, len(train_inputs), len(train_labels))
+    if n < 128:
+        raise RuntimeError(f"SFT subset too small: {n}")
+    np.save(dst / "sft_train_inputs.npy", np.asarray(train_inputs[:n]).copy())
+    np.save(dst / "sft_train_labels.npy", np.asarray(train_labels[:n]).copy())
+    shutil.copyfile(src / "sft_eval_inputs.npy", dst / "sft_eval_inputs.npy")
+    shutil.copyfile(src / "sft_eval_labels.npy", dst / "sft_eval_labels.npy")
+    return str(dst)
+
+
 @app.function(
     image=image,
     gpu="H100!",
@@ -62,37 +88,13 @@ def posttrain_tam25m(
     issue_number: int = 0,
     max_gpu_seconds: int = MAX_GPU_SECONDS,
 ) -> dict:
-    if not 180 <= max_gpu_seconds <= MAX_GPU_SECONDS:
-        raise ValueError(f"max_gpu_seconds must be between 180 and {MAX_GPU_SECONDS}")
+    if max_gpu_seconds != MAX_GPU_SECONDS:
+        raise ValueError(f"this budget-tight continuation is fixed at {MAX_GPU_SECONDS} GPU seconds")
 
-    import os
     import time
-    from importlib.metadata import version as package_version
     from pathlib import Path
 
-    from tam_research.compile_cache import (
-        DEFAULT_COMPILE_MODE,
-        compiler_cache_dir,
-        compiler_cache_env,
-    )
-
-    # Pull the committed pretrained checkpoint and post-training arrays into this
-    # fresh container before Torch opens any compiler-cache files.
     volume.reload()
-
-    cache_dir = compiler_cache_dir(
-        "/vol/compile-cache",
-        architecture="tamv3",
-        model_scale="25m",
-        seq_len=SEQ_LEN,
-        micro_batch_size=MICRO_BATCH,
-        grad_accum_steps=GRAD_ACCUM,
-        torch_build=package_version("torch"),
-        compile_mode=DEFAULT_COMPILE_MODE,
-    )
-    Path(cache_dir).mkdir(parents=True, exist_ok=True)
-    cache_preexisting = any(Path(cache_dir).iterdir())
-    os.environ.update(compiler_cache_env(cache_dir))
 
     pretrained_checkpoint = (
         "/vol/full-model-runs/pretrain/25m/ctx512-mb64-ga2/"
@@ -106,7 +108,13 @@ def posttrain_tam25m(
     required = [
         Path(pretrained_checkpoint),
         Path(posttrain_data_dir) / "sft_train_inputs.npy",
+        Path(posttrain_data_dir) / "sft_train_labels.npy",
+        Path(posttrain_data_dir) / "sft_eval_inputs.npy",
+        Path(posttrain_data_dir) / "sft_eval_labels.npy",
         Path(posttrain_data_dir) / "pref_train_chosen_inputs.npy",
+        Path(posttrain_data_dir) / "pref_train_rejected_inputs.npy",
+        Path(posttrain_data_dir) / "pref_eval_chosen_inputs.npy",
+        Path(posttrain_data_dir) / "pref_eval_rejected_inputs.npy",
         Path(fineweb_data_dir) / "val.bin",
     ]
     missing = [str(path) for path in required if not path.exists()]
@@ -115,20 +123,15 @@ def posttrain_tam25m(
 
     import torch
     from tam_research.data import TokenBin
-    from tam_research.posttrain import (
-        generate_samples,
-        load_checkpoint_model,
-        train_dpo,
-        train_sft,
-    )
+    from tam_research.posttrain import generate_samples, load_checkpoint_model, train_dpo, train_sft
     from tam_research.train import evaluate
 
     started = time.perf_counter()
     _comment(
         repo_full_name,
         issue_number,
-        f"🔥 **TAM-v3-25M post-training H100 started** — loading saved 300M-token base; "
-        f"hard GPU ceiling={max_gpu_seconds}s; compiler-cache={'warm' if cache_preexisting else 'cold'}.",
+        f"🔥 **TAM-v3-25M budget-v2 post-training started** — saved 300M-token base; "
+        f"SFT={SFT_TRAIN_EXAMPLES:,} examples eager/no-compile; DPO=full 5k pairs; hard ceiling={MAX_GPU_SECONDS}s.",
     )
 
     try:
@@ -138,31 +141,48 @@ def posttrain_tam25m(
             sft_summary = json.loads(sft_summary_path.read_text())
             _comment(repo_full_name, issue_number, "♻️ **Existing SFT checkpoint found** — reusing it.")
         else:
+            subset_dir = _prepare_sft_subset(posttrain_data_dir, "/tmp/tam-sft-10k", SFT_TRAIN_EXAMPLES)
             sft_checkpoint, sft_summary = train_sft(
                 pretrained_checkpoint,
-                posttrain_data_dir,
+                subset_dir,
                 str(run_dir),
                 seed=SEED,
                 micro_batch_size=64,
                 grad_accum_steps=2,
-                compile_model=True,
+                compile_model=False,
             )
             sft_path = Path(sft_checkpoint)
+            volume.commit()
+            elapsed = time.perf_counter() - started
+            _comment(
+                repo_full_name,
+                issue_number,
+                f"🟦 **SFT finished and committed** — train_examples={sft_summary['train_examples']}; "
+                f"held-out assistant NLL={sft_summary['heldout']['assistant_nll']:.4f}; "
+                f"training={sft_summary['training_seconds']:.1f}s; elapsed={elapsed:.1f}s; compile=0.",
+            )
+
+        elapsed = time.perf_counter() - started
+        remaining = MAX_GPU_SECONDS - elapsed
+        if remaining < 62:
+            partial = {
+                "model": "TAM-v3-25M-Full",
+                "seed": SEED,
+                "status": "sft_complete_dpo_deferred",
+                "pretrained_checkpoint": pretrained_checkpoint,
+                "sft_checkpoint": str(sft_path),
+                "sft": sft_summary,
+                "gpu_function_elapsed_seconds": elapsed,
+            }
+            (run_dir / "posttrain_summary.json").write_text(json.dumps(partial, indent=2))
             volume.commit()
             _comment(
                 repo_full_name,
                 issue_number,
-                f"🟦 **SFT finished and committed** — held-out assistant NLL="
-                f"{sft_summary['heldout']['assistant_nll']:.4f}; training={sft_summary['training_seconds']:.1f}s; "
-                f"compile={sft_summary['compile_seconds']:.1f}s.",
+                f"✅ **SFT is durable; DPO deferred by budget guard** — {remaining:.1f}s remained. "
+                f"SFT checkpoint: `{sft_path}`",
             )
-
-        elapsed = time.perf_counter() - started
-        remaining = max_gpu_seconds - elapsed
-        if remaining < 90:
-            raise RuntimeError(
-                f"budget guard: only {remaining:.1f}s remain after SFT; preserving SFT checkpoint and refusing DPO"
-            )
+            return partial
 
         dpo_path = run_dir / "final_dpo.pt"
         dpo_summary_path = run_dir / "dpo_summary.json"
@@ -182,19 +202,18 @@ def posttrain_tam25m(
             )
             dpo_path = Path(dpo_checkpoint)
             volume.commit()
+            elapsed = time.perf_counter() - started
             _comment(
                 repo_full_name,
                 issue_number,
-                f"🟪 **DPO finished and committed** — held-out implicit reward accuracy="
-                f"{dpo_summary['heldout']['implicit_reward_accuracy']:.3f}; "
-                f"training={dpo_summary['training_seconds']:.1f}s.",
+                f"🟪 **DPO finished and committed** — pairs={dpo_summary['pairs_seen']}; "
+                f"held-out implicit reward accuracy={dpo_summary['heldout']['implicit_reward_accuracy']:.3f}; "
+                f"training={dpo_summary['training_seconds']:.1f}s; elapsed={elapsed:.1f}s.",
             )
 
         elapsed = time.perf_counter() - started
-        remaining = max_gpu_seconds - elapsed
-        if remaining < 12:
-            # DPO itself is complete and durable; do not risk losing that checkpoint
-            # merely to squeeze in optional generations/evaluation.
+        remaining = MAX_GPU_SECONDS - elapsed
+        if remaining < 8:
             partial = {
                 "model": "TAM-v3-25M-Full",
                 "seed": SEED,
@@ -211,7 +230,7 @@ def posttrain_tam25m(
             _comment(
                 repo_full_name,
                 issue_number,
-                f"✅ **Post-training complete; optional eval deferred by budget guard.** Final checkpoint: `{dpo_path}`",
+                f"✅ **SFT + DPO complete; optional eval deferred.** Final checkpoint: `{dpo_path}`",
             )
             return partial
 
@@ -220,16 +239,11 @@ def posttrain_tam25m(
             final_model,
             TokenBin(str(Path(fineweb_data_dir) / "val.bin")),
             seq_len=512,
-            batches=12,
+            batches=6,
             batch_size=32,
             seed=SEED + 400,
         )
-        # Keep generation useful but cheap under the tiny remaining-credit envelope.
-        samples = generate_samples(
-            str(dpo_path),
-            max_new_tokens=40,
-            seed=SEED,
-        )
+        samples = generate_samples(str(dpo_path), max_new_tokens=16, seed=SEED)
         total_elapsed = time.perf_counter() - started
         result = {
             "model": "TAM-v3-25M-Full",
@@ -242,8 +256,8 @@ def posttrain_tam25m(
             "dpo": dpo_summary,
             "final_language_eval": final_language,
             "samples": samples,
-            "compiler_cache_preexisting": cache_preexisting,
-            "max_gpu_seconds": max_gpu_seconds,
+            "sft_train_examples_budget_v2": SFT_TRAIN_EXAMPLES,
+            "max_gpu_seconds": MAX_GPU_SECONDS,
             "gpu_function_elapsed_seconds": total_elapsed,
         }
         (run_dir / "final_summary.json").write_text(json.dumps(result, indent=2))
@@ -267,7 +281,7 @@ def posttrain_tam25m(
         _comment(
             repo_full_name,
             issue_number,
-            f"❌ **TAM-v3-25M post-training failed/aborted:** `{type(exc).__name__}: {exc}`",
+            f"❌ **TAM-v3-25M budget-v2 post-training failed/aborted:** `{type(exc).__name__}: {exc}`",
         )
         raise
 
@@ -278,7 +292,7 @@ def main(
     issue_number: int = 0,
     max_gpu_seconds: int = MAX_GPU_SECONDS,
 ):
-    if not 180 <= max_gpu_seconds <= MAX_GPU_SECONDS:
-        raise ValueError(f"hard post-training budget must be 180..{MAX_GPU_SECONDS} GPU seconds")
+    if max_gpu_seconds != MAX_GPU_SECONDS:
+        raise ValueError(f"hard post-training budget is fixed at {MAX_GPU_SECONDS} GPU seconds")
     call = posttrain_tam25m.spawn(repo_full_name, issue_number, max_gpu_seconds)
     print(json.dumps({"call_id": call.object_id, "max_gpu_seconds": max_gpu_seconds}, indent=2))
