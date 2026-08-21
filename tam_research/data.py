@@ -11,7 +11,12 @@ DATASET_CONFIG = "sample-10BT"
 TOKENIZER_ID = "gpt2"
 
 
-def prepare_fineweb(out_dir: str, train_tokens: int = 110_000_000, val_tokens: int = 2_000_000, seed: int = 1234) -> dict[str, object]:
+def prepare_fineweb(
+    out_dir: str,
+    train_tokens: int = 110_000_000,
+    val_tokens: int = 2_000_000,
+    seed: int = 1234,
+) -> dict[str, object]:
     """Stream FineWeb-Edu once and persist identical uint16 token shards for every model."""
     from datasets import load_dataset
     from transformers import AutoTokenizer
@@ -49,7 +54,7 @@ def prepare_fineweb(out_dir: str, train_tokens: int = 110_000_000, val_tokens: i
 
     tokens = np.concatenate(chunks)[:target]
     train = tokens[:train_tokens]
-    val = tokens[train_tokens:train_tokens + val_tokens]
+    val = tokens[train_tokens : train_tokens + val_tokens]
     train.tofile(train_path)
     val.tofile(val_path)
     meta = {
@@ -66,13 +71,52 @@ def prepare_fineweb(out_dir: str, train_tokens: int = 110_000_000, val_tokens: i
 
 
 class TokenBin:
+    """Memory-mapped token shard with an optional CUDA-resident gather cache.
+
+    Sampling remains driven by the same CPU ``torch.Generator`` and therefore the
+    same random start offsets. On CUDA, only the data movement implementation
+    changes: the shard is cached once as int32 on the GPU and each batch is gathered
+    there instead of Python-slicing NumPy arrays and copying every micro-batch from
+    host memory. Model inputs are still returned as int64 token IDs.
+    """
+
     def __init__(self, path: str):
         self.data = np.memmap(path, dtype=np.uint16, mode="r")
+        self._device_cache: dict[str, torch.Tensor] = {}
 
-    def batch(self, batch_size: int, seq_len: int, generator: torch.Generator, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
+    def _device_tokens(self, device: torch.device) -> torch.Tensor:
+        key = str(device)
+        cached = self._device_cache.get(key)
+        if cached is None:
+            # int32 halves persistent HBM relative to int64 while still covering the
+            # GPT-2 vocabulary. We cast only the selected batch to int64 for embedding.
+            host = np.asarray(self.data, dtype=np.int32)
+            cached = torch.from_numpy(host).to(device=device)
+            self._device_cache[key] = cached
+        return cached
+
+    def batch(
+        self,
+        batch_size: int,
+        seq_len: int,
+        generator: torch.Generator,
+        device: torch.device,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         hi = len(self.data) - seq_len - 1
-        starts = torch.randint(0, hi, (batch_size,), generator=generator).tolist()
-        chunks = [np.asarray(self.data[s:s + seq_len + 1], dtype=np.int64) for s in starts]
+        starts_cpu = torch.randint(0, hi, (batch_size,), generator=generator)
+
+        if device.type == "cuda":
+            source = self._device_tokens(device)
+            starts = starts_cpu.to(device=device, dtype=torch.long)
+            offsets = torch.arange(seq_len + 1, device=device, dtype=torch.long)
+            chunks = source[starts[:, None] + offsets[None, :]].long()
+            return chunks[:, :-1], chunks[:, 1:]
+
+        starts = starts_cpu.tolist()
+        chunks = [
+            np.asarray(self.data[s : s + seq_len + 1], dtype=np.int64)
+            for s in starts
+        ]
         x_np = np.stack([c[:-1] for c in chunks])
         y_np = np.stack([c[1:] for c in chunks])
         return (
