@@ -14,6 +14,7 @@ TAMV2_ARCHITECTURES = {
     "tamv2_noworld",
     "tamv2_fixed",
 }
+TAMV3_ARCHITECTURES = {"tamv3", "tamv3_fixed"}
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,9 @@ class ModelConfig:
     architecture: str = "transformer"
     tamv2_branch_inner: int = 104
     tamv2_state_size: int = 64
+    # 208 gives TAM v3 nearly the exact same mixer parameter count as
+    # full-width Transformer attention when d_model=256 and state_size=64.
+    tamv3_attn_inner: int = 208
 
 
 class CausalSelfAttention(nn.Module):
@@ -152,12 +156,7 @@ class RecurrentWorldState(nn.Module):
 
 
 class TAMV2Mixer(nn.Module):
-    """Token-wise router over causal attention, ATAM, and recurrent world-state.
-
-    Ablation modes retain all modules/parameters and still execute every branch so
-    parameter count and branch compute stay matched. They only change which branch
-    outputs the router is allowed to use.
-    """
+    """Token-wise router over causal attention, ATAM, and recurrent world-state."""
 
     def __init__(
         self,
@@ -219,6 +218,43 @@ class TAMV2Mixer(nn.Module):
         )
 
 
+class TAMV3Mixer(nn.Module):
+    """Parameter-matched attention + recurrent world-state successor to TAM v2.
+
+    For the default 25M configuration, attention inner=208 and state_size=64
+    make this mixer's trainable parameter count 262,209 versus 262,144 for a
+    full Transformer attention mixer: a difference of only 65 parameters per block.
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        attention_inner: int,
+        state_size: int,
+        fixed: bool = False,
+    ):
+        super().__init__()
+        if attention_inner % n_heads:
+            raise ValueError("TAM v3 attention inner width must be divisible by n_heads")
+        self.fixed = fixed
+        self.attn = CausalSelfAttention(d_model, n_heads, attention_inner)
+        self.world = RecurrentWorldState(d_model, state_size)
+        # Kept even for fixed mode so the two TAM v3 variants have identical params.
+        self.gate_logit = nn.Parameter(torch.zeros(()))
+        self.last_gate: torch.Tensor | None = None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        attn = self.attn(x)
+        world, _ = self.world(x)
+        if self.fixed:
+            gate = torch.full((), 0.5, device=x.device, dtype=x.dtype)
+        else:
+            gate = torch.sigmoid(self.gate_logit).to(x.dtype)
+        self.last_gate = gate.detach()
+        return 2.0 * ((1.0 - gate) * attn + gate * world)
+
+
 class Block(nn.Module):
     def __init__(self, cfg: ModelConfig):
         super().__init__()
@@ -241,6 +277,14 @@ class Block(nn.Module):
                 cfg.tamv2_branch_inner,
                 cfg.tamv2_state_size,
                 mode=mode,
+            )
+        elif cfg.architecture in TAMV3_ARCHITECTURES:
+            self.mixer = TAMV3Mixer(
+                cfg.d_model,
+                cfg.n_heads,
+                cfg.tamv3_attn_inner,
+                cfg.tamv2_state_size,
+                fixed=cfg.architecture == "tamv3_fixed",
             )
         else:
             raise ValueError(f"unknown architecture: {cfg.architecture}")
@@ -291,18 +335,41 @@ class ResearchLM(nn.Module):
 
     @torch.no_grad()
     def router_stats(self) -> dict[str, object] | None:
-        if self.cfg.architecture not in TAMV2_ARCHITECTURES:
-            return None
-        per_layer = []
-        for block in self.blocks:
-            route = block.mixer.last_route
-            if route is None:
-                continue
-            per_layer.append(route.float().mean(dim=(0, 1)).cpu().tolist())
-        if not per_layer:
-            return None
-        mean = [sum(row[i] for row in per_layer) / len(per_layer) for i in range(3)]
-        return {"mean": {"attention": mean[0], "memory": mean[1], "world": mean[2]}, "per_layer": per_layer}
+        if self.cfg.architecture in TAMV2_ARCHITECTURES:
+            per_layer = []
+            for block in self.blocks:
+                route = block.mixer.last_route
+                if route is None:
+                    continue
+                per_layer.append(route.float().mean(dim=(0, 1)).cpu().tolist())
+            if not per_layer:
+                return None
+            mean = [sum(row[i] for row in per_layer) / len(per_layer) for i in range(3)]
+            return {
+                "mean": {
+                    "attention": mean[0],
+                    "memory": mean[1],
+                    "world": mean[2],
+                },
+                "per_layer": per_layer,
+            }
+        if self.cfg.architecture in TAMV3_ARCHITECTURES:
+            gates = [
+                float(block.mixer.last_gate.float().cpu())
+                for block in self.blocks
+                if block.mixer.last_gate is not None
+            ]
+            if not gates:
+                return None
+            return {
+                "mean": {
+                    "attention": 1.0 - sum(gates) / len(gates),
+                    "memory": 0.0,
+                    "world": sum(gates) / len(gates),
+                },
+                "per_layer_gate": gates,
+            }
+        return None
 
 
 def parameter_count(model: nn.Module) -> int:
