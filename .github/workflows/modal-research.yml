@@ -1,0 +1,47 @@
+name: Modal TAM research
+
+on:
+  workflow_dispatch:
+    inputs:
+      token_budget:
+        description: "Pretraining tokens per model"
+        required: true
+        default: "100000000"
+      architectures:
+        description: "Comma-separated architectures"
+        required: true
+        default: "transformer,tamv2"
+      seeds:
+        description: "Comma-separated seeds"
+        required: true
+        default: "7025,7026,7027"
+      seq_len:
+        description: "Training sequence length"
+        required: true
+        default: "512"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1440
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Modal
+        run: pip install "modal>=1.1,<2"
+      - name: Launch matched suite on Modal
+        run: >-
+          modal run --timestamps modal_app.py
+          --action suite
+          --token-budget "${{ inputs.token_budget }}"
+          --architectures "${{ inputs.architectures }}"
+          --seeds "${{ inputs.seeds }}"
+          --seq-len "${{ inputs.seq_len }}"
