@@ -89,7 +89,7 @@ def train_language_model(
     checkpoint_every_tokens: int = 10_000_000,
     resume: bool = True,
     compile_model: bool = False,
-    compile_mode: str = "max-autotune",
+    compile_mode: str = "max-autotune-no-cudagraphs",
 ) -> dict[str, object]:
     if not torch.cuda.is_available():
         raise RuntimeError("serious training run requires CUDA")
@@ -137,17 +137,28 @@ def train_language_model(
     compile_seconds = 0.0
     compile_peak_vram_gb = 0.0
     if compile_model:
+        # Keep Inductor fusion/autotuning but disable CUDA Graph capture. Our training
+        # loop makes repeated compiled calls during gradient accumulation, which can
+        # otherwise invalidate live CUDAGraph outputs between invocations.
         forward_model = torch.compile(model, mode=compile_mode)
-        # Trigger forward and backward compilation before timing real training.
-        # This does not update weights and uses an independent RNG stream.
-        warm_gen = torch.Generator(device="cpu").manual_seed(seed + 99_999)
+        train_warm_gen = torch.Generator(device="cpu").manual_seed(seed + 99_999)
+        eval_warm_gen = torch.Generator(device="cpu").manual_seed(seed + 199_999)
         warm_x, warm_y = train_data.batch(
-            micro_batch_size, seq_len, warm_gen, device
+            micro_batch_size, seq_len, train_warm_gen, device
         )
+        eval_batch_size = max(1, micro_batch_size // 2)
+        eval_x, _ = val_data.batch(
+            eval_batch_size, seq_len, eval_warm_gen, device
+        )
+
         optimizer.zero_grad(set_to_none=True)
         torch.cuda.reset_peak_memory_stats(device)
         torch.cuda.synchronize(device)
         compile_start = time.perf_counter()
+
+        # Compile the training forward+backward graph without taking an optimizer step.
+        model.train()
+        forward_model.train()
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
             warm_logits = forward_model(warm_x)
             warm_loss = F.cross_entropy(
@@ -155,11 +166,23 @@ def train_language_model(
                 warm_y.reshape(-1),
             )
         warm_loss.backward()
+        optimizer.zero_grad(set_to_none=True)
+
+        # Evaluation has a different batch size and grad mode, so compile that graph
+        # before the measured training timer as well.
+        model.eval()
+        forward_model.eval()
+        with torch.no_grad(), torch.autocast(
+            device_type="cuda", dtype=torch.bfloat16
+        ):
+            eval_logits = forward_model(eval_x)
+
         torch.cuda.synchronize(device)
         compile_seconds = max(time.perf_counter() - compile_start, 0.0)
         compile_peak_vram_gb = torch.cuda.max_memory_allocated(device) / (1024**3)
-        optimizer.zero_grad(set_to_none=True)
-        del warm_x, warm_y, warm_logits, warm_loss
+        model.train()
+        forward_model.train()
+        del warm_x, warm_y, eval_x, warm_logits, warm_loss, eval_logits
 
     start_tokens = tokens_seen
     torch.cuda.reset_peak_memory_stats(device)
