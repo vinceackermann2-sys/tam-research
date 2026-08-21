@@ -88,16 +88,37 @@ def train_scaled_one(
     repo_full_name: str = "",
     issue_number: int = 0,
 ) -> dict:
+    # Configure the persistent compiler cache before importing torch/training code.
+    import os
+    from pathlib import Path
+    from tam_research.compile_cache import compiler_cache_dir, compiler_cache_env
+
+    cache_dir = compiler_cache_dir(
+        "/vol/compile-cache",
+        architecture=architecture,
+        model_scale=model_scale,
+        seq_len=seq_len,
+        micro_batch_size=micro_batch_size,
+        grad_accum_steps=grad_accum_steps,
+    )
+    Path(cache_dir).mkdir(parents=True, exist_ok=True)
+    cache_preexisting = any(Path(cache_dir).iterdir())
+    os.environ.update(compiler_cache_env(cache_dir))
+
     from tam_research.train_scaled import train_scaled_language_model
 
     _comment(
         repo_full_name,
         issue_number,
         f"🔥 **Scaled H100 training started** — architecture={architecture}, scale={model_scale}, seed={seed}, "
-        f"token budget={token_budget:,}, context={seq_len}, micro={micro_batch_size}, accum={grad_accum_steps}.",
+        f"token budget={token_budget:,}, context={seq_len}, micro={micro_batch_size}, accum={grad_accum_steps}; "
+        f"compiler-cache={'warm' if cache_preexisting else 'cold'}.",
     )
     try:
         volume.reload()
+        # reload() can replace the mounted directory view, so make sure the cache
+        # path exists after refreshing the Volume as well.
+        Path(cache_dir).mkdir(parents=True, exist_ok=True)
         result = train_scaled_language_model(
             architecture=architecture,
             model_scale=model_scale,
@@ -110,8 +131,11 @@ def train_scaled_one(
             grad_accum_steps=grad_accum_steps,
             compile_model=True,
         )
+        # Persist compiler artifacts together with checkpoints for later replica seeds.
         volume.commit()
         ev = result["final_eval"]
+        result["compiler_cache_dir"] = cache_dir
+        result["compiler_cache_preexisting"] = cache_preexisting
         _comment(
             repo_full_name,
             issue_number,
@@ -119,7 +143,8 @@ def train_scaled_one(
             f"params={result['parameters']:,}, NLL={ev['nll']:.4f}, PPL={ev['perplexity']:.2f}.\n"
             f"Steady training: {result['training_tokens_per_second']:.0f} tok/s in {result['training_seconds']:.2f}s; "
             f"peak VRAM={result['peak_vram_gb']:.2f} GiB.\n"
-            f"Compile={result['compile_seconds']:.2f}s; end-to-end measured={result['elapsed_seconds']:.2f}s.",
+            f"Compile={result['compile_seconds']:.2f}s; cache was {'warm' if cache_preexisting else 'cold'}; "
+            f"end-to-end measured={result['elapsed_seconds']:.2f}s.",
         )
         print(json.dumps(result, indent=2), flush=True)
         return result
@@ -154,6 +179,8 @@ def main(
     seed_values = [int(s.strip()) for s in seeds.split(",") if s.strip()]
     if not archs or not set(archs) <= {"transformer", "tamv3"}:
         raise ValueError("architectures must be transformer and/or tamv3")
+    if not seed_values:
+        raise ValueError("at least one seed is required")
 
     prepare_scale_data.remote(
         train_tokens=token_budget + 10_000_000,
@@ -162,8 +189,38 @@ def main(
     )
 
     spawned = []
+    remaining_seeds = seed_values
+    if len(seed_values) > 1:
+        # Warm and commit one cache per architecture before replica seeds start.
+        # This deliberately trades a little launcher wall-clock time for a large
+        # reduction in repeated H100 compiler work across identical seed graphs.
+        warm_seed = seed_values[0]
+        _comment(
+            repo_full_name,
+            issue_number,
+            f"🧊 **Compiler-cache warmup phase** — running seed {warm_seed} once per architecture before replicas.",
+        )
+        for architecture in archs:
+            train_scaled_one.remote(
+                architecture,
+                scale,
+                warm_seed,
+                token_budget,
+                seq_len,
+                micro_batch_size,
+                grad_accum_steps,
+                repo_full_name,
+                issue_number,
+            )
+        remaining_seeds = seed_values[1:]
+        _comment(
+            repo_full_name,
+            issue_number,
+            "♻️ **Compiler caches committed** — spawning remaining replica seeds with persistent Inductor caches.",
+        )
+
     for architecture in archs:
-        for seed in seed_values:
+        for seed in remaining_seeds:
             call = train_scaled_one.spawn(
                 architecture,
                 scale,
