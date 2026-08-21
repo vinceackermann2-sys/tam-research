@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-from .models import CausalSelfAttention
+from .models import CausalSelfAttention, diagonal_affine_scan
 
 
 def _affine_pair_scan(
@@ -164,6 +165,120 @@ class ChunkedTAMV3Block(nn.Module):
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         self.mixer = ChunkedTAMV3Mixer(
+            d_model,
+            n_heads,
+            attention_inner,
+            state_size,
+            chunk_size,
+        )
+        ff = ff_mult * d_model
+        self.ff = nn.Sequential(
+            nn.Linear(d_model, ff, bias=False),
+            nn.GELU(),
+            nn.Linear(ff, d_model, bias=False),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x + self.mixer(self.norm1(x))
+        return x + self.ff(self.norm2(x))
+
+
+class ProjectionFusedTAMV3Mixer(nn.Module):
+    """Function-equivalent TAM v3 mixer with five projections collapsed to two.
+
+    The input projection concatenates attention QKV, world candidate, and world
+    keep weights. The output projection concatenates the attention and world output
+    matrices. The scalar TAM v3 gate is applied to the two activation slices before
+    the joint output projection, making the operation algebraically identical to
+    summing the two separately projected branches.
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        attention_inner: int,
+        state_size: int,
+        chunk_size: int | None = None,
+    ):
+        super().__init__()
+        if attention_inner % n_heads:
+            raise ValueError("attention_inner must be divisible by n_heads")
+        self.n_heads = n_heads
+        self.attention_inner = attention_inner
+        self.head_dim = attention_inner // n_heads
+        self.state_size = state_size
+        self.chunk_size = chunk_size
+
+        joint_input = 3 * attention_inner + 2 * state_size
+        self.in_proj = nn.Linear(d_model, joint_input, bias=False)
+        self.keep_bias = nn.Parameter(torch.zeros(state_size))
+        self.out_proj = nn.Linear(attention_inner + state_size, d_model, bias=False)
+        self.gate_logit = nn.Parameter(torch.zeros(()))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        batch, time, _ = x.shape
+        projected = self.in_proj(x)
+        q, k, v, candidate_raw, keep_raw = projected.split(
+            (
+                self.attention_inner,
+                self.attention_inner,
+                self.attention_inner,
+                self.state_size,
+                self.state_size,
+            ),
+            dim=-1,
+        )
+
+        q = q.view(batch, time, self.n_heads, self.head_dim).transpose(1, 2)
+        k = k.view(batch, time, self.n_heads, self.head_dim).transpose(1, 2)
+        v = v.view(batch, time, self.n_heads, self.head_dim).transpose(1, 2)
+        attn = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        attn = attn.transpose(1, 2).contiguous().view(
+            batch,
+            time,
+            self.attention_inner,
+        )
+
+        candidate = torch.tanh(candidate_raw)
+        keep = torch.sigmoid(keep_raw + self.keep_bias)
+        affine_b = (1.0 - keep) * candidate
+        if self.chunk_size is None:
+            state = diagonal_affine_scan(keep, affine_b)
+        else:
+            state = chunked_diagonal_affine_scan(
+                keep,
+                affine_b,
+                chunk_size=self.chunk_size,
+            )
+
+        gate = torch.sigmoid(self.gate_logit).to(x.dtype)
+        joint_output = torch.cat(
+            (
+                2.0 * (1.0 - gate) * attn,
+                2.0 * gate * state,
+            ),
+            dim=-1,
+        )
+        return self.out_proj(joint_output)
+
+
+class ProjectionFusedTAMV3Block(nn.Module):
+    """Timing-only full TAM v3 block with exact projection fusion."""
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        attention_inner: int,
+        state_size: int,
+        ff_mult: int,
+        chunk_size: int | None = None,
+    ):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.mixer = ProjectionFusedTAMV3Mixer(
             d_model,
             n_heads,
             attention_inner,
