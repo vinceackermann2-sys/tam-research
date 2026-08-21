@@ -137,9 +137,6 @@ def train_language_model(
     compile_seconds = 0.0
     compile_peak_vram_gb = 0.0
     if compile_model:
-        # Keep Inductor fusion/autotuning but disable CUDA Graph capture. Our training
-        # loop makes repeated compiled calls during gradient accumulation, which can
-        # otherwise invalidate live CUDAGraph outputs between invocations.
         forward_model = torch.compile(model, mode=compile_mode)
         train_warm_gen = torch.Generator(device="cpu").manual_seed(seed + 99_999)
         eval_warm_gen = torch.Generator(device="cpu").manual_seed(seed + 199_999)
@@ -156,7 +153,6 @@ def train_language_model(
         torch.cuda.synchronize(device)
         compile_start = time.perf_counter()
 
-        # Compile the training forward+backward graph without taking an optimizer step.
         model.train()
         forward_model.train()
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
@@ -168,8 +164,6 @@ def train_language_model(
         warm_loss.backward()
         optimizer.zero_grad(set_to_none=True)
 
-        # Evaluation has a different batch size and grad mode, so compile that graph
-        # before the measured training timer as well.
         model.eval()
         forward_model.eval()
         with torch.no_grad(), torch.autocast(
@@ -188,6 +182,8 @@ def train_language_model(
     torch.cuda.reset_peak_memory_stats(device)
     torch.cuda.synchronize(device)
     start = time.perf_counter()
+    eval_seconds = 0.0
+    checkpoint_seconds = 0.0
     next_eval = ((tokens_seen // eval_every_tokens) + 1) * eval_every_tokens
     next_ckpt = (
         (tokens_seen // checkpoint_every_tokens) + 1
@@ -216,6 +212,31 @@ def train_language_model(
         torch.save(payload, tmp)
         tmp.replace(latest_path)
 
+    def timed_checkpoint() -> None:
+        nonlocal checkpoint_seconds
+        torch.cuda.synchronize(device)
+        started = time.perf_counter()
+        save_checkpoint()
+        torch.cuda.synchronize(device)
+        checkpoint_seconds += max(time.perf_counter() - started, 0.0)
+
+    def timed_evaluate(*, batches: int, eval_seed: int) -> dict[str, object]:
+        nonlocal eval_seconds
+        torch.cuda.synchronize(device)
+        started = time.perf_counter()
+        result = evaluate(
+            model,
+            val_data,
+            seq_len,
+            batches,
+            max(1, micro_batch_size // 2),
+            eval_seed,
+            forward_model=forward_model,
+        )
+        torch.cuda.synchronize(device)
+        eval_seconds += max(time.perf_counter() - started, 0.0)
+        return result
+
     while step < total_steps and tokens_seen < token_budget:
         model.train()
         forward_model.train()
@@ -237,9 +258,7 @@ def train_language_model(
             loss.backward()
             running += float(loss) * grad_accum_steps
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        lr = cosine_lr(
-            step, total_steps, warmup_steps, learning_rate
-        )
+        lr = cosine_lr(step, total_steps, warmup_steps, learning_rate)
         for group in optimizer.param_groups:
             group["lr"] = lr
         optimizer.step()
@@ -249,6 +268,10 @@ def train_language_model(
         if step == 1 or step % 20 == 0:
             torch.cuda.synchronize(device)
             elapsed = max(time.perf_counter() - start, 1e-6)
+            training_elapsed = max(
+                elapsed - eval_seconds - checkpoint_seconds,
+                1e-6,
+            )
             processed = max(0, tokens_seen - start_tokens)
             record = {
                 "type": "train",
@@ -257,6 +280,9 @@ def train_language_model(
                 "loss": running / grad_accum_steps,
                 "lr": lr,
                 "tokens_per_second": processed / elapsed,
+                "training_tokens_per_second": processed / training_elapsed,
+                "eval_seconds": eval_seconds,
+                "checkpoint_seconds": checkpoint_seconds,
                 "execution": execution,
             }
             print(json.dumps(record), flush=True)
@@ -267,14 +293,9 @@ def train_language_model(
                 "type": "eval",
                 "step": step,
                 "tokens_seen": tokens_seen,
-                **evaluate(
-                    model,
-                    val_data,
-                    seq_len,
-                    20,
-                    max(1, micro_batch_size // 2),
-                    seed + 20_000,
-                    forward_model=forward_model,
+                **timed_evaluate(
+                    batches=20,
+                    eval_seed=seed + 20_000,
                 ),
             }
             print(json.dumps(record), flush=True)
@@ -282,23 +303,23 @@ def train_language_model(
             next_eval += eval_every_tokens
 
         if tokens_seen >= next_ckpt or tokens_seen >= token_budget:
-            save_checkpoint()
+            timed_checkpoint()
             next_ckpt += checkpoint_every_tokens
 
-    save_checkpoint()
-    final_eval = evaluate(
-        model,
-        val_data,
-        seq_len,
-        50,
-        max(1, micro_batch_size // 2),
-        seed + 30_000,
-        forward_model=forward_model,
+    timed_checkpoint()
+    final_eval = timed_evaluate(
+        batches=50,
+        eval_seed=seed + 30_000,
     )
     torch.cuda.synchronize(device)
     elapsed_seconds = max(time.perf_counter() - start, 1e-6)
     processed_tokens = max(0, tokens_seen - start_tokens)
+    training_seconds = max(
+        elapsed_seconds - eval_seconds - checkpoint_seconds,
+        1e-6,
+    )
     tokens_per_second = processed_tokens / elapsed_seconds
+    training_tokens_per_second = processed_tokens / training_seconds
     peak_vram_gb = torch.cuda.max_memory_allocated(device) / (1024**3)
 
     summary = {
@@ -314,8 +335,13 @@ def train_language_model(
         "compile_seconds": compile_seconds,
         "compile_peak_vram_gb": compile_peak_vram_gb,
         "elapsed_seconds": elapsed_seconds,
+        "training_seconds": training_seconds,
+        "eval_seconds": eval_seconds,
+        "checkpoint_seconds": checkpoint_seconds,
+        "auxiliary_seconds": eval_seconds + checkpoint_seconds,
         "total_compute_seconds": elapsed_seconds + compile_seconds,
         "tokens_per_second": tokens_per_second,
+        "training_tokens_per_second": training_tokens_per_second,
         "gpu_name": gpu_name,
         "peak_vram_gb": peak_vram_gb,
         "final_eval": final_eval,
