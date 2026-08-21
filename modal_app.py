@@ -152,14 +152,17 @@ def train_one(
     repo_full_name: str = "",
     issue_number: int = 0,
     compile_model: bool = False,
+    micro_batch_size: int = 8,
+    grad_accum_steps: int = 16,
 ) -> dict:
     from tam_research.train import train_language_model
 
     execution = "compiled" if compile_model else "eager"
+    tokens_per_step = micro_batch_size * seq_len * grad_accum_steps
     _comment_on_issue(
         repo_full_name,
         issue_number,
-        f"🔥 **H100 training started** — architecture={architecture}, seed={seed}, token budget={token_budget:,}, context={seq_len}, execution={execution}.",
+        f"🔥 **H100 training started** — architecture={architecture}, seed={seed}, token budget={token_budget:,}, context={seq_len}, execution={execution}, micro-batch={micro_batch_size}, grad-accum={grad_accum_steps}, tokens/step={tokens_per_step:,}.",
     )
     try:
         volume.reload()
@@ -170,6 +173,8 @@ def train_one(
             run_root="/vol/runs",
             token_budget=token_budget,
             seq_len=seq_len,
+            micro_batch_size=micro_batch_size,
+            grad_accum_steps=grad_accum_steps,
             compile_model=compile_model,
         )
         volume.commit()
@@ -193,6 +198,7 @@ def train_one(
             issue_number,
             f"✅ **{architecture} seed {seed} finished** — {result['tokens_seen']:,} tokens, "
             f"NLL={ev['nll']:.4f}, PPL={ev['perplexity']:.2f}, params={result['parameters']:,}, execution={execution}.\n"
+            f"Batching: micro={micro_batch_size}, accum={grad_accum_steps}, tokens/step={tokens_per_step:,}.\n"
             f"Hardware: {result['gpu_name']}; optimizer-training={result['training_seconds']:.2f}s; "
             f"training throughput={result['training_tokens_per_second']:.0f} tok/s; "
             f"end-to-end measured={result['elapsed_seconds']:.2f}s "
@@ -206,7 +212,7 @@ def train_one(
         _comment_on_issue(
             repo_full_name,
             issue_number,
-            f"❌ **{architecture} seed {seed} failed ({execution}):** `{type(exc).__name__}: {exc}`",
+            f"❌ **{architecture} seed {seed} failed ({execution}, micro={micro_batch_size}, accum={grad_accum_steps}):** `{type(exc).__name__}: {exc}`",
         )
         raise
 
@@ -221,6 +227,8 @@ def main(
     repo_full_name: str = "",
     issue_number: int = 0,
     compile_model: str = "false",
+    micro_batch_size: int = 8,
+    grad_accum_steps: int = 16,
 ):
     use_compile = compile_model.strip().lower() in {"1", "true", "yes", "on"}
     if action == "profile":
@@ -248,6 +256,8 @@ def main(
                 repo_full_name,
                 issue_number,
                 use_compile,
+                micro_batch_size,
+                grad_accum_steps,
             )
         )
         return
@@ -272,6 +282,8 @@ def main(
                 repo_full_name,
                 issue_number,
                 use_compile,
+                micro_batch_size,
+                grad_accum_steps,
             )
             spawned.append(
                 {
@@ -279,6 +291,8 @@ def main(
                     "architecture": arch,
                     "seed": seed,
                     "execution": "compiled" if use_compile else "eager",
+                    "micro_batch_size": micro_batch_size,
+                    "grad_accum_steps": grad_accum_steps,
                 }
             )
 
