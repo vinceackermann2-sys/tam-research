@@ -108,9 +108,17 @@ def train_scaled_one(
 ) -> dict:
     # Configure the persistent compiler cache before importing torch/training code.
     import os
+    from importlib.metadata import version as package_version
     from pathlib import Path
-    from tam_research.compile_cache import compiler_cache_dir, compiler_cache_env
+    from tam_research.compile_cache import (
+        DEFAULT_COMPILE_MODE,
+        compiler_cache_dir,
+        compiler_cache_env,
+    )
 
+    # Refresh the Volume before inspecting cache state so the warm/cold telemetry
+    # reflects artifacts committed by earlier seed containers.
+    volume.reload()
     cache_dir = compiler_cache_dir(
         "/vol/compile-cache",
         architecture=architecture,
@@ -118,6 +126,8 @@ def train_scaled_one(
         seq_len=seq_len,
         micro_batch_size=micro_batch_size,
         grad_accum_steps=grad_accum_steps,
+        torch_build=package_version("torch"),
+        compile_mode=DEFAULT_COMPILE_MODE,
     )
     Path(cache_dir).mkdir(parents=True, exist_ok=True)
     cache_preexisting = any(Path(cache_dir).iterdir())
@@ -133,10 +143,6 @@ def train_scaled_one(
         f"compiler-cache={'warm' if cache_preexisting else 'cold'}.",
     )
     try:
-        volume.reload()
-        # reload() can replace the mounted directory view, so make sure the cache
-        # path exists after refreshing the Volume as well.
-        Path(cache_dir).mkdir(parents=True, exist_ok=True)
         result = train_scaled_language_model(
             architecture=architecture,
             model_scale=model_scale,
@@ -154,6 +160,8 @@ def train_scaled_one(
         ev = result["final_eval"]
         result["compiler_cache_dir"] = cache_dir
         result["compiler_cache_preexisting"] = cache_preexisting
+        result["compiler_cache_torch_build"] = package_version("torch")
+        result["compiler_cache_compile_mode"] = DEFAULT_COMPILE_MODE
         _comment(
             repo_full_name,
             issue_number,
