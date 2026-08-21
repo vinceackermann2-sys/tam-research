@@ -54,6 +54,7 @@ def inspect_posttrain(repo_full_name: str = "", issue_number: int = 0) -> dict:
         "dpo_summary.json",
         "posttrain_summary.json",
         "final_summary.json",
+        "behavior_eval_v1.json",
     ]
     artifacts = {}
     for name in names:
@@ -89,6 +90,24 @@ def inspect_posttrain(repo_full_name: str = "", issue_number: int = 0) -> dict:
     if details:
         body += "\n" + "\n".join(f"- {line}" for line in details)
     _comment(repo_full_name, issue_number, body)
+
+    behavior = artifacts["behavior_eval_v1.json"].get("summary")
+    if behavior:
+        lines = ["🧪 **Saved behavior benchmark report**"]
+        for stage in ("base", "sft", "dpo"):
+            stage_result = behavior.get("models", {}).get(stage, {})
+            lines.append(
+                f"- **{stage.upper()}** MCQ: {stage_result.get('mcq_correct', 'n/a')}/{stage_result.get('mcq_total', 'n/a')} "
+                f"({100*stage_result.get('mcq_accuracy', 0):.1f}%)"
+            )
+            gens = {row.get('id'): row.get('output', '') for row in stage_result.get('generations', [])}
+            for key in ("strict_ok", "arithmetic_freeform", "coding_add", "explain_sky", "three_tips"):
+                text = gens.get(key, "").replace("\n", "\\n")
+                if len(text) > 220:
+                    text = text[:217] + "..."
+                lines.append(f"  - `{key}` → `{text}`")
+        _comment(repo_full_name, issue_number, "\n".join(lines))
+
     print(json.dumps(result, indent=2), flush=True)
     return result
 
