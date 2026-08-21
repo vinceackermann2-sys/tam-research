@@ -5,7 +5,11 @@ import statistics
 import torch
 
 from .models import Block, ModelConfig, RecurrentWorldState
-from .scan_experiments import ChunkedTAMV3Block, ChunkedWorldState
+from .scan_experiments import (
+    ChunkedTAMV3Block,
+    ChunkedWorldState,
+    ProjectionFusedTAMV3Block,
+)
 
 
 def _first_tensor(output: object) -> torch.Tensor:
@@ -56,8 +60,6 @@ def _benchmark_module(
             loss = y.float().square().mean()
         loss.backward()
 
-    # Compilation/autotuning is intentionally paid during warmup and excluded from
-    # steady-state timing. The research question here is the amortized kernel cost.
     for _ in range(warmup):
         train_once()
     torch.cuda.synchronize(device)
@@ -130,6 +132,16 @@ def profile_components(
             chunk_size=chunk_size,
         )
 
+    def fused_block(chunk_size: int | None) -> torch.nn.Module:
+        return ProjectionFusedTAMV3Block(
+            d_model=d_model,
+            n_heads=cfg_tamv3.n_heads,
+            attention_inner=cfg_tamv3.tamv3_attn_inner,
+            state_size=cfg_tamv3.tamv2_state_size,
+            ff_mult=cfg_tamv3.ff_mult,
+            chunk_size=chunk_size,
+        )
+
     cases: list[tuple[str, object, bool]] = [
         ("transformer_block_compiled", lambda: Block(cfg_transformer), True),
         ("tamv3_block_compiled", lambda: Block(cfg_tamv3), True),
@@ -140,6 +152,10 @@ def profile_components(
         ("tamv3_chunk8_block_compiled", lambda: chunked_block(8), True),
         ("tamv3_chunk16_block_compiled", lambda: chunked_block(16), True),
         ("tamv3_chunk32_block_compiled", lambda: chunked_block(32), True),
+        ("tamv3_fused_block_compiled", lambda: fused_block(None), True),
+        ("tamv3_fused_chunk8_block_compiled", lambda: fused_block(8), True),
+        ("tamv3_fused_chunk16_block_compiled", lambda: fused_block(16), True),
+        ("tamv3_fused_chunk32_block_compiled", lambda: fused_block(32), True),
     ]
 
     results: dict[str, dict[str, float | bool | str]] = {}
@@ -176,10 +192,11 @@ def profile_components(
             if isinstance(timing, (int, float)):
                 record["speedup_vs_canonical_world"] = canonical_world_ms / timing
     if isinstance(canonical_block_ms, (int, float)):
-        for chunk_size in (8, 16, 32):
-            record = results[f"tamv3_chunk{chunk_size}_block_compiled"]
+        for name, record in results.items():
+            if not name.startswith("tamv3_") or name == "tamv3_block_compiled":
+                continue
             timing = record.get("train_ms_median")
-            if isinstance(timing, (int, float)):
+            if "block" in name and isinstance(timing, (int, float)):
                 record["speedup_vs_canonical_tamv3_block"] = canonical_block_ms / timing
 
     return {
