@@ -22,7 +22,13 @@ def seed_all(seed: int) -> None:
     torch.cuda.manual_seed_all(seed)
 
 
-def cosine_lr(step: int, total_steps: int, warmup_steps: int, peak: float, floor_ratio: float = 0.1) -> float:
+def cosine_lr(
+    step: int,
+    total_steps: int,
+    warmup_steps: int,
+    peak: float,
+    floor_ratio: float = 0.1,
+) -> float:
     if step < warmup_steps:
         return peak * (step + 1) / max(1, warmup_steps)
     progress = (step - warmup_steps) / max(1, total_steps - warmup_steps)
@@ -31,20 +37,37 @@ def cosine_lr(step: int, total_steps: int, warmup_steps: int, peak: float, floor
 
 
 @torch.no_grad()
-def evaluate(model: ResearchLM, val: TokenBin, seq_len: int, batches: int, batch_size: int, seed: int) -> dict[str, object]:
+def evaluate(
+    model: ResearchLM,
+    val: TokenBin,
+    seq_len: int,
+    batches: int,
+    batch_size: int,
+    seed: int,
+) -> dict[str, object]:
     model.eval()
     g = torch.Generator(device="cpu").manual_seed(seed)
     device = next(model.parameters()).device
     losses = []
     for _ in range(batches):
         x, y = val.batch(batch_size, seq_len, g, device)
-        ctx = torch.autocast(device_type="cuda", dtype=torch.bfloat16) if device.type == "cuda" else nullcontext()
+        ctx = (
+            torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+            if device.type == "cuda"
+            else nullcontext()
+        )
         with ctx:
             logits = model(x)
-            loss = F.cross_entropy(logits.float().reshape(-1, logits.size(-1)), y.reshape(-1))
+            loss = F.cross_entropy(
+                logits.float().reshape(-1, logits.size(-1)), y.reshape(-1)
+            )
         losses.append(float(loss))
     mean = sum(losses) / len(losses)
-    return {"nll": mean, "perplexity": math.exp(min(mean, 20.0)), "router": model.router_stats()}
+    return {
+        "nll": mean,
+        "perplexity": math.exp(min(mean, 20.0)),
+        "router": model.router_stats(),
+    }
 
 
 def train_language_model(
@@ -68,10 +91,17 @@ def train_language_model(
     torch.set_float32_matmul_precision("high")
     seed_all(seed)
     device = torch.device("cuda")
+    gpu_name = torch.cuda.get_device_name(device)
 
     cfg = ModelConfig(architecture=architecture, max_seq_len=max(1024, seq_len))
     model = ResearchLM(cfg).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, betas=(0.9, 0.95), weight_decay=weight_decay, fused=True)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=learning_rate,
+        betas=(0.9, 0.95),
+        weight_decay=weight_decay,
+        fused=True,
+    )
 
     tokens_per_step = micro_batch_size * seq_len * grad_accum_steps
     total_steps = math.ceil(token_budget / tokens_per_step)
@@ -97,9 +127,14 @@ def train_language_model(
         batch_gen.set_state(ckpt["batch_gen_state"])
         del ckpt
 
-    start = time.time()
+    start_tokens = tokens_seen
+    torch.cuda.reset_peak_memory_stats(device)
+    torch.cuda.synchronize(device)
+    start = time.perf_counter()
     next_eval = ((tokens_seen // eval_every_tokens) + 1) * eval_every_tokens
-    next_ckpt = ((tokens_seen // checkpoint_every_tokens) + 1) * checkpoint_every_tokens
+    next_ckpt = (
+        (tokens_seen // checkpoint_every_tokens) + 1
+    ) * checkpoint_every_tokens
 
     def write_metric(record: dict[str, object]) -> None:
         with metrics_path.open("a") as f:
@@ -109,9 +144,14 @@ def train_language_model(
 
     def save_checkpoint() -> None:
         payload = {
-            "config": asdict(cfg), "architecture": architecture, "seed": seed,
-            "step": step, "tokens_seen": tokens_seen, "model": model.state_dict(),
-            "optimizer": optimizer.state_dict(), "batch_gen_state": batch_gen.get_state(),
+            "config": asdict(cfg),
+            "architecture": architecture,
+            "seed": seed,
+            "step": step,
+            "tokens_seen": tokens_seen,
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "batch_gen_state": batch_gen.get_state(),
         }
         tmp = run_dir / "latest.tmp.pt"
         torch.save(payload, tmp)
@@ -122,14 +162,24 @@ def train_language_model(
         optimizer.zero_grad(set_to_none=True)
         running = 0.0
         for _ in range(grad_accum_steps):
-            x, y = train_data.batch(micro_batch_size, seq_len, batch_gen, device)
+            x, y = train_data.batch(
+                micro_batch_size, seq_len, batch_gen, device
+            )
             with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
                 logits = model(x)
-                loss = F.cross_entropy(logits.float().reshape(-1, logits.size(-1)), y.reshape(-1)) / grad_accum_steps
+                loss = (
+                    F.cross_entropy(
+                        logits.float().reshape(-1, logits.size(-1)),
+                        y.reshape(-1),
+                    )
+                    / grad_accum_steps
+                )
             loss.backward()
             running += float(loss) * grad_accum_steps
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        lr = cosine_lr(step, total_steps, warmup_steps, learning_rate)
+        lr = cosine_lr(
+            step, total_steps, warmup_steps, learning_rate
+        )
         for group in optimizer.param_groups:
             group["lr"] = lr
         optimizer.step()
@@ -137,13 +187,34 @@ def train_language_model(
         tokens_seen = min(token_budget, step * tokens_per_step)
 
         if step == 1 or step % 20 == 0:
-            elapsed = max(time.time() - start, 1e-6)
-            record = {"type": "train", "step": step, "tokens_seen": tokens_seen, "loss": running / grad_accum_steps, "lr": lr, "tokens_per_second": (step * tokens_per_step) / elapsed}
+            torch.cuda.synchronize(device)
+            elapsed = max(time.perf_counter() - start, 1e-6)
+            processed = max(0, tokens_seen - start_tokens)
+            record = {
+                "type": "train",
+                "step": step,
+                "tokens_seen": tokens_seen,
+                "loss": running / grad_accum_steps,
+                "lr": lr,
+                "tokens_per_second": processed / elapsed,
+            }
             print(json.dumps(record), flush=True)
             write_metric(record)
 
         if tokens_seen >= next_eval or tokens_seen >= token_budget:
-            record = {"type": "eval", "step": step, "tokens_seen": tokens_seen, **evaluate(model, val_data, seq_len, 20, max(1, micro_batch_size // 2), seed + 20_000)}
+            record = {
+                "type": "eval",
+                "step": step,
+                "tokens_seen": tokens_seen,
+                **evaluate(
+                    model,
+                    val_data,
+                    seq_len,
+                    20,
+                    max(1, micro_batch_size // 2),
+                    seed + 20_000,
+                ),
+            }
             print(json.dumps(record), flush=True)
             write_metric(record)
             next_eval += eval_every_tokens
@@ -153,12 +224,42 @@ def train_language_model(
             next_ckpt += checkpoint_every_tokens
 
     save_checkpoint()
-    final_eval = evaluate(model, val_data, seq_len, 50, max(1, micro_batch_size // 2), seed + 30_000)
+    final_eval = evaluate(
+        model,
+        val_data,
+        seq_len,
+        50,
+        max(1, micro_batch_size // 2),
+        seed + 30_000,
+    )
+    torch.cuda.synchronize(device)
+    elapsed_seconds = max(time.perf_counter() - start, 1e-6)
+    processed_tokens = max(0, tokens_seen - start_tokens)
+    tokens_per_second = processed_tokens / elapsed_seconds
+    peak_vram_gb = torch.cuda.max_memory_allocated(device) / (1024**3)
+
     summary = {
-        "run_id": run_id, "architecture": architecture, "seed": seed,
-        "parameters": parameter_count(model), "tokens_seen": tokens_seen, "steps": step,
-        "elapsed_seconds": time.time() - start, "final_eval": final_eval, "config": asdict(cfg),
-        "training": {"seq_len": seq_len, "micro_batch_size": micro_batch_size, "grad_accum_steps": grad_accum_steps, "tokens_per_step": tokens_per_step, "learning_rate": learning_rate, "weight_decay": weight_decay},
+        "run_id": run_id,
+        "architecture": architecture,
+        "seed": seed,
+        "parameters": parameter_count(model),
+        "tokens_seen": tokens_seen,
+        "tokens_processed_this_run": processed_tokens,
+        "steps": step,
+        "elapsed_seconds": elapsed_seconds,
+        "tokens_per_second": tokens_per_second,
+        "gpu_name": gpu_name,
+        "peak_vram_gb": peak_vram_gb,
+        "final_eval": final_eval,
+        "config": asdict(cfg),
+        "training": {
+            "seq_len": seq_len,
+            "micro_batch_size": micro_batch_size,
+            "grad_accum_steps": grad_accum_steps,
+            "tokens_per_step": tokens_per_step,
+            "learning_rate": learning_rate,
+            "weight_decay": weight_decay,
+        },
     }
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2))
     return summary
