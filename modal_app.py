@@ -37,13 +37,43 @@ def _comment_on_issue(repo_full_name: str, issue_number: int, body: str) -> None
     g.get_repo(repo_full_name).get_issue(number=issue_number).create_comment(body)
 
 
-@app.function(image=image, cpu=8, memory=32768, timeout=24 * 60 * 60, volumes={"/vol": volume})
-def prepare_data(train_tokens: int = 110_000_000, val_tokens: int = 2_000_000) -> dict:
+@app.function(
+    image=image,
+    cpu=8,
+    memory=32768,
+    timeout=24 * 60 * 60,
+    volumes={"/vol": volume},
+    secrets=[github_secret],
+)
+def prepare_data(
+    train_tokens: int = 110_000_000,
+    val_tokens: int = 2_000_000,
+    repo_full_name: str = "",
+    issue_number: int = 0,
+) -> dict:
     from tam_research.data import prepare_fineweb
-    result = prepare_fineweb("/vol/data/fineweb-edu-gpt2", train_tokens=train_tokens, val_tokens=val_tokens)
-    volume.commit()
-    print(json.dumps(result, indent=2), flush=True)
-    return result
+    _comment_on_issue(
+        repo_full_name,
+        issue_number,
+        f"🟦 **Modal connected. Data preparation started** — target train tokens={train_tokens:,}, validation tokens={val_tokens:,}.",
+    )
+    try:
+        result = prepare_fineweb("/vol/data/fineweb-edu-gpt2", train_tokens=train_tokens, val_tokens=val_tokens)
+        volume.commit()
+        _comment_on_issue(
+            repo_full_name,
+            issue_number,
+            f"🟩 **Data preparation finished** — training stream is committed to the Modal Volume.",
+        )
+        print(json.dumps(result, indent=2), flush=True)
+        return result
+    except Exception as exc:
+        _comment_on_issue(
+            repo_full_name,
+            issue_number,
+            f"❌ **Data preparation failed:** `{type(exc).__name__}: {exc}`",
+        )
+        raise
 
 
 @app.function(
@@ -64,6 +94,11 @@ def train_one(
     issue_number: int = 0,
 ) -> dict:
     from tam_research.train import train_language_model
+    _comment_on_issue(
+        repo_full_name,
+        issue_number,
+        f"🔥 **H100 training started** — architecture={architecture}, seed={seed}, token budget={token_budget:,}, context={seq_len}.",
+    )
     try:
         volume.reload()
         result = train_language_model(
@@ -106,7 +141,14 @@ def main(
     issue_number: int = 0,
 ):
     if action == "prepare":
-        print(prepare_data.remote(train_tokens=token_budget + 10_000_000, val_tokens=2_000_000))
+        print(
+            prepare_data.remote(
+                train_tokens=token_budget + 10_000_000,
+                val_tokens=2_000_000,
+                repo_full_name=repo_full_name,
+                issue_number=issue_number,
+            )
+        )
         return
     if action == "train-one":
         arch = architectures.split(",")[0].strip()
@@ -117,12 +159,22 @@ def main(
         raise ValueError("action must be prepare, train-one, or suite")
 
     # Data preparation is blocking so every GPU run sees the exact same committed token stream.
-    prepare_data.remote(train_tokens=token_budget + 10_000_000, val_tokens=2_000_000)
+    prepare_data.remote(
+        train_tokens=token_budget + 10_000_000,
+        val_tokens=2_000_000,
+        repo_full_name=repo_full_name,
+        issue_number=issue_number,
+    )
     spawned = []
     for arch in [a.strip() for a in architectures.split(",") if a.strip()]:
         for seed_text in [s.strip() for s in seeds.split(",") if s.strip()]:
             seed = int(seed_text)
             call = train_one.spawn(arch, seed, token_budget, seq_len, repo_full_name, issue_number)
             spawned.append({"call_id": call.object_id, "architecture": arch, "seed": seed})
+    _comment_on_issue(
+        repo_full_name,
+        issue_number,
+        "🚀 **GPU jobs spawned on Modal** — " + ", ".join(f"{x['architecture']} seed {x['seed']}" for x in spawned),
+    )
     print(json.dumps({"spawned": spawned}, indent=2), flush=True)
     # Intentionally return immediately. `modal run --detach` leaves spawned GPU jobs alive.
