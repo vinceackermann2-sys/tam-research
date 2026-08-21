@@ -15,6 +15,7 @@ No broad breakthrough claim is made yet.
 For a complete recovery/continuation package, read:
 
 - [`docs/RESEARCH_HANDOFF_2026-08-21.md`](docs/RESEARCH_HANDOFF_2026-08-21.md) — full research state, chronology, results, failures, storage, next steps
+- [`docs/TAM_V3_25M_FULL_RESULT_2026-08-21.md`](docs/TAM_V3_25M_FULL_RESULT_2026-08-21.md) — completed 300M-token base → SFT → DPO lineage and final checkpoint
 - [`docs/TAM_V3_ARCHITECTURE.md`](docs/TAM_V3_ARCHITECTURE.md) — architecture and design goals
 - [`docs/EXPERIMENT_RESULTS.csv`](docs/EXPERIMENT_RESULTS.csv) — machine-readable results ledger
 - [`docs/CONTINUATION_RUNBOOK.md`](docs/CONTINUATION_RUNBOOK.md) — exact recovery/next-run procedure
@@ -22,7 +23,20 @@ For a complete recovery/continuation package, read:
 
 GitHub issue comments are the authoritative callback log for actual Modal/H100 runs.
 
-## Current evidence
+## Completed end-to-end TAM model
+
+The first fully pretrained + post-trained TAM v3 lineage is complete at ~25M parameters (seed 7400):
+
+- base pretraining: **300M FineWeb-Edu tokens**
+- base held-out NLL: **4.4131** (PPL **82.52**)
+- SFT held-out assistant NLL: **3.6049**
+- DPO held-out implicit reward accuracy: **0.564**
+- final post-SFT+DPO FineWeb NLL: **4.6162**
+- final checkpoint: `/vol/full-model-runs/TAM-v3-25M-Full-seed7400/final_dpo.pt`
+
+Persistent-Volume verification in issue #92 confirms the base, SFT, DPO and final summary artifacts are all present. This validates the complete TAM lifecycle, not production-quality assistant capability; a 25M model remains intentionally small.
+
+## Current architecture evidence
 
 ### ~25M parameters
 
@@ -49,13 +63,13 @@ Both matched ~101.8M models fit and train stably on one H100 at context 512 / mi
 The preregistered replicated 100M gate is:
 
 - preregistration: issue **#66**
-- active training: issue **#67**
+- run: issue **#67**
 - 10M tokens/model
 - Transformer + TAM v3
 - seeds 7202/7203/7204
 - strict `H100!`
 
-Do not launch a duplicate while #67 may have detached GPU calls alive.
+Confirmed so far from issue #67: Transformer seed 7202 completed at NLL **6.9840**, 309,905 tok/s, 36.99 GiB peak VRAM. Do not infer the 100M architecture result until all TAM/replica callbacks exist.
 
 ## Matched parameter family
 
@@ -92,37 +106,12 @@ Persistent Modal Volume: `tam-research-data`
 
 ```text
 /vol/data/fineweb-edu-gpt2       tokenized train/validation data
-/vol/scaling-runs/...            checkpoints, metrics, summaries
+/vol/scaling-runs/...            scaling checkpoints, metrics, summaries
+/vol/full-model-runs/...         completed full-model base/SFT/DPO checkpoints
 /vol/compile-cache/...           persistent Inductor/Triton compiler artifacts
 ```
 
-GitHub contains the code, tests, launchers, protocols, run metadata, and documented evidence. Large checkpoint binaries remain on the Modal Volume.
-
-## Launching scaling runs
-
-Owner-authored issues whose title starts with `[modal-scale]` trigger `.github/workflows/modal-scaling.yml`.
-
-Example body:
-
-```json
-{
-  "model_scale": "100m",
-  "token_budget": 10000000,
-  "architectures": "transformer,tamv3",
-  "seeds": "7202,7203,7204",
-  "micro_batch_size": 64,
-  "grad_accum_steps": 2
-}
-```
-
-Do not include secrets in issues.
-
-GitHub Actions requires repository secrets:
-
-- `MODAL_TOKEN_ID`
-- `MODAL_TOKEN_SECRET`
-
-Modal requires secret `github-secret` containing `GITHUB_TOKEN` for remote result callbacks.
+GitHub contains the code, tests, launchers, protocols, run metadata, failure history, and documented evidence. Large checkpoint binaries remain on the Modal Volume.
 
 ## Verification
 
@@ -131,14 +120,14 @@ pip install -e '.[test]'
 pytest -q
 ```
 
-Tests cover architecture causality/shape behavior, affine-scan correctness, parameter matching, scaling configurations, and compiler-cache isolation/reuse logic.
+CI additionally syntax-checks the root `modal_*_app.py` launchers before GPU changes are merged.
 
 ## Scientific rule
 
 Equal-token loss is only one claim. Before calling TAM a breakthrough, the frozen protocol requires multi-scale reproducibility, competitive equal-compute behavior, mechanism/residual controls, long-context/state evidence, downstream capability gains, modern recurrent/hybrid baselines, and a second data mixture.
 
+The completed 25M full model proves the training/post-training pipeline works; it does **not** prove TAM is a superior chat/agent architecture.
+
 ## Security
 
 Never commit GitHub/Modal credentials, `.env` files, tokenized corpora, or model checkpoints directly to ordinary Git history.
-
-If this repository is public and the research should be confidential, change the repository visibility to **Private** in GitHub settings. The current connector cannot change repository visibility automatically.
