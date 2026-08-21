@@ -237,3 +237,36 @@ Stop blind scaling and redesign if any of these occur:
 - A standard modern recurrent/hybrid baseline matches or exceeds TAM with simpler machinery.
 
 Negative results are useful: they narrow the mechanism and prevent expensive scaling of the wrong architecture.
+
+## 14. Observed evidence ledger
+
+This section records results after the preregistration above. It does **not** change any pass/fail criterion.
+
+### 2026-08-21 — 50M equal-token replication at 10M tokens
+
+Configuration: context 512, micro-batch 64, gradient accumulation 2, matched ~49.8M parameters, same FineWeb-Edu/GPT-2 token stream and H100 class.
+
+| Seed | Transformer NLL | TAM v3 NLL | Winner |
+|---:|---:|---:|---|
+| 7102 | 7.0969 | 6.8978 | TAM v3 |
+| 7103 | 7.0550 | 6.8577 | TAM v3 |
+| 7104 | 7.0404 | 6.9101 | TAM v3 |
+
+Observed means:
+
+- Transformer NLL: **7.0641**
+- TAM v3 NLL: **6.8885**
+- Mean NLL delta: **-0.1756** for TAM v3 (~2.49% lower)
+- TAM v3 wins: **3/3 seeds**
+- Transformer steady-state throughput: ~**452.9k tok/s**
+- TAM v3 steady-state throughput: ~**370.4k tok/s**
+- TAM v3 throughput ratio: ~**81.8%** of Transformer
+- Peak VRAM at this batch: Transformer ~29.75 GiB; TAM v3 ~32.98 GiB
+
+Interpretation: the 50M equal-token replication passes the current quality/stability scaling gate. The gap is larger than the earlier 25M signal, which is encouraging for the scaling hypothesis, but two parameter scales are not enough to establish a scaling law.
+
+### 2026-08-21 — 100M smoke only
+
+At ~101.8M parameters, context 512, micro-batch 64, accumulation 2, seed 7201, both models trained stably for 1M tokens. Transformer NLL was 8.9265 and TAM v3 NLL was 8.9263; the difference is effectively zero at this intentionally undertrained smoke horizon. Steady-state throughput was ~280.4k tok/s for Transformer and ~225.9k tok/s for TAM v3 (~80.6% ratio), with TAM v3 peak VRAM ~43.04 GiB.
+
+**Status:** implementation/hardware gate passed; scientific 100M replication remains pending. Do not treat the 1M-token smoke as evidence for or against the architecture-quality claim.
