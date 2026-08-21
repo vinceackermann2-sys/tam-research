@@ -16,18 +16,21 @@ class TinyTokenizer:
 
 def test_supervised_pair_masks_prompt_and_trains_assistant_tokens():
     tokenizer = TinyTokenizer()
+    seq_len = 32
     x, labels = encode_supervised_pair(
         tokenizer,
         "Hi",
         "OK",
-        seq_len=32,
+        seq_len=seq_len,
     )
-    assert x.shape == (32,)
-    assert labels.shape == (32,)
+    assert x.shape == (seq_len,)
+    assert labels.shape == (seq_len,)
     assert x.dtype == np.uint16
     assert labels.dtype == np.int32
 
-    prefix_len = len(tokenizer.encode("User:\nHi\nAssistant:\n"))
+    original_prefix_len = len(tokenizer.encode("User:\nHi\nAssistant:\n"))
+    max_total = seq_len + 1
+    prefix_len = min(original_prefix_len, max_total // 2, max_total - 2)
     # The input immediately before the first response token predicts that response.
     first_target = prefix_len - 1
     assert np.all(labels[:first_target] == -100)
