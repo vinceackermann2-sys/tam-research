@@ -10,7 +10,7 @@ on:
       architectures:
         description: "Comma-separated architectures"
         required: true
-        default: "transformer,tamv2"
+        default: "transformer,tamv3"
       seeds:
         description: "Comma-separated seeds"
         required: true
@@ -19,6 +19,10 @@ on:
         description: "Training sequence length"
         required: true
         default: "512"
+      compile_model:
+        description: "Use torch.compile for steady-state training"
+        required: true
+        default: "false"
   issues:
     types: [opened]
 
@@ -52,22 +56,36 @@ jobs:
           INPUT_ARCHITECTURES: ${{ inputs.architectures }}
           INPUT_SEEDS: ${{ inputs.seeds }}
           INPUT_SEQ_LEN: ${{ inputs.seq_len }}
+          INPUT_COMPILE_MODEL: ${{ inputs.compile_model }}
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, re
+
+          def parse_bool(value):
+              if isinstance(value, bool):
+                  return value
+              text = str(value).strip().lower()
+              if text in {"1", "true", "yes", "on"}:
+                  return True
+              if text in {"0", "false", "no", "off", ""}:
+                  return False
+              raise ValueError(f"invalid boolean: {value!r}")
+
           if os.environ["EVENT_NAME"] == "issues":
               cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
               action = str(cfg.get("action", "suite"))
               token_budget = int(cfg.get("token_budget", 100_000_000))
-              architectures = str(cfg.get("architectures", "transformer,tamv2"))
+              architectures = str(cfg.get("architectures", "transformer,tamv3"))
               seeds = str(cfg.get("seeds", "7025,7026,7027"))
               seq_len = int(cfg.get("seq_len", 512))
+              compile_model = parse_bool(cfg.get("compile", False))
           else:
               action = "suite"
               token_budget = int(os.environ["INPUT_TOKEN_BUDGET"])
               architectures = os.environ["INPUT_ARCHITECTURES"]
               seeds = os.environ["INPUT_SEEDS"]
               seq_len = int(os.environ["INPUT_SEQ_LEN"])
+              compile_model = parse_bool(os.environ.get("INPUT_COMPILE_MODEL", "false"))
           allowed_actions = {"suite", "profile"}
           allowed = {
               "transformer", "tam", "tamv2",
@@ -86,6 +104,7 @@ jobs:
           print(f"architectures={','.join(archs)}")
           print(f"seeds={','.join(seed_list)}")
           print(f"seq_len={seq_len}")
+          print(f"compile_model={'true' if compile_model else 'false'}")
           PY
       - name: Record GitHub launcher start
         if: github.event_name == 'issues'
@@ -132,6 +151,7 @@ jobs:
             --architectures "${{ steps.cfg.outputs.architectures }}" \
             --seeds "${{ steps.cfg.outputs.seeds }}" \
             --seq-len "${{ steps.cfg.outputs.seq_len }}" \
+            --compile-model "${{ steps.cfg.outputs.compile_model }}" \
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER" 2>&1 | tee modal-launch.log
           status=${PIPESTATUS[0]}
