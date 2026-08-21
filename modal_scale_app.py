@@ -26,16 +26,34 @@ image = (
 
 
 def _comment(repo_full_name: str, issue_number: int, body: str) -> None:
+    """Best-effort issue reporting that can never abort a research run.
+
+    Remote Modal functions receive GITHUB_TOKEN via ``github-secret`` and have
+    PyGithub installed in the Modal image. The local entrypoint runs inside the
+    GitHub Actions launcher, where neither is guaranteed. Check for the token
+    before importing PyGithub and swallow reporting failures so status plumbing
+    cannot prevent H100 work from starting.
+    """
     if not repo_full_name or not issue_number:
         return
+
     import os
-    import github
 
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
+        print(f"[status] {body}", flush=True)
         return
-    client = github.Github(auth=github.Auth.Token(token))
-    client.get_repo(repo_full_name).get_issue(number=issue_number).create_comment(body)
+
+    try:
+        import github
+
+        client = github.Github(auth=github.Auth.Token(token))
+        client.get_repo(repo_full_name).get_issue(number=issue_number).create_comment(body)
+    except Exception as exc:
+        print(
+            f"[status-report-nonfatal] {type(exc).__name__}: {exc}; body={body}",
+            flush=True,
+        )
 
 
 @app.function(
