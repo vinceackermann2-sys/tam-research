@@ -47,13 +47,14 @@ def _comment(repo_full_name: str, issue_number: int, body: str) -> None:
         print(f"[status-report-nonfatal] {type(exc).__name__}: {exc}; body={body}", flush=True)
 
 
-def _prepare_sft_subset(source_dir: str, destination_dir: str, rows: int) -> str:
-    """Create a deterministic small SFT train shard in local ephemeral storage.
+def _prepare_budget_posttrain_data(source_dir: str, destination_dir: str, sft_rows: int) -> str:
+    """Stage the small post-training arrays locally as int64.
 
-    The original 20k UltraFeedback arrays on the persistent Volume remain untouched.
-    Evaluation arrays are copied in full so held-out metrics stay comparable.
+    The persistent UltraFeedback arrays use uint16 for compact storage. CUDA advanced
+    indexing is not implemented for uint16, while both SFT and DPO shuffle with an
+    index tensor. Converting only these small post-training arrays to int64 in the
+    ephemeral H100 container fixes that without rewriting the canonical Volume data.
     """
-    import shutil
     from pathlib import Path
 
     import numpy as np
@@ -62,15 +63,24 @@ def _prepare_sft_subset(source_dir: str, destination_dir: str, rows: int) -> str
     dst = Path(destination_dir)
     dst.mkdir(parents=True, exist_ok=True)
 
-    train_inputs = np.load(src / "sft_train_inputs.npy", mmap_mode="r")
-    train_labels = np.load(src / "sft_train_labels.npy", mmap_mode="r")
-    n = min(rows, len(train_inputs), len(train_labels))
-    if n < 128:
-        raise RuntimeError(f"SFT subset too small: {n}")
-    np.save(dst / "sft_train_inputs.npy", np.asarray(train_inputs[:n]).copy())
-    np.save(dst / "sft_train_labels.npy", np.asarray(train_labels[:n]).copy())
-    shutil.copyfile(src / "sft_eval_inputs.npy", dst / "sft_eval_inputs.npy")
-    shutil.copyfile(src / "sft_eval_labels.npy", dst / "sft_eval_labels.npy")
+    def stage(name: str, limit: int | None = None) -> None:
+        array = np.load(src / name, mmap_mode="r")
+        if limit is not None:
+            array = array[: min(limit, len(array))]
+        np.save(dst / name, np.asarray(array, dtype=np.int64).copy())
+
+    stage("sft_train_inputs.npy", sft_rows)
+    stage("sft_train_labels.npy", sft_rows)
+    stage("sft_eval_inputs.npy")
+    stage("sft_eval_labels.npy")
+    for prefix in ("pref_train", "pref_eval"):
+        for side in ("chosen", "rejected"):
+            stage(f"{prefix}_{side}_inputs.npy")
+            stage(f"{prefix}_{side}_labels.npy")
+
+    staged_rows = len(np.load(dst / "sft_train_inputs.npy", mmap_mode="r"))
+    if staged_rows < 128:
+        raise RuntimeError(f"SFT subset too small: {staged_rows}")
     return str(dst)
 
 
@@ -112,14 +122,24 @@ def posttrain_tam25m(
         Path(posttrain_data_dir) / "sft_eval_inputs.npy",
         Path(posttrain_data_dir) / "sft_eval_labels.npy",
         Path(posttrain_data_dir) / "pref_train_chosen_inputs.npy",
+        Path(posttrain_data_dir) / "pref_train_chosen_labels.npy",
         Path(posttrain_data_dir) / "pref_train_rejected_inputs.npy",
+        Path(posttrain_data_dir) / "pref_train_rejected_labels.npy",
         Path(posttrain_data_dir) / "pref_eval_chosen_inputs.npy",
+        Path(posttrain_data_dir) / "pref_eval_chosen_labels.npy",
         Path(posttrain_data_dir) / "pref_eval_rejected_inputs.npy",
+        Path(posttrain_data_dir) / "pref_eval_rejected_labels.npy",
         Path(fineweb_data_dir) / "val.bin",
     ]
     missing = [str(path) for path in required if not path.exists()]
     if missing:
         raise FileNotFoundError(f"required continuation artifacts missing: {missing}")
+
+    # Prepare dtype-safe local arrays before importing Torch/training code. This is
+    # CPU memory/storage work and does not alter the persistent source dataset.
+    budget_data_dir = _prepare_budget_posttrain_data(
+        posttrain_data_dir, "/tmp/tam-posttrain-int64", SFT_TRAIN_EXAMPLES
+    )
 
     import torch
     from tam_research.data import TokenBin
@@ -131,7 +151,8 @@ def posttrain_tam25m(
         repo_full_name,
         issue_number,
         f"🔥 **TAM-v3-25M budget-v2 post-training started** — saved 300M-token base; "
-        f"SFT={SFT_TRAIN_EXAMPLES:,} examples eager/no-compile; DPO=full 5k pairs; hard ceiling={MAX_GPU_SECONDS}s.",
+        f"SFT={SFT_TRAIN_EXAMPLES:,} examples eager/no-compile; DPO=full 5k pairs; "
+        f"local post-training arrays=int64; hard ceiling={MAX_GPU_SECONDS}s.",
     )
 
     try:
@@ -141,10 +162,9 @@ def posttrain_tam25m(
             sft_summary = json.loads(sft_summary_path.read_text())
             _comment(repo_full_name, issue_number, "♻️ **Existing SFT checkpoint found** — reusing it.")
         else:
-            subset_dir = _prepare_sft_subset(posttrain_data_dir, "/tmp/tam-sft-10k", SFT_TRAIN_EXAMPLES)
             sft_checkpoint, sft_summary = train_sft(
                 pretrained_checkpoint,
-                subset_dir,
+                budget_data_dir,
                 str(run_dir),
                 seed=SEED,
                 micro_batch_size=64,
@@ -192,7 +212,7 @@ def posttrain_tam25m(
         else:
             dpo_checkpoint, dpo_summary = train_dpo(
                 str(sft_path),
-                posttrain_data_dir,
+                budget_data_dir,
                 str(run_dir),
                 seed=SEED,
                 beta=0.1,
@@ -257,6 +277,7 @@ def posttrain_tam25m(
             "final_language_eval": final_language,
             "samples": samples,
             "sft_train_examples_budget_v2": SFT_TRAIN_EXAMPLES,
+            "posttrain_local_dtype": "int64",
             "max_gpu_seconds": MAX_GPU_SECONDS,
             "gpu_function_elapsed_seconds": total_elapsed,
         }
