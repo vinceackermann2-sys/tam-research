@@ -18,19 +18,27 @@ def train_scaled_language_model(
     micro_batch_size: int,
     grad_accum_steps: int,
     compile_model: bool = True,
+    eval_every_tokens: int = 5_000_000,
+    checkpoint_every_tokens: int = 10_000_000,
 ) -> dict[str, Any]:
     """Run the established training loop with a scale-specific matched config.
 
-    The baseline trainer intentionally remains untouched so historical 25M evidence
+    The baseline trainer intentionally remains untouched so historical evidence
     stays reproducible. Modal runs execute in isolated containers, so temporarily
     substituting the ModelConfig constructor here is process-local. Scale- and
     batching-specific run roots prevent checkpoint/resume collisions.
+
+    ``eval_every_tokens`` and ``checkpoint_every_tokens`` default to the historical
+    values. Long budget-capped production-style runs may raise them to reduce
+    evaluation/checkpoint I/O without changing the training objective or optimizer.
     """
     scale = model_scale.lower()
     if scale not in SCALE_SPECS:
         raise ValueError(f"unknown model scale: {model_scale!r}")
     if architecture not in {"transformer", "tamv3"}:
         raise ValueError("scaling grid supports only transformer and tamv3")
+    if eval_every_tokens <= 0 or checkpoint_every_tokens <= 0:
+        raise ValueError("evaluation and checkpoint intervals must be positive")
 
     from . import train as train_module
 
@@ -59,6 +67,8 @@ def train_scaled_language_model(
             seq_len=seq_len,
             micro_batch_size=micro_batch_size,
             grad_accum_steps=grad_accum_steps,
+            eval_every_tokens=eval_every_tokens,
+            checkpoint_every_tokens=checkpoint_every_tokens,
             compile_model=compile_model,
         )
     finally:
