@@ -84,6 +84,55 @@ def prepare_data(
 
 @app.function(
     image=image,
+    gpu="H100!",
+    cpu=4,
+    memory=16384,
+    timeout=30 * 60,
+    secrets=[github_secret],
+)
+def profile_h100(
+    seq_len: int = 512,
+    repo_full_name: str = "",
+    issue_number: int = 0,
+) -> dict:
+    from tam_research.profile import profile_components
+
+    _comment_on_issue(
+        repo_full_name,
+        issue_number,
+        f"🔬 **H100 component profiling started** — context={seq_len}, micro-batch=8.",
+    )
+    try:
+        result = profile_components(seq_len=seq_len, batch_size=8)
+        rows = []
+        for name, record in result["results"].items():
+            rows.append(
+                f"| {name} | {record['forward_ms_median']:.3f} | "
+                f"{record['train_ms_median']:.3f} | {record['peak_vram_gib']:.2f} | "
+                f"{record['train_vs_transformer_block']:.2f}× |"
+            )
+        table = (
+            "| component | forward ms | fwd+bwd ms | peak GiB | vs Transformer block |\n"
+            "|---|---:|---:|---:|---:|\n" + "\n".join(rows)
+        )
+        _comment_on_issue(
+            repo_full_name,
+            issue_number,
+            f"📊 **H100 component profile finished** — {result['gpu_name']}, context={seq_len}, batch=8.\n\n{table}",
+        )
+        print(json.dumps(result, indent=2), flush=True)
+        return result
+    except Exception as exc:
+        _comment_on_issue(
+            repo_full_name,
+            issue_number,
+            f"❌ **H100 component profiling failed:** `{type(exc).__name__}: {exc}`",
+        )
+        raise
+
+
+@app.function(
+    image=image,
     # Pin exact H100 hardware for benchmarking. Modal may upgrade plain H100 requests to H200.
     gpu="H100!",
     cpu=8,
@@ -157,6 +206,9 @@ def main(
     repo_full_name: str = "",
     issue_number: int = 0,
 ):
+    if action == "profile":
+        print(profile_h100.remote(seq_len, repo_full_name, issue_number))
+        return
     if action == "prepare":
         print(
             prepare_data.remote(
@@ -182,7 +234,7 @@ def main(
         )
         return
     if action != "suite":
-        raise ValueError("action must be prepare, train-one, or suite")
+        raise ValueError("action must be profile, prepare, train-one, or suite")
 
     # Data preparation is blocking so every GPU run sees the exact same committed token stream.
     prepare_data.remote(

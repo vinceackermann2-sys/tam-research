@@ -57,22 +57,27 @@ jobs:
           import json, os, re
           if os.environ["EVENT_NAME"] == "issues":
               cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+              action = str(cfg.get("action", "suite"))
               token_budget = int(cfg.get("token_budget", 100_000_000))
               architectures = str(cfg.get("architectures", "transformer,tamv2"))
               seeds = str(cfg.get("seeds", "7025,7026,7027"))
               seq_len = int(cfg.get("seq_len", 512))
           else:
+              action = "suite"
               token_budget = int(os.environ["INPUT_TOKEN_BUDGET"])
               architectures = os.environ["INPUT_ARCHITECTURES"]
               seeds = os.environ["INPUT_SEEDS"]
               seq_len = int(os.environ["INPUT_SEQ_LEN"])
+          allowed_actions = {"suite", "profile"}
           allowed = {"transformer", "tam", "tamv2"}
           archs = [x.strip() for x in architectures.split(",") if x.strip()]
           seed_list = [x.strip() for x in seeds.split(",") if x.strip()]
+          assert action in allowed_actions
           assert archs and set(archs) <= allowed
           assert seed_list and len(seed_list) <= 8 and all(re.fullmatch(r"\d{1,10}", x) for x in seed_list)
           assert 1_000_000 <= token_budget <= 1_000_000_000
           assert seq_len in {128, 256, 512, 1024}
+          print(f"action={action}")
           print(f"token_budget={token_budget}")
           print(f"architectures={','.join(archs)}")
           print(f"seeds={','.join(seed_list)}")
@@ -111,14 +116,14 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
               -f body="🟧 **Modal authentication verified** — API token accepted; launching Modal app."
           fi
-      - name: Launch detached matched suite on Modal
+      - name: Launch detached Modal research action
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
         run: |
           set +e
           modal run --detach --timestamps modal_app.py \
-            --action suite \
+            --action "${{ steps.cfg.outputs.action }}" \
             --token-budget "${{ steps.cfg.outputs.token_budget }}" \
             --architectures "${{ steps.cfg.outputs.architectures }}" \
             --seeds "${{ steps.cfg.outputs.seeds }}" \
