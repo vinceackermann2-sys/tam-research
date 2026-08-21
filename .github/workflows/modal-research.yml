@@ -69,7 +69,10 @@ jobs:
               seeds = os.environ["INPUT_SEEDS"]
               seq_len = int(os.environ["INPUT_SEQ_LEN"])
           allowed_actions = {"suite", "profile"}
-          allowed = {"transformer", "tam", "tamv2"}
+          allowed = {
+              "transformer", "tam", "tamv2",
+              "tamv2_nomem", "tamv2_noworld", "tamv2_fixed",
+          }
           archs = [x.strip() for x in architectures.split(",") if x.strip()]
           seed_list = [x.strip() for x in seeds.split(",") if x.strip()]
           assert action in allowed_actions
