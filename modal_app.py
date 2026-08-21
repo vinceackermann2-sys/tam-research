@@ -30,6 +30,7 @@ def _comment_on_issue(repo_full_name: str, issue_number: int, body: str) -> None
         return
     import os
     import github
+
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         return
@@ -52,18 +53,23 @@ def prepare_data(
     issue_number: int = 0,
 ) -> dict:
     from tam_research.data import prepare_fineweb
+
     _comment_on_issue(
         repo_full_name,
         issue_number,
         f"🟦 **Modal connected. Data preparation started** — target train tokens={train_tokens:,}, validation tokens={val_tokens:,}.",
     )
     try:
-        result = prepare_fineweb("/vol/data/fineweb-edu-gpt2", train_tokens=train_tokens, val_tokens=val_tokens)
+        result = prepare_fineweb(
+            "/vol/data/fineweb-edu-gpt2",
+            train_tokens=train_tokens,
+            val_tokens=val_tokens,
+        )
         volume.commit()
         _comment_on_issue(
             repo_full_name,
             issue_number,
-            f"🟩 **Data preparation finished** — training stream is committed to the Modal Volume.",
+            "🟩 **Data preparation finished** — training stream is committed to the Modal Volume.",
         )
         print(json.dumps(result, indent=2), flush=True)
         return result
@@ -78,7 +84,8 @@ def prepare_data(
 
 @app.function(
     image=image,
-    gpu="H100",
+    # Pin exact H100 hardware for benchmarking. Modal may upgrade plain H100 requests to H200.
+    gpu="H100!",
     cpu=8,
     memory=32768,
     timeout=24 * 60 * 60,
@@ -94,6 +101,7 @@ def train_one(
     issue_number: int = 0,
 ) -> dict:
     from tam_research.train import train_language_model
+
     _comment_on_issue(
         repo_full_name,
         issue_number,
@@ -115,18 +123,27 @@ def train_one(
         route_text = ""
         if router and router.get("mean"):
             m = router["mean"]
-            route_text = f"\nRouter: attention={m['attention']:.3f}, memory={m['memory']:.3f}, world={m['world']:.3f}"
+            route_text = (
+                f"\nRouter: attention={m['attention']:.3f}, "
+                f"memory={m['memory']:.3f}, world={m['world']:.3f}"
+            )
         _comment_on_issue(
             repo_full_name,
             issue_number,
             f"✅ **{architecture} seed {seed} finished** — {result['tokens_seen']:,} tokens, "
-            f"NLL={ev['nll']:.4f}, PPL={ev['perplexity']:.2f}, params={result['parameters']:,}."
+            f"NLL={ev['nll']:.4f}, PPL={ev['perplexity']:.2f}, params={result['parameters']:,}.\n"
+            f"Hardware: {result['gpu_name']}; elapsed={result['elapsed_seconds']:.2f}s; "
+            f"throughput={result['tokens_per_second']:.0f} tok/s; peak VRAM={result['peak_vram_gb']:.2f} GiB."
             f"{route_text}",
         )
         print(json.dumps(result, indent=2), flush=True)
         return result
     except Exception as exc:
-        _comment_on_issue(repo_full_name, issue_number, f"❌ **{architecture} seed {seed} failed:** `{type(exc).__name__}: {exc}`")
+        _comment_on_issue(
+            repo_full_name,
+            issue_number,
+            f"❌ **{architecture} seed {seed} failed:** `{type(exc).__name__}: {exc}`",
+        )
         raise
 
 
@@ -153,7 +170,16 @@ def main(
     if action == "train-one":
         arch = architectures.split(",")[0].strip()
         seed = int(seeds.split(",")[0])
-        print(train_one.remote(arch, seed, token_budget, seq_len, repo_full_name, issue_number))
+        print(
+            train_one.remote(
+                arch,
+                seed,
+                token_budget,
+                seq_len,
+                repo_full_name,
+                issue_number,
+            )
+        )
         return
     if action != "suite":
         raise ValueError("action must be prepare, train-one, or suite")
@@ -169,12 +195,20 @@ def main(
     for arch in [a.strip() for a in architectures.split(",") if a.strip()]:
         for seed_text in [s.strip() for s in seeds.split(",") if s.strip()]:
             seed = int(seed_text)
-            call = train_one.spawn(arch, seed, token_budget, seq_len, repo_full_name, issue_number)
-            spawned.append({"call_id": call.object_id, "architecture": arch, "seed": seed})
-    _comment_on_issue(
-        repo_full_name,
-        issue_number,
-        "🚀 **GPU jobs spawned on Modal** — " + ", ".join(f"{x['architecture']} seed {x['seed']}" for x in spawned),
-    )
+            call = train_one.spawn(
+                arch,
+                seed,
+                token_budget,
+                seq_len,
+                repo_full_name,
+                issue_number,
+            )
+            spawned.append(
+                {"call_id": call.object_id, "architecture": arch, "seed": seed}
+            )
+
+    # Do not call _comment_on_issue here: the local entrypoint executes on the GitHub runner,
+    # not inside the Modal image that contains PyGithub/github-secret. The workflow itself
+    # records successful handoff; remote functions own all subsequent status callbacks.
     print(json.dumps({"spawned": spawned}, indent=2), flush=True)
     # Intentionally return immediately. `modal run --detach` leaves spawned GPU jobs alive.
