@@ -8,6 +8,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+TAMV2_ARCHITECTURES = {
+    "tamv2",
+    "tamv2_nomem",
+    "tamv2_noworld",
+    "tamv2_fixed",
+}
+
+
 @dataclass(frozen=True)
 class ModelConfig:
     vocab_size: int = 50_257
@@ -16,7 +24,7 @@ class ModelConfig:
     n_heads: int = 8
     max_seq_len: int = 1024
     ff_mult: int = 4
-    architecture: str = "transformer"  # transformer | tam | tamv2
+    architecture: str = "transformer"
     tamv2_branch_inner: int = 104
     tamv2_state_size: int = 64
 
@@ -144,15 +152,30 @@ class RecurrentWorldState(nn.Module):
 
 
 class TAMV2Mixer(nn.Module):
-    """Token-wise router over causal attention, ATAM, and recurrent world-state."""
+    """Token-wise router over causal attention, ATAM, and recurrent world-state.
 
-    def __init__(self, d_model: int, n_heads: int, branch_inner: int, state_size: int):
+    Ablation modes retain all modules/parameters and still execute every branch so
+    parameter count and branch compute stay matched. They only change which branch
+    outputs the router is allowed to use.
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        branch_inner: int,
+        state_size: int,
+        mode: str = "full",
+    ):
         super().__init__()
         if n_heads % 2:
             raise ValueError("TAM v2 needs an even head count")
+        if mode not in {"full", "nomem", "noworld", "fixed"}:
+            raise ValueError(f"unknown TAM v2 mode: {mode}")
         branch_heads = n_heads // 2
         if branch_inner % branch_heads:
             raise ValueError("branch_inner must be divisible by half the head count")
+        self.mode = mode
         self.attn = CausalSelfAttention(d_model, branch_heads, branch_inner)
         self.mem = ATAMMixer(d_model, branch_heads, branch_inner)
         self.world = RecurrentWorldState(d_model, state_size)
@@ -166,10 +189,30 @@ class TAMV2Mixer(nn.Module):
         attn = self.attn(x)
         mem = self.mem(x)
         world, state = self.world(x)
-        temperature = self.temperature_log.exp().clamp(0.25, 4.0)
-        route = torch.softmax(self.router(torch.cat((x, state), dim=-1)).float() / temperature, dim=-1).to(x.dtype)
+
+        if self.mode == "fixed":
+            route = torch.full(
+                (*x.shape[:2], 3),
+                1.0 / 3.0,
+                device=x.device,
+                dtype=x.dtype,
+            )
+            output_scale = 3.0
+        else:
+            temperature = self.temperature_log.exp().clamp(0.25, 4.0)
+            logits = self.router(torch.cat((x, state), dim=-1)).float() / temperature
+            if self.mode == "nomem":
+                logits[..., 1] = float("-inf")
+                output_scale = 2.0
+            elif self.mode == "noworld":
+                logits[..., 2] = float("-inf")
+                output_scale = 2.0
+            else:
+                output_scale = 3.0
+            route = torch.softmax(logits, dim=-1).to(x.dtype)
+
         self.last_route = route.detach()
-        return 3.0 * (
+        return output_scale * (
             route[..., 0:1] * attn
             + route[..., 1:2] * mem
             + route[..., 2:3] * world
@@ -185,8 +228,20 @@ class Block(nn.Module):
             self.mixer = CausalSelfAttention(cfg.d_model, cfg.n_heads)
         elif cfg.architecture == "tam":
             self.mixer = TAMMixer(cfg.d_model, cfg.n_heads)
-        elif cfg.architecture == "tamv2":
-            self.mixer = TAMV2Mixer(cfg.d_model, cfg.n_heads, cfg.tamv2_branch_inner, cfg.tamv2_state_size)
+        elif cfg.architecture in TAMV2_ARCHITECTURES:
+            mode = {
+                "tamv2": "full",
+                "tamv2_nomem": "nomem",
+                "tamv2_noworld": "noworld",
+                "tamv2_fixed": "fixed",
+            }[cfg.architecture]
+            self.mixer = TAMV2Mixer(
+                cfg.d_model,
+                cfg.n_heads,
+                cfg.tamv2_branch_inner,
+                cfg.tamv2_state_size,
+                mode=mode,
+            )
         else:
             raise ValueError(f"unknown architecture: {cfg.architecture}")
         ff = cfg.ff_mult * cfg.d_model
@@ -212,7 +267,7 @@ class ResearchLM(nn.Module):
         self.lm_head = nn.Linear(cfg.d_model, cfg.vocab_size, bias=False)
         self.lm_head.weight = self.token_emb.weight
         self.apply(self._init_weights)
-        if cfg.architecture == "tamv2":
+        if cfg.architecture in TAMV2_ARCHITECTURES:
             for block in self.blocks:
                 nn.init.zeros_(block.mixer.router.weight)
                 nn.init.zeros_(block.mixer.router.bias)
@@ -236,7 +291,7 @@ class ResearchLM(nn.Module):
 
     @torch.no_grad()
     def router_stats(self) -> dict[str, object] | None:
-        if self.cfg.architecture != "tamv2":
+        if self.cfg.architecture not in TAMV2_ARCHITECTURES:
             return None
         per_layer = []
         for block in self.blocks:
