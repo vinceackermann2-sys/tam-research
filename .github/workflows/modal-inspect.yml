@@ -1,0 +1,36 @@
+name: Modal inspect research volume
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  inspect:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[modal-inspect]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.1,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Inspect persistent Volume on CPU only
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          modal run --timestamps modal_inspect_app.py \
+            --repo-full-name "$GITHUB_REPOSITORY" \
+            --issue-number "$ISSUE_NUMBER"
