@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       max_gpu_seconds:
-        description: "Hard H100 post-training ceiling (180-260)"
+        description: "Fixed H100 post-training ceiling"
         required: true
-        default: "260"
+        default: "150"
   issues:
     types: [opened]
 
@@ -22,7 +22,7 @@ jobs:
        github.event.issue.user.login == github.repository_owner &&
        startsWith(github.event.issue.title, '[modal-posttrain]'))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Resolve guarded budget
+      - name: Resolve fixed guarded budget
         id: cfg
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -43,10 +43,10 @@ jobs:
           import json, os
           if os.environ["EVENT_NAME"] == "issues":
               cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
-              seconds = int(cfg.get("max_gpu_seconds", 260))
+              seconds = int(cfg.get("max_gpu_seconds", 150))
           else:
               seconds = int(os.environ["INPUT_MAX_GPU_SECONDS"])
-          assert 180 <= seconds <= 260
+          assert seconds == 150, "budget-v2 posttraining is fixed at 150 H100 seconds"
           print(f"max_gpu_seconds={seconds}")
           PY
 
@@ -57,7 +57,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟨 **Post-training launcher started** — hard H100 ceiling=${{ steps.cfg.outputs.max_gpu_seconds }}s; saved 300M-token base only, no pretraining."
+            -f body="🟨 **Budget-v2 post-training launcher started** — hard H100 ceiling=150s; saved 300M-token base only; eager 10k SFT + full 5k DPO."
 
       - name: Install Modal
         run: pip install "modal>=1.1,<2"
@@ -81,4 +81,4 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟪 **GitHub → Modal post-training handoff completed.** No pretraining or additional GPU jobs are triggered."
+            -f body="🟪 **GitHub → Modal budget-v2 post-training handoff completed.** No pretraining or additional GPU jobs are triggered."
