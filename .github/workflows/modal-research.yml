@@ -72,6 +72,7 @@ jobs:
           allowed = {
               "transformer", "tam", "tamv2",
               "tamv2_nomem", "tamv2_noworld", "tamv2_fixed",
+              "tamv3", "tamv3_fixed",
           }
           archs = [x.strip() for x in architectures.split(",") if x.strip()]
           seed_list = [x.strip() for x in seeds.split(",") if x.strip()]
