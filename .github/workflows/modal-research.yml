@@ -23,6 +23,14 @@ on:
         description: "Use torch.compile for steady-state training"
         required: true
         default: "false"
+      micro_batch_size:
+        description: "Sequences per micro-batch"
+        required: true
+        default: "8"
+      grad_accum_steps:
+        description: "Gradient accumulation passes per optimizer step"
+        required: true
+        default: "16"
   issues:
     types: [opened]
 
@@ -57,6 +65,8 @@ jobs:
           INPUT_SEEDS: ${{ inputs.seeds }}
           INPUT_SEQ_LEN: ${{ inputs.seq_len }}
           INPUT_COMPILE_MODEL: ${{ inputs.compile_model }}
+          INPUT_MICRO_BATCH_SIZE: ${{ inputs.micro_batch_size }}
+          INPUT_GRAD_ACCUM_STEPS: ${{ inputs.grad_accum_steps }}
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, re
@@ -79,6 +89,8 @@ jobs:
               seeds = str(cfg.get("seeds", "7025,7026,7027"))
               seq_len = int(cfg.get("seq_len", 512))
               compile_model = parse_bool(cfg.get("compile", False))
+              micro_batch_size = int(cfg.get("micro_batch_size", 8))
+              grad_accum_steps = int(cfg.get("grad_accum_steps", 16))
           else:
               action = "suite"
               token_budget = int(os.environ["INPUT_TOKEN_BUDGET"])
@@ -86,6 +98,9 @@ jobs:
               seeds = os.environ["INPUT_SEEDS"]
               seq_len = int(os.environ["INPUT_SEQ_LEN"])
               compile_model = parse_bool(os.environ.get("INPUT_COMPILE_MODEL", "false"))
+              micro_batch_size = int(os.environ.get("INPUT_MICRO_BATCH_SIZE", "8"))
+              grad_accum_steps = int(os.environ.get("INPUT_GRAD_ACCUM_STEPS", "16"))
+
           allowed_actions = {"suite", "profile"}
           allowed = {
               "transformer", "tam", "tamv2",
@@ -99,12 +114,19 @@ jobs:
           assert seed_list and len(seed_list) <= 8 and all(re.fullmatch(r"\d{1,10}", x) for x in seed_list)
           assert 1_000_000 <= token_budget <= 1_000_000_000
           assert seq_len in {128, 256, 512, 1024}
+          assert micro_batch_size in {8, 16, 32, 64, 128}
+          assert grad_accum_steps in {1, 2, 4, 8, 16}
+          # Preserve the existing optimizer batch: 128 sequences per update.
+          assert micro_batch_size * grad_accum_steps == 128
+
           print(f"action={action}")
           print(f"token_budget={token_budget}")
           print(f"architectures={','.join(archs)}")
           print(f"seeds={','.join(seed_list)}")
           print(f"seq_len={seq_len}")
           print(f"compile_model={'true' if compile_model else 'false'}")
+          print(f"micro_batch_size={micro_batch_size}")
+          print(f"grad_accum_steps={grad_accum_steps}")
           PY
       - name: Record GitHub launcher start
         if: github.event_name == 'issues'
@@ -152,6 +174,8 @@ jobs:
             --seeds "${{ steps.cfg.outputs.seeds }}" \
             --seq-len "${{ steps.cfg.outputs.seq_len }}" \
             --compile-model "${{ steps.cfg.outputs.compile_model }}" \
+            --micro-batch-size "${{ steps.cfg.outputs.micro_batch_size }}" \
+            --grad-accum-steps "${{ steps.cfg.outputs.grad_accum_steps }}" \
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER" 2>&1 | tee modal-launch.log
           status=${PIPESTATUS[0]}
