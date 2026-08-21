@@ -137,7 +137,6 @@ def profile_h100(
 
 @app.function(
     image=image,
-    # Pin exact H100 hardware for benchmarking. Modal may upgrade plain H100 requests to H200.
     gpu="H100!",
     cpu=8,
     memory=32768,
@@ -152,13 +151,15 @@ def train_one(
     seq_len: int = 512,
     repo_full_name: str = "",
     issue_number: int = 0,
+    compile_model: bool = False,
 ) -> dict:
     from tam_research.train import train_language_model
 
+    execution = "compiled" if compile_model else "eager"
     _comment_on_issue(
         repo_full_name,
         issue_number,
-        f"🔥 **H100 training started** — architecture={architecture}, seed={seed}, token budget={token_budget:,}, context={seq_len}.",
+        f"🔥 **H100 training started** — architecture={architecture}, seed={seed}, token budget={token_budget:,}, context={seq_len}, execution={execution}.",
     )
     try:
         volume.reload()
@@ -169,6 +170,7 @@ def train_one(
             run_root="/vol/runs",
             token_budget=token_budget,
             seq_len=seq_len,
+            compile_model=compile_model,
         )
         volume.commit()
         ev = result["final_eval"]
@@ -180,14 +182,20 @@ def train_one(
                 f"\nRouter: attention={m['attention']:.3f}, "
                 f"memory={m['memory']:.3f}, world={m['world']:.3f}"
             )
+        compile_text = ""
+        if compile_model:
+            compile_text = (
+                f"\nCompile setup={result['compile_seconds']:.2f}s; "
+                f"total H100 compute={result['total_compute_seconds']:.2f}s."
+            )
         _comment_on_issue(
             repo_full_name,
             issue_number,
             f"✅ **{architecture} seed {seed} finished** — {result['tokens_seen']:,} tokens, "
-            f"NLL={ev['nll']:.4f}, PPL={ev['perplexity']:.2f}, params={result['parameters']:,}.\n"
-            f"Hardware: {result['gpu_name']}; elapsed={result['elapsed_seconds']:.2f}s; "
-            f"throughput={result['tokens_per_second']:.0f} tok/s; peak VRAM={result['peak_vram_gb']:.2f} GiB."
-            f"{route_text}",
+            f"NLL={ev['nll']:.4f}, PPL={ev['perplexity']:.2f}, params={result['parameters']:,}, execution={execution}.\n"
+            f"Hardware: {result['gpu_name']}; timed training={result['elapsed_seconds']:.2f}s; "
+            f"throughput={result['tokens_per_second']:.0f} tok/s; peak training VRAM={result['peak_vram_gb']:.2f} GiB."
+            f"{compile_text}{route_text}",
         )
         print(json.dumps(result, indent=2), flush=True)
         return result
@@ -195,7 +203,7 @@ def train_one(
         _comment_on_issue(
             repo_full_name,
             issue_number,
-            f"❌ **{architecture} seed {seed} failed:** `{type(exc).__name__}: {exc}`",
+            f"❌ **{architecture} seed {seed} failed ({execution}):** `{type(exc).__name__}: {exc}`",
         )
         raise
 
@@ -205,11 +213,13 @@ def main(
     action: str = "suite",
     token_budget: int = 100_000_000,
     seq_len: int = 512,
-    architectures: str = "transformer,tamv2",
+    architectures: str = "transformer,tamv3",
     seeds: str = "7025,7026,7027",
     repo_full_name: str = "",
     issue_number: int = 0,
+    compile_model: str = "false",
 ):
+    use_compile = compile_model.strip().lower() in {"1", "true", "yes", "on"}
     if action == "profile":
         print(profile_h100.remote(seq_len, repo_full_name, issue_number))
         return
@@ -234,6 +244,7 @@ def main(
                 seq_len,
                 repo_full_name,
                 issue_number,
+                use_compile,
             )
         )
         return
@@ -257,9 +268,15 @@ def main(
                 seq_len,
                 repo_full_name,
                 issue_number,
+                use_compile,
             )
             spawned.append(
-                {"call_id": call.object_id, "architecture": arch, "seed": seed}
+                {
+                    "call_id": call.object_id,
+                    "architecture": arch,
+                    "seed": seed,
+                    "execution": "compiled" if use_compile else "eager",
+                }
             )
 
     print(json.dumps({"spawned": spawned}, indent=2), flush=True)
