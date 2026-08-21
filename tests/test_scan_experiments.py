@@ -1,7 +1,10 @@
 import torch
 
-from tam_research.models import diagonal_affine_scan
-from tam_research.scan_experiments import chunked_diagonal_affine_scan
+from tam_research.models import TAMV3Mixer, diagonal_affine_scan, parameter_count
+from tam_research.scan_experiments import (
+    ProjectionFusedTAMV3Mixer,
+    chunked_diagonal_affine_scan,
+)
 
 
 def sequential_scan(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -46,3 +49,68 @@ def test_chunked_scan_gradients_match_reference():
         grad_a, grad_b = torch.autograd.grad(loss, (a, b))
         torch.testing.assert_close(grad_a, grad_a_ref, rtol=1e-9, atol=1e-10)
         torch.testing.assert_close(grad_b, grad_b_ref, rtol=1e-9, atol=1e-10)
+
+
+def _copy_tamv3_into_fused(
+    source: TAMV3Mixer,
+    target: ProjectionFusedTAMV3Mixer,
+) -> None:
+    inner = source.attn.inner
+    state = source.world.state_size
+    with torch.no_grad():
+        target.in_proj.weight[: 3 * inner].copy_(source.attn.qkv.weight)
+        target.in_proj.weight[3 * inner : 3 * inner + state].copy_(
+            source.world.candidate.weight
+        )
+        target.in_proj.weight[3 * inner + state :].copy_(source.world.keep.weight)
+        target.keep_bias.copy_(source.world.keep.bias)
+        target.out_proj.weight[:, :inner].copy_(source.attn.out.weight)
+        target.out_proj.weight[:, inner:].copy_(source.world.out.weight)
+        target.gate_logit.copy_(source.gate_logit)
+
+
+def test_projection_fusion_is_parameter_exact_and_function_equivalent():
+    torch.manual_seed(43)
+    source = TAMV3Mixer(
+        d_model=64,
+        n_heads=4,
+        attention_inner=52,
+        state_size=16,
+    ).double()
+    fused = ProjectionFusedTAMV3Mixer(
+        d_model=64,
+        n_heads=4,
+        attention_inner=52,
+        state_size=16,
+        chunk_size=None,
+    ).double()
+    _copy_tamv3_into_fused(source, fused)
+
+    assert parameter_count(source) == parameter_count(fused)
+    x = torch.randn(2, 13, 64, dtype=torch.float64)
+    expected = source(x)
+    actual = fused(x)
+    torch.testing.assert_close(actual, expected, rtol=1e-9, atol=1e-10)
+
+
+def test_projection_fusion_stays_equivalent_with_chunked_scan():
+    torch.manual_seed(44)
+    source = TAMV3Mixer(
+        d_model=64,
+        n_heads=4,
+        attention_inner=52,
+        state_size=16,
+    ).double()
+    fused = ProjectionFusedTAMV3Mixer(
+        d_model=64,
+        n_heads=4,
+        attention_inner=52,
+        state_size=16,
+        chunk_size=8,
+    ).double()
+    _copy_tamv3_into_fused(source, fused)
+
+    x = torch.randn(2, 19, 64, dtype=torch.float64)
+    expected = source(x)
+    actual = fused(x)
+    torch.testing.assert_close(actual, expected, rtol=1e-9, atol=1e-10)
