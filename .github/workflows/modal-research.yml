@@ -1,0 +1,94 @@
+name: Modal TAM research
+
+on:
+  workflow_dispatch:
+    inputs:
+      token_budget:
+        description: "Pretraining tokens per model"
+        required: true
+        default: "100000000"
+      architectures:
+        description: "Comma-separated architectures"
+        required: true
+        default: "transformer,tamv2"
+      seeds:
+        description: "Comma-separated seeds"
+        required: true
+        default: "7025,7026,7027"
+      seq_len:
+        description: "Training sequence length"
+        required: true
+        default: "512"
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  train:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, '[modal-run]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Resolve validated run configuration
+        id: cfg
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          INPUT_TOKEN_BUDGET: ${{ inputs.token_budget }}
+          INPUT_ARCHITECTURES: ${{ inputs.architectures }}
+          INPUT_SEEDS: ${{ inputs.seeds }}
+          INPUT_SEQ_LEN: ${{ inputs.seq_len }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          if os.environ["EVENT_NAME"] == "issues":
+              cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+              token_budget = int(cfg.get("token_budget", 100_000_000))
+              architectures = str(cfg.get("architectures", "transformer,tamv2"))
+              seeds = str(cfg.get("seeds", "7025,7026,7027"))
+              seq_len = int(cfg.get("seq_len", 512))
+          else:
+              token_budget = int(os.environ["INPUT_TOKEN_BUDGET"])
+              architectures = os.environ["INPUT_ARCHITECTURES"]
+              seeds = os.environ["INPUT_SEEDS"]
+              seq_len = int(os.environ["INPUT_SEQ_LEN"])
+          allowed = {"transformer", "tam", "tamv2"}
+          archs = [x.strip() for x in architectures.split(",") if x.strip()]
+          seed_list = [x.strip() for x in seeds.split(",") if x.strip()]
+          assert archs and set(archs) <= allowed
+          assert seed_list and len(seed_list) <= 8 and all(re.fullmatch(r"\d{1,10}", x) for x in seed_list)
+          assert 1_000_000 <= token_budget <= 1_000_000_000
+          assert seq_len in {128, 256, 512, 1024}
+          print(f"token_budget={token_budget}")
+          print(f"architectures={','.join(archs)}")
+          print(f"seeds={','.join(seed_list)}")
+          print(f"seq_len={seq_len}")
+          PY
+      - name: Install Modal
+        run: pip install "modal>=1.1,<2"
+      - name: Launch detached matched suite on Modal
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
+        run: >-
+          modal run --detach --timestamps modal_app.py
+          --action suite
+          --token-budget "${{ steps.cfg.outputs.token_budget }}"
+          --architectures "${{ steps.cfg.outputs.architectures }}"
+          --seeds "${{ steps.cfg.outputs.seeds }}"
+          --seq-len "${{ steps.cfg.outputs.seq_len }}"
+          --repo-full-name "$GITHUB_REPOSITORY"
+          --issue-number "$ISSUE_NUMBER"
