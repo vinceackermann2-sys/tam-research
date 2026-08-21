@@ -45,6 +45,28 @@ def _comment(repo_full_name: str, issue_number: int, body: str) -> None:
         print(f"[status-report-nonfatal] {type(exc).__name__}: {exc}; body={body}", flush=True)
 
 
+def _install_cuda_indexing_hotfix() -> None:
+    """Cast integer post-training arrays to int64 before CUDA advanced indexing.
+
+    The prepared token arrays are compact uint16 on disk. PyTorch CUDA advanced
+    indexing does not implement index_cuda for UInt16, so indexing those tensors
+    with a CUDA permutation fails before the existing per-batch .long() cast runs.
+    Keeping the fix scoped to the resume launcher avoids rewriting persisted data.
+    """
+    import torch
+    import tam_research.posttrain as posttrain
+
+    original_load_array = posttrain._load_array
+
+    def load_array_cuda_index_safe(path: Path, device: torch.device) -> torch.Tensor:
+        tensor = original_load_array(path, device)
+        if not tensor.dtype.is_floating_point and tensor.dtype != torch.bool:
+            return tensor.long()
+        return tensor
+
+    posttrain._load_array = load_array_cuda_index_safe
+
+
 @app.function(
     image=image,
     gpu="H100!",
@@ -63,6 +85,8 @@ def resume_posttraining(
         raise ValueError(f"max_gpu_seconds must be between 300 and {MAX_GPU_SECONDS}")
 
     import time
+
+    _install_cuda_indexing_hotfix()
     from tam_research.posttrain import run_posttraining
 
     volume.reload()
