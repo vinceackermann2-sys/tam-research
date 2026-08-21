@@ -27,3 +27,7 @@ cache_proof_v3,25m,tamv3,7304,1000000,512,64,2,9.7925,17898.90,440561,28.21,294.
 100m_replicated,100m,tamv3,7203,10000000,512,64,2,,,,,,running,"issue #67; preregistered in #66"
 100m_replicated,100m,transformer,7204,10000000,512,64,2,,,,,,running,"issue #67; preregistered in #66"
 100m_replicated,100m,tamv3,7204,10000000,512,64,2,,,,,,running,"issue #67; preregistered in #66"
+25m_full_pretrain,25m,tamv3,7400,300000000,512,64,2,4.4131,82.52,496734,,,complete,"first fully pretrained TAM v3 base; issue #73; checkpoint durable"
+25m_full_sft,25m,tamv3,7400,,512,64,2,3.6048581835,,,,201.7430,complete,"assistant-only held-out NLL; SFT optimizer training 20.4779s; metric is assistant NLL, not FineWeb NLL"
+25m_full_dpo,25m,tamv3,7400,,512,32,2,,,,,,,complete,"full 5k preference pairs; held-out implicit reward accuracy=0.564; optimizer training 42.2382s"
+25m_full_final_eval,25m,tamv3,7400,,512,,,4.6162,,,,,complete,"post-SFT+DPO FineWeb validation NLL; final checkpoint final_dpo.pt; issue #91; verified by issue #92"
