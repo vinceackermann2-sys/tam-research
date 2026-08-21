@@ -20,5 +20,7 @@ jobs:
         run: pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
       - name: Install test dependencies
         run: pip install -e '.[test]'
+      - name: Syntax-check Modal launchers
+        run: python -m py_compile modal_*_app.py
       - name: Run tests
         run: pytest -q
