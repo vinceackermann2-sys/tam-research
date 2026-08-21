@@ -23,8 +23,8 @@ def train_scaled_language_model(
 
     The baseline trainer intentionally remains untouched so historical 25M evidence
     stays reproducible. Modal runs execute in isolated containers, so temporarily
-    substituting the ModelConfig constructor here is process-local. Scale-specific
-    run roots prevent checkpoint/resume collisions across model sizes.
+    substituting the ModelConfig constructor here is process-local. Scale- and
+    batching-specific run roots prevent checkpoint/resume collisions.
     """
     scale = model_scale.lower()
     if scale not in SCALE_SPECS:
@@ -43,7 +43,11 @@ def train_scaled_language_model(
             max_seq_len=max_seq_len,
         )
 
-    scale_root = str(Path(run_root) / scale)
+    scale_root = str(
+        Path(run_root)
+        / scale
+        / f"ctx{seq_len}-mb{micro_batch_size}-ga{grad_accum_steps}"
+    )
     try:
         train_module.ModelConfig = scaled_config  # type: ignore[assignment]
         result = train_module.train_language_model(
