@@ -18,6 +18,10 @@ modal = [
 ]
 test = ["pytest>=8,<9"]
 
+[tool.setuptools.packages.find]
+include = ["tam_research*"]
+exclude = ["archive*", "docs*", "tests*"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
