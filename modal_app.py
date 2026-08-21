@@ -193,8 +193,11 @@ def train_one(
             issue_number,
             f"✅ **{architecture} seed {seed} finished** — {result['tokens_seen']:,} tokens, "
             f"NLL={ev['nll']:.4f}, PPL={ev['perplexity']:.2f}, params={result['parameters']:,}, execution={execution}.\n"
-            f"Hardware: {result['gpu_name']}; timed training={result['elapsed_seconds']:.2f}s; "
-            f"throughput={result['tokens_per_second']:.0f} tok/s; peak training VRAM={result['peak_vram_gb']:.2f} GiB."
+            f"Hardware: {result['gpu_name']}; optimizer-training={result['training_seconds']:.2f}s; "
+            f"training throughput={result['training_tokens_per_second']:.0f} tok/s; "
+            f"end-to-end measured={result['elapsed_seconds']:.2f}s "
+            f"({result['tokens_per_second']:.0f} tok/s); peak training VRAM={result['peak_vram_gb']:.2f} GiB.\n"
+            f"Auxiliary: eval={result['eval_seconds']:.2f}s; checkpoint={result['checkpoint_seconds']:.2f}s."
             f"{compile_text}{route_text}",
         )
         print(json.dumps(result, indent=2), flush=True)
