@@ -17,9 +17,6 @@ jobs:
        github.event.issue.user.login == github.repository_owner &&
        startsWith(github.event.issue.title, '[modal-full100m]'))
     runs-on: ubuntu-latest
-    # The local Modal entrypoint waits for CPU-only preparation before detaching the
-    # H100 call. Keep the GitHub runner alive for that entire 4h preparation ceiling
-    # plus setup/handoff margin; this does not change the H100 compute budget.
     timeout-minutes: 300
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
@@ -49,9 +46,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          # Never replace a run after the H100 phase has started. Match only the
-          # authoritative callback signature, not prose that merely mentions it.
           H100_SIGNATURE='🔥 **TAM-v3-100M-Full H100 started**'
           if gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments?per_page=100" \
               --jq '.[].body' | grep -Fq "$H100_SIGNATURE"; then
@@ -63,7 +57,6 @@ jobs:
           ACTIVE_APP_ID="$(python - <<'PY'
           import json
           from pathlib import Path
-
           rows = json.loads(Path('/tmp/apps.json').read_text())
           matches = []
           for row in rows:
@@ -106,7 +99,7 @@ jobs:
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
         run: |
-          modal run --detach --timestamps modal_full100m_nonpreemptible_app.py \
+          modal run --detach --timestamps modal_full100m_nonpreemptible_app.py::app.nonpreemptible_main \
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER"
 
