@@ -79,7 +79,7 @@ def prepare_full100m_data_nonpreemptible(
 
 
 @app.local_entrypoint()
-def main(repo_full_name: str = "", issue_number: int = 0):
+def nonpreemptible_main(repo_full_name: str = "", issue_number: int = 0):
     # The CPU phase is guaranteed non-preemptible. The H100 phase remains exactly the
     # frozen production function with the immutable 11,700-second aggregate ceiling.
     prepare_full100m_data_nonpreemptible.remote(repo_full_name, issue_number)
