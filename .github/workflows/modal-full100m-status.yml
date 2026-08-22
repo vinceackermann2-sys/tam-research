@@ -5,6 +5,7 @@ on:
     types: [opened]
 
 permissions:
+  actions: read
   contents: read
   issues: write
 
@@ -30,15 +31,37 @@ jobs:
       - name: Verify Modal authentication
         run: modal token info
 
-      - name: Query Modal app and Volume state without compute
+      - name: Query GitHub and Modal state without compute
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -u
-          modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
 
+          gh run list --workflow modal-full100m.yml --limit 10 \
+            --json databaseId,displayTitle,event,status,conclusion,createdAt,updatedAt,url \
+            > /tmp/gh_runs.json 2>/tmp/gh_runs.err || true
+          LATEST_GH_RUN_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              rows = json.loads(Path('/tmp/gh_runs.json').read_text())
+          except Exception:
+              rows = []
+          candidates = [row for row in rows if str(row.get('displayTitle', '')).startswith('[modal-full100m]')]
+          print(candidates[0].get('databaseId', '') if candidates else '')
+          PY
+          )"
+          printf '%s' "$LATEST_GH_RUN_ID" > /tmp/latest_gh_run_id.txt
+          if [ -n "$LATEST_GH_RUN_ID" ]; then
+            gh run view "$LATEST_GH_RUN_ID" --log > /tmp/gh_run.log 2>/tmp/gh_run.err || true
+          else
+            : > /tmp/gh_run.log
+            echo "No matching modal-full100m workflow run found" > /tmp/gh_run.err
+          fi
+
+          modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
           LATEST_APP_ID="$(python - <<'PY'
           import json
           from pathlib import Path
@@ -82,7 +105,10 @@ jobs:
               except Exception:
                   return text
 
+          latest_gh_run_id = read('/tmp/latest_gh_run_id.txt')
           latest_app_id = read('/tmp/latest_app_id.txt')
+          gh_runs = load_json('/tmp/gh_runs.json')
+          gh_run_log = read('/tmp/gh_run.log')
           apps = load_json('/tmp/apps.json')
           history = load_json('/tmp/history.json')
           pretrain = load_json('/tmp/pretrain.json')
@@ -92,36 +118,47 @@ jobs:
 
           print('🔎 **TAM-v3-100M production status probe (zero GPU)**')
           print('')
-          print('This probe only queried Modal metadata/logs and the persistent Volume; it did not start any Modal function or allocate a GPU.')
+          print('This probe only queried GitHub Actions, Modal metadata/logs and the persistent Volume; it did not start any Modal function or allocate a GPU.')
           print('')
-          print(f'Latest matched app ID: `{latest_app_id or "none"}`')
+          print(f'Latest matched GitHub run ID: `{latest_gh_run_id or "none"}`')
+          print(f'Latest matched Modal app ID: `{latest_app_id or "none"}`')
           print('')
-          print('### App list')
+          print('### Full-100M GitHub workflow runs')
+          print('```json')
+          print(json.dumps(gh_runs, indent=2)[:12000] if not isinstance(gh_runs, str) else gh_runs[:12000])
+          print('```')
+          print('### Latest full-100M GitHub run log')
+          print('```text')
+          print(gh_run_log[-24000:] if gh_run_log else '(no GitHub Actions log returned)')
+          print('```')
+          print('### Modal app list')
           print('```json')
           print(json.dumps(apps, indent=2)[:12000] if not isinstance(apps, str) else apps[:12000])
           print('```')
-          print('### App history')
+          print('### Modal app history')
           print('```json')
           print(json.dumps(history, indent=2)[:12000] if not isinstance(history, str) else history[:12000])
           print('```')
-          print('### Recent app logs')
+          print('### Recent Modal app logs')
           print('```text')
-          print(logs[-20000:] if logs else '(no stdout logs returned)')
+          print(logs[-18000:] if logs else '(no stdout logs returned)')
           print('```')
           print('### Volume: pretraining data')
           print('```json')
-          print(json.dumps(pretrain, indent=2)[:12000] if not isinstance(pretrain, str) else pretrain[:12000])
+          print(json.dumps(pretrain, indent=2)[:8000] if not isinstance(pretrain, str) else pretrain[:8000])
           print('```')
           print('### Volume: post-training data')
           print('```json')
-          print(json.dumps(posttrain, indent=2)[:8000] if not isinstance(posttrain, str) else posttrain[:8000])
+          print(json.dumps(posttrain, indent=2)[:6000] if not isinstance(posttrain, str) else posttrain[:6000])
           print('```')
           print('### Volume: full100m-runs')
           print('```json')
-          print(json.dumps(runs, indent=2)[:8000] if not isinstance(runs, str) else runs[:8000])
+          print(json.dumps(runs, indent=2)[:6000] if not isinstance(runs, str) else runs[:6000])
           print('```')
 
           errors = {
+              'gh-runs': read('/tmp/gh_runs.err'),
+              'gh-run-log': read('/tmp/gh_run.err'),
               'app-list': read('/tmp/apps.err'),
               'app-history': read('/tmp/history.err'),
               'app-logs': read('/tmp/logs.err'),
