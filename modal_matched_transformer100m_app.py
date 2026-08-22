@@ -137,7 +137,8 @@ def preflight_matched_control(repo_full_name: str = "", issue_number: int = 0) -
 
     volume.reload()
     meta = _validate_protocol_bytes()
-    cfg = model_config_for_scale("transformer", "100m", max_seq_len=SEQ_LEN)
+    # train_language_model deliberately uses max(1024, seq_len) for positional capacity.
+    cfg = model_config_for_scale("transformer", "100m", max_seq_len=max(1024, SEQ_LEN))
     model = ResearchLM(cfg)
     params = parameter_count(model)
     if params != EXPECTED_TRANSFORMER_PARAMS:
