@@ -1,0 +1,91 @@
+name: Modal matched Transformer 100M instruct benchmark
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  benchmark:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, '[modal-benchmark-transformer100m]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Syntax-check matched benchmark launcher
+        run: python -m py_compile modal_transformer100m_benchmark_app.py
+
+      - name: Preflight all benchmark datasets without GPU
+        run: |
+          pip install "datasets>=4.0,<5" "huggingface-hub>=0.34,<1"
+          python - <<'PY'
+          from datasets import load_dataset
+
+          specs = [
+              ("arc_easy", "https://huggingface.co/datasets/allenai/ai2_arc/resolve/main/ARC-Easy/validation-00000-of-00001.parquet", "validation", 570, {"question", "choices", "answerKey"}),
+              ("arc_challenge", "https://huggingface.co/datasets/allenai/ai2_arc/resolve/main/ARC-Challenge/validation-00000-of-00001.parquet", "validation", 299, {"question", "choices", "answerKey"}),
+              ("piqa", "https://huggingface.co/datasets/ybisk/piqa/resolve/078a131412f46a38025a762322c174a8bae2610c/plain_text/piqa-validation.parquet", "validation", 1838, {"goal", "sol1", "sol2", "label"}),
+              ("hellaswag", "https://huggingface.co/datasets/Rowan/hellaswag/resolve/main/data/validation-00000-of-00001.parquet", "validation", 10042, {"ctx", "endings", "label"}),
+              ("openbookqa", "https://huggingface.co/datasets/allenai/openbookqa/resolve/main/main/validation-00000-of-00001.parquet", "validation", 500, {"question_stem", "choices", "answerKey"}),
+              ("gsm8k", "https://huggingface.co/datasets/openai/gsm8k/resolve/main/main/test-00000-of-00001.parquet", "test", 1319, {"question", "answer"}),
+          ]
+          for name, url, split, min_rows, required in specs:
+              ds = load_dataset("parquet", data_files={split: url}, split=split)
+              missing = required.difference(ds.column_names)
+              if len(ds) < min_rows:
+                  raise RuntimeError(f"{name}: rows={len(ds)} < expected minimum {min_rows}")
+              if missing:
+                  raise RuntimeError(f"{name}: missing columns {sorted(missing)}; got {ds.column_names}")
+              print(f"PREFLIGHT_OK {name}: rows={len(ds)} columns={ds.column_names}", flush=True)
+          PY
+
+      - name: Install Modal
+        run: pip install "modal>=1.1,<2"
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Materialize short-lived GitHub callback secret
+        run: modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
+
+      - name: Record matched-eval budget guard
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **Matched benchmark guard** — exact TAM v2 benchmark datasets, seed=8100, sample caps and scoring protocol; Transformer final DPO checkpoint only. One L4, timeout=3,600s; evaluation only, no optimizer/weight updates/training and no automatic retry."
+
+      - name: Run matched Transformer instruct benchmark
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
+        run: |
+          modal run --timestamps modal_transformer100m_benchmark_app.py \
+            --repo-full-name "$GITHUB_REPOSITORY" \
+            --issue-number "$ISSUE_NUMBER"
+
+      - name: Record benchmark failure
+        if: failure() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **Matched Transformer benchmark workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
