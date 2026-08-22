@@ -68,6 +68,7 @@ def _comment(repo_full_name: str, issue_number: int, body: str) -> None:
     cpu=8,
     memory=32768,
     timeout=DATA_PREP_TIMEOUT_SECONDS,
+    nonpreemptible=True,
     volumes={"/vol": volume},
     secrets=[github_secret],
 )
