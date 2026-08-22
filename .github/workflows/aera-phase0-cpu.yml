@@ -1,0 +1,53 @@
+name: AERA Phase 0 CPU
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  phase0:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, '[aera-phase0]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install CPU PyTorch
+        run: pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Run phase-0 probe
+        run: python aera_phase0_cpu.py | tee aera_phase0_result.json
+      - name: Post result
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/comment.md
+          import json
+          from pathlib import Path
+          data = json.loads(Path('aera_phase0_result.json').read_text())
+          sparse = data['sparse_conditional_compute']
+          memory = data['local_fast_memory']
+          reason = data['adaptive_reasoning']
+          print('🧪 **AERA Phase-0 CPU mechanism probe complete.**')
+          print()
+          print(f"- sparse routing: {sparse['top_k']}/{sparse['stored_experts']} experts active per event ({100*sparse['active_expert_fraction_per_event']:.1f}% of stored experts); assignments={sparse['expert_assignment_count']}")
+          print(f"- fast memory: first value={memory['first_write_recalled']}, replacement={memory['replacement_write_recalled']}, stale replaced={memory['stale_value_replaced']}, base backprop/update required={memory['base_parameter_update_required']}")
+          print(f"- adaptive reasoning: easy={reason['easy_steps']} latent step(s), hard={reason['hard_steps']} step(s), max={reason['max_step_budget']}")
+          print()
+          print('Scope: functional mechanism probe only. This does **not** establish GPU speedup, language-quality improvement, or a breakthrough.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/comment.md)"
