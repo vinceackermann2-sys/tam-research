@@ -1,0 +1,118 @@
+name: Modal full-100M status probe
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  status:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[modal-status-full100m]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Query Modal app and Volume state without compute
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -u
+          modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
+          modal app history tam-research-full100m --json > /tmp/history.json 2>/tmp/history.err || true
+          modal app logs tam-research-full100m --tail 300 --timestamps --show-function-id --show-container-id > /tmp/logs.txt 2>/tmp/logs.err || true
+          modal volume ls tam-research-data data/tam100m-2b-curated-v1 --json > /tmp/pretrain.json 2>/tmp/pretrain.err || true
+          modal volume ls tam-research-data data/tam100m-posttrain-v1 --json > /tmp/posttrain.json 2>/tmp/posttrain.err || true
+          modal volume ls tam-research-data full100m-runs --json > /tmp/runs.json 2>/tmp/runs.err || true
+
+          python - <<'PY' > /tmp/comment.md
+          from pathlib import Path
+          import json
+
+          def read(path):
+              p = Path(path)
+              return p.read_text(errors='replace').strip() if p.exists() else ''
+
+          def load_json(path):
+              text = read(path)
+              if not text:
+                  return None
+              try:
+                  return json.loads(text)
+              except Exception:
+                  return text
+
+          apps = load_json('/tmp/apps.json')
+          history = load_json('/tmp/history.json')
+          pretrain = load_json('/tmp/pretrain.json')
+          posttrain = load_json('/tmp/posttrain.json')
+          runs = load_json('/tmp/runs.json')
+          logs = read('/tmp/logs.txt')
+
+          print('🔎 **TAM-v3-100M production status probe (zero GPU)**')
+          print('')
+          print('This probe only queried Modal metadata/logs and the persistent Volume; it did not start any Modal function or allocate a GPU.')
+          print('')
+          print('### App list')
+          print('```json')
+          print(json.dumps(apps, indent=2)[:12000] if not isinstance(apps, str) else apps[:12000])
+          print('```')
+          print('### App history')
+          print('```json')
+          print(json.dumps(history, indent=2)[:12000] if not isinstance(history, str) else history[:12000])
+          print('```')
+          print('### Recent app logs')
+          print('```text')
+          print(logs[-16000:] if logs else '(no stdout logs returned)')
+          print('```')
+          print('### Volume: pretraining data')
+          print('```json')
+          print(json.dumps(pretrain, indent=2)[:12000] if not isinstance(pretrain, str) else pretrain[:12000])
+          print('```')
+          print('### Volume: post-training data')
+          print('```json')
+          print(json.dumps(posttrain, indent=2)[:8000] if not isinstance(posttrain, str) else posttrain[:8000])
+          print('```')
+          print('### Volume: full100m-runs')
+          print('```json')
+          print(json.dumps(runs, indent=2)[:8000] if not isinstance(runs, str) else runs[:8000])
+          print('```')
+
+          errors = {
+              'app-list': read('/tmp/apps.err'),
+              'app-history': read('/tmp/history.err'),
+              'app-logs': read('/tmp/logs.err'),
+              'pretrain-ls': read('/tmp/pretrain.err'),
+              'posttrain-ls': read('/tmp/posttrain.err'),
+              'runs-ls': read('/tmp/runs.err'),
+          }
+          nonempty = {k: v for k, v in errors.items() if v}
+          if nonempty:
+              print('### Probe stderr')
+              print('```text')
+              for key, value in nonempty.items():
+                  print(f'[{key}] {value[:3000]}')
+              print('```')
+          PY
+
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="$(cat /tmp/comment.md)"
