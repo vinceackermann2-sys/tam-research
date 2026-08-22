@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          python aera_pre100m_cpu.py 2>&1 | tee /tmp/aera-result.log
+          python aera_pre100m_cpu_v2.py 2>&1 | tee /tmp/aera-result.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             exit "$status"
