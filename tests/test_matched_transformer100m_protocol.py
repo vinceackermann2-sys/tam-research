@@ -3,13 +3,15 @@ from tam_research.scales import model_config_for_scale
 
 
 def test_100m_transformer_is_parameter_matched_to_tamv3():
-    transformer_cfg = model_config_for_scale("transformer", "100m", max_seq_len=512)
-    tam_cfg = model_config_for_scale("tamv3", "100m", max_seq_len=512)
+    # train_language_model uses max(1024, seq_len), so a 512-token training run
+    # still has 1024 learned positional embeddings in both architectures.
+    transformer_cfg = model_config_for_scale("transformer", "100m", max_seq_len=1024)
+    tam_cfg = model_config_for_scale("tamv3", "100m", max_seq_len=1024)
 
     assert transformer_cfg.d_model == tam_cfg.d_model == 512
     assert transformer_cfg.n_layers == tam_cfg.n_layers == 24
     assert transformer_cfg.n_heads == tam_cfg.n_heads == 16
-    assert transformer_cfg.max_seq_len == tam_cfg.max_seq_len == 512
+    assert transformer_cfg.max_seq_len == tam_cfg.max_seq_len == 1024
 
     transformer_params = parameter_count(ResearchLM(transformer_cfg))
     tam_params = parameter_count(ResearchLM(tam_cfg))
