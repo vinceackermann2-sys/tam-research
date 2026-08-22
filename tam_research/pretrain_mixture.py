@@ -9,7 +9,7 @@ from typing import Any, Iterator
 import numpy as np
 
 TOKENIZER_ID = "gpt2"
-ASSEMBLY_VERSION = 2
+ASSEMBLY_VERSION = 3
 TRAIN_INTERLEAVE_CHUNK_TOKENS = 1_000_000
 VAL_INTERLEAVE_CHUNK_TOKENS = 125_000
 
@@ -29,6 +29,13 @@ class PretrainSource:
 # Exact 2.0B-token train mixture + 5M-token held-out mixture. The mixture intentionally
 # balances broad educational language with worked mathematics/reasoning, openly
 # licensed code, synthetic textbook-style science, and real open-license research text.
+#
+# Pre-H100 amendment (2026-08-22): the complete HuggingFaceTB/cosmopedia `openstax`
+# text stream yielded only 99,048,429 GPT-2 training tokens after its 375k validation
+# split, making the preregistered 150M text-only quota impossible without duplication.
+# Preserve the combined 300M Cosmopedia allocation and Apache-2.0 provenance by using
+# 99M unique OpenStax tokens and moving the remaining 51M to the much larger Stanford
+# config. Both amended quotas remain exact 1M-token interleave multiples.
 PRETRAIN_SOURCES: tuple[PretrainSource, ...] = (
     PretrainSource(
         "fineweb_edu",
@@ -59,7 +66,7 @@ PRETRAIN_SOURCES: tuple[PretrainSource, ...] = (
         "cosmopedia_openstax",
         "HuggingFaceTB/cosmopedia",
         "openstax",
-        150_000_000,
+        99_000_000,
         375_000,
         license_note="Apache-2.0 synthetic educational text seeded from OpenStax",
     ),
@@ -67,7 +74,7 @@ PRETRAIN_SOURCES: tuple[PretrainSource, ...] = (
         "cosmopedia_stanford",
         "HuggingFaceTB/cosmopedia",
         "stanford",
-        150_000_000,
+        201_000_000,
         375_000,
         license_note="Apache-2.0 synthetic educational text seeded from Stanford material",
     ),
@@ -324,7 +331,7 @@ def prepare_pretrain_mixture(out_dir: str, *, seed: int = 8100) -> dict[str, Any
         raise RuntimeError("assembled val.bin has unexpected size")
 
     meta = {
-        "name": "TAM-100M-2B-curated-v2-interleaved",
+        "name": "TAM-100M-2B-curated-v3-interleaved",
         "assembly_version": ASSEMBLY_VERSION,
         "assembly_policy": "weighted-fair fixed-token chunks across sources",
         "train_interleave_chunk_tokens": TRAIN_INTERLEAVE_CHUNK_TOKENS,

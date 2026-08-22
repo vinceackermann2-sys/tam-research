@@ -1,6 +1,6 @@
 # TAM v3 100M / 2B Full-Training Protocol
 
-Status: preregistered before the production run is launched.
+Status: preregistered before the production run is launched; amended pre-H100 on 2026-08-22 only to resolve an empirically impossible source quota described below.
 
 ## Goal
 
@@ -40,11 +40,28 @@ For 101,806,616 parameters this is ~19.64 training tokens per parameter, i.e. th
 | FineWeb-Edu sample-10BT | 900M | 45.0% | broad educational language/world knowledge |
 | FineMath-4+ | 350M | 17.5% | worked mathematics and mathematical reasoning |
 | Common-Pile StackV2 Edu filtered, score >=3 | 300M | 15.0% | openly licensed code/software knowledge |
-| Cosmopedia OpenStax | 150M | 7.5% | synthetic textbook-style science/education |
-| Cosmopedia Stanford | 150M | 7.5% | synthetic higher-education material |
+| Cosmopedia OpenStax | 99M | 4.95% | synthetic textbook-style science/education |
+| Cosmopedia Stanford | 201M | 10.05% | synthetic higher-education material |
 | Common-Pile open-license ArXiv papers | 150M | 7.5% | real scientific text incl. physics/quantitative biology/CS/math |
 
-The dataset builder records exact source metadata and prepares each source as a resumable token shard before final concatenation.
+The dataset builder records exact source metadata and prepares each source as a resumable token shard before deterministic weighted-fair interleaving.
+
+### Pre-H100 source-capacity amendment — 2026-08-22
+
+The original preregistration assigned 150M training tokens to Cosmopedia OpenStax and 150M to Cosmopedia Stanford. During CPU-only preparation, before any H100 training was started, the complete `HuggingFaceTB/cosmopedia` `openstax` text stream ended at exactly 375,000/375,000 validation tokens and 99,048,429/150,000,000 requested GPT-2 training tokens. Therefore the original 150M text-only OpenStax quota was empirically impossible without duplicating examples or changing the text definition.
+
+The amendment uses 99M unique OpenStax training tokens and reallocates the remaining 51M tokens to the much larger Cosmopedia Stanford config, yielding 201M Stanford tokens. This preserves:
+
+- exactly 2.0B total training tokens;
+- exactly 300M total Cosmopedia OpenStax+Stanford training tokens;
+- the same HuggingFaceTB Cosmopedia dataset family and Apache-2.0 provenance note;
+- the same 5M validation budget and per-source validation allocations;
+- exact 1M-token train interleave divisibility;
+- all model, tokenizer, seed, optimizer, batch, checkpoint, post-training, and H100-budget settings.
+
+The corpus assembly version is bumped from 2 to 3 so an older final mixture cannot be mistaken for the amended production corpus. Completed source shards whose source metadata is unchanged remain reusable; OpenStax and Stanford are validated/rebuilt against the amended quotas.
+
+This amendment is recorded before H100 allocation and is not evidence for or against TAM. It exists solely because the frozen source quota exceeded the available text stream.
 
 Licensing/provenance choices intentionally avoid non-commercial-only datasets. See upstream dataset cards before any external release of model/data artifacts; FineWeb-derived content can retain source-publisher rights even when the dataset database is ODC-BY.
 
@@ -76,14 +93,14 @@ The user reported $30 Modal credit before launch.
 
 Hard code-level controls:
 
-- CPU/data-prep function: 8 physical cores, 32 GiB RAM, max 4 hours, no GPU.
+- CPU/data-prep function: 8 physical cores, 32 GiB RAM, non-preemptible, max 4 hours, no GPU.
 - Combined H100 pretrain + SFT + DPO function: exactly `H100!`, 8 cores, 64 GiB RAM, max 11,700 seconds.
 - The 11,700-second GPU ceiling is constant in code and cannot be increased through an issue body or workflow-dispatch argument.
 - No automatic retry is configured.
 - If fewer than 1,500 seconds remain after pretraining, post-training is refused and the completed base checkpoint is preserved.
 - SFT is committed before DPO; if fewer than 450 seconds remain after SFT, DPO is refused and the SFT checkpoint is preserved.
 
-At the Modal H100 list rate verified on 2026-08-22 ($0.001097/GPU-second), the maximum H100 charge from the production function is $12.83. Even including the configured CPU/RAM ceilings and the separate CPU-only data-prep ceiling, the code-level maximum remains materially below the reported $30 credit.
+At the Modal H100 list rate verified on 2026-08-22 ($0.001097/GPU-second), the maximum H100 charge from the production function is $12.83. Non-preemptible CPU/RAM is billed at a premium, but the configured CPU-only four-hour ceiling plus the fixed H100 ceiling remains within the reported $30 credit based on the rates checked before launch.
 
 ## Checkpoint/evaluation policy
 

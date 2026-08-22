@@ -10,10 +10,18 @@ from tam_research.pretrain_mixture import (
 def test_production_schedule_preserves_exact_2b_quotas():
     counts = [source.train_tokens for source in PRETRAIN_SOURCES]
     schedule = weighted_interleave_schedule(counts, TRAIN_INTERLEAVE_CHUNK_TOKENS)
-    assert ASSEMBLY_VERSION == 2
+    assert ASSEMBLY_VERSION == 3
     assert len(schedule) * TRAIN_INTERLEAVE_CHUNK_TOKENS == TOTAL_TRAIN_TOKENS
     for index, count in enumerate(counts):
         assert schedule.count(index) * TRAIN_INTERLEAVE_CHUNK_TOKENS == count
+
+
+def test_pre_h100_openstax_capacity_amendment_preserves_cosmopedia_total():
+    counts = {source.name: source.train_tokens for source in PRETRAIN_SOURCES}
+    assert counts["cosmopedia_openstax"] == 99_000_000
+    assert counts["cosmopedia_stanford"] == 201_000_000
+    assert counts["cosmopedia_openstax"] + counts["cosmopedia_stanford"] == 300_000_000
+    assert sum(counts.values()) == 2_000_000_000
 
 
 def test_weighted_schedule_distributes_small_domains_early_and_late():
