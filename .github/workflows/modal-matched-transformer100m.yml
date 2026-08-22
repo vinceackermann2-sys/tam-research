@@ -1,0 +1,67 @@
+name: Modal matched Transformer 100M 2B control
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  matched-transformer100m:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, '[modal-transformer100m]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check matched-control launcher
+        run: python -m py_compile modal_matched_transformer100m_app.py
+
+      - name: Install Modal
+        run: pip install 'modal>=1.2.3,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Materialize short-lived GitHub callback secret
+        run: modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
+
+      - name: Record immutable fairness and budget guard
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **Matched-control guard** — Transformer control is fixed to architecture=transformer, scale=100M, seed=8100, exact existing TAM 2B train/5M val/SFT/DPO bytes, context=512, micro=64, accumulation=2, same optimizer/LR schedule and same aggregate H100 ceiling=11,700s. Preflight runs CPU-only first and H100 is not spawned if any metadata or parameter-match assertion fails. No automatic retry."
+
+      - name: Launch detached matched Transformer pipeline
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
+        run: |
+          modal run --detach --timestamps modal_matched_transformer100m_app.py \
+            --repo-full-name "$GITHUB_REPOSITORY" \
+            --issue-number "$ISSUE_NUMBER"
+
+      - name: Record handoff
+        if: success() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟪 **GitHub → Modal matched-Transformer handoff complete.** CPU preflight verifies the exact shared data and parameter count first; exactly one H100 control run is spawned only after those checks pass."
