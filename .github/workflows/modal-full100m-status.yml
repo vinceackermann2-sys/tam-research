@@ -38,8 +38,29 @@ jobs:
         run: |
           set -u
           modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
-          modal app history tam-research-full100m --json > /tmp/history.json 2>/tmp/history.err || true
-          modal app logs tam-research-full100m --tail 300 --timestamps --show-function-id --show-container-id > /tmp/logs.txt 2>/tmp/logs.err || true
+
+          LATEST_APP_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              apps = json.loads(Path('/tmp/apps.json').read_text())
+          except Exception:
+              apps = []
+          matches = [row for row in apps if row.get('description') == 'tam-research-full100m']
+          print(matches[0].get('app_id', '') if matches else '')
+          PY
+          )"
+          printf '%s' "$LATEST_APP_ID" > /tmp/latest_app_id.txt
+
+          if [ -n "$LATEST_APP_ID" ]; then
+            modal app history "$LATEST_APP_ID" --json > /tmp/history.json 2>/tmp/history.err || true
+            modal app logs "$LATEST_APP_ID" --tail 500 --timestamps --show-function-id --show-container-id > /tmp/logs.txt 2>/tmp/logs.err || true
+          else
+            : > /tmp/history.json
+            : > /tmp/logs.txt
+            echo "No tam-research-full100m app ID found" > /tmp/history.err
+          fi
+
           modal volume ls tam-research-data data/tam100m-2b-curated-v1 --json > /tmp/pretrain.json 2>/tmp/pretrain.err || true
           modal volume ls tam-research-data data/tam100m-posttrain-v1 --json > /tmp/posttrain.json 2>/tmp/posttrain.err || true
           modal volume ls tam-research-data full100m-runs --json > /tmp/runs.json 2>/tmp/runs.err || true
@@ -61,6 +82,7 @@ jobs:
               except Exception:
                   return text
 
+          latest_app_id = read('/tmp/latest_app_id.txt')
           apps = load_json('/tmp/apps.json')
           history = load_json('/tmp/history.json')
           pretrain = load_json('/tmp/pretrain.json')
@@ -72,6 +94,8 @@ jobs:
           print('')
           print('This probe only queried Modal metadata/logs and the persistent Volume; it did not start any Modal function or allocate a GPU.')
           print('')
+          print(f'Latest matched app ID: `{latest_app_id or "none"}`')
+          print('')
           print('### App list')
           print('```json')
           print(json.dumps(apps, indent=2)[:12000] if not isinstance(apps, str) else apps[:12000])
@@ -82,7 +106,7 @@ jobs:
           print('```')
           print('### Recent app logs')
           print('```text')
-          print(logs[-16000:] if logs else '(no stdout logs returned)')
+          print(logs[-20000:] if logs else '(no stdout logs returned)')
           print('```')
           print('### Volume: pretraining data')
           print('```json')
@@ -110,7 +134,7 @@ jobs:
               print('### Probe stderr')
               print('```text')
               for key, value in nonempty.items():
-                  print(f'[{key}] {value[:3000]}')
+                  print(f'[{key}] {value[:4000]}')
               print('```')
           PY
 
