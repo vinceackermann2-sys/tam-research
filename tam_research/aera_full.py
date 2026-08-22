@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import math
 import random
-from typing import Iterable
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .aera import AERAConfig, AERAState, FastWeightMemory, SparseExpertLayer, StreamState
+from .aera import AERAConfig, AERAState, SparseExpertLayer, StreamState
+from .aera_delta_memory import DeltaFastMemory
 
 
 @dataclass(frozen=True)
@@ -26,7 +25,7 @@ class FullAERAConfig:
     memory_dim: int = 16
     max_reason_steps: int = 4
     fast_memory_lr: float = 0.2
-    fast_memory_decay: float = 0.995
+    fast_memory_decay: float = 0.999
     block_size: int = 4
 
     def mechanism_cfg(self) -> AERAConfig:
@@ -173,7 +172,7 @@ class BudgetedLatentReasoner(nn.Module):
         self.last_steps = chosen.detach().cpu()
         return current.view_as(x)
 
-    def stats(self) -> dict[str, float] | None:
+    def stats(self) -> dict[str, float | str] | None:
         if self.last_steps is not None:
             v = self.last_steps.float()
             return {"mode": "hard", "mean": float(v.mean()), "min": float(v.min()), "max": float(v.max())}
@@ -193,7 +192,12 @@ class AERAStage(nn.Module):
         self.attn = LocalCausalAttention(cfg.d_model, cfg.n_heads, cfg.local_window)
         self.experts = SparseExpertLayer(mech)
         self.stream = StreamState(cfg.d_model)
-        self.memory = FastWeightMemory(mech)
+        self.memory = DeltaFastMemory(
+            cfg.d_model,
+            cfg.memory_dim,
+            lr=cfg.fast_memory_lr,
+            decay=cfg.fast_memory_decay,
+        )
         self.reasoner = BudgetedLatentReasoner(cfg.d_model, cfg.max_reason_steps)
         self.out_norm = nn.LayerNorm(cfg.d_model)
         self.last_controls: dict[str, torch.Tensor] | None = None
@@ -289,7 +293,7 @@ class AERATextLM(nn.Module):
     ) -> dict[str, object]:
         if tokens.ndim != 2:
             raise ValueError("tokens must be [batch,time]")
-        b, t = tokens.shape
+        _, t = tokens.shape
         if t > self.cfg.max_seq_len:
             raise ValueError("chunk exceeds max_seq_len")
         if state is None:
@@ -337,10 +341,8 @@ class AERATextLM(nn.Module):
         balance_weight: float = 0.01,
     ) -> dict[str, torch.Tensor]:
         logits = output["logits"]
-        hidden = output["hidden"]
         event_pred = output["next_event_prediction"]
         assert isinstance(logits, torch.Tensor)
-        assert isinstance(hidden, torch.Tensor)
         assert isinstance(event_pred, torch.Tensor)
 
         if tokens.size(1) < 2:
@@ -398,7 +400,6 @@ class SurpriseEventPatcher:
         while start < n:
             end = start + self.min_patch
             while end < n and end - start < self.max_patch:
-                # High-surprise next unit begins a new event.
                 if float(surprise[end]) >= self.threshold:
                     break
                 end += 1
@@ -465,7 +466,6 @@ class VerifiedReplayBuffer:
         return rng.choices(verified, weights=weights, k=min(n, len(verified)))
 
     def current_verified_value(self, session_id: str, key: int) -> int | None:
-        # Latest verified record wins; unverified records can never overwrite it.
         for r in reversed(self.records):
             if r.session_id == session_id and r.key == key and r.verified:
                 return r.value
