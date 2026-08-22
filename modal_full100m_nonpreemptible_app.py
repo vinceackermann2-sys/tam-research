@@ -21,6 +21,14 @@ from modal_full100m_app import (
     train_full_tam100m,
 )
 
+# Remote execution imports this wrapper module, which in turn imports the original
+# production module above. Explicitly carry that root-level module into the wrapper
+# image so container hydration sees the same module graph as the local launcher.
+image = image.add_local_file(
+    "modal_full100m_app.py",
+    "/root/modal_full100m_app.py",
+)
+
 
 @app.function(
     image=image,
