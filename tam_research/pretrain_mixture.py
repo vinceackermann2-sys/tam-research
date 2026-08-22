@@ -4,12 +4,14 @@ from dataclasses import asdict, dataclass
 import json
 import os
 from pathlib import Path
-import shutil
 from typing import Any, Iterator
 
 import numpy as np
 
 TOKENIZER_ID = "gpt2"
+ASSEMBLY_VERSION = 2
+TRAIN_INTERLEAVE_CHUNK_TOKENS = 1_000_000
+VAL_INTERLEAVE_CHUNK_TOKENS = 125_000
 
 
 @dataclass(frozen=True)
@@ -207,21 +209,73 @@ def _prepare_source(root: Path, source: PretrainSource, seed: int, tokenizer: An
     return meta
 
 
-def _concat(paths: list[Path], destination: Path) -> None:
+def weighted_interleave_schedule(token_counts: list[int], chunk_tokens: int) -> list[int]:
+    """Return a deterministic weighted-fair source schedule.
+
+    Each source is advanced in fixed-size chunks while selecting the source with the
+    least fraction of its quota consumed. This keeps domains distributed throughout
+    training instead of presenting six giant domain blocks. All production quotas are
+    exact multiples of the configured chunk sizes.
+    """
+    if not token_counts or chunk_tokens <= 0:
+        raise ValueError("token_counts must be non-empty and chunk_tokens positive")
+    if any(count <= 0 or count % chunk_tokens for count in token_counts):
+        raise ValueError("every token count must be a positive multiple of chunk_tokens")
+
+    written = [0] * len(token_counts)
+    schedule: list[int] = []
+    while True:
+        active = [i for i, total in enumerate(token_counts) if written[i] < total]
+        if not active:
+            break
+        # Compare progress as exact integer cross-products to avoid float drift.
+        chosen = active[0]
+        for candidate in active[1:]:
+            if written[candidate] * token_counts[chosen] < written[chosen] * token_counts[candidate]:
+                chosen = candidate
+        written[chosen] += chunk_tokens
+        schedule.append(chosen)
+    return schedule
+
+
+def _interleave_files(
+    paths: list[Path],
+    token_counts: list[int],
+    destination: Path,
+    *,
+    chunk_tokens: int,
+) -> None:
+    if len(paths) != len(token_counts):
+        raise ValueError("paths/token_counts length mismatch")
+    schedule = weighted_interleave_schedule(token_counts, chunk_tokens)
+    bytes_per_chunk = chunk_tokens * np.dtype(np.uint16).itemsize
     tmp = destination.with_suffix(destination.suffix + ".tmp")
-    with tmp.open("wb") as out:
-        for path in paths:
-            with path.open("rb") as src:
-                shutil.copyfileobj(src, out, length=16 * 1024 * 1024)
+    handles = [path.open("rb") for path in paths]
+    try:
+        with tmp.open("wb") as out:
+            for source_index in schedule:
+                payload = handles[source_index].read(bytes_per_chunk)
+                if len(payload) != bytes_per_chunk:
+                    raise RuntimeError(
+                        f"source {paths[source_index]} ended early while assembling {destination}"
+                    )
+                out.write(payload)
+        for index, handle in enumerate(handles):
+            if handle.read(1):
+                raise RuntimeError(f"source {paths[index]} has unexpected trailing tokens")
+    finally:
+        for handle in handles:
+            handle.close()
     tmp.replace(destination)
 
 
 def prepare_pretrain_mixture(out_dir: str, *, seed: int = 8100) -> dict[str, Any]:
     """Build the production 100M TAM 2B-token pretraining mixture.
 
-    Every component is prepared as an exact, resumable uint16 shard before the final
-    train/validation files are assembled. A failed CPU preparation run can therefore
-    resume at source granularity without re-tokenizing completed sources.
+    Every component is prepared as an exact, resumable uint16 shard. The final
+    train/validation files are then assembled with deterministic weighted-fair
+    interleaving so all domains recur throughout optimization. A failed CPU prep run
+    can resume at source granularity without re-tokenizing completed sources.
     """
     from transformers import AutoTokenizer
 
@@ -235,7 +289,8 @@ def prepare_pretrain_mixture(out_dir: str, *, seed: int = 8100) -> dict[str, Any
     if final_meta.exists() and train_path.exists() and val_path.exists():
         meta = json.loads(final_meta.read_text())
         if (
-            meta.get("train_tokens") == TOTAL_TRAIN_TOKENS
+            meta.get("assembly_version") == ASSEMBLY_VERSION
+            and meta.get("train_tokens") == TOTAL_TRAIN_TOKENS
             and meta.get("val_tokens") == TOTAL_VAL_TOKENS
             and train_path.stat().st_size == TOTAL_TRAIN_TOKENS * 2
             and val_path.stat().st_size == TOTAL_VAL_TOKENS * 2
@@ -250,8 +305,18 @@ def prepare_pretrain_mixture(out_dir: str, *, seed: int = 8100) -> dict[str, Any
     for index, source in enumerate(PRETRAIN_SOURCES):
         source_meta.append(_prepare_source(root, source, seed + index * 101, tokenizer))
 
-    _concat([root / f"{s.name}.train.bin" for s in PRETRAIN_SOURCES], train_path)
-    _concat([root / f"{s.name}.val.bin" for s in PRETRAIN_SOURCES], val_path)
+    _interleave_files(
+        [root / f"{s.name}.train.bin" for s in PRETRAIN_SOURCES],
+        [s.train_tokens for s in PRETRAIN_SOURCES],
+        train_path,
+        chunk_tokens=TRAIN_INTERLEAVE_CHUNK_TOKENS,
+    )
+    _interleave_files(
+        [root / f"{s.name}.val.bin" for s in PRETRAIN_SOURCES],
+        [s.val_tokens for s in PRETRAIN_SOURCES],
+        val_path,
+        chunk_tokens=VAL_INTERLEAVE_CHUNK_TOKENS,
+    )
 
     if train_path.stat().st_size != TOTAL_TRAIN_TOKENS * 2:
         raise RuntimeError("assembled train.bin has unexpected size")
@@ -259,7 +324,11 @@ def prepare_pretrain_mixture(out_dir: str, *, seed: int = 8100) -> dict[str, Any
         raise RuntimeError("assembled val.bin has unexpected size")
 
     meta = {
-        "name": "TAM-100M-2B-curated-v1",
+        "name": "TAM-100M-2B-curated-v2-interleaved",
+        "assembly_version": ASSEMBLY_VERSION,
+        "assembly_policy": "weighted-fair fixed-token chunks across sources",
+        "train_interleave_chunk_tokens": TRAIN_INTERLEAVE_CHUNK_TOKENS,
+        "val_interleave_chunk_tokens": VAL_INTERLEAVE_CHUNK_TOKENS,
         "tokenizer": TOKENIZER_ID,
         "dtype": "uint16",
         "seed": seed,
