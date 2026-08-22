@@ -22,11 +22,12 @@ from modal_full100m_app import (
 )
 
 # Remote execution imports this wrapper module, which in turn imports the original
-# production module above. Explicitly carry that root-level module into the wrapper
-# image so container hydration sees the same module graph as the local launcher.
-image = image.add_local_file(
-    "modal_full100m_app.py",
-    "/root/modal_full100m_app.py",
+# production module above. Bake that Python module into the image layer so it exists
+# before Modal hydrates/imports the wrapper inside the remote container. Runtime-only
+# mounts are too late for this module-import dependency during hydration.
+image = image.add_local_python_source(
+    "modal_full100m_app",
+    copy=True,
 )
 
 
