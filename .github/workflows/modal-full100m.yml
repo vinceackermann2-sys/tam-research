@@ -50,12 +50,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Never replace a run after the H100 phase has started. Check both the
-          # durable GitHub ledger and current Modal logs because either callback path
-          # may be fresher than the other.
+          # Never replace a run after the H100 phase has started. Match only the
+          # authoritative callback signature, not prose that merely mentions it.
+          H100_SIGNATURE='🔥 **TAM-v3-100M-Full H100 started**'
           if gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments?per_page=100" \
-              --jq '.[].body' | grep -Fq 'TAM-v3-100M-Full H100 started'; then
-            echo 'H100-start marker already exists on the production issue; refusing replacement.'
+              --jq '.[].body' | grep -Fq "$H100_SIGNATURE"; then
+            echo 'Authoritative H100-start callback exists on the production issue; refusing replacement.'
             exit 1
           fi
 
@@ -82,13 +82,13 @@ jobs:
 
           if [ -n "$ACTIVE_APP_ID" ]; then
             modal app logs "$ACTIVE_APP_ID" --tail 2500 > /tmp/active-full100m.log 2>&1 || true
-            if grep -Fq 'TAM-v3-100M-Full H100 started' /tmp/active-full100m.log; then
+            if grep -Fq "$H100_SIGNATURE" /tmp/active-full100m.log; then
               echo "Modal app $ACTIVE_APP_ID already reached H100; refusing replacement."
               exit 1
             fi
             modal app stop "$ACTIVE_APP_ID" --yes
             gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-              -f body="🛑 **Controlled CPU-prep replacement** — stopped Modal app \`$ACTIVE_APP_ID\` after repeated CPU preemptions. Guard verified no H100-start marker in GitHub or current Modal logs. The replacement uses \`nonpreemptible=True\` for CPU prep; this is a single user-requested recovery, not an automatic retry."
+              -f body="🛑 **Controlled CPU-prep replacement** — stopped Modal app \`$ACTIVE_APP_ID\` after repeated CPU preemptions. Guard verified no authoritative H100-start callback in GitHub or current Modal logs. The replacement uses \`nonpreemptible=True\` for CPU prep; this is a single user-requested recovery, not an automatic retry."
           else
             echo 'No active full100M Modal app found; continuing with guarded fixed launch.'
           fi
