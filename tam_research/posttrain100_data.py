@@ -41,6 +41,12 @@ def _assistant_text(messages: Iterable[dict[str, Any]]) -> str:
     return ""
 
 
+def _stack_inputs(rows: list[np.ndarray]) -> np.ndarray:
+    # CUDA advanced indexing does not implement UInt16. Persist post-training input
+    # tensors as int32 so the core trainer can shuffle/gather them directly on GPU.
+    return np.stack(rows).astype(np.int32, copy=False)
+
+
 def _save_smol_sft(
     rows: Iterable[dict[str, Any]],
     tokenizer: Any,
@@ -76,10 +82,10 @@ def _save_smol_sft(
             f"Smol-SmolTalk ended early: train={len(train_inputs)}/{train_count}, "
             f"eval={len(eval_inputs)}/{eval_count}"
         )
-    np.save(out / "sft_train_inputs.npy", np.stack(train_inputs))
-    np.save(out / "sft_train_labels.npy", np.stack(train_labels))
-    np.save(out / "sft_eval_inputs.npy", np.stack(eval_inputs))
-    np.save(out / "sft_eval_labels.npy", np.stack(eval_labels))
+    np.save(out / "sft_train_inputs.npy", _stack_inputs(train_inputs))
+    np.save(out / "sft_train_labels.npy", np.stack(train_labels).astype(np.int32, copy=False))
+    np.save(out / "sft_eval_inputs.npy", _stack_inputs(eval_inputs))
+    np.save(out / "sft_eval_labels.npy", np.stack(eval_labels).astype(np.int32, copy=False))
     return len(train_inputs), len(eval_inputs)
 
 
@@ -117,10 +123,10 @@ def _save_preferences(
             break
     if len(ci) < count:
         raise RuntimeError(f"UltraFeedback ended early: {len(ci)}/{count}")
-    np.save(out / f"{prefix}_chosen_inputs.npy", np.stack(ci))
-    np.save(out / f"{prefix}_chosen_labels.npy", np.stack(cl))
-    np.save(out / f"{prefix}_rejected_inputs.npy", np.stack(ri))
-    np.save(out / f"{prefix}_rejected_labels.npy", np.stack(rl))
+    np.save(out / f"{prefix}_chosen_inputs.npy", _stack_inputs(ci))
+    np.save(out / f"{prefix}_chosen_labels.npy", np.stack(cl).astype(np.int32, copy=False))
+    np.save(out / f"{prefix}_rejected_inputs.npy", _stack_inputs(ri))
+    np.save(out / f"{prefix}_rejected_labels.npy", np.stack(rl).astype(np.int32, copy=False))
     return len(ci)
 
 
@@ -138,7 +144,8 @@ def prepare_100m_posttrain_data(
 
     SFT uses Smol-SmolTalk because Hugging Face explicitly curated that subset for
     135M/360M models. DPO uses the current UltraFeedback Binarized preference split.
-    Both are converted to the existing GPT-2-vocabulary assistant-only label format.
+    Both are converted to GPT-2-vocabulary assistant-only arrays, with int32 input
+    IDs so CUDA shuffled indexing is supported.
     """
     from datasets import load_dataset
     from transformers import AutoTokenizer
@@ -153,6 +160,7 @@ def prepare_100m_posttrain_data(
         "preference_train_rows": preference_train_rows,
         "preference_eval_rows": preference_eval_rows,
         "seed": seed,
+        "input_dtype": "int32",
     }
     expected = [
         "sft_train_inputs.npy",
