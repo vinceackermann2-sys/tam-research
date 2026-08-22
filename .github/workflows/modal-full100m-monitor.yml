@@ -40,7 +40,18 @@ jobs:
           except Exception:
               apps = []
           rows = [row for row in apps if row.get('description') == 'tam-research-full100m']
-          print(rows[0].get('app_id', '') if rows else '')
+          rows.sort(key=lambda row: str(row.get('created_at', '')), reverse=True)
+          active = []
+          for row in rows:
+              state = str(row.get('state', '')).lower()
+              try:
+                  tasks = int(str(row.get('tasks', '0')))
+              except ValueError:
+                  tasks = 0
+              if 'stopped' not in state and tasks > 0:
+                  active.append(row)
+          selected = active[0] if active else (rows[0] if rows else {})
+          print(selected.get('app_id', ''))
           PY
           )"
 
