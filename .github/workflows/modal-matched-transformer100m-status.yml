@@ -1,0 +1,86 @@
+name: Modal matched Transformer 100M status probe
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  status:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[modal-status-transformer100m]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.2.3,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Probe matched Transformer app and artifacts without compute
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -u
+          modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
+          APP_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              rows=json.loads(Path('/tmp/apps.json').read_text())
+          except Exception:
+              rows=[]
+          matches=[r for r in rows if r.get('description')=='tam-research-matched-transformer100m']
+          matches.sort(key=lambda r: str(r.get('created_at','')), reverse=True)
+          print(matches[0].get('app_id','') if matches else '')
+          PY
+          )"
+          printf '%s' "$APP_ID" > /tmp/app_id.txt
+          if [ -n "$APP_ID" ]; then
+            modal app history "$APP_ID" --json > /tmp/history.json 2>/tmp/history.err || true
+            modal app logs "$APP_ID" --tail 1200 --timestamps --show-function-id --show-container-id > /tmp/logs.txt 2>/tmp/logs.err || true
+          else
+            : > /tmp/history.json
+            : > /tmp/logs.txt
+          fi
+          modal volume ls tam-research-data full100m-runs/Transformer-100M-2B-seed8100 --json > /tmp/artifacts.json 2>/tmp/artifacts.err || true
+          python - <<'PY' > /tmp/comment.md
+          import json
+          from pathlib import Path
+          def read(p):
+              q=Path(p); return q.read_text(errors='replace').strip() if q.exists() else ''
+          def load(p):
+              t=read(p)
+              if not t: return None
+              try: return json.loads(t)
+              except Exception: return t
+          print('🔎 **Matched Transformer-100M status probe (zero GPU)**')
+          print('')
+          print('This only queried Modal metadata/logs and the persistent Volume. No function was started and no GPU was allocated.')
+          print(f"\nLatest matched app ID: `{read('/tmp/app_id.txt') or 'none'}`")
+          print('\n### App history\n```json')
+          h=load('/tmp/history.json'); print(json.dumps(h,indent=2)[:12000] if not isinstance(h,str) else h[:12000]); print('```')
+          print('\n### Recent logs\n```text')
+          print(read('/tmp/logs.txt')[-24000:] or '(no logs returned)'); print('```')
+          print('\n### Transformer final-run artifacts\n```json')
+          a=load('/tmp/artifacts.json'); print(json.dumps(a,indent=2)[:10000] if not isinstance(a,str) else a[:10000]); print('```')
+          errs={k:read(v) for k,v in {'apps':'/tmp/apps.err','history':'/tmp/history.err','logs':'/tmp/logs.err','artifacts':'/tmp/artifacts.err'}.items()}
+          errs={k:v for k,v in errs.items() if v}
+          if errs:
+              print('\n### Probe stderr\n```text')
+              for k,v in errs.items(): print(f'[{k}] {v[:4000]}')
+              print('```')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/comment.md)"
