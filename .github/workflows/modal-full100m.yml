@@ -69,6 +69,7 @@ jobs:
                   tasks = 0
               if 'stopped' not in state and tasks > 0:
                   matches.append(row)
+          matches.sort(key=lambda row: str(row.get('created_at', '')), reverse=True)
           print(matches[0].get('app_id', '') if matches else '')
           PY
           )"
@@ -79,9 +80,23 @@ jobs:
               echo "Modal app $ACTIVE_APP_ID already reached H100; refusing replacement."
               exit 1
             fi
-            modal app stop "$ACTIVE_APP_ID" --yes
+
+            # The CPU app can finish/crash between `app list` and `app stop`. Treat only
+            # Modal's explicit already-stopped response as a successful idempotent stop;
+            # any other stop error remains fatal so we never launch alongside an unknown
+            # still-active production app.
+            set +e
+            STOP_OUTPUT="$(modal app stop "$ACTIVE_APP_ID" --yes 2>&1)"
+            STOP_RC=$?
+            set -e
+            printf '%s\n' "$STOP_OUTPUT"
+            if [ "$STOP_RC" -ne 0 ] && ! grep -Fq 'App is already stopped' <<<"$STOP_OUTPUT"; then
+              echo "Failed to stop Modal app $ACTIVE_APP_ID; refusing replacement."
+              exit "$STOP_RC"
+            fi
+
             gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-              -f body="🛑 **Controlled CPU-prep replacement** — stopped Modal app \`$ACTIVE_APP_ID\` after repeated CPU preemptions. Guard verified no authoritative H100-start callback in GitHub or current Modal logs. The replacement uses \`nonpreemptible=True\` for CPU prep; this is a single user-requested recovery, not an automatic retry."
+              -f body="🛑 **Controlled CPU-prep replacement** — previous Modal app \`$ACTIVE_APP_ID\` is stopped (or had already stopped during the guarded handoff). Guard verified no authoritative H100-start callback in GitHub or current Modal logs. The replacement uses \`nonpreemptible=True\` for CPU prep; this is a single user-requested recovery, not an automatic retry."
           else
             echo 'No active full100M Modal app found; continuing with guarded fixed launch.'
           fi
