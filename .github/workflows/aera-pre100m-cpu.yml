@@ -25,8 +25,12 @@ jobs:
         id: probe
         shell: bash
         run: |
-          set -euo pipefail
-          python aera_pre100m_cpu.py | tee /tmp/aera-result.log
+          set -o pipefail
+          python aera_pre100m_cpu.py 2>&1 | tee /tmp/aera-result.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
           tail -n 1 /tmp/aera-result.log > /tmp/aera-result.json
       - name: Post result
         if: success()
@@ -44,10 +48,18 @@ jobs:
             echo 'Scope: learned/synthetic mechanism and tiny integrated-model validation only. This does not authorize a 100M run or establish GPU sparse speedup / real-language superiority.'
           } > /tmp/comment.md
           gh issue comment "$ISSUE" --body-file /tmp/comment.md
-      - name: Post failure marker
+      - name: Post failure marker with traceback
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ github.event.issue.number }}
         run: |
-          gh issue comment "$ISSUE" --body '❌ **AERA pre-100M CPU validation failed.** Do not proceed to a 100M run. Inspect the Actions log and fix the failed mechanism gate before retrying.'
+          {
+            echo '❌ **AERA pre-100M CPU validation failed.** Do not proceed to a 100M run.'
+            echo
+            echo 'Last validation log lines:'
+            echo '```text'
+            if [ -f /tmp/aera-result.log ]; then tail -n 80 /tmp/aera-result.log; else echo 'validation log was not created'; fi
+            echo '```'
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE" --body-file /tmp/comment.md
