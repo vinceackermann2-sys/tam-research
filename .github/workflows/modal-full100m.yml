@@ -19,14 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     # The local Modal entrypoint waits for CPU-only preparation before detaching the
     # H100 call. Keep the GitHub runner alive for that entire 4h preparation ceiling
-    # plus setup/handoff margin; this does not change any Modal compute budget.
+    # plus setup/handoff margin; this does not change the H100 compute budget.
     timeout-minutes: 300
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
-      # A GitHub Actions installation token is short-lived and repo-scoped. It is
-      # materialized into Modal only so the active launch can post callbacks while
-      # this workflow is alive. The scheduled monitor mirrors later Modal log events.
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
@@ -34,8 +31,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Modal
-        run: pip install 'modal>=1.1,<2'
+      - name: Install Modal with non-preemptible CPU support
+        run: pip install 'modal>=1.2.3,<2'
 
       - name: Verify Modal authentication
         run: modal token info
@@ -44,6 +41,58 @@ jobs:
         run: |
           modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
 
+      - name: Guard and stop superseded preempting CPU app on manual reopen
+        if: github.event_name == 'issues' && github.event.action == 'reopened'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Never replace a run after the H100 phase has started. Check both the
+          # durable GitHub ledger and current Modal logs because either callback path
+          # may be fresher than the other.
+          if gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments?per_page=100" \
+              --jq '.[].body' | grep -Fq 'TAM-v3-100M-Full H100 started'; then
+            echo 'H100-start marker already exists on the production issue; refusing replacement.'
+            exit 1
+          fi
+
+          modal app list --json > /tmp/apps.json
+          ACTIVE_APP_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+
+          rows = json.loads(Path('/tmp/apps.json').read_text())
+          matches = []
+          for row in rows:
+              if row.get('description') != 'tam-research-full100m':
+                  continue
+              state = str(row.get('state', '')).lower()
+              try:
+                  tasks = int(str(row.get('tasks', '0')))
+              except ValueError:
+                  tasks = 0
+              if 'stopped' not in state and tasks > 0:
+                  matches.append(row)
+          print(matches[0].get('app_id', '') if matches else '')
+          PY
+          )"
+
+          if [ -n "$ACTIVE_APP_ID" ]; then
+            modal app logs "$ACTIVE_APP_ID" --tail 2500 > /tmp/active-full100m.log 2>&1 || true
+            if grep -Fq 'TAM-v3-100M-Full H100 started' /tmp/active-full100m.log; then
+              echo "Modal app $ACTIVE_APP_ID already reached H100; refusing replacement."
+              exit 1
+            fi
+            modal app stop "$ACTIVE_APP_ID" --yes
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🛑 **Controlled CPU-prep replacement** — stopped Modal app \`$ACTIVE_APP_ID\` after repeated CPU preemptions. Guard verified no H100-start marker in GitHub or current Modal logs. The replacement uses \`nonpreemptible=True\` for CPU prep; this is a single user-requested recovery, not an automatic retry."
+          else
+            echo 'No active full100M Modal app found; continuing with guarded fixed launch.'
+          fi
+
       - name: Record immutable budget guard
         if: github.event_name == 'issues'
         env:
@@ -51,13 +100,13 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🔒 **100M full-run budget guard** — code-fixed aggregate H100 ceiling=11,700s; 2,000,000,000 pretraining tokens; callers cannot raise the ceiling. Data preparation is CPU-only and capped at 4h. No automatic retry is configured."
+            -f body="🔒 **100M full-run budget guard** — code-fixed aggregate H100 ceiling=11,700s; 2,000,000,000 pretraining tokens; callers cannot raise the ceiling. CPU preparation is non-preemptible, capped at 4h, and cannot allocate a GPU. No automatic retry is configured."
 
       - name: Launch detached full 100M pipeline
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
         run: |
-          modal run --detach --timestamps modal_full100m_app.py \
+          modal run --detach --timestamps modal_full100m_nonpreemptible_app.py \
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER"
 
@@ -68,4 +117,4 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟪 **GitHub → Modal full-100M handoff complete.** CPU data preparation runs first; exactly one capped H100 training function is spawned after preparation. Later stage/eval callbacks are mirrored by the zero-GPU monitor if this short-lived GitHub token has expired."
+            -f body="🟪 **GitHub → Modal full-100M handoff complete.** Non-preemptible CPU data preparation runs first; exactly one capped H100 training function is spawned only after preparation commits successfully."
