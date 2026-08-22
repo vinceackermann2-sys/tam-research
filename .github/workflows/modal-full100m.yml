@@ -42,7 +42,7 @@ jobs:
 
       - name: Materialize short-lived Modal GitHub callback secret
         run: |
-          modal secret create github-secret GITHUB_TOKEN="$GITHUB_TOKEN" --force
+          modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
 
       - name: Record immutable budget guard
         if: github.event_name == 'issues'
