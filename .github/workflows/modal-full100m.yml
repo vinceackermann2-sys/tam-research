@@ -2,7 +2,7 @@ name: Modal TAM 100M full 2B training
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
   workflow_dispatch:
 
 permissions:
@@ -24,6 +24,10 @@ jobs:
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      # A GitHub Actions installation token is short-lived and repo-scoped. It is
+      # materialized into Modal only so the active launch can post callbacks while
+      # this workflow is alive. The scheduled monitor mirrors later Modal log events.
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
@@ -35,6 +39,10 @@ jobs:
 
       - name: Verify Modal authentication
         run: modal token info
+
+      - name: Materialize short-lived Modal GitHub callback secret
+        run: |
+          modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
 
       - name: Record immutable budget guard
         if: github.event_name == 'issues'
@@ -60,4 +68,4 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟪 **GitHub → Modal full-100M handoff complete.** CPU data preparation runs first; exactly one capped H100 training function is spawned after preparation."
+            -f body="🟪 **GitHub → Modal full-100M handoff complete.** CPU data preparation runs first; exactly one capped H100 training function is spawned after preparation. Later stage/eval callbacks are mirrored by the zero-GPU monitor if this short-lived GitHub token has expired."

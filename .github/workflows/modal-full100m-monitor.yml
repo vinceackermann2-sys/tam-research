@@ -1,0 +1,140 @@
+name: Monitor TAM 100M full training
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GH_TOKEN: ${{ github.token }}
+      TARGET_ISSUE: '106'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Mirror new production milestones
+        shell: bash
+        run: |
+          set -u
+          modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
+
+          APP_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              apps = json.loads(Path('/tmp/apps.json').read_text())
+          except Exception:
+              apps = []
+          rows = [row for row in apps if row.get('description') == 'tam-research-full100m']
+          print(rows[0].get('app_id', '') if rows else '')
+          PY
+          )"
+
+          if [ -z "$APP_ID" ]; then
+            echo 'No full100M Modal app is visible; nothing to mirror.'
+            exit 0
+          fi
+
+          modal app logs "$APP_ID" --tail 2500 --timestamps --show-function-id --show-container-id \
+            > /tmp/logs.txt 2>/tmp/logs.err || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$TARGET_ISSUE/comments?per_page=100" \
+            > /tmp/comments.json
+
+          export APP_ID
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          import os
+          import subprocess
+
+          issue = os.environ['TARGET_ISSUE']
+          repo = os.environ['GITHUB_REPOSITORY']
+          app_id = os.environ['APP_ID']
+          logs = Path('/tmp/logs.txt').read_text(errors='replace') if Path('/tmp/logs.txt').exists() else ''
+          try:
+              comments = json.loads(Path('/tmp/comments.json').read_text())
+          except Exception:
+              comments = []
+          existing = '\n'.join(str(row.get('body', '')) for row in comments)
+
+          status_markers = (
+              'TAM-100M data preparation started',
+              'TAM-100M data preparation finished',
+              'TAM-v3-100M-Full H100 started',
+              '2B-token pretraining finished',
+              '100M SFT finished',
+              '100M DPO finished',
+              'TAM-v3-100M-2B-Full complete',
+              'failed/aborted',
+              'post-training deferred by budget guard',
+              'DPO deferred by budget guard',
+          )
+
+          pending = []
+          seen_local = set()
+          for line in logs.splitlines():
+              body = None
+              if '[status] ' in line:
+                  body = line.split('[status] ', 1)[1].strip()
+              elif '[status-report-nonfatal]' in line and '; body=' in line:
+                  body = line.split('; body=', 1)[1].strip()
+              if body and any(marker in body for marker in status_markers):
+                  key = 'status-' + hashlib.sha256(body.encode()).hexdigest()[:16]
+                  marker = f'<!-- full100m-monitor:{key} -->'
+                  if marker not in existing and key not in seen_local:
+                      pending.append((key, f'{body}\n\n{marker}'))
+                      seen_local.add(key)
+
+              brace = line.find('{')
+              if brace < 0:
+                  continue
+              try:
+                  record = json.loads(line[brace:])
+              except Exception:
+                  continue
+              if record.get('type') != 'eval':
+                  continue
+              tokens = int(record.get('tokens_seen', 0) or 0)
+              if tokens < 200_000_000:
+                  continue
+              milestone = int(round(tokens / 200_000_000)) * 200_000_000
+              if milestone < 200_000_000 or milestone > 2_000_000_000:
+                  continue
+              key = f'eval-{milestone}'
+              marker = f'<!-- full100m-monitor:{key} -->'
+              if marker in existing or key in seen_local:
+                  continue
+              nll = record.get('nll', 'n/a')
+              ppl = record.get('perplexity', 'n/a')
+              step = record.get('step', 'n/a')
+              text = (
+                  f'📊 **TAM-v3-100M pretraining {milestone:,}-token milestone** — '
+                  f'eval observed at tokens_seen={tokens:,}, step={step}, NLL={nll}, PPL={ppl}. '
+                  'The trainer uses the same 200M-token interval for checkpointing and writes `latest.pt` immediately after the threshold eval.\n\n'
+                  f'Modal app: `{app_id}`\n\n{marker}'
+              )
+              pending.append((key, text))
+              seen_local.add(key)
+
+          for _, body in pending:
+              subprocess.run(
+                  ['gh', 'api', f'repos/{repo}/issues/{issue}/comments', '-f', f'body={body}'],
+                  check=True,
+              )
+          print(f'Mirrored {len(pending)} new event(s) from {app_id}.')
+          PY
