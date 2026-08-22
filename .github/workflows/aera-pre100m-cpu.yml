@@ -1,0 +1,53 @@
+name: AERA pre-100M CPU validation
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  validate:
+    if: startsWith(github.event.issue.title, '[aera-pre100m-cpu]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install repository
+        run: pip install -e .
+      - name: Run full CPU pre-100M validation
+        id: probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          python aera_pre100m_cpu.py | tee /tmp/aera-result.log
+          tail -n 1 /tmp/aera-result.log > /tmp/aera-result.json
+      - name: Post result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '🧪 **AERA pre-100M CPU validation complete.**'
+            echo
+            echo '```json'
+            cat /tmp/aera-result.json
+            echo '```'
+            echo
+            echo 'Scope: learned/synthetic mechanism and tiny integrated-model validation only. This does not authorize a 100M run or establish GPU sparse speedup / real-language superiority.'
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE" --body-file /tmp/comment.md
+      - name: Post failure marker
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$ISSUE" --body '❌ **AERA pre-100M CPU validation failed.** Do not proceed to a 100M run. Inspect the Actions log and fix the failed mechanism gate before retrying.'
