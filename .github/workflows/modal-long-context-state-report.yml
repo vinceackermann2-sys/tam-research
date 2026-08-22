@@ -1,0 +1,38 @@
+name: Modal long-context state report
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[modal-longstate-report]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Syntax-check reporter
+        run: python -m py_compile modal_long_context_state_report_app.py
+      - name: Install Modal
+        run: pip install "modal>=1.1,<2"
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Materialize short-lived GitHub callback secret
+        run: modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
+      - name: Run zero-GPU report
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: modal run --timestamps modal_long_context_state_report_app.py --repo-full-name "$GITHUB_REPOSITORY" --issue-number "$ISSUE_NUMBER"
