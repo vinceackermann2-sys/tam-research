@@ -81,10 +81,6 @@ jobs:
               exit 1
             fi
 
-            # The CPU app can finish/crash between `app list` and `app stop`. Treat only
-            # Modal's explicit already-stopped response as a successful idempotent stop;
-            # any other stop error remains fatal so we never launch alongside an unknown
-            # still-active production app.
             set +e
             STOP_OUTPUT="$(modal app stop "$ACTIVE_APP_ID" --yes 2>&1)"
             STOP_RC=$?
@@ -96,7 +92,7 @@ jobs:
             fi
 
             gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-              -f body="🛑 **Controlled CPU-prep replacement** — previous Modal app \`$ACTIVE_APP_ID\` is stopped (or had already stopped during the guarded handoff). Guard verified no authoritative H100-start callback in GitHub or current Modal logs. The replacement uses \`nonpreemptible=True\` for CPU prep; this is a single user-requested recovery, not an automatic retry."
+              -f body="🛑 **Controlled CPU-prep replacement** — previous Modal app \`$ACTIVE_APP_ID\` is stopped (or had already stopped during the guarded handoff). Guard verified no authoritative H100-start callback in GitHub or current Modal logs. Production CPU prep is now directly \`nonpreemptible=True\` in the original launcher; this is a single user-requested recovery, not an automatic retry."
           else
             echo 'No active full100M Modal app found; continuing with guarded fixed launch.'
           fi
@@ -108,13 +104,13 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🔒 **100M full-run budget guard** — code-fixed aggregate H100 ceiling=11,700s; 2,000,000,000 pretraining tokens; callers cannot raise the ceiling. CPU preparation is non-preemptible, capped at 4h, and cannot allocate a GPU. No automatic retry is configured."
+            -f body="🔒 **100M full-run budget guard** — code-fixed aggregate H100 ceiling=11,700s; 2,000,000,000 pretraining tokens; callers cannot raise the ceiling. CPU preparation is directly non-preemptible in the original production function, capped at 4h, and cannot allocate a GPU. No automatic retry is configured."
 
       - name: Launch detached full 100M pipeline
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
         run: |
-          modal run --detach --timestamps modal_full100m_nonpreemptible_app.py::app.nonpreemptible_main \
+          modal run --detach --timestamps modal_full100m_app.py \
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER"
 
@@ -125,4 +121,4 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟪 **GitHub → Modal full-100M handoff complete.** Non-preemptible CPU data preparation runs first; exactly one capped H100 training function is spawned only after preparation commits successfully."
+            -f body="🟪 **GitHub → Modal full-100M handoff complete.** The original production CPU preparation function runs non-preemptibly first; exactly one capped H100 training function is spawned only after preparation commits successfully."
