@@ -17,7 +17,10 @@ jobs:
        github.event.issue.user.login == github.repository_owner &&
        startsWith(github.event.issue.title, '[modal-full100m]'))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The local Modal entrypoint waits for CPU-only preparation before detaching the
+    # H100 call. Keep the GitHub runner alive for that entire 4h preparation ceiling
+    # plus setup/handoff margin; this does not change any Modal compute budget.
+    timeout-minutes: 300
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
