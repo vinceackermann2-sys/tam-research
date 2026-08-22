@@ -1,0 +1,134 @@
+name: Modal benchmark-100M status probe
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  status:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[modal-status-benchmark100m]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.1,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Query benchmark workflow and stopped Modal app without compute
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -u
+          gh run list --workflow modal-tam100m-benchmark.yml --limit 10 \
+            --json databaseId,displayTitle,event,status,conclusion,createdAt,updatedAt,url \
+            > /tmp/gh_runs.json 2>/tmp/gh_runs.err || true
+          LATEST_GH_RUN_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              rows = json.loads(Path('/tmp/gh_runs.json').read_text())
+          except Exception:
+              rows = []
+          print(rows[0].get('databaseId', '') if rows else '')
+          PY
+          )"
+          printf '%s' "$LATEST_GH_RUN_ID" > /tmp/latest_gh_run_id.txt
+          if [ -n "$LATEST_GH_RUN_ID" ]; then
+            gh run view "$LATEST_GH_RUN_ID" --log > /tmp/gh_run.log 2>/tmp/gh_run.err || true
+          else
+            : > /tmp/gh_run.log
+            echo "No benchmark workflow run found" > /tmp/gh_run.err
+          fi
+
+          modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
+          LATEST_APP_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              apps = json.loads(Path('/tmp/apps.json').read_text())
+          except Exception:
+              apps = []
+          matches = [row for row in apps if row.get('description') == 'tam-research-100m-benchmark']
+          def ts(row):
+              return str(row.get('created_at') or row.get('started_at') or row.get('updated_at') or '')
+          matches.sort(key=ts, reverse=True)
+          print(matches[0].get('app_id', '') if matches else '')
+          PY
+          )"
+          printf '%s' "$LATEST_APP_ID" > /tmp/latest_app_id.txt
+          if [ -n "$LATEST_APP_ID" ]; then
+            modal app history "$LATEST_APP_ID" --json > /tmp/history.json 2>/tmp/history.err || true
+            modal app logs "$LATEST_APP_ID" --tail 1000 --timestamps --show-function-id --show-container-id > /tmp/logs.txt 2>/tmp/logs.err || true
+          else
+            : > /tmp/history.json
+            : > /tmp/logs.txt
+            echo "No tam-research-100m-benchmark app found" > /tmp/history.err
+          fi
+
+          python - <<'PY' > /tmp/comment.md
+          from pathlib import Path
+          import json
+          def read(path):
+              p = Path(path)
+              return p.read_text(errors='replace').strip() if p.exists() else ''
+          def load_json(path):
+              text = read(path)
+              if not text:
+                  return None
+              try:
+                  return json.loads(text)
+              except Exception:
+                  return text
+          print('🔎 **TAM 100M benchmark status probe (zero GPU)**')
+          print('')
+          print('This probe only read GitHub Actions and Modal metadata/logs; it did not start a Modal Function or allocate compute.')
+          print('')
+          print(f"Latest GitHub run ID: `{read('/tmp/latest_gh_run_id.txt') or 'none'}`")
+          print(f"Latest Modal app ID: `{read('/tmp/latest_app_id.txt') or 'none'}`")
+          print('')
+          print('### GitHub workflow runs')
+          print('```json')
+          obj = load_json('/tmp/gh_runs.json')
+          print(json.dumps(obj, indent=2)[:12000] if not isinstance(obj, str) else obj[:12000])
+          print('```')
+          print('### Latest GitHub run log')
+          print('```text')
+          print(read('/tmp/gh_run.log')[-24000:] or '(none)')
+          print('```')
+          print('### Modal app history')
+          print('```json')
+          obj = load_json('/tmp/history.json')
+          print(json.dumps(obj, indent=2)[:12000] if not isinstance(obj, str) else obj[:12000])
+          print('```')
+          print('### Modal logs')
+          print('```text')
+          print(read('/tmp/logs.txt')[-24000:] or '(none)')
+          print('```')
+          errors = {k: read(p) for k,p in {
+              'gh-runs':'/tmp/gh_runs.err','gh-run':'/tmp/gh_run.err','apps':'/tmp/apps.err','history':'/tmp/history.err','logs':'/tmp/logs.err'
+          }.items()}
+          errors = {k:v for k,v in errors.items() if v}
+          if errors:
+              print('### stderr')
+              print('```text')
+              for k,v in errors.items():
+                  print(f'[{k}] {v[:5000]}')
+              print('```')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/comment.md)"
