@@ -87,6 +87,37 @@ def test_v12_router_supervision_reaches_optional_routers_not_foundation():
     assert torch.isfinite(terms["stage_polarization"])
 
 
+def test_v12_router_supervision_is_autocast_safe_and_keeps_gradients():
+    """Regression for seed8231's CUDA-bf16 BCELoss failure at router calibration."""
+    torch.manual_seed(1206)
+    model = HardwareAwareAERATextLMV12(_cfg()).train()
+    model.set_optional_stage_routers_trainable(True)
+    tokens = torch.randint(0, model.cfg.vocab_size, (6, 8))
+    chunk_losses = torch.tensor([[0.1], [0.2], [0.3], [0.4], [0.5], [0.6]])
+
+    with torch.autocast(device_type="cpu", dtype=torch.bfloat16):
+        out = model(tokens, route_mode="straight_through", update_memory=False)
+        terms = model.soft_objective(
+            tokens,
+            out,
+            chunk_losses=chunk_losses,
+            event_weight=0.0,
+            compute_weight=0.0,
+            balance_weight=0.0,
+            block_weight=0.0,
+            stream_forecast_weight=0.0,
+        )
+    assert torch.isfinite(terms["stage_difficulty_bce"])
+    assert terms["stage_difficulty_bce"].dtype == torch.float32
+    terms["total"].backward()
+
+    for router in model.stage_routers[1:]:
+        grad = router.proj.weight.grad
+        assert grad is not None
+        assert torch.isfinite(grad).all()
+        assert float(grad.abs().sum()) > 0.0
+
+
 def test_v12_difficulty_supervision_can_learn_noncollapsed_hard_stage_policy():
     torch.manual_seed(1203)
     model = HardwareAwareAERATextLMV12(_cfg()).train()

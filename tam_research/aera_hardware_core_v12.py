@@ -138,19 +138,26 @@ class HardwareAwareAERATextLMV12(HardwareAwareAERATextLMV11):
         probabilities = self.optional_stage_probabilities(output)
         targets = self.chunk_difficulty_stage_targets(chunk_losses).to(
             device=probabilities.device,
-            dtype=probabilities.dtype,
+            dtype=torch.float32,
         )
         if targets.shape != probabilities.shape:
             raise ValueError(
                 f"target/probability shape mismatch: {targets.shape} vs {probabilities.shape}"
             )
-        eps = torch.finfo(probabilities.dtype).eps
-        p = probabilities.clamp(eps, 1.0 - eps)
-        difficulty_bce = F.binary_cross_entropy(p, targets)
-        mean_probability = probabilities.mean()
+
+        # CUDA autocast deliberately forbids BCELoss on sigmoid probabilities because
+        # its backward pass can overflow in low precision.  Recover the equivalent
+        # float32 logits and use BCEWithLogits, which is autocast-safe.  The clamp only
+        # protects logit() at exact 0/1 and leaves the calibrated objective unchanged
+        # over the normal sigmoid range.
+        eps = 1e-6
+        p = probabilities.float().clamp(eps, 1.0 - eps)
+        routing_logits = torch.logit(p)
+        difficulty_bce = F.binary_cross_entropy_with_logits(routing_logits, targets)
+        mean_probability = probabilities.float().mean()
         mean_target = targets.mean()
         budget = (mean_probability - mean_target).square()
-        polarization = (probabilities * (1.0 - probabilities)).mean()
+        polarization = (probabilities.float() * (1.0 - probabilities.float())).mean()
         return {
             "stage_difficulty_bce": difficulty_bce,
             "stage_budget": budget,
