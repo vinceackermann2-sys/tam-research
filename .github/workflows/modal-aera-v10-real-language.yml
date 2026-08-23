@@ -35,7 +35,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🔒 **AERA-v10 real-language gate** — one L4; exact immutable production GPT-2 token bytes; AERA 24.315M stored params vs Transformer 24.940M; exactly 8,388,608 training tokens/model; same sampled batches/seed/context/optimizer; learned stage/expert/depth routing; 2700s hard GPU ceiling; no automatic retry. This is a pre-100M seed, not a breakthrough claim."
+            -f body="🔒 **AERA-v10 real-language gate** — one L4; exact immutable production GPT-2 token bytes; AERA 24.317M stored params vs Transformer 24.940M; exactly 8,388,608 training tokens/model; same sampled batches/seed/context/optimizer; learned stage/expert/depth routing; 2700s hard GPU ceiling; no automatic retry. This is a pre-100M seed, not a breakthrough claim."
       - name: Run matched real-language gate
         id: modal
         shell: bash
