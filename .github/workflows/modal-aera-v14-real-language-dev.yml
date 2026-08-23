@@ -1,0 +1,102 @@
+name: Modal AERA v14 real-language development gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  real-language-dev:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v14-real-language-dev-8271]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check launcher and protocol
+        run: python -m py_compile modal_aera_v14_real_language_dev_app.py tam_research/aera_real_language_v14.py tam_research/aera_real_language_v14_gpu.py tam_research/aera_hardware_core_v14.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v14_real_language_dev_app
+          print('launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v14 real-language development gate** — fresh development seed8271 only; one L4; exact immutable production GPT-2 bytes; same 8,388,608 training tokens/model and matched Transformer control; v14 task-gradient-isolated router calibration; v11 GPT-style initialization; two 256-token chunks; stage0 mandatory foundation; stages1-3 difficulty-budgeted optional routing; hard sparse deployment steps freeze optional routers; calibration task gates are detached while explicit router supervision remains differentiable. 1800s hard GPU ceiling; durable-result duplicate refusal; no automatic retry. This run cannot count as independent breakthrough evidence and cannot authorize 100M."
+      - name: Run AERA v14 development gate
+        id: modal
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v14_real_language_dev_app.py | tee /tmp/aera-v14-dev.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V14_DEV_RESULT_JSON=' /tmp/aera-v14-dev.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v14-dev.log').read_text(errors='replace').splitlines()
+          marker='AERA_V14_DEV_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); a=r['aera']; t=r['transformer']; d=r['diagnostics']; inf=r['inference']
+          pc=r['parameter_accounting']; init=r['protocol']['initialization_fairness']
+          print('📊 **AERA-v14 real-language development seed8271 result**')
+          print()
+          print(f"- initial NLL: AERA **{init['aera_initial_nll']:.4f}**, Transformer **{init['transformer_initial_nll']:.4f}**")
+          print(f"- stored params: AERA **{pc['aera_stored_parameters']:,}**, Transformer **{pc['transformer_parameters']:,}**")
+          print(f"- tokens/model: **{a['tokens_seen']:,}**")
+          print(f"- final val NLL: AERA **{a['final_eval']['nll']:.4f}**, Transformer **{t['final_eval']['nll']:.4f}** (gap {d['quality_gap_nll']:+.4f})")
+          print(f"- carried-state advantage: **{d['state_advantage_nll']:+.4f} NLL**")
+          print(f"- learned stage execution: **{100*d['stage_execution_fraction']:.1f}%**")
+          print(f"- learned active experts/executed stage: **{d['mean_active_experts']:.2f}**")
+          print(f"- learned latent steps/executed stage: **{d['mean_reason_steps']:.2f}**")
+          print(f"- training tok/s: Transformer **{t['training_tokens_per_second']:.0f}**, AERA **{a['training_tokens_per_second']:.0f}**")
+          print(f"- batch8 inference AERA/Transformer: **{inf['batch8']['aera_vs_transformer_speed']:.2f}x**")
+          print(f"- v14 checks: `{json.dumps(r['v14_development_checks'], sort_keys=True)}`")
+          print(f"- v14 development pass: **{'PASS' if r['v14_development_pass'] else 'FAIL'}**")
+          print()
+          print('This adaptive v14 development seed is excluded from later independent replication/breakthrough evidence. 100M remains blocked regardless of this single result.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v14-dev.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v14 real-language development workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
