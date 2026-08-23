@@ -1,0 +1,83 @@
+name: Modal AERA v6 status probe
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  status:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v6-status]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.2.3,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Probe AERA v6 app without compute
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -u
+          modal app list --json > /tmp/apps.json 2>/tmp/apps.err || true
+          APP_ID="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              rows=json.loads(Path('/tmp/apps.json').read_text())
+          except Exception:
+              rows=[]
+          matches=[r for r in rows if r.get('description')=='tam-research-aera-v6-integrated-l4']
+          matches.sort(key=lambda r: str(r.get('created_at','')), reverse=True)
+          print(matches[0].get('app_id','') if matches else '')
+          PY
+          )"
+          printf '%s' "$APP_ID" > /tmp/app_id.txt
+          if [ -n "$APP_ID" ]; then
+            modal app history "$APP_ID" --json > /tmp/history.json 2>/tmp/history.err || true
+            modal app logs "$APP_ID" --tail 1600 --timestamps --show-function-id --show-container-id > /tmp/logs.txt 2>/tmp/logs.err || true
+          else
+            : > /tmp/history.json
+            : > /tmp/logs.txt
+          fi
+          python - <<'PY' > /tmp/comment.md
+          import json
+          from pathlib import Path
+          def read(p):
+              q=Path(p); return q.read_text(errors='replace').strip() if q.exists() else ''
+          def load(p):
+              t=read(p)
+              if not t: return None
+              try: return json.loads(t)
+              except Exception: return t
+          print('🔎 **AERA-v6 integrated L4 status probe (zero GPU)**')
+          print('')
+          print('This queried only Modal app metadata/history/logs. It did not start a function and did not allocate a GPU.')
+          print(f"\nLatest AERA-v6 app ID: `{read('/tmp/app_id.txt') or 'none'}`")
+          print('\n### App history\n```json')
+          h=load('/tmp/history.json'); print(json.dumps(h,indent=2)[:12000] if not isinstance(h,str) else h[:12000]); print('```')
+          print('\n### Recent logs\n```text')
+          print(read('/tmp/logs.txt')[-30000:] or '(no logs returned)'); print('```')
+          errs={k:read(v) for k,v in {'apps':'/tmp/apps.err','history':'/tmp/history.err','logs':'/tmp/logs.err'}.items()}
+          errs={k:v for k,v in errs.items() if v}
+          if errs:
+              print('\n### Probe stderr\n```text')
+              for k,v in errs.items(): print(f'[{k}] {v[:5000]}')
+              print('```')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/comment.md)"
