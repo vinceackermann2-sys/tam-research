@@ -4,8 +4,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from .aera import AERAState
 from .aera_hardware_core import HardwareAERAConfig, HardwareAwareAERATextLM
-from .aera_hardware_core_v9 import HardwareAwareAERATextLMV9
+from .aera_hardware_core_v8 import StageRouteGate, _blend_state
+from .aera_hardware_core_v9 import HardwareAwareAERATextLMV9, _restore_state_dtype
 
 
 class TiedStreamForecastProjector(nn.Module):
@@ -32,13 +34,13 @@ class TiedStreamForecastProjector(nn.Module):
 
 
 class HardwareAwareAERATextLMV10(HardwareAwareAERATextLMV9):
-    """AERA pre-scale candidate with parameter-efficient predictive state.
+    """AERA pre-scale candidate with efficient predictive state and safe calibration.
 
-    Runtime architecture is unchanged from v9. The only change is the train-time
-    auxiliary decoder used to teach recurrent stream compression: per-stage giant
-    vocabulary heads are replaced by small latent projectors decoded through the
-    shared tied token embedding. This substantially reduces stored/training params
-    without removing the state-forecast learning signal.
+    Runtime hard-sparse architecture is unchanged from v9. Train-time predictive
+    state uses small latent projectors decoded through the tied token embedding, and
+    soft/straight-through calibration restores processed residual/state branches to
+    the incoming dtype before blending. This keeps both majority sparse steps and
+    periodic router-calibration steps on one coherent mixed-precision representation.
     """
 
     def __init__(
@@ -49,14 +51,58 @@ class HardwareAwareAERATextLMV10(HardwareAwareAERATextLMV9):
     ):
         super().__init__(cfg, stream_forecast_tokens=stream_forecast_tokens)
         # v3-v9 constructed large per-stage vocabulary forecast heads. Remove them
-        # from the final parameter graph and replace with vocabulary-independent
-        # latent projectors. (A later frozen implementation can avoid their transient
-        # construction entirely; they are not retained or optimized in v10.)
+        # from the retained parameter graph and replace with vocabulary-independent
+        # latent projectors. A final frozen refactor can avoid transient construction
+        # entirely; these legacy matrices are not retained or optimized in v10.
         del self.stream_forecast_heads
         self.stream_forecast_projectors = nn.ModuleList(
             TiedStreamForecastProjector(cfg.d_model, stream_forecast_tokens)
             for _ in range(cfg.n_stages)
         )
+
+    def _route_one_stage(
+        self,
+        x: torch.Tensor,
+        stage,
+        stage_state: AERAState,
+        router: StageRouteGate,
+        *,
+        route_mode: str,
+        update_memory: bool,
+    ) -> tuple[torch.Tensor, AERAState, dict[str, object]]:
+        if route_mode == "hard_sparse":
+            return super()._route_one_stage(
+                x,
+                stage,
+                stage_state,
+                router,
+                route_mode=route_mode,
+                update_memory=update_memory,
+            )
+
+        gate, logits = router(x[:, 0], stage_state.stream, mode=route_mode)
+        prob = torch.sigmoid(logits)
+        processed, processed_state, controls = stage.forward_chunk(
+            x,
+            stage_state,
+            hard=False,
+            update_memory=update_memory,
+        )
+        # Autocast kernels such as LayerNorm/GRU may promote the processed branch.
+        # Restore it before blending so calibration does not silently turn the
+        # residual/recurrent stream FP32 for downstream stages.
+        processed = processed.to(dtype=x.dtype)
+        processed_state = _restore_state_dtype(stage_state, processed_state)
+        gate_for_residual = gate.to(dtype=x.dtype)
+        y = x + gate_for_residual[:, None, :] * (processed - x)
+        new_state = _blend_state(stage_state, processed_state, gate)
+        return y, new_state, {
+            "stage_route_probability": prob,
+            "stage_route_gate": gate,
+            "executed_fraction": 1.0,
+            "start": controls["start"],
+            "end": controls["end"],
+        }
 
     def _stream_forecast_loss(
         self,
@@ -76,8 +122,6 @@ class HardwareAwareAERATextLMV10(HardwareAwareAERATextLMV9):
             target = tokens[:, next_start : next_start + k]
             for stage_index, stream in enumerate(stage_streams):
                 latent = self.stream_forecast_projectors[stage_index].latent(stream)[:, :k]
-                # Reuse the same token geometry as the LM head; no independent
-                # K*vocab matrix is stored.
                 pred = F.linear(latent, self.token_emb.weight)
                 terms.append(
                     F.cross_entropy(
@@ -122,8 +166,8 @@ class HardwareAwareAERATextLMV10(HardwareAwareAERATextLMV9):
 
         base_output = dict(output)
         base_output["controls"] = base_controls
-        # Call the pre-predictive base objective explicitly so the removed legacy
-        # vocabulary forecast heads are never referenced.
+        # Bypass the legacy v3 vocabulary forecast objective; v10 supplies its tied
+        # forecast below while preserving the ordinary LM/compute/balance terms.
         terms = HardwareAwareAERATextLM.objective(
             self,
             tokens,
