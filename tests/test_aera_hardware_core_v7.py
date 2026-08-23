@@ -68,10 +68,13 @@ def test_native_grouped_algorithm_matches_v6_reference(monkeypatch):
     with torch.no_grad():
         expected = ref(x, logits, count_logits, hard=True)
         actual = grouped(x, logits, count_logits, hard=True)
+    assert actual.dtype == x.dtype
     assert torch.allclose(expected, actual, atol=3e-5, rtol=3e-5)
     stats = grouped.stats()
     assert stats is not None
     assert stats["hard_kernel"] == "native_grouped_mm"
+    assert stats["hard_input_dtype"] == str(x.dtype)
+    assert stats["hard_compute_dtype"] == str(x.dtype)  # CPU test keeps native dtype.
 
 
 def test_cpu_hard_path_records_bmm_fallback():
@@ -88,6 +91,8 @@ def test_cpu_hard_path_records_bmm_fallback():
     stats = bank.stats()
     assert stats is not None
     assert stats["hard_kernel"] == "bmm_fallback"
+    assert stats["hard_input_dtype"] == str(x.dtype)
+    assert stats["hard_compute_dtype"] is None
 
 
 def test_native_path_never_materializes_dense_all_experts(monkeypatch):
@@ -118,3 +123,21 @@ def test_native_path_never_materializes_dense_all_experts(monkeypatch):
     with torch.no_grad():
         bank(x, logits, count_logits, hard=True)
     assert seen_group_counts == [2, 2]
+
+
+def test_native_eligibility_does_not_require_residual_bf16(monkeypatch):
+    # The full model may keep residual activations FP32 under autocast. Eligibility
+    # depends on CUDA + grouped_mm + SM80+, while the expert-local path owns the BF16 cast.
+    class FakeTensor:
+        is_cuda = True
+        dtype = torch.float32
+
+        @staticmethod
+        def is_floating_point():
+            return True
+
+        device = torch.device("cuda")
+
+    monkeypatch.setattr(F, "grouped_mm", _fake_grouped_mm, raising=False)
+    monkeypatch.setattr(torch.cuda, "get_device_capability", lambda _device=None: (8, 9))
+    assert NativeGroupedMMSparseExpertBank.native_grouped_mm_available(FakeTensor())
