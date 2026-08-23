@@ -225,6 +225,7 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
 
         outputs: list[torch.Tensor] = []
         control_history: list[list[dict[str, object]]] = []
+        stream_history: list[list[torch.Tensor]] = []
         current_state = state
         execution_accum = [0.0 for _ in self.stages]
         execution_chunks = 0
@@ -235,6 +236,7 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
             x = self.token_emb(chunk) + self.local_pos(pos)[None]
             new_states: list[AERAState] = []
             stage_controls: list[dict[str, object]] = []
+            stage_streams: list[torch.Tensor] = []
 
             for i, (stage, stage_state, router) in enumerate(
                 zip(self.stages, current_state.stages, self.stage_routers)
@@ -249,10 +251,12 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
                 )
                 new_states.append(new_state)
                 stage_controls.append(info)
+                stage_streams.append(new_state.stream)
                 execution_accum[i] += float(info["executed_fraction"])
 
             outputs.append(x)
             control_history.append(stage_controls)
+            stream_history.append(stage_streams)
             current_state = HardwareAERAState(new_states)
             execution_chunks += 1
 
@@ -272,6 +276,7 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
             "next_event_prediction": self.next_event(hidden),
             "controls": control_history,
             "stage_routes": control_history,
+            "stream_history": stream_history,
             "routing_mode": route_mode,
         }
         if return_block_logits:
@@ -290,7 +295,7 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
             raise ValueError("use hard_sparse_task_loss for hard_sparse training steps")
 
         # Reconstruct the base control structure expected by the inherited
-        # objective while adding whole-stage expected-compute regularization.
+        # objective while preserving v3's predictive stream-history objective.
         routes = output["stage_routes"]
         assert isinstance(routes, list)
         base_controls: list[list[dict[str, dict[str, torch.Tensor]]]] = []
@@ -312,6 +317,38 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
         total = terms["total"] + stage_compute_weight * stage_compute
         return {**terms, "stage_compute": stage_compute, "total": total}
 
+    def _stream_forecast_loss(
+        self,
+        tokens: torch.Tensor,
+        output: dict[str, object],
+    ) -> torch.Tensor:
+        history = output.get("stream_history")
+        if not isinstance(history, list):
+            raise ValueError("v8 output missing stream_history")
+        terms: list[torch.Tensor] = []
+        for chunk_index, stage_streams in enumerate(history[:-1]):
+            next_start = (chunk_index + 1) * self.cfg.chunk_size
+            remaining = tokens.size(1) - next_start
+            k = min(self.stream_forecast_tokens, remaining)
+            if k <= 0:
+                continue
+            target = tokens[:, next_start : next_start + k]
+            for stage_index, stream in enumerate(stage_streams):
+                pred = self.stream_forecast_heads[stage_index](stream)
+                pred = pred.view(
+                    stream.size(0), self.stream_forecast_tokens, self.cfg.vocab_size
+                )[:, :k]
+                terms.append(
+                    F.cross_entropy(
+                        pred.float().reshape(-1, self.cfg.vocab_size), target.reshape(-1)
+                    )
+                )
+        return (
+            torch.stack(terms).mean()
+            if terms
+            else torch.zeros((), device=tokens.device, dtype=torch.float32)
+        )
+
     def hard_sparse_task_loss(
         self,
         tokens: torch.Tensor,
@@ -319,12 +356,15 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
         *,
         event_weight: float = 0.05,
         block_weight: float = 0.25,
+        stream_forecast_weight: float = 0.20,
     ) -> dict[str, torch.Tensor]:
         """Task loss for majority hard-sparse training steps.
 
         Router calibration is intentionally supplied by periodic soft/ST passes;
         this loss trains only the actually executed model path, avoiding the hidden
-        dense-stage counterfactual that would erase training-compute savings.
+        dense-stage counterfactual that would erase training-compute savings. The
+        predictive-stream forecast remains active so sparse training does not drop
+        AERA's central compressed-state learning signal.
         """
         if output.get("routing_mode") != "hard_sparse":
             raise ValueError("hard_sparse_task_loss requires route_mode='hard_sparse'")
@@ -352,8 +392,20 @@ class HardwareAwareAERATextLMV8(HardwareAwareAERATextLMV7):
                         )
                     )
                 block = torch.stack(terms).mean()
-        total = lm + event_weight * event + block_weight * block
-        return {"total": total, "next_token": lm, "next_event": event, "block": block}
+        forecast = self._stream_forecast_loss(tokens, output)
+        total = (
+            lm
+            + event_weight * event
+            + block_weight * block
+            + stream_forecast_weight * forecast
+        )
+        return {
+            "total": total,
+            "next_token": lm,
+            "next_event": event,
+            "block": block,
+            "stream_forecast": forecast,
+        }
 
     def stats(self) -> dict[str, object]:
         return {
