@@ -1,0 +1,53 @@
+name: Modal AERA fused batch1 expert candidate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-l4-fused-expert]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check candidate
+        run: python -m py_compile modal_aera_l4_fused_expert_candidate_app.py
+      - name: Install Modal
+        run: pip install 'modal>=1.1,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Materialize callback secret
+        run: modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
+      - name: Record guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **Fused expert candidate guard** — one L4 only; batch-1 stacked top2/8 expert microbenchmark; no optimizer, no training, no weight update or checkpoint mutation. CPU numerical preflight first. Hard GPU timeout=600s. No automatic retry."
+      - name: Run fused expert candidate
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: modal run --timestamps modal_aera_l4_fused_expert_candidate_app.py --repo-full-name "$GITHUB_REPOSITORY" --issue-number "$ISSUE_NUMBER"
+      - name: Record failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **Fused expert candidate workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
