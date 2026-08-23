@@ -28,7 +28,7 @@ def test_v12_foundation_stage_is_frozen_and_hard_runs():
     model = HardwareAwareAERATextLMV12(_cfg()).eval()
     foundation = model.stage_routers[0]
     assert all(not parameter.requires_grad for parameter in foundation.parameters())
-    assert float(foundation.proj.bias) == 12.0
+    assert abs(float(foundation.proj.bias) - 12.0) < 1e-7
     for router in model.stage_routers[1:]:
         assert torch.count_nonzero(router.proj.weight) == 0
         assert torch.count_nonzero(router.proj.bias) == 0
@@ -81,7 +81,7 @@ def test_v12_router_supervision_reaches_optional_routers_not_foundation():
         assert grad is not None
         assert torch.isfinite(grad).all()
         assert float(grad.abs().sum()) > 0.0
-    assert float(terms["optional_stage_target_fraction"]) == 1.0 / 3.0
+    assert abs(float(terms["optional_stage_target_fraction"]) - 1.0 / 3.0) < 1e-6
     assert torch.isfinite(terms["stage_difficulty_bce"])
     assert torch.isfinite(terms["stage_budget"])
     assert torch.isfinite(terms["stage_polarization"])
