@@ -1,0 +1,81 @@
+name: Modal AERA v9 integrated L4 gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  systems-gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v9-integrated-l4]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check benchmark
+        run: python -m py_compile modal_aera_v9_integrated_l4_gate.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v9 integrated L4 guard** — one L4; CPU semantic+dtype preflight first; forced-routing systems benchmark only; verified v6 BMM sparse backend; no optimizer/training/weight updates/checkpoint mutation; hard GPU timeout=600s; no automatic retry. Thresholds unchanged from v8."
+      - name: Run dtype-safe integrated stage-routing L4 gate
+        shell: bash
+        run: |
+          set -o pipefail
+          modal run --timestamps modal_aera_v9_integrated_l4_gate.py | tee /tmp/aera-v9.log
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v9.log').read_text(errors='replace').splitlines()
+          marker='AERA_V9_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); b1=r['results']['batch1']; b8=r['results']['batch8']
+          print('📊 **AERA-v9 integrated stage-routing L4 result**')
+          print()
+          print(f"- device: **{r['device']}**, torch **{r['torch_version']}**")
+          print(f"- backend: **{r['sparse_backend']}**")
+          print(f"- batch1 half-stage lean vs all-stage lean: **{b1['lean_skip_vs_lean_all']:.2f}x**")
+          print(f"- batch8 half-stage lean vs all-stage lean: **{b8['lean_skip_vs_lean_all']:.2f}x**")
+          print(f"- batch1 half-stage lean vs dense-all8: **{b1['lean_skip_vs_dense']:.2f}x**")
+          print(f"- batch8 half-stage lean vs dense-all8: **{b8['lean_skip_vs_dense']:.2f}x**")
+          print(f"- batch8 half-stage lean vs heavy sparse: **{b8['lean_skip_vs_heavy']:.2f}x**")
+          print(f"- forced profiles verified: **{r['checks']['profiles']}**")
+          print(f"- systems gate: **{'PASS' if r['pass'] else 'FAIL'}**")
+          print()
+          print('This is a forced-routing systems result only. Learned routing + small real-language matched validation remain mandatory before 100M.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v9 integrated L4 workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
