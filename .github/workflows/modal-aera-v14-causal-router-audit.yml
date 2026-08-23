@@ -1,0 +1,101 @@
+name: Modal AERA v14 causal router audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  causal-audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v14-causal-router-audit-8271]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check audit launcher
+        run: python -m py_compile modal_aera_v14_causal_router_audit_app.py tam_research/aera_v14_causal_router_audit.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v14_causal_router_audit_app
+          print('CPU audit launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record CPU-only guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔎 **AERA-v14 causal-router audit** — CPU only; loads the frozen seed8271 checkpoint; no AERA parameter updates; no GPU requested; exact validation bytes; fresh held-out linear probes use only each router's causal first-event + carried-stream inputs; audit also measures label instability under peer rebatching. This diagnostic cannot authorize 100M."
+      - name: Run CPU-only causal audit
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v14_causal_router_audit_app.py | tee /tmp/aera-v14-causal-audit.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V14_CAUSAL_AUDIT_RESULT_JSON=' /tmp/aera-v14-causal-audit.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative audit result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v14-causal-audit.log').read_text(errors='replace').splitlines()
+          marker='AERA_V14_CAUSAL_AUDIT_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('audit result marker missing')
+          r=json.loads(rows[-1])
+          print('🔬 **AERA-v14 seed8271 causal-router predictability audit**')
+          print()
+          print(f"- causal target signal: **{r['causal_target_signal'].upper()}**")
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- mean fresh linear-probe AUC: **{r['mean_fresh_probe_auc']:.3f}**")
+          print(f"- mean fresh probe balanced accuracy: **{r['mean_fresh_probe_balanced_accuracy']:.3f}**")
+          print(f"- mean trained-router AUC: **{r['mean_trained_router_auc']:.3f}**")
+          print()
+          for row in r['stage_results']:
+              p=row['fresh_linear_probe']; t=row['trained_router']
+              print(f"- optional stage {row['optional_stage']}: target rate {row['target_run_rate']:.3f}, probe AUC **{p['auc']:.3f}**, router AUC **{t['auc']:.3f}**, hard run **{t['hard_run_fraction']:.3f}**")
+          print()
+          print('Peer-rebatch label instability:')
+          for row in r['rebatching_label_instability']:
+              print(f"- stage {int(row['stage'])}: unstable examples **{100*row['unstable_example_fraction']:.1f}%**, expected pairwise label flips **{100*row['expected_pairwise_label_flip_rate']:.1f}%**")
+          print()
+          print('Diagnostic only. No model parameters were updated and no GPU was used. 100M remains blocked.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record audit failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v14-causal-audit.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v14 causal-router CPU audit failed.** No GPU was requested and no automatic retry was attempted.\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
