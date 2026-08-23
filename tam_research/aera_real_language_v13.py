@@ -138,6 +138,9 @@ def aera_matched_loss(
 
 def cpu_preflight() -> dict[str, Any]:
     base = v12.cpu_preflight()
+    # Parameter counts/active accounting are seed invariant, but initialization
+    # fairness must be recomputed with the seed that this preflight reports.
+    initial = v12.initial_cpu_fairness(CPU_DIAGNOSTIC_SEED)
     policy = {
         "warmup": router_policy_for_step(DENSE_WARMUP_STEPS - 1),
         "first_router_calibration": router_policy_for_step(DENSE_WARMUP_STEPS),
@@ -153,6 +156,7 @@ def cpu_preflight() -> dict[str, Any]:
         "cpu_diagnostic_seed": CPU_DIAGNOSTIC_SEED,
         "gpu_authorized": False,
         "version": "aera-v13-persistent-router-budget",
+        "initialization_fairness": initial,
         "router_update_policy": policy,
         "v13_change_scope": "router update schedule only; architecture/data/init unchanged from v12",
     }
