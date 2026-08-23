@@ -25,7 +25,8 @@ EVAL_SEED = 98_271
 CHUNK_SIZE = 256
 BATCH_SIZE = 8
 BATCHES = 64
-EXPECTED_CHUNKS = BATCHES * BATCH_SIZE * (SEQ_LEN // CHUNK_SIZE)
+CHUNKS_PER_SEQUENCE = SEQ_LEN // CHUNK_SIZE
+EXPECTED_CHUNKS = BATCHES * BATCH_SIZE * CHUNKS_PER_SEQUENCE
 
 # Frozen development-only thresholds. These are intentionally set before the
 # checkpoint adaptivity result is inspected.
@@ -36,19 +37,31 @@ MIN_DIVERSE_BUDGET_FRACTION = 0.05
 
 
 def _rankdata(values: torch.Tensor) -> torch.Tensor:
+    """Average ranks for ties, matching the statistical definition of Spearman rho."""
     if values.ndim != 1 or values.numel() < 2:
         raise ValueError("rankdata requires a 1D tensor with at least two values")
+    values = values.detach().float().cpu()
     order = torch.argsort(values, stable=True)
-    ranks = torch.empty(values.numel(), dtype=torch.float64)
-    ranks[order.cpu()] = torch.arange(values.numel(), dtype=torch.float64)
+    sorted_values = values[order]
+    ranks_sorted = torch.empty(values.numel(), dtype=torch.float64)
+    start = 0
+    while start < values.numel():
+        end = start + 1
+        while end < values.numel() and float(sorted_values[end]) == float(sorted_values[start]):
+            end += 1
+        average_rank = 0.5 * (start + end - 1)
+        ranks_sorted[start:end] = average_rank
+        start = end
+    ranks = torch.empty_like(ranks_sorted)
+    ranks[order] = ranks_sorted
     return ranks
 
 
 def spearman_rho(x: torch.Tensor, y: torch.Tensor) -> float:
     if x.shape != y.shape:
         raise ValueError("Spearman inputs must have identical shape")
-    rx = _rankdata(x.detach().float().cpu())
-    ry = _rankdata(y.detach().float().cpu())
+    rx = _rankdata(x)
+    ry = _rankdata(y)
     rx = rx - rx.mean()
     ry = ry - ry.mean()
     denom = torch.sqrt((rx.square().sum()) * (ry.square().sum()))
@@ -57,7 +70,7 @@ def spearman_rho(x: torch.Tensor, y: torch.Tensor) -> float:
     return float((rx * ry).sum() / denom)
 
 
-def summarize_adaptivity(difficulty: torch.Tensor, optional_stages: torch.Tensor) -> dict[str, Any]:
+def _core_summary(difficulty: torch.Tensor, optional_stages: torch.Tensor) -> dict[str, Any]:
     difficulty = difficulty.detach().float().cpu().reshape(-1)
     optional_stages = optional_stages.detach().float().cpu().reshape(-1)
     if difficulty.numel() != optional_stages.numel() or difficulty.numel() < 16:
@@ -72,23 +85,58 @@ def summarize_adaptivity(difficulty: torch.Tensor, optional_stages: torch.Tensor
         quartile_means[i + 1] + QUARTILE_MONOTONIC_TOLERANCE >= quartile_means[i]
         for i in range(3)
     )
-
     histogram = {str(k): int((optional_stages == float(k)).sum()) for k in range(4)}
-    n = float(optional_stages.numel())
-    diverse_bins = sum((count / n) >= MIN_DIVERSE_BUDGET_FRACTION for count in histogram.values())
-
-    checks = {
-        "spearman_rho_ge_0_20": rho >= MIN_SPEARMAN_RHO,
-        "hardest_minus_easiest_quartile_ge_0_25_stage": hard_minus_easy >= MIN_HARD_MINUS_EASY_STAGES,
-        "quartile_compute_monotonic_with_tolerance": monotonic,
-        "at_least_two_budget_bins_ge_5pct": diverse_bins >= 2,
-    }
     return {
         "samples": int(optional_stages.numel()),
         "difficulty_compute_spearman_rho": rho,
         "optional_stage_quartile_means_easy_to_hard": quartile_means,
         "hardest_minus_easiest_optional_stages": hard_minus_easy,
+        "quartile_compute_monotonic_with_tolerance": monotonic,
         "optional_stage_budget_histogram": histogram,
+    }
+
+
+def summarize_adaptivity(
+    difficulty: torch.Tensor,
+    optional_stages: torch.Tensor,
+    chunk_positions: torch.Tensor | None = None,
+) -> dict[str, Any]:
+    difficulty = difficulty.detach().float().cpu().reshape(-1)
+    optional_stages = optional_stages.detach().float().cpu().reshape(-1)
+    pooled = _core_summary(difficulty, optional_stages)
+
+    n = float(optional_stages.numel())
+    diverse_bins = sum(
+        (count / n) >= MIN_DIVERSE_BUDGET_FRACTION
+        for count in pooled["optional_stage_budget_histogram"].values()
+    )
+
+    position_summaries: list[dict[str, Any]] = []
+    positions_positive = True
+    if chunk_positions is not None:
+        chunk_positions = chunk_positions.detach().long().cpu().reshape(-1)
+        if chunk_positions.shape != difficulty.shape:
+            raise ValueError("chunk_positions must match difficulty shape")
+        for position in range(CHUNKS_PER_SEQUENCE):
+            mask = chunk_positions == position
+            summary = _core_summary(difficulty[mask], optional_stages[mask])
+            summary["chunk_position"] = position
+            position_summaries.append(summary)
+            positions_positive = positions_positive and (
+                summary["difficulty_compute_spearman_rho"] > 0.0
+                and summary["hardest_minus_easiest_optional_stages"] > 0.0
+            )
+
+    checks = {
+        "spearman_rho_ge_0_20": pooled["difficulty_compute_spearman_rho"] >= MIN_SPEARMAN_RHO,
+        "hardest_minus_easiest_quartile_ge_0_25_stage": pooled["hardest_minus_easiest_optional_stages"] >= MIN_HARD_MINUS_EASY_STAGES,
+        "quartile_compute_monotonic_with_tolerance": pooled["quartile_compute_monotonic_with_tolerance"],
+        "at_least_two_budget_bins_ge_5pct": diverse_bins >= 2,
+        "both_chunk_positions_positive": positions_positive,
+    }
+    return {
+        **pooled,
+        "chunk_position_summaries": position_summaries,
         "checks": checks,
         "pass": all(checks.values()),
     }
@@ -96,13 +144,19 @@ def summarize_adaptivity(difficulty: torch.Tensor, optional_stages: torch.Tensor
 
 def _optional_stage_counts(output: dict[str, object], batch_size: int) -> list[torch.Tensor]:
     routes = output.get("stage_routes")
-    if not isinstance(routes, list) or len(routes) != SEQ_LEN // CHUNK_SIZE:
+    if not isinstance(routes, list) or len(routes) != CHUNKS_PER_SEQUENCE:
         raise RuntimeError("unexpected AERA route history")
     counts: list[torch.Tensor] = []
     for chunk in routes:
         if not isinstance(chunk, list) or len(chunk) != 4:
             raise RuntimeError("unexpected AERA stage route history")
-        count = torch.zeros(batch_size, device=next(iter(chunk[0].values())).device if isinstance(chunk[0], dict) else "cpu")
+        foundation = chunk[0]
+        if not isinstance(foundation, dict):
+            raise RuntimeError("invalid foundation route item")
+        foundation_gate = foundation.get("stage_route_gate")
+        if not isinstance(foundation_gate, torch.Tensor):
+            raise RuntimeError("invalid foundation stage_route_gate")
+        count = torch.zeros(batch_size, device=foundation_gate.device)
         for item in chunk[1:]:
             if not isinstance(item, dict):
                 raise RuntimeError("invalid stage route item")
@@ -116,6 +170,8 @@ def _optional_stage_counts(output: dict[str, object], batch_size: int) -> list[t
 
 @torch.no_grad()
 def evaluate_checkpoint(*, data_dir: str, run_dir: str, device: torch.device) -> dict[str, Any]:
+    if device.type != "cuda":
+        raise RuntimeError("held-out checkpoint diagnostic is frozen to one L4 CUDA evaluation")
     root = Path(run_dir)
     aera_path = root / "aera.pt"
     transformer_path = root / "transformer.pt"
@@ -138,6 +194,7 @@ def evaluate_checkpoint(*, data_dir: str, run_dir: str, device: torch.device) ->
     g = torch.Generator(device="cpu").manual_seed(EVAL_SEED)
     all_difficulty: list[torch.Tensor] = []
     all_compute: list[torch.Tensor] = []
+    all_positions: list[torch.Tensor] = []
     stage_runs = torch.zeros(3, dtype=torch.float64)
 
     for _ in range(BATCHES):
@@ -156,6 +213,7 @@ def evaluate_checkpoint(*, data_dir: str, run_dir: str, device: torch.device) ->
         for chunk_index, start in enumerate(range(0, SEQ_LEN, CHUNK_SIZE)):
             all_difficulty.append(t_loss[:, start : start + CHUNK_SIZE].mean(dim=1).cpu())
             all_compute.append(counts[chunk_index].cpu())
+            all_positions.append(torch.full((BATCH_SIZE,), chunk_index, dtype=torch.long))
             chunk = routes[chunk_index]
             assert isinstance(chunk, list)
             for stage_index, item in enumerate(chunk[1:]):
@@ -166,10 +224,11 @@ def evaluate_checkpoint(*, data_dir: str, run_dir: str, device: torch.device) ->
 
     difficulty = torch.cat(all_difficulty)
     compute = torch.cat(all_compute)
+    positions = torch.cat(all_positions)
     if difficulty.numel() != EXPECTED_CHUNKS:
         raise RuntimeError(f"unexpected held-out sample count {difficulty.numel()} != {EXPECTED_CHUNKS}")
 
-    result = summarize_adaptivity(difficulty, compute)
+    result = summarize_adaptivity(difficulty, compute, positions)
     result["seed"] = SEED
     result["eval_seed"] = EVAL_SEED
     result["checkpoint_run_dir"] = run_dir
