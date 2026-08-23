@@ -21,6 +21,12 @@ class HardwareAwareAERATextLMV11(HardwareAwareAERATextLMV10):
     stacked expert matrices already use std=0.02 and are intentionally left alone.
     GRUCell recurrent matrices retain PyTorch's recurrent initialization rather
     than pretending they are ordinary Transformer Linear layers.
+
+    Whole-stage route projections are reset to zero after GPT-style initialization.
+    With the existing >=0.5 hard threshold, a zero logit means RUN, so a fresh model
+    begins from an all-stage warm-up path instead of randomly dropping untrained
+    stages. Router gradients are still enabled and the later curriculum may learn
+    to skip stages once the language representation is established.
     """
 
     def __init__(
@@ -31,6 +37,9 @@ class HardwareAwareAERATextLMV11(HardwareAwareAERATextLMV10):
     ) -> None:
         super().__init__(cfg, stream_forecast_tokens=stream_forecast_tokens)
         self.apply(self._init_linear_embedding)
+        for router in self.stage_routers:
+            nn.init.zeros_(router.proj.weight)
+            nn.init.zeros_(router.proj.bias)
         # lm_head and token_emb share the same Parameter. `apply` may visit both
         # modules, but the final shared tensor is still one N(0,0.02) parameter.
         if self.lm_head.weight is not self.token_emb.weight:
