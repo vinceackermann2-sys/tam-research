@@ -12,7 +12,7 @@ jobs:
   real-language-dev:
     if: >-
       github.event.issue.user.login == github.repository_owner &&
-      startsWith(github.event.issue.title, '[aera-v12-real-language-dev]')
+      startsWith(github.event.issue.title, '[aera-v12-real-language-dev-8232]')
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -43,7 +43,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🔒 **AERA-v12 real-language development gate** — fresh development seed8231 only; one L4; exact immutable production GPT-2 bytes; same 8,388,608 training tokens/model and matched Transformer control; v11 GPT-style initialization; two 256-token chunks; stage0 mandatory foundation; stages1-3 difficulty-budgeted optional routing; 192-step representation warm-up, calibration through step384, then mostly-hard sparse training. 1800s hard GPU ceiling; durable-result duplicate refusal; no automatic retry. This run cannot count as independent breakthrough evidence and cannot authorize 100M."
+            -f body="🔒 **AERA-v12 corrected real-language development gate** — fresh development seed8232 only; one L4; exact immutable production GPT-2 bytes; same 8,388,608 training tokens/model and matched Transformer control; corrected autocast-safe v12 router loss; v11 GPT-style initialization; two 256-token chunks; stage0 mandatory foundation; stages1-3 difficulty-budgeted optional routing; 192-step representation warm-up, calibration through step384, then mostly-hard sparse training. 1800s hard GPU ceiling; durable-result duplicate refusal; no automatic retry. This run cannot count as independent breakthrough evidence and cannot authorize 100M."
       - name: Run AERA v12 development gate
         id: modal
         shell: bash
@@ -73,7 +73,7 @@ jobs:
               raise SystemExit('result marker missing')
           r=json.loads(rows[-1]); a=r['aera']; t=r['transformer']; d=r['diagnostics']; inf=r['inference']
           pc=r['parameter_accounting']; init=r['protocol']['initialization_fairness']
-          print('📊 **AERA-v12 real-language development seed8231 result**')
+          print('📊 **AERA-v12 corrected real-language development seed8232 result**')
           print()
           print(f"- initial NLL: AERA **{init['aera_initial_nll']:.4f}**, Transformer **{init['transformer_initial_nll']:.4f}**")
           print(f"- stored params: AERA **{pc['aera_stored_parameters']:,}**, Transformer **{pc['transformer_parameters']:,}**")
@@ -99,4 +99,4 @@ jobs:
         run: |
           tail -n 160 /tmp/aera-v12-dev.log > /tmp/tail.txt 2>/dev/null || true
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="❌ **AERA-v12 real-language development workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
+            -f body="❌ **AERA-v12 corrected real-language development workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
