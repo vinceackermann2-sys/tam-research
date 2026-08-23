@@ -64,6 +64,12 @@ class TrainableSparseExpertLayer(nn.Module):
             selected = flat.index_select(0, token_index)
             contribution = expert(selected)
             contribution = contribution * weights[token_index, route_index, None]
+            # Autocast is allowed to promote an expert contribution (for example
+            # BF16 inputs with an FP32 pointwise result). index_add requires source
+            # and destination dtypes to match exactly, so restore the activation
+            # dtype at the sparse accumulation boundary. The cast is differentiable
+            # and preserves the router task-gradient path.
+            contribution = contribution.to(dtype=out.dtype)
             out = out.index_add(0, token_index, contribution)
 
         self.last_counts = counts.detach().cpu()
