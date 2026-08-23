@@ -21,12 +21,12 @@ jobs:
         run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
       - name: Install repository
         run: pip install -e .
-      - name: Run full CPU pre-100M validation
+      - name: Run full CPU pre-100M validation v3
         id: probe
         shell: bash
         run: |
           set -o pipefail
-          python aera_pre100m_cpu_v2.py 2>&1 | tee /tmp/aera-result.log
+          python aera_pre100m_cpu_v3.py 2>&1 | tee /tmp/aera-result.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             exit "$status"
@@ -39,7 +39,7 @@ jobs:
           ISSUE: ${{ github.event.issue.number }}
         run: |
           {
-            echo '🧪 **AERA pre-100M CPU validation complete.**'
+            echo '🧪 **AERA pre-100M CPU validation v3 complete.**'
             echo
             echo '```json'
             cat /tmp/aera-result.json
@@ -55,11 +55,11 @@ jobs:
           ISSUE: ${{ github.event.issue.number }}
         run: |
           {
-            echo '❌ **AERA pre-100M CPU validation failed.** Do not proceed to a 100M run.'
+            echo '❌ **AERA pre-100M CPU validation v3 failed.** Do not proceed to a 100M run.'
             echo
             echo 'Last validation log lines:'
             echo '```text'
-            if [ -f /tmp/aera-result.log ]; then tail -n 80 /tmp/aera-result.log; else echo 'validation log was not created'; fi
+            if [ -f /tmp/aera-result.log ]; then tail -n 100 /tmp/aera-result.log; else echo 'validation log was not created'; fi
             echo '```'
           } > /tmp/comment.md
           gh issue comment "$ISSUE" --body-file /tmp/comment.md
