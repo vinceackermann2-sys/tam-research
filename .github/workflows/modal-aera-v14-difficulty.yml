@@ -1,0 +1,81 @@
+name: AERA v14 held-out difficulty diagnostic
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  run-diagnostic:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v14-difficulty-l4]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<2'
+
+      - name: Post hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$ISSUE" --body '🔒 **AERA-v14 held-out difficulty gate** — frozen seed8271 checkpoints only; inference-only; exact production validation bytes; 1,024 held-out chunks; difficulty from matched Transformer per-chunk NLL; AERA compute from optional stages actually executed under hard-sparse inference; one L4; <=300 GPU seconds; zero training tokens; no weight updates; duplicate-result refusal; no automatic retry. Passing this diagnostic does not authorize 100M.'
+
+      - name: Run one guarded Modal diagnostic
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v14_difficulty_app.py 2>&1 | tee /tmp/aera-v14-difficulty.log
+
+      - name: Post result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+          prefix = 'AERA_V14_DIFFICULTY_RESULT_JSON='
+          lines = Path('/tmp/aera-v14-difficulty.log').read_text().splitlines()
+          matches = [line[len(prefix):] for line in lines if line.startswith(prefix)]
+          if len(matches) != 1:
+              raise SystemExit(f'expected exactly one authoritative result marker, found {len(matches)}')
+          r = json.loads(matches[0])
+          q = r['difficulty_quintile_mean_optional_stages']
+          checks = json.dumps(r['checks'], sort_keys=True)
+          print('📊 **AERA-v14 held-out difficulty-dependence result**\n')
+          print(f"- evaluated chunks: **{r['evaluated_chunks']}**")
+          print(f"- Spearman difficulty→optional-stage count: **{r['spearman_rho']:.4f}**")
+          print('- difficulty quintile mean optional stages: **' + ', '.join(f'{x:.3f}' for x in q) + '**')
+          print(f"- hardest - easiest optional stages: **{r['hardest_minus_easiest_optional_stages']:.3f}**")
+          print(f"- optional-stage-count variance: **{r['optional_stage_count_variance']:.4f}**")
+          print(f"- permutation-control Spearman: **{r['permutation_control_spearman_rho']:.4f}**")
+          print('- per-optional-stage run rates: **' + ', '.join(f'{x:.3f}' for x in r['optional_stage_run_rates']) + '**')
+          print(f'- frozen checks: `{checks}`')
+          print(f"- held-out adaptivity pass: **{'PASS' if r['adaptivity_pass'] else 'FAIL'}**")
+          print('\nThis is inference-only development evidence. It adds zero training tokens and does not authorize 100M.')
+          PY
+          gh issue comment "$ISSUE" --body-file /tmp/result-comment.md
+
+      - name: Post failure without retry
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE" --body "❌ **AERA-v14 difficulty workflow failed.** No automatic retry was attempted. Actions run: $RUN_URL"
