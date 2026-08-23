@@ -57,9 +57,13 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
 
         Each routing assignment owns an entire causal chunk [T,D]. Assignments are
         sorted by expert, their T rows are concatenated, and the two expert MLP
-        projections are each issued as one grouped GEMM. A single dummy row is
-        appended because grouped_mm expects the final offset to be strictly below
-        the physical length of the sliced 2-D operand; that row is ignored.
+        projections are each issued as one grouped GEMM.
+
+        PyTorch grouped_mm currently requires the final group offset to be strictly
+        below the physical row count. We therefore append one physical sentinel row.
+        The kernel returns an output row for that sentinel too, so *after every
+        grouped GEMM* we slice back to the logical routed-row count before any
+        activation or reshape. The sentinel must never become a real assignment.
         """
 
         _b, t, d = x.shape
@@ -85,7 +89,9 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
             .contiguous()
         )  # [A,T,D]
         rows = packed.reshape(-1, d)
-        # grouped_mm ignores rows after offs[-1]; append one physical sentinel row.
+        logical_rows = int(rows.size(0))
+
+        # grouped_mm requires at least one physical row after offs[-1].
         rows_with_sentinel = torch.cat((rows, torch.zeros_like(rows[:1])), dim=0)
         row_counts = assignment_counts.to(torch.int32) * int(t)
         offs = torch.cumsum(row_counts, dim=0, dtype=torch.int32)
@@ -96,8 +102,12 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
             .transpose(-2, -1)
             .contiguous()
         )
-        hidden = F.grouped_mm(rows_with_sentinel, w1, offs=offs)
+        hidden_physical = F.grouped_mm(rows_with_sentinel, w1, offs=offs)
+        hidden = hidden_physical[:logical_rows]
+        if hidden.size(0) != logical_rows:
+            raise RuntimeError("grouped_mm first projection returned too few logical rows")
         hidden = F.gelu(hidden)
+
         hidden_with_sentinel = torch.cat((hidden, torch.zeros_like(hidden[:1])), dim=0)
         w2 = (
             self.w2.index_select(0, active_experts)
@@ -105,8 +115,11 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
             .transpose(-2, -1)
             .contiguous()
         )
-        y = F.grouped_mm(hidden_with_sentinel, w2, offs=offs)
-        y = y.reshape(-1, t, d)
+        y_physical = F.grouped_mm(hidden_with_sentinel, w2, offs=offs)
+        y = y_physical[:logical_rows]
+        if y.size(0) != logical_rows:
+            raise RuntimeError("grouped_mm second projection returned too few logical rows")
+        y = y.reshape(assignment_batch.numel(), t, d)
         y = y * weight_sorted[:, None, None]
 
         out = torch.zeros_like(x)

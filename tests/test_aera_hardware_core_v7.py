@@ -23,6 +23,13 @@ def cfg() -> HardwareAERAConfig:
 
 
 def _fake_grouped_mm(mat_a, mat_b, *, offs=None, bias=None, out_dtype=None):
+    """CPU stand-in matching native grouped_mm's physical-row output shape.
+
+    Rows after offs[-1] are physical sentinels: grouped computation ignores them,
+    but the returned tensor still has the physical input row count. This behavior
+    reproduces the L4 failure from issue #196 and prevents sentinel rows from being
+    accidentally reshaped into routed assignments again.
+    """
     assert offs is not None
     ends = offs.tolist()
     start = 0
@@ -34,8 +41,11 @@ def _fake_grouped_mm(mat_a, mat_b, *, offs=None, bias=None, out_dtype=None):
             y = y + bias[group]
         pieces.append(y)
         start = end
-    out = torch.cat(pieces, dim=0) if pieces else mat_a.new_empty((0, mat_b.size(-1)))
-    return out.to(out_dtype) if out_dtype is not None else out
+    logical = torch.cat(pieces, dim=0) if pieces else mat_a.new_empty((0, mat_b.size(-1)))
+    trailing = mat_a.size(0) - start
+    if trailing > 0:
+        logical = torch.cat((logical, logical.new_zeros((trailing, mat_b.size(-1)))), dim=0)
+    return logical.to(out_dtype) if out_dtype is not None else logical
 
 
 def test_native_grouped_algorithm_matches_v6_reference(monkeypatch):
@@ -69,12 +79,33 @@ def test_native_grouped_algorithm_matches_v6_reference(monkeypatch):
         expected = ref(x, logits, count_logits, hard=True)
         actual = grouped(x, logits, count_logits, hard=True)
     assert actual.dtype == x.dtype
+    assert actual.shape == x.shape
     assert torch.allclose(expected, actual, atol=3e-5, rtol=3e-5)
     stats = grouped.stats()
     assert stats is not None
     assert stats["hard_kernel"] == "native_grouped_mm"
     assert stats["hard_input_dtype"] == str(x.dtype)
-    assert stats["hard_compute_dtype"] == str(x.dtype)  # CPU test keeps native dtype.
+    assert stats["hard_compute_dtype"] == str(x.dtype)  # CPU forced-native test keeps dtype.
+
+
+def test_grouped_sentinel_row_never_becomes_assignment(monkeypatch):
+    torch.manual_seed(711)
+    c = cfg()
+    grouped = NativeGroupedMMSparseExpertBank(c)
+    monkeypatch.setattr(F, "grouped_mm", _fake_grouped_mm, raising=False)
+    monkeypatch.setattr(
+        NativeGroupedMMSparseExpertBank,
+        "native_grouped_mm_available",
+        staticmethod(lambda _x: True),
+    )
+    x = torch.randn(1, c.chunk_size, c.d_model)
+    logits = torch.tensor([[9.0, -9.0, -9.0, -9.0]])
+    count_logits = torch.tensor([[9.0, -9.0]])
+    with torch.no_grad():
+        out = grouped(x, logits, count_logits, hard=True)
+    # The exact #196 failure would produce T+1 physical rows and fail this shape.
+    assert out.shape == x.shape
+    assert torch.isfinite(out).all()
 
 
 def test_cpu_hard_path_records_bmm_fallback():
