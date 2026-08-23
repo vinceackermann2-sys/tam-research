@@ -9,6 +9,8 @@ The development seed is adaptive evidence and can never count as an independent
 replication or authorize 100M by itself.
 """
 
+import json
+from pathlib import Path
 from typing import Any
 
 from . import aera_real_language_v11 as v11
@@ -68,4 +70,11 @@ def train_matched_pair(*, data_dir: str, run_dir: str, seed: int = SEED) -> dict
         "100m_authorized": False,
         "breakthrough_proven": False,
     }
+
+    # v11 writes its result before this wrapper adds the v12-specific frozen checks.
+    # Rewrite the same durable path so persisted evidence exactly matches the returned
+    # result that GitHub records. This does not create a second run or checkpoint.
+    root = Path(run_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "result.json").write_text(json.dumps(result, indent=2))
     return result
