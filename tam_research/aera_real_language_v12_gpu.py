@@ -25,10 +25,11 @@ def validate_protocol(data_dir: str) -> dict[str, Any]:
     data = v12.validate_production_data(data_dir)
     return {
         **cpu,
+        "gpu_authorized": True,
+        "gpu_authorization_scope": "one guarded AERA-v12 development seed8231 L4 run only",
         "data": data,
         "development_seed": SEED,
         "counts_toward_breakthrough_evidence": False,
-        "gpu_authorized_for_this_guarded_dev_run": True,
     }
 
 
