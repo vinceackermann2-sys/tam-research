@@ -1,0 +1,64 @@
+name: AERA hardware-aware CPU learned gate v2
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  validate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-hardware-cpu-v2]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install repository
+        run: pip install -e .
+      - name: Run exact learned gate with v2 stream residual
+        shell: bash
+        run: |
+          set -o pipefail
+          python aera_hardware_cpu_gate_v2.py 2>&1 | tee /tmp/aera-hardware-cpu-v2.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then exit "$status"; fi
+          tail -n 1 /tmp/aera-hardware-cpu-v2.log > /tmp/aera-hardware-cpu-v2.json
+      - name: Post pass
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '🧪 **Hardware-aware AERA v2 learned CPU gate complete.**'
+            echo
+            echo '```json'
+            cat /tmp/aera-hardware-cpu-v2.json
+            echo '```'
+            echo
+            echo 'Exact thresholds from v1 were retained. This still does not authorize 100M; integrated L4 and real-language gates remain.'
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.md
+      - name: Post failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '❌ **Hardware-aware AERA v2 learned CPU gate failed.** 100M remains blocked.'
+            echo
+            echo '```text'
+            if [ -f /tmp/aera-hardware-cpu-v2.log ]; then tail -n 120 /tmp/aera-hardware-cpu-v2.log; else echo 'no log'; fi
+            echo '```'
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE_NUMBER" --body-file /tmp/comment.md
