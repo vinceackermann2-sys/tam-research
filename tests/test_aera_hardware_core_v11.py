@@ -49,7 +49,25 @@ def test_v11_matches_gpt_style_embedding_scale_and_ties_head():
     assert 0.018 < float(model.token_emb.weight.std()) < 0.022
     assert 0.018 < float(model.local_pos.weight.std()) < 0.022
     for router in model.stage_routers:
+        assert torch.count_nonzero(router.proj.weight) == 0
         assert torch.count_nonzero(router.proj.bias) == 0
+
+
+def test_v11_fresh_hard_route_runs_every_stage_before_router_learning():
+    torch.manual_seed(8201)
+    model = _aera().eval()
+    x = torch.randint(0, 50_257, (2, 32), generator=torch.Generator().manual_seed(9))
+    with torch.no_grad():
+        out = model(x, hard=True, route_mode="hard_sparse", update_memory=False)
+    routes = out["stage_routes"]
+    assert isinstance(routes, list)
+    assert routes
+    for chunk in routes:
+        for route in chunk:
+            assert route["executed_fraction"] == 1.0
+            gate = route["stage_route_gate"]
+            assert isinstance(gate, torch.Tensor)
+            assert torch.all(gate == 1)
 
 
 def test_v11_and_transformer_start_at_comparable_language_nll():
