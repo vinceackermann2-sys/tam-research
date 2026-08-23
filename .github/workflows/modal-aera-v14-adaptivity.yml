@@ -1,0 +1,100 @@
+name: Modal AERA v14 held-out adaptivity gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  adaptivity:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v14-adaptivity-8271]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check launcher and diagnostic
+        run: python -m py_compile modal_aera_v14_adaptivity_app.py tam_research/aera_v14_adaptivity.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v14_adaptivity_app
+          print('launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v14 held-out difficulty-adaptivity gate** — load only the frozen seed8271 AERA + matched Transformer checkpoints; exact held-out production validation bytes; no optimizer, no training, no checkpoint mutation; one L4; 600s hard GPU ceiling; 1024 held-out chunks; Transformer per-chunk NLL is the independent difficulty measure; AERA optional hard-sparse stage count is the compute measure. Frozen pass checks: pooled Spearman rho >=0.20, hardest quartile uses >=0.25 more optional stages than easiest, quartile compute is monotonic within 0.05 tolerance, >=2 budget bins each cover >=5%, and difficulty/compute direction is positive independently in both chunk positions. Duplicate-result refusal; no automatic retry. This diagnostic does not count as independent replication and cannot authorize 100M by itself."
+      - name: Run AERA v14 adaptivity gate
+        id: modal
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v14_adaptivity_app.py | tee /tmp/aera-v14-adaptivity.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V14_ADAPTIVITY_RESULT_JSON=' /tmp/aera-v14-adaptivity.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v14-adaptivity.log').read_text(errors='replace').splitlines()
+          marker='AERA_V14_ADAPTIVITY_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('result marker missing')
+          r=json.loads(rows[-1])
+          q=r['optional_stage_quartile_means_easy_to_hard']
+          print('📊 **AERA-v14 seed8271 held-out difficulty-adaptivity result**')
+          print()
+          print(f"- held-out chunks: **{r['samples']}**")
+          print(f"- difficulty→compute Spearman rho: **{r['difficulty_compute_spearman_rho']:+.3f}**")
+          print(f"- optional stages by difficulty quartile (easy→hard): **{q[0]:.2f}, {q[1]:.2f}, {q[2]:.2f}, {q[3]:.2f}**")
+          print(f"- hardest minus easiest: **{r['hardest_minus_easiest_optional_stages']:+.2f} stages**")
+          print(f"- optional-stage budget histogram: `{json.dumps(r['optional_stage_budget_histogram'], sort_keys=True)}`")
+          print(f"- optional stage run fractions: **{', '.join(f'{100*x:.1f}%' for x in r['optional_stage_run_fractions'])}**")
+          for p in r['chunk_position_summaries']:
+              print(f"- chunk position {p['chunk_position']}: rho **{p['difficulty_compute_spearman_rho']:+.3f}**, hard-easy **{p['hardest_minus_easiest_optional_stages']:+.2f}**")
+          print(f"- frozen checks: `{json.dumps(r['checks'], sort_keys=True)}`")
+          print(f"- adaptivity gate: **{'PASS' if r['pass'] else 'FAIL'}**")
+          print()
+          print('Evaluation only: no training or checkpoint mutation occurred. This does not count as independent replication and does not by itself authorize 100M.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v14-adaptivity.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v14 held-out adaptivity workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
