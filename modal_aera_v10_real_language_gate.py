@@ -53,7 +53,14 @@ def preflight() -> dict:
     volumes={"/vol": volume},
 )
 def run_gate() -> dict:
-    from tam_research.aera_real_language import train_matched_pair
+    import torch
+    from tam_research.aera_real_language import (
+        TOKEN_BUDGET,
+        build_aera,
+        build_transformer,
+        parameter_accounting,
+        train_matched_pair,
+    )
 
     volume.reload()
     result_path = Path(RUN_DIR) / "result.json"
@@ -61,6 +68,30 @@ def run_gate() -> dict:
         raise RuntimeError(
             f"refusing duplicate GPU run: durable result already exists at {result_path}"
         )
+
+    # This marker is emitted only from inside the allocated remote GPU function.
+    # It is therefore authoritative evidence that the L4 stage, rather than the
+    # CPU preflight or GitHub launcher, has actually started.
+    device = torch.device("cuda")
+    aera = build_aera(device)
+    transformer = build_transformer(device)
+    counts = parameter_accounting(aera, transformer)
+    del aera, transformer
+    torch.cuda.empty_cache()
+    started = {
+        "device": torch.cuda.get_device_name(device),
+        "seed": SEED,
+        "token_budget_per_model": TOKEN_BUDGET,
+        "aera_stored_parameters": counts["aera_stored_parameters"],
+        "transformer_parameters": counts["transformer_parameters"],
+        "hard_gpu_timeout_seconds": MAX_GPU_SECONDS,
+    }
+    print(
+        "AERA_V10_LANGUAGE_L4_START_JSON="
+        + json.dumps(started, separators=(",", ":")),
+        flush=True,
+    )
+
     result = train_matched_pair(data_dir=DATA_DIR, run_dir=RUN_DIR, seed=SEED)
     volume.commit()
     print(
