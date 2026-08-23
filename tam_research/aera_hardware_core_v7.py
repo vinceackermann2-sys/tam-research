@@ -16,10 +16,15 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
     """Production-shaped hard MoE execution using PyTorch native grouped GEMM.
 
     Training/soft routing deliberately keeps the established differentiable path.
-    Hard CUDA BF16 inference packs only the selected top-1/top-2 chunk assignments,
-    groups them by expert, and executes each expert family in a single grouped-MM
-    kernel call. This avoids evaluating unselected experts and avoids one GEMM launch
-    per expert/assignment.
+    Hard CUDA inference packs only the selected top-1/top-2 chunk assignments,
+    groups them by expert, explicitly casts *only the expert GEMM operands* to
+    BF16, and executes each expert family in a single grouped-MM kernel call.
+
+    The explicit expert-local cast is important: residual/LayerNorm plumbing may
+    legitimately keep the surrounding activation in FP32 even under autocast.
+    Requiring the entire residual stream to already be BF16 would silently disable
+    the grouped kernel. The selected expert contribution is restored to the input
+    residual dtype before accumulation.
 
     `torch.nn.functional.grouped_mm` is a hardware optimization, not an architecture
     semantic change. If the installed PyTorch/device does not expose/support it, the
@@ -30,11 +35,13 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
     def __init__(self, cfg: HardwareAERAConfig):
         super().__init__(cfg)
         self.last_kernel: str = "uninitialized"
+        self.last_input_dtype: str | None = None
+        self.last_compute_dtype: str | None = None
 
     @staticmethod
     def native_grouped_mm_available(x: torch.Tensor) -> bool:
         op = getattr(F, "grouped_mm", None)
-        if op is None or not x.is_cuda or x.dtype is not torch.bfloat16:
+        if op is None or not x.is_cuda or not x.is_floating_point():
             return False
         major, _minor = torch.cuda.get_device_capability(x.device)
         return major >= 8
@@ -55,36 +62,55 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
         the physical length of the sliced 2-D operand; that row is ignored.
         """
 
-        b, t, d = x.shape
+        _b, t, d = x.shape
         if assignment_batch.numel() == 0:
             return torch.zeros_like(x)
+
+        residual_dtype = x.dtype
+        compute_dtype = torch.bfloat16 if x.is_cuda else x.dtype
+        self.last_input_dtype = str(residual_dtype)
+        self.last_compute_dtype = str(compute_dtype)
 
         order = torch.argsort(assignment_expert, stable=True)
         batch_sorted = assignment_batch.index_select(0, order)
         expert_sorted = assignment_expert.index_select(0, order)
-        weight_sorted = assignment_weight.index_select(0, order)
+        weight_sorted = assignment_weight.index_select(0, order).to(compute_dtype)
 
         active_experts, assignment_counts = torch.unique_consecutive(
             expert_sorted, return_counts=True
         )
-        packed = x.index_select(0, batch_sorted).contiguous()  # [A,T,D]
+        packed = (
+            x.index_select(0, batch_sorted)
+            .to(dtype=compute_dtype)
+            .contiguous()
+        )  # [A,T,D]
         rows = packed.reshape(-1, d)
         # grouped_mm ignores rows after offs[-1]; append one physical sentinel row.
         rows_with_sentinel = torch.cat((rows, torch.zeros_like(rows[:1])), dim=0)
         row_counts = assignment_counts.to(torch.int32) * int(t)
         offs = torch.cumsum(row_counts, dim=0, dtype=torch.int32)
 
-        w1 = self.w1.index_select(0, active_experts).transpose(-2, -1).contiguous()
+        w1 = (
+            self.w1.index_select(0, active_experts)
+            .to(dtype=compute_dtype)
+            .transpose(-2, -1)
+            .contiguous()
+        )
         hidden = F.grouped_mm(rows_with_sentinel, w1, offs=offs)
         hidden = F.gelu(hidden)
         hidden_with_sentinel = torch.cat((hidden, torch.zeros_like(hidden[:1])), dim=0)
-        w2 = self.w2.index_select(0, active_experts).transpose(-2, -1).contiguous()
+        w2 = (
+            self.w2.index_select(0, active_experts)
+            .to(dtype=compute_dtype)
+            .transpose(-2, -1)
+            .contiguous()
+        )
         y = F.grouped_mm(hidden_with_sentinel, w2, offs=offs)
         y = y.reshape(-1, t, d)
         y = y * weight_sorted[:, None, None]
 
         out = torch.zeros_like(x)
-        out.index_add_(0, batch_sorted, y.to(out.dtype))
+        out.index_add_(0, batch_sorted, y.to(dtype=residual_dtype))
         return out
 
     def forward(
@@ -97,6 +123,8 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
     ) -> torch.Tensor:
         if not hard or not self.native_grouped_mm_available(x):
             self.last_kernel = "soft_reference" if not hard else "bmm_fallback"
+            self.last_input_dtype = str(x.dtype)
+            self.last_compute_dtype = None
             return super().forward(x, expert_logits, count_logits, hard=hard)
 
         b, _t, _d = x.shape
@@ -110,21 +138,18 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
         chosen_count = count_logits.argmax(dim=-1) + 1
 
         batch_ids = torch.arange(b, device=x.device)
-        first_weight = torch.ones(b, device=x.device, dtype=x.dtype)
         assignment_batch = batch_ids
         assignment_expert = idx[:, 0]
-        assignment_weight = first_weight
+        assignment_weight = torch.ones(b, device=x.device, dtype=x.dtype)
 
         if self.max_active >= 2:
             p1, p2 = selected_probs[:, 0], selected_probs[:, 1]
             denom = (p1 + p2).clamp_min(1e-6)
             use_second = chosen_count >= 2
-            first_weight = torch.where(use_second, p1 / denom, torch.ones_like(p1))
+            assignment_weight = torch.where(
+                use_second, p1 / denom, torch.ones_like(p1)
+            )
             second_batch = use_second.nonzero(as_tuple=False).squeeze(-1)
-
-            assignment_batch = batch_ids
-            assignment_expert = idx[:, 0]
-            assignment_weight = first_weight
             if second_batch.numel() > 0:
                 assignment_batch = torch.cat((assignment_batch, second_batch), dim=0)
                 assignment_expert = torch.cat(
@@ -151,7 +176,12 @@ class NativeGroupedMMSparseExpertBank(BMMHardSparseExpertBank):
         base = super().stats()
         if base is None:
             return None
-        return {**base, "hard_kernel": self.last_kernel}
+        return {
+            **base,
+            "hard_kernel": self.last_kernel,
+            "hard_input_dtype": self.last_input_dtype,
+            "hard_compute_dtype": self.last_compute_dtype,
+        }
 
 
 class NativeGroupedMMAERAStage(MixedPrecisionSafeAERAStage):
