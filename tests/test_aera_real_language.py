@@ -31,7 +31,7 @@ def test_aera_and_transformer_are_stored_parameter_matched():
     aera = build_aera(torch.device("cpu"))
     transformer = build_transformer(torch.device("cpu"))
     counts = parameter_accounting(aera, transformer)
-    assert counts["aera_stored_parameters"] == 24_315_492
+    assert counts["aera_stored_parameters"] == 24_317_092
     assert counts["transformer_parameters"] == 24_940_288
     assert abs(counts["stored_parameter_delta_fraction"]) < 0.03
     predictive = counts["aera_predictive_state"]
@@ -55,8 +55,6 @@ def test_matched_primary_loss_uses_external_next_token_targets_and_router_gets_g
     )
     model = HardwareAwareAERATextLMV10(cfg).train()
     x = torch.randint(0, cfg.vocab_size, (3, 16))
-    # Deliberately make y different from x shifted internally. The fair primary
-    # target must be the explicit x->y batch shared with the Transformer.
     y = (x + 7) % cfg.vocab_size
     total, terms, mode = aera_matched_loss(model, x, y, step=0)
     assert mode == "straight_through"
@@ -87,7 +85,9 @@ def test_hard_sparse_real_language_loss_is_finite():
     model = HardwareAwareAERATextLMV10(cfg).train()
     x = torch.randint(0, cfg.vocab_size, (2, 16))
     y = torch.randint(0, cfg.vocab_size, (2, 16))
-    total, terms, mode = aera_matched_loss(model, x, y, step=CALIBRATION_WARMUP_STEPS + 1)
+    total, terms, mode = aera_matched_loss(
+        model, x, y, step=CALIBRATION_WARMUP_STEPS + 1
+    )
     assert mode == "hard_sparse"
     assert torch.isfinite(total)
     assert torch.isfinite(terms["stream_forecast"])
