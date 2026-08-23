@@ -16,7 +16,7 @@ from typing import Any
 from . import aera_real_language_v11 as v11
 from . import aera_real_language_v12 as v12
 
-SEED = 8231
+SEED = 8232
 _BASE_V11_EVALUATE_AERA = v11.evaluate_aera
 
 
@@ -26,7 +26,7 @@ def validate_protocol(data_dir: str) -> dict[str, Any]:
     return {
         **cpu,
         "gpu_authorized": True,
-        "gpu_authorization_scope": "one guarded AERA-v12 development seed8231 L4 run only",
+        "gpu_authorization_scope": "one guarded corrected AERA-v12 development seed8232 L4 run only",
         "data": data,
         "development_seed": SEED,
         "counts_toward_breakthrough_evidence": False,

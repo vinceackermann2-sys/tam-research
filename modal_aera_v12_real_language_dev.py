@@ -5,9 +5,9 @@ from pathlib import Path
 
 import modal
 
-APP_NAME = "tam-research-aera-v12-real-language-dev"
+APP_NAME = "tam-research-aera-v12-real-language-dev-seed8232"
 VOLUME_NAME = "tam-research-data"
-SEED = 8231
+SEED = 8232
 DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
 RUN_DIR = f"/vol/aera-real-language/v12-dev-seed{SEED}"
 MAX_GPU_SECONDS = 1800
