@@ -1,0 +1,60 @@
+name: AERA integration diagnostic
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  diagnose:
+    if: startsWith(github.event.issue.title, '[aera-integration-diagnostic]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install repository
+        run: pip install -e .
+      - name: Run diagnostic
+        shell: bash
+        run: |
+          set -o pipefail
+          python aera_integration_diagnostic.py 2>&1 | tee /tmp/aera-diagnostic.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then exit "$status"; fi
+          tail -n 1 /tmp/aera-diagnostic.log > /tmp/aera-diagnostic.json
+      - name: Post result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '🔬 **AERA integration diagnostic complete.**'
+            echo
+            echo '```json'
+            cat /tmp/aera-diagnostic.json
+            echo '```'
+            echo
+            echo 'Diagnostic only: this does not authorize GPU or 100M training.'
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE" --body-file /tmp/comment.md
+      - name: Post failure log
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '❌ **AERA integration diagnostic crashed.**'
+            echo '```text'
+            if [ -f /tmp/aera-diagnostic.log ]; then tail -n 100 /tmp/aera-diagnostic.log; else echo 'no log'; fi
+            echo '```'
+          } > /tmp/comment.md
+          gh issue comment "$ISSUE" --body-file /tmp/comment.md
