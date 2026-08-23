@@ -16,10 +16,15 @@ class TrulySparseStackedChunkExpertBank(StackedChunkExpertBank):
 
     Soft training intentionally reuses the differentiable top-2 reference path.
     Hard inference executes the first selected expert for every chunk, then groups
-    only chunks that requested two experts for the second batched GEMM.  This makes
+    only chunks that requested two experts for the second batched GEMM. This makes
     expert-count routing a real compute decision rather than a zero-valued mask over
     already-executed work.
     """
+
+    def __init__(self, cfg: HardwareAERAConfig):
+        super().__init__(cfg)
+        self.last_second_batch_size: int | None = None
+        self.last_executed_expert_slots: int | None = None
 
     def forward(
         self,
@@ -30,6 +35,8 @@ class TrulySparseStackedChunkExpertBank(StackedChunkExpertBank):
         hard: bool,
     ) -> torch.Tensor:
         if not hard:
+            self.last_second_batch_size = None
+            self.last_executed_expert_slots = None
             return super().forward(x, expert_logits, count_logits, hard=False)
 
         b, t, d = x.shape
@@ -50,6 +57,7 @@ class TrulySparseStackedChunkExpertBank(StackedChunkExpertBank):
         first_hidden = F.gelu(first_hidden)
         first_out = torch.einsum("bth,bdh->btd", first_hidden, first_w2)
 
+        second_batch_size = 0
         if self.max_active == 1:
             out = first_out
         else:
@@ -62,7 +70,8 @@ class TrulySparseStackedChunkExpertBank(StackedChunkExpertBank):
 
             # Only chunks choosing top-2 are gathered for the second expert GEMMs.
             second_batch = use_second.nonzero(as_tuple=False).squeeze(-1)
-            if second_batch.numel() > 0:
+            second_batch_size = int(second_batch.numel())
+            if second_batch_size > 0:
                 x2 = x.index_select(0, second_batch)
                 second_idx = idx[second_batch, 1]
                 second_w1 = self.w1[second_idx]
@@ -79,6 +88,8 @@ class TrulySparseStackedChunkExpertBank(StackedChunkExpertBank):
 
         self.last_counts = chosen_count.detach().cpu()
         self.last_route_probs = route_probs.detach().float().mean(dim=0).cpu()
+        self.last_second_batch_size = second_batch_size
+        self.last_executed_expert_slots = b + second_batch_size
         return out
 
 
