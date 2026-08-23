@@ -1,0 +1,60 @@
+name: Modal AERA L4 systems gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  systems-gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-l4-systems]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check systems benchmark
+        run: python -m py_compile modal_aera_l4_systems_app.py
+
+      - name: Install Modal
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Materialize short-lived callback secret
+        run: modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
+
+      - name: Record hard systems guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA L4 systems guard** — one L4 only; inference/microbenchmark only; no optimizer, no training, no checkpoint mutation. CPU preflight runs before GPU allocation. Hard L4 timeout=600s. No automatic retry. This gate measures whether conditional computation produces real wall-clock savings before any language-scale AERA training."
+
+      - name: Run AERA L4 systems gate
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: modal run --timestamps modal_aera_l4_systems_app.py --repo-full-name "$GITHUB_REPOSITORY" --issue-number "$ISSUE_NUMBER"
+
+      - name: Record failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA L4 systems workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
