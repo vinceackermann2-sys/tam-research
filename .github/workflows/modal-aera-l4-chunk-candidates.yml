@@ -1,0 +1,53 @@
+name: Modal AERA chunk-conditional candidates
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  candidate-gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-l4-chunk]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check chunk candidate benchmark
+        run: python -m py_compile modal_aera_l4_chunk_candidates_app.py
+      - name: Install Modal
+        run: pip install 'modal>=1.1,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Materialize callback secret
+        run: modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **Chunk-conditional candidate guard** — one L4 only; no optimizer, training, weight update, or checkpoint mutation. One routing/depth decision per full processing chunk; benchmark both batch1 latency and grouped batch16 throughput. CPU preflight first, hard GPU timeout=600s, no automatic retry."
+      - name: Run chunk candidate gate
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: modal run --timestamps modal_aera_l4_chunk_candidates_app.py --repo-full-name "$GITHUB_REPOSITORY" --issue-number "$ISSUE_NUMBER"
+      - name: Record failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **Chunk-conditional candidate workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
