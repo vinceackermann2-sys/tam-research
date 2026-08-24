@@ -1,0 +1,99 @@
+name: Modal AERA v17 compiled sparse reasoner probe
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  compiled-reasoner-probe:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v17-compiled-reasoner-probe]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check compiled reasoner probe
+        run: python -m py_compile modal_aera_v17_compiled_reasoner_probe_app.py tam_research/aera_v17_compiled_reasoner_probe.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v17_compiled_reasoner_probe_app
+          print('compiled reasoner probe launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v17 compiled hard-sparse reasoner probe** — measurement only; same GRUCell weights, same per-example hard chosen depth, same nonzero/gather/GRU/scatter semantics; compile-friendly path removes diagnostic CPU copies and the data-dependent early break but does not execute inactive rows. Sweep selected sizes 4/8/16/32/64/128. Compare reference sparse, compile-friendly eager, torch.compile sparse if supported, and dense-masked latency upper bound (not sparse evidence). One L4, 600s hard ceiling, unique durable result, duplicate refusal, no auto-retry. No training, architecture/routing change, 100M authorization, or breakthrough claim."
+      - name: Run compiled reasoner probe
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v17_compiled_reasoner_probe_app.py | tee /tmp/aera-v17-compiled-reasoner.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V17_COMPILED_REASONER_RESULT_JSON=' /tmp/aera-v17-compiled-reasoner.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v17-compiled-reasoner.log').read_text(errors='replace').splitlines()
+          marker='AERA_V17_COMPILED_REASONER_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('compiled reasoner result marker missing')
+          r=json.loads(rows[-1])
+          print('⚙️ **AERA-v17 compiled hard-sparse reasoner probe result**')
+          print()
+          print(f"- GPU: **{r['gpu']}**")
+          print(f"- compile setup seconds: **{r['compile_setup_seconds']}**")
+          print(f"- compile error: `{r['compile_error']}`")
+          print()
+          print('| selected | ref sparse ms | candidate eager ms | compiled sparse ms | compiled speed | dense upper ms | candidate delta | compiled delta |')
+          print('|---:|---:|---:|---:|---:|---:|---:|---:|')
+          for row in r['rows']:
+              cm='-' if row['compiled_sparse_ms'] is None else f"{row['compiled_sparse_ms']:.3f}"
+              cs='-' if row['compiled_vs_reference_speed'] is None else f"{row['compiled_vs_reference_speed']:.3f}x"
+              cd='-' if row['compiled_max_abs_delta'] is None else f"{row['compiled_max_abs_delta']:.4f}"
+              print(f"| {row['selected_batch']} | {row['reference_sparse_ms']:.3f} | {row['compile_friendly_eager_ms']:.3f} | {cm} | {cs} | {row['dense_masked_upper_bound_ms']:.3f} | {row['candidate_max_abs_delta']:.4f} | {cd} |")
+          print()
+          print('Dense-masked timings are a latency upper bound only. Only a compiled path that retains hard selected-row execution can count toward a sparse systems path.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v17-compiled-reasoner.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v17 compiled hard-sparse reasoner probe failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
