@@ -111,8 +111,22 @@ def test_v20_deployment_write_mutates_no_base_parameters_and_state_is_detached()
         assert not state.memory.matrix.requires_grad
 
 
+def test_v20_session_state_is_exactly_isolated():
+    _, model = _build_pair(9206)
+    model.eval()
+    model.set_memory_pretraining_mode(False)
+    c = model.cfg.chunk_size
+    query = torch.randint(0, model.cfg.vocab_size, (2, 2 * c))
+    other = torch.randint(0, model.cfg.vocab_size, (2, 3 * c))
+    with torch.no_grad():
+        fresh_before = model(query, state=None, hard=True, update_memory=False)["logits"]
+        _ = model(other, state=None, hard=True, update_memory=True)
+        fresh_after = model(query, state=None, hard=True, update_memory=False)["logits"]
+    assert torch.equal(fresh_before, fresh_after)
+
+
 def test_v20_parameter_delta_is_only_two_pool_vectors_per_stage():
-    v19, v20 = _build_pair(9206)
+    v19, v20 = _build_pair(9207)
     old = sum(p.numel() for p in v19.parameters())
     new = sum(p.numel() for p in v20.parameters())
     assert new - old == 2 * v20.cfg.d_model * v20.cfg.n_stages
