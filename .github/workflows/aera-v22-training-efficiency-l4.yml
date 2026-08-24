@@ -1,0 +1,111 @@
+name: Modal AERA v22 exact-semantics training efficiency gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v22-training-efficiency-l4-v1
+  cancel-in-progress: false
+
+jobs:
+  efficiency-gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v22-efficiency-l4]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check systems launcher
+        run: python -m py_compile modal_aera_v22_training_efficiency_app.py aera_v22_training_efficiency_l4.py tam_research/aera_real_language_v22_efficiency.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Refuse duplicate or rerun
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v22 exact-semantics training-efficiency gate"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq '[.[] | select(.title | startswith("[aera-v22-efficiency-l4]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate/rerun refused.** The AERA-v22 efficiency L4 gate is single-shot. No Modal/GPU run was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record hard guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v22 exact-semantics training-efficiency gate** — systems-only after #326 runtime timeout. No corpus training, optimizer progression, or checkpoint. CPU preflight must preserve exact v22 science and enforce the corrected preregistered memory-aux budget: <=256 sampled events/microbatch x GRAD_ACCUM=4 = <=1024/optimizer step. One L4, <=600 GPU seconds. Compare eager dual-delta against torch.compile of the exact same ordered M/P equations at memory_dim=50 and 255 candidates; measure corrected auxiliary cost and random-token full AERA microbatch latency. No automatic retry. If projected train+eval <=1500s, only a separately preregistered fresh development seed may follow. Otherwise v23 sparse/bounded writes must be preregistered and re-pass controlled memory gates. Seed8391 cannot be rerun; no architecture freeze or 100M authorization."
+      - name: Run systems-only efficiency benchmark
+        if: steps.guard.outputs.allowed == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v22_training_efficiency_app.py | tee /tmp/aera-v22-efficiency.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V22_EFFICIENCY_L4_RESULT_JSON=' /tmp/aera-v22-efficiency.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative systems result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V22_EFFICIENCY_L4_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v22-efficiency.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows:
+              raise SystemExit('v22 efficiency result marker missing')
+          r=json.loads(rows[-1])
+          c=r['compiled_recurrence']; a=r['corrected_auxiliary']; f=r['full_microbatch']; p=r['projection']
+          print('⚙️ **AERA-v22 exact-semantics training-efficiency result**')
+          print()
+          print(f"- GPU: **{r['gpu']}**; scientific training performed: **{r['scientific_training_performed']}**")
+          print(f"- corrected aux budget: **{r['production_shape']['aux_events_per_microbatch']} / microbatch**, **{r['production_shape']['aux_events_per_optimizer_step']} / optimizer step**")
+          print(f"- exact recurrence eager/compiled train latency: **{c['eager_train_ms']:.2f} / {c['compiled_train_ms']:.2f} ms**, speedup **{c['speedup']:.2f}x**, compile **{c['compile_seconds']:.1f}s**")
+          print(f"- compiled recurrence max abs error M/P: **{c['equivalence']['matrix_max_abs_error']:.3e} / {c['equivalence']['inverse_covariance_max_abs_error']:.3e}**")
+          print(f"- corrected 256-event aux fwd+bwd: **{a['ms']:.2f} ms**, peak **{a['peak_allocated_gb']:.2f} GB**")
+          print(f"- full straight-through microbatch eager/compiled: **{f['eager_straight_through']['ms']:.2f} / {f['compiled_straight_through']['ms']:.2f} ms**, speedup **{f['compiled_vs_eager_st_speedup']:.2f}x**")
+          print(f"- full compiled hard-sparse microbatch: **{f['compiled_hard_sparse']['ms']:.2f} ms**")
+          print(f"- projected AERA training: **{p['training_seconds']:.1f}s**; + eval margin => **{p['train_plus_eval_seconds']:.1f}s** vs **{p['target_max_seconds']:.0f}s** target")
+          print(f"- budget projection: **{'PASS' if p['passes_budget_projection'] else 'FAIL'}**")
+          print(f"- frozen decision: **{r['decision']}**")
+          print()
+          print('Systems evidence only. No real-language result, architecture freeze, independent replication, or 100M authorization follows.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 220 /tmp/aera-v22-efficiency.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v22 efficiency systems workflow failed.** This is not scientific evidence and no automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
