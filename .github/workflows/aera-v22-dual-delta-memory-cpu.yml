@@ -35,7 +35,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v22 dual-delta controlled gate"))] | length')
-          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search 'aera-v22-dual-delta-memory-cpu in:title' --limit 20 --json number --jq 'length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq '[.[] | select(.title | startswith("[aera-v22-dual-delta-memory-cpu]"))] | length')
           if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
             gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Duplicate/rerun refused.** The AERA-v22 dual-delta controlled gate is single-shot. No training or evaluation was started by this invocation."
             echo "allowed=false" >> "$GITHUB_OUTPUT"
