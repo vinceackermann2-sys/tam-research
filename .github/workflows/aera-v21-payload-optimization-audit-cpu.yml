@@ -1,0 +1,80 @@
+name: AERA v21 payload optimization CPU audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-payload-optimization-audit-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-payload-optimization-audit-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 payload objective/gradient-scale audit** — CPU only, architecture unchanged. Reproduces failed #307 only for instrumentation, then measures query/latent/token v/out gradient norms/cosines and global clipping. Three isolated v/out-only probes use the same 500 steps and LR=4e-3: token CE only, latent cosine only, token+latent. No weight tuning, new parameters, GPU, production v22, freeze, 100M authorization, or breakthrough claim."
+      - name: Run audit
+        run: |
+          set -o pipefail
+          python aera_v21_payload_optimization_audit_cpu.py | tee /tmp/aera-v21-payload-optimization-audit.log
+          grep -q 'AERA_V21_PAYLOAD_OPTIMIZATION_AUDIT_RESULT_JSON=' /tmp/aera-v21-payload-optimization-audit.log
+      - name: Record authoritative diagnostic result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_PAYLOAD_OPTIMIZATION_AUDIT_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-payload-optimization-audit.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); pre=r['initial_gradients']; post=r['post_reproduction_gradients']; iso=r['isolated_payload_training']
+          print('🔬 **AERA-v21 payload optimization audit result**'); print()
+          print(f"- diagnosis: **{r['diagnosis']}**")
+          print(f"- reproduced full-model payload decode: **{100*r['reproduced_full_payload_accuracy']:.1f}%**")
+          print('- post-reproduction v/out gradients:')
+          print(f"  - query / latent / token norms: **{post['payload_gradient_norms']['query']:.4g} / {post['payload_gradient_norms']['latent']:.4g} / {post['payload_gradient_norms']['token']:.4g}**")
+          print(f"  - latent↔token cosine: **{post['gradient_cosines']['latent_vs_token']:+.4f}**")
+          print(f"  - query↔token cosine: **{post['gradient_cosines']['query_vs_token']:+.4f}**")
+          print(f"  - full gradient norm before clip: **{post['full_objective_gradient_norm_before_clip']:.4g}**")
+          print(f"  - implied clip multiplier: **{post['implied_global_clip_multiplier']:.4f}**")
+          print('- isolated same-budget v/out training (500 steps, LR=4e-3):')
+          for name in ('token','latent','token_plus_latent'):
+              final=iso[name]['final']
+              print(f"  - {name}: payload decode **{100*final['legal_value_accuracy']:.1f}%**, latent cosine **{final['latent_cosine']:+.4f}**")
+          print('- prior explicit capacity upper bound (#304): **100.0% payload decode** at LR=1e-2 / 1000 steps')
+          print(); print('Diagnostic only. No GPU, production v22, architecture freeze, 100M authorization, or breakthrough claim follows automatically.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v21-payload-optimization-audit.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 payload optimization CPU audit implementation/runtime failure.** This is not scientific evidence. Fix CPU-first before any fresh diagnostic boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
