@@ -50,12 +50,12 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🔒 **AERA-v21 residual raw-recall audit** — CPU only. Exact #313 500-step/LR=4e-3 checkpoint reproduction for instrumentation only because #316 persisted no checkpoint artifact. Learned parameters freeze before evaluation. Strict state is WRITE-only + learned candidate-1 + memory.lr=1.0. Evaluation-only tests: q/k raw reads at decay 0.999/1.0 plus q/k least-squares matrix upper bounds from latest observed WRITE bindings. No production model edit, GPU, real-language run, v22 authorization, freeze, 100M authorization, auto-retry, or independent-evidence claim."
+            -f body="🔒 **AERA-v21 residual raw-recall audit** — CPU only. Exact #313 500-step/LR=4e-3 checkpoint reproduction for instrumentation only because #316 persisted no checkpoint artifact. Learned parameters freeze before evaluation. Strict state is WRITE-only + learned candidate-1 + memory.lr=1.0. Evaluation-only tests: q/k raw reads at decay 0.999/1.0 plus q/k least-squares matrix upper bounds from latest observed WRITE bindings. The matrix oracle uses an explicit Moore-Penrose pseudoinverse after PR #318 CI exposed CPU lstsq driver truncation; scientific protocol is unchanged. No production model edit, GPU, real-language run, v22 authorization, freeze, 100M authorization, auto-retry, or independent-evidence claim."
       - name: Run audit
         if: steps.guard.outputs.allowed == 'true'
         run: |
           set -o pipefail
-          python aera_v21_residual_raw_recall_audit_cpu.py | tee /tmp/aera-v21-residual-raw.log
+          python aera_v21_residual_raw_recall_audit_cpu_v2.py | tee /tmp/aera-v21-residual-raw.log
           grep -q 'AERA_V21_RESIDUAL_RAW_RECALL_AUDIT_RESULT_JSON=' /tmp/aera-v21-residual-raw.log
       - name: Record authoritative result
         if: steps.guard.outputs.allowed == 'true' && success()
@@ -72,6 +72,7 @@ jobs:
           r=json.loads(rows[-1]); s=r['sequential_counterfactuals']; ls=r['least_squares_upper_bound']; g=r['geometry']; f=r['findings']; ref=r['strict_316_reconfirmation']
           def pct(x): return f'{100*x:.1f}%'
           print('🔬 **AERA-v21 residual raw-recall audit result**'); print()
+          print(f"- implementation: **{r.get('implementation_revision', 'unknown')}**")
           print(f"- strict #316 reconfirm final/raw: **{pct(ref['final']['overall_accuracy'])} / {pct(ref['raw_memory_decode']['overall_accuracy'])}**")
           print(f"- sequential q, decay=.999: **{pct(s['q_decay_0_999']['overall_accuracy'])}**")
           print(f"- sequential k, decay=.999: **{pct(s['k_decay_0_999']['overall_accuracy'])}**")
