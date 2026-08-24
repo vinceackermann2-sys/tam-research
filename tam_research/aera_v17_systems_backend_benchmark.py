@@ -19,6 +19,7 @@ PROBE_SEED = 118_331
 BATCH_SIZES: tuple[int, ...] = (8, 16, 32, 64)
 WARMUP_ITERS = 3
 TIMED_ITERS = 10
+LOGIT_COMPARE_BATCH_SLICE = 1
 
 
 def validate_protocol(data_dir: str, checkpoint_dir: str) -> dict[str, Any]:
@@ -41,6 +42,8 @@ def validate_protocol(data_dir: str, checkpoint_dir: str) -> dict[str, Any]:
         "batch_sizes": list(BATCH_SIZES),
         "warmup_iterations": WARMUP_ITERS,
         "timed_iterations": TIMED_ITERS,
+        "logit_verification": "reference BF16/FP16 logits offloaded to CPU; optimized logits compared one batch row at a time on CPU",
+        "logit_compare_batch_slice": LOGIT_COMPARE_BATCH_SLICE,
         "training_performed": False,
         "checkpoint_mutated": False,
         "data": data,
@@ -72,6 +75,50 @@ def _load_seed(payload_path: Path) -> dict[str, Any]:
     if payload.get("seed") != CHECKPOINT_SEED:
         raise RuntimeError(f"checkpoint seed mismatch: {payload.get('seed')!r}")
     return payload
+
+
+def _compare_logits_memory_bounded(
+    reference_logits_cpu: torch.Tensor,
+    optimized_logits: torch.Tensor,
+    reference_argmax_cpu: torch.Tensor,
+    *,
+    batch_slice: int = LOGIT_COMPARE_BATCH_SLICE,
+) -> tuple[float, float]:
+    """Compare full logits without materializing multiple full FP32 tensors on GPU.
+
+    The failed first benchmark kept reference and optimized full-vocabulary logits
+    resident on GPU and converted both to FP32 at batch64, requesting a 6.14 GiB
+    temporary tensor.  This verifier preserves the exact full-logit comparison but
+    moves the already-produced reference logits to CPU in their existing dtype and
+    transfers optimized logits in bounded batch slices before converting to FP32.
+    Throughput timing is performed separately and is therefore unaffected.
+    """
+    if reference_logits_cpu.device.type != "cpu":
+        raise ValueError("reference_logits_cpu must already be offloaded to CPU")
+    if reference_logits_cpu.shape != optimized_logits.shape:
+        raise ValueError("reference/optimized logit shape mismatch")
+    if batch_slice < 1:
+        raise ValueError("batch_slice must be positive")
+    if reference_argmax_cpu.device.type != "cpu":
+        raise ValueError("reference_argmax_cpu must be on CPU")
+
+    max_delta = 0.0
+    agree = 0
+    total = int(reference_argmax_cpu.numel())
+    for start in range(0, optimized_logits.size(0), batch_slice):
+        end = min(start + batch_slice, optimized_logits.size(0))
+        opt_slice_cpu = optimized_logits[start:end].detach().to("cpu")
+        delta = (
+            reference_logits_cpu[start:end].float()
+            - opt_slice_cpu.float()
+        ).abs().max()
+        max_delta = max(max_delta, float(delta))
+        opt_argmax_cpu = opt_slice_cpu.argmax(dim=-1)
+        agree += int(
+            (reference_argmax_cpu[start:end] == opt_argmax_cpu).sum().item()
+        )
+        del opt_slice_cpu, opt_argmax_cpu, delta
+    return max_delta, float(agree / total)
 
 
 @torch.no_grad()
@@ -113,11 +160,26 @@ def run_benchmark(*, data_dir: str, checkpoint_dir: str) -> dict[str, Any]:
             with _autocast(device):
                 return transformer(x)
 
+        # Verification is deliberately serialized.  Keep only one full-vocabulary
+        # output on GPU at a time; reference logits are offloaded before optimized
+        # inference.  This preserves the full comparison at batch64 without making
+        # verification itself the GPU-memory bottleneck.
         with _autocast(device):
             ref_out = reference(x, hard=True, route_mode="hard_sparse", update_memory=False)
+        ref_logits_cpu = ref_out["logits"].detach().to("cpu")
+        ref_argmax_cpu = ref_logits_cpu.argmax(dim=-1)
+        del ref_out
+        torch.cuda.empty_cache()
+
+        with _autocast(device):
             opt_out = optimized(x, hard=True, route_mode="hard_sparse", update_memory=False)
-        max_logit_delta = float((ref_out["logits"].float() - opt_out["logits"].float()).abs().max())
-        argmax_agreement = float((ref_out["logits"].argmax(-1) == opt_out["logits"].argmax(-1)).float().mean())
+        max_logit_delta, argmax_agreement = _compare_logits_memory_bounded(
+            ref_logits_cpu,
+            opt_out["logits"],
+            ref_argmax_cpu,
+        )
+        del opt_out, ref_logits_cpu, ref_argmax_cpu
+        torch.cuda.empty_cache()
 
         ref_t = _benchmark(ref_call, device=device)
         opt_t = _benchmark(opt_call, device=device)
@@ -138,7 +200,7 @@ def run_benchmark(*, data_dir: str, checkpoint_dir: str) -> dict[str, Any]:
             "argmax_agreement": argmax_agreement,
             "optimized_expert_kernels": expert_kernels,
         })
-        del ref_out, opt_out, x
+        del x
         torch.cuda.empty_cache()
 
     return {
