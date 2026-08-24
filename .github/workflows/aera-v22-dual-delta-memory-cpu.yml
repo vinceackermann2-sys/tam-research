@@ -1,0 +1,93 @@
+name: AERA v22 dual-delta memory CPU gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v22-dual-delta-memory-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v22-dual-delta-memory-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Refuse duplicate or rerun
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v22 dual-delta controlled gate"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search 'aera-v22-dual-delta-memory-cpu in:title' --limit 20 --json number --jq 'length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Duplicate/rerun refused.** The AERA-v22 dual-delta controlled gate is single-shot. No training or evaluation was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record frozen guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🔒 **AERA-v22 dual-delta controlled gate** — CPU only. Same #313/#278 seed, 500 steps, LR=4e-3, conflict-free address+token payload objective and unchanged local/end-to-end thresholds. V22 keeps the 16-d q/k/v/out representation and all learned parameters; only session-local write dynamics add an inverse key-covariance matrix and covariance-preconditioned dual error correction, with no blanket matrix decay. Added raw-memory gate is >=95% recall, >=80% overwrite-current, <=10% stale. No GPU, real-language run, freeze, 100M, auto-retry, or independent-evidence claim."
+      - name: Run controlled gate
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          python aera_v22_dual_delta_memory_cpu.py | tee /tmp/aera-v22-dual-delta.log
+          grep -q 'AERA_V22_DUAL_DELTA_RESULT_JSON=' /tmp/aera-v22-dual-delta.log
+      - name: Record authoritative result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V22_DUAL_DELTA_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v22-dual-delta.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); local=r['heldout_local_code']; raw=r['raw_memory_decode']; full=r['full_stream_plus_memory']; stream=r['separately_trained_stream_only']; off=r['same_checkpoint_memory_disabled']; mech=r['mechanism_probe']
+          def pct(x): return f'{100*x:.1f}%'
+          print('🧠 **AERA-v22 interference-corrected dual-delta result**'); print()
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- mechanism current / overwrite / stale: **{pct(mech['current_accuracy'])} / {pct(mech['overwrite_current_accuracy'])} / {pct(mech['stale_error'])}**")
+          print(f"- local address top-1 / margin: **{pct(local['address_top1_accuracy'])} / {local['address_mean_diag_minus_best_other_margin']:+.4f}**")
+          print(f"- local payload decode: **{pct(local['payload_legal_value_accuracy'])}**")
+          print(f"- raw recall overall / overwrite / stale: **{pct(raw['overall_accuracy'])} / {pct(raw['overwrite_current_value_accuracy'])} / {pct(raw['overwrite_stale_value_error'])}**")
+          print(f"- full query accuracy / NLL: **{pct(full['query_accuracy'])} / {full['query_nll']:.4f}**")
+          print(f"- stream-only: **{pct(stream['query_accuracy'])}**; full gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same-checkpoint memory-off: **{pct(off['query_accuracy'])}**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- full overwrite current / stale: **{pct(full['overwrite_current_value_accuracy'])} / {pct(full['stale_value_error_rate'])}**")
+          print(f"- local/raw/end-to-end/overall PASS: **{r['local_pass']} / {r['raw_pass']} / {r['end_to_end_pass']} / {r['pass']}**")
+          print(); print('CPU controlled gate only. A full PASS authorizes a separately preregistered small real-language development gate, not architecture freeze or 100M.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 200 /tmp/aera-v22-dual-delta.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v22 dual-delta CPU gate implementation/runtime failure.** This is not scientific evidence. Fix CPU-first; do not trigger a fresh boundary automatically.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
