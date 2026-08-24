@@ -12,18 +12,18 @@ from .aera_hardware_core_v18 import (
 
 
 class TokenwiseFastMemoryStage(nn.Module):
-    """Semantics-preserving stage wrapper with token-wise prior-memory reads.
+    """V18 predictive-stream stage with token-wise prior-memory reads.
 
-    V18 performs one associative-memory query from the first representation of a
-    chunk and broadcasts that recalled vector across every token. V19 keeps the
-    memory state, write equation, write timing, controller gates, recurrent stream,
-    experts, attention and latent reasoning unchanged, but queries the *fixed
-    prior-chunk memory* independently from every current causal token
-    representation.
+    V18's inherited predictive-stream stage performs one associative-memory query
+    from the first representation of a chunk and broadcasts that recall across the
+    chunk. V19 preserves every other stage semantic—including the mandatory carried
+    stream path and `stream_input_norm(end_summary + reasoned)` recurrent update—
+    while querying the fixed prior-chunk memory independently from each current
+    causal token representation.
 
-    Because the memory matrix is not updated until the chunk has finished, all
-    token-wise reads are parallel and cannot contain information from future tokens
-    in the current chunk.
+    The memory matrix is not updated until the chunk has completed, so these reads
+    remain causal and parallel: no query can observe a write from a future token in
+    the current chunk.
     """
 
     def __init__(self, source: nn.Module) -> None:
@@ -37,6 +37,7 @@ class TokenwiseFastMemoryStage(nn.Module):
             "experts",
             "reasoner",
             "stream_cell",
+            "stream_input_norm",
             "memory",
             "reason_to_chunk",
             "out_norm",
@@ -45,6 +46,8 @@ class TokenwiseFastMemoryStage(nn.Module):
         if missing:
             raise TypeError(f"source stage missing required modules: {missing}")
 
+        # Reuse the exact already-initialized modules so checkpoint keys, values,
+        # expert backend and parameter count stay identical to v18.
         self.cfg = source.cfg
         self.norm = source.norm
         self.controller = source.controller
@@ -53,6 +56,7 @@ class TokenwiseFastMemoryStage(nn.Module):
         self.experts = source.experts
         self.reasoner = source.reasoner
         self.stream_cell = source.stream_cell
+        self.stream_input_norm = source.stream_input_norm
         self.memory = source.memory
         self.reason_to_chunk = source.reason_to_chunk
         self.out_norm = source.out_norm
@@ -74,11 +78,11 @@ class TokenwiseFastMemoryStage(nn.Module):
         state: AERAState,
         start_control: dict[str, torch.Tensor],
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Return [batch,time,d_model] context and raw token-wise memory recall."""
+        """Return the exact v18 stream context plus token-wise memory recall."""
         memory_read = self.memory.read(h, state.memory)
         carried = self.state_to_chunk(state.stream)
         context = (
-            start_control["state_read"][:, None, :] * carried[:, None, :]
+            carried[:, None, :]
             + start_control["memory_read"][:, None, :] * memory_read
         )
         return context, memory_read
@@ -97,7 +101,6 @@ class TokenwiseFastMemoryStage(nn.Module):
             state = self.empty_state(events)
 
         h = self.norm(events)
-        # The scalar read/write policy remains a chunk-start causal decision.
         start_control = self.controller(h[:, 0], state.stream)
         self.last_start_controls = {
             k: v.detach() for k, v in start_control.items() if "logits" not in k
@@ -126,7 +129,10 @@ class TokenwiseFastMemoryStage(nn.Module):
         h = h + self.reason_to_chunk(reasoned)[:, None, :] * last_mask[None, :, None]
         h = self.out_norm(h)
 
-        final_stream = self.stream_cell(reasoned, state.stream)
+        # Preserve v18/v3 predictive-stream semantics exactly.
+        stream_input = self.stream_input_norm(end_summary + reasoned)
+        final_stream = self.stream_cell(stream_input, state.stream)
+
         memory_state = state.memory
         if update_memory:
             write = (end_control["novelty"] * end_control["memory_write"]).clamp(0.0, 1.0)
@@ -161,9 +167,6 @@ class HardwareAwareAERATextLMV19(HardwareAwareAERATextLMV18):
         stream_forecast_tokens: int = 4,
     ) -> None:
         super().__init__(cfg, stream_forecast_tokens=stream_forecast_tokens)
-        # Rewrap the exact initialized modules instead of reconstructing them. This
-        # preserves checkpoint keys, parameter values, sparse expert backend and all
-        # routing/runtime machinery; only stage.forward_chunk read addressing changes.
         self.stages = nn.ModuleList(TokenwiseFastMemoryStage(stage) for stage in self.stages)
 
 
@@ -176,6 +179,7 @@ def memory_addressing_protocol() -> dict[str, object]:
         "memory_dimension_changed": False,
         "stored_parameter_count_changed": False,
         "routing_changed_from_v17": False,
+        "predictive_stream_update_changed": False,
         "read_gate_changed": False,
         "read_granularity": "token-wise",
         "read_query": "current causal token representation",
