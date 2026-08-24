@@ -1,0 +1,79 @@
+name: AERA v21 self-supervised memory-code CPU diagnostic
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-memory-code-objective-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-memory-code-objective-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 self-supervised memory-code objective diagnostic** — CPU only, architecture unchanged. Same #278 task/optimizer/500-step budget. Frozen auxiliary weights q/k=1.0 and payload reconstruction=1.0; event representations and decoder weights are detached so the auxiliary trains the existing memory code only. No synthetic key/value/query/overwrite supervision. End-to-end memory necessity thresholds remain unchanged. No GPU, v22 production architecture, freeze, 100M authorization, or breakthrough claim."
+      - name: Run diagnostic
+        run: |
+          set -o pipefail
+          python aera_v21_memory_code_objective_cpu.py | tee /tmp/aera-v21-memory-code-objective.log
+          grep -q 'AERA_V21_MEMORY_CODE_RESULT_JSON=' /tmp/aera-v21-memory-code-objective.log
+      - name: Record authoritative diagnostic result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_MEMORY_CODE_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-memory-code-objective.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1])
+          code=r['heldout_memory_code']; full=r['full_stream_plus_memory']; stream=r['separately_trained_stream_only']; off=r['same_checkpoint_memory_disabled']
+          print('🧠 **AERA-v21 self-supervised memory-code objective result**'); print()
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- held-out q/k cosine: **{code['qk_cosine']:.4f}**; gain **{r['qk_cosine_gain']:+.4f}**")
+          print(f"- held-out payload legal-value reconstruction: **{100*code['payload_legal_value_accuracy']:.1f}%**")
+          print(f"- full memory query accuracy: **{100*full['query_accuracy']:.1f}%**; NLL **{full['query_nll']:.4f}**")
+          print(f"- stream-only query accuracy: **{100*stream['query_accuracy']:.1f}%**; gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same checkpoint memory-off accuracy: **{100*off['query_accuracy']:.1f}%**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- overwrite current-value accuracy: **{100*full['overwrite_current_value_accuracy']:.1f}%**")
+          print(f"- stale-value error: **{100*full['stale_value_error_rate']:.1f}%**")
+          print(f"- local code PASS: **{r['local_code_pass']}**")
+          print(f"- end-to-end PASS: **{r['end_to_end_pass']}**")
+          print(f"- overall diagnostic PASS: **{r['pass']}**")
+          print(); print('CPU diagnostic only. No GPU, v22 merge, architecture freeze, 100M authorization, or breakthrough claim follows automatically.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v21-memory-code-objective.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 memory-code CPU diagnostic implementation/runtime failure.** This is not scientific evidence. Fix CPU-first before any fresh diagnostic boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
