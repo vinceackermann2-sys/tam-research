@@ -1,0 +1,93 @@
+name: Modal AERA v17 systems backend benchmark
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  benchmark:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v17-systems-backend-benchmark]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check benchmark
+        run: python -m py_compile modal_aera_v17_systems_backend_benchmark_app.py tam_research/aera_v17_systems_backend_benchmark.py tam_research/aera_v17_systems_backend.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None
+          import modal_aera_v17_systems_backend_benchmark_app
+          print('systems backend benchmark launcher import OK')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🔒 **AERA-v17 systems backend benchmark** — measurement only; exact frozen seed8331 checkpoints; compare reference AERA vs semantics-preserving low-overhead backend vs matched Transformer on identical held-out batches 8/16/32/64; no training, checkpoint mutation, routing/architecture/data change. Reports output deltas, argmax agreement, expert kernel selection, throughput and VRAM. One L4, 900s hard ceiling, unique durable result, duplicate refusal, no automatic retry. Cannot authorize 100M or count as replication."
+      - name: Run benchmark
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v17_systems_backend_benchmark_app.py | tee /tmp/aera-v17-systems-backend.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V17_SYSTEMS_BACKEND_RESULT_JSON=' /tmp/aera-v17-systems-backend.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v17-systems-backend.log').read_text(errors='replace').splitlines()
+          marker='AERA_V17_SYSTEMS_BACKEND_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('result marker missing')
+          r=json.loads(rows[-1])
+          print('🛠️ **AERA-v17 systems backend benchmark result**')
+          print()
+          print('| batch | ref AERA tok/s | optimized tok/s | opt/ref | Transformer tok/s | opt/Transformer | max logit delta | argmax agree |')
+          print('|---:|---:|---:|---:|---:|---:|---:|---:|')
+          for row in r['rows']:
+              print(f"| {row['batch_size']} | {row['reference_aera']['tokens_per_second']:.0f} | {row['optimized_aera']['tokens_per_second']:.0f} | {row['optimized_vs_reference_speed']:.3f}x | {row['transformer']['tokens_per_second']:.0f} | {row['optimized_vs_transformer_speed']:.3f}x | {row['max_logit_delta']:.4f} | {100*row['argmax_agreement']:.3f}% |")
+          print()
+          for row in r['rows']:
+              print(f"- batch {row['batch_size']} expert kernels: `{row['optimized_expert_kernels']}`")
+          print()
+          print('Measurement only: no training, no replication credit, no 100M authorization.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v17-systems-backend.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v17 systems backend benchmark failed.** No automatic retry was attempted. Actions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
