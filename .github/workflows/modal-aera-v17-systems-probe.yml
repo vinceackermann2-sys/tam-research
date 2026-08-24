@@ -1,0 +1,104 @@
+name: Modal AERA v17 checkpoint systems probe
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  systems-probe:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v17-systems-probe-8331]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check systems probe
+        run: python -m py_compile modal_aera_v17_systems_probe_app.py tam_research/aera_v17_systems_probe.py tam_research/aera_systems_accounting.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v17_systems_probe_app
+          print('systems probe launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v17 seed8331 systems probe** — measurement only; exact frozen seed8331 AERA and matched Transformer checkpoints; no training or checkpoint mutation; batch sweep 1/2/4/8/16/32 on identical held-out bytes; authoritative per-example and per-batch routing accounting; end-to-end tokens/s, peak VRAM, and representative full-stage/attention/expert/reasoner/stream-GRU timings. One L4, 900s hard GPU ceiling, unique durable result path, duplicate refusal, no automatic retry. This probe cannot count as independent replication, authorize 100M, or prove a breakthrough."
+      - name: Run systems probe
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v17_systems_probe_app.py | tee /tmp/aera-v17-systems.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V17_SYSTEMS_RESULT_JSON=' /tmp/aera-v17-systems.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v17-systems.log').read_text(errors='replace').splitlines()
+          marker='AERA_V17_SYSTEMS_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('systems result marker missing')
+          r=json.loads(rows[-1])
+          print('📐 **AERA-v17 seed8331 systems probe result**')
+          print()
+          print('| batch | AERA tok/s | Transformer tok/s | speed | per-example stage exec | per-batch stage invoke |')
+          print('|---:|---:|---:|---:|---:|---:|')
+          for row in r['sweeps']:
+              rt=row['routing']
+              print(f"| {row['batch_size']} | {row['aera']['tokens_per_second']:.0f} | {row['transformer']['tokens_per_second']:.0f} | {row['aera_vs_transformer_speed']:.3f}x | {100*rt['per_example_stage_execution_fraction']:.1f}% | {100*rt['per_batch_stage_invocation_fraction']:.1f}% |")
+          print()
+          print('Representative fully-executed stage component milliseconds:')
+          for row in r['sweeps']:
+              c=row['representative_stage0_components']
+              print(f"- batch {row['batch_size']}: full **{c['full_stage']['ms']:.3f}**, attention **{c['attention']['ms']:.3f}**, experts **{c['experts']['ms']:.3f}**, reasoner **{c['reasoner']['ms']:.3f}**, stream GRU **{c['stream_gru']['ms']:.3f}**")
+          print()
+          print('Per-stage selected examples / invoked stage at largest batch:')
+          last=r['sweeps'][-1]['routing']
+          print(f"- example run fractions: `{last['per_stage_example_run_fractions']}`")
+          print(f"- batch invocation fractions: `{last['per_stage_batch_invocation_fractions']}`")
+          print(f"- mean selected examples per invocation: `{last['mean_selected_examples_per_invoked_stage']}`")
+          print()
+          print('Measurement only: no training, no checkpoint mutation, no independent-replication credit, and no 100M authorization.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v17-systems.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v17 seed8331 systems probe failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
