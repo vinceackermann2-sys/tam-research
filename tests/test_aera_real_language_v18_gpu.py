@@ -13,7 +13,10 @@ def test_v18_gpu_development_constants_are_frozen_and_seed_is_fresh() -> None:
     assert v18g.SYSTEM_BATCH_SIZES == (8, 64)
     assert v18g.MEMORY_EVAL_BATCHES == 16
     assert v18g.MEMORY_EVAL_BATCH_SIZE == 8
-    assert v18g.TARGET_RATES.tolist() == [0.5, 1.0 / 3.0, 1.0 / 6.0]
+    expected_rates = torch.tensor(
+        [0.5, 1.0 / 3.0, 1.0 / 6.0], dtype=v18g.TARGET_RATES.dtype
+    )
+    assert torch.equal(v18g.TARGET_RATES, expected_rates)
 
 
 def test_v18_gpu_thresholds_are_preregistered() -> None:
@@ -43,12 +46,12 @@ def test_gate_stats_detects_variation_and_empty_input() -> None:
 
 def test_second_chunk_nll_uses_only_later_chunk() -> None:
     chunk = 2
-    vocab = 3
+    vocab = v18g.VOCAB_SIZE
     y = torch.tensor([[0, 0, 1, 2]])
     logits = torch.zeros(1, 4, vocab)
-    # Make first chunk deliberately terrible; second chunk perfect.
-    logits[:, :chunk, 2] = 20.0
-    logits[0, 2, 1] = 20.0
-    logits[0, 3, 2] = 20.0
+    # Make first chunk deliberately terrible; second chunk effectively perfect.
+    logits[:, :chunk, 2] = 40.0
+    logits[0, 2, 1] = 40.0
+    logits[0, 3, 2] = 40.0
     nll = v18g._second_chunk_nll(logits, y, chunk)
     assert nll < 1e-6
