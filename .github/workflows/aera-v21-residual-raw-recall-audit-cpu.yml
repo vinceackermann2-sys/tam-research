@@ -1,0 +1,95 @@
+name: AERA v21 residual raw recall CPU audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-residual-raw-recall-audit-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-residual-raw-recall-audit-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Refuse duplicate or rerun
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v21 residual raw-recall audit"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search 'aera-v21-residual-raw-recall-audit-cpu in:title' --limit 20 --json number --jq 'length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate/rerun refused.** The AERA-v21 residual raw-recall audit is single-shot. No diagnostic reproduction or counterfactual evaluation was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record frozen guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 residual raw-recall audit** — CPU only. Exact #313 500-step/LR=4e-3 checkpoint reproduction for instrumentation only because #316 persisted no checkpoint artifact. Learned parameters freeze before evaluation. Strict state is WRITE-only + learned candidate-1 + memory.lr=1.0. Evaluation-only tests: q/k raw reads at decay 0.999/1.0 plus q/k least-squares matrix upper bounds from latest observed WRITE bindings. No production model edit, GPU, real-language run, v22 authorization, freeze, 100M authorization, auto-retry, or independent-evidence claim."
+      - name: Run audit
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          python aera_v21_residual_raw_recall_audit_cpu.py | tee /tmp/aera-v21-residual-raw.log
+          grep -q 'AERA_V21_RESIDUAL_RAW_RECALL_AUDIT_RESULT_JSON=' /tmp/aera-v21-residual-raw.log
+      - name: Record authoritative result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_RESIDUAL_RAW_RECALL_AUDIT_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-residual-raw.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); s=r['sequential_counterfactuals']; ls=r['least_squares_upper_bound']; g=r['geometry']; f=r['findings']; ref=r['strict_316_reconfirmation']
+          def pct(x): return f'{100*x:.1f}%'
+          print('🔬 **AERA-v21 residual raw-recall audit result**'); print()
+          print(f"- strict #316 reconfirm final/raw: **{pct(ref['final']['overall_accuracy'])} / {pct(ref['raw_memory_decode']['overall_accuracy'])}**")
+          print(f"- sequential q, decay=.999: **{pct(s['q_decay_0_999']['overall_accuracy'])}**")
+          print(f"- sequential k, decay=.999: **{pct(s['k_decay_0_999']['overall_accuracy'])}**")
+          print(f"- sequential q, decay=1: **{pct(s['q_decay_1_0']['overall_accuracy'])}**")
+          print(f"- sequential k, decay=1: **{pct(s['k_decay_1_0']['overall_accuracy'])}**")
+          print(f"- least-squares q/k raw: **{pct(ls['q_read']['overall_accuracy'])} / {pct(ls['k_read']['overall_accuracy'])}**")
+          print(f"- least-squares q overwrite current/stale: **{pct(ls['q_read']['overwrite_current_value_accuracy'])} / {pct(ls['q_read']['overwrite_stale_value_error'])}**")
+          print(f"- q→k top-1 / margin: **{pct(g['q_to_k_top1_accuracy'])} / {g['qk_diag_minus_best_other_margin_mean']:+.4f}**")
+          print(f"- K-K abs offdiag mean/max: **{g['k_k_abs_offdiag_cosine_mean']:.4f} / {g['k_k_abs_offdiag_cosine_max']:.4f}**; rank **{g['k_effective_rank']}**")
+          print(f"- findings: `{json.dumps(f, sort_keys=True)}`")
+          print(); print('Diagnostic only. No GPU, production v22, real-language run, architecture freeze, 100M authorization, or breakthrough claim follows automatically.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v21-residual-raw.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 residual raw-recall CPU audit implementation/runtime failure.** This is not scientific evidence. Fix CPU-first; do not trigger a fresh boundary automatically.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
