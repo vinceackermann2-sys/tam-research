@@ -1,0 +1,100 @@
+name: Modal AERA v17 kernel opportunity probe
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  kernel-probe:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v17-kernel-probe]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check kernel probe
+        run: python -m py_compile modal_aera_v17_kernel_probe_app.py tam_research/aera_v17_kernel_probe.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v17_kernel_probe_app
+          print('kernel probe launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v17 kernel opportunity probe** — measurement only; exact v17 production shapes (chunk256, d_model200, 8 experts, hidden800, max latent depth4); selected-size sweep 1/2/4/8/16/32/64/128; current BMM vs existing native grouped_mm under top1 and representative 25%-top2 traffic; current true sparse latent reasoner vs a semantically matched dense-masked latency upper bound that is explicitly NOT valid sparse evidence. No training, checkpoint mutation, architecture/routing change, or quality claim. One L4, 600s hard ceiling, unique durable result path, duplicate refusal, no automatic retry; cannot authorize 100M."
+      - name: Run kernel probe
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v17_kernel_probe_app.py | tee /tmp/aera-v17-kernel.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V17_KERNEL_RESULT_JSON=' /tmp/aera-v17-kernel.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v17-kernel.log').read_text(errors='replace').splitlines()
+          marker='AERA_V17_KERNEL_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('kernel result marker missing')
+          r=json.loads(rows[-1])
+          print('🧩 **AERA-v17 kernel opportunity probe result**')
+          print()
+          print(f"- GPU: **{r['gpu']}**")
+          print(f"- native grouped_mm available: **{r['native_grouped_mm_available']}**")
+          print()
+          print('| selected | routing | BMM ms | grouped ms | grouped speed vs BMM | max output delta |')
+          print('|---:|---|---:|---:|---:|---:|')
+          for row in r['expert_sweep']:
+              print(f"| {row['selected_batch']} | {row['routing_pattern']} | {row['bmm_ms']:.3f} | {row['grouped_mm_ms']:.3f} | {row['grouped_vs_bmm_speed']:.3f}x | {row['max_abs_output_delta']:.4f} |")
+          print()
+          print('| selected | mean steps | sparse ms | dense-mask ms | dense speed vs sparse | max output delta |')
+          print('|---:|---:|---:|---:|---:|---:|')
+          for row in r['reasoner_sweep']:
+              print(f"| {row['selected_batch']} | {row['mean_hard_steps']:.2f} | {row['sparse_ms']:.3f} | {row['dense_masked_upper_bound_ms']:.3f} | {row['dense_vs_sparse_speed']:.3f}x | {row['max_abs_output_delta']:.4f} |")
+          print()
+          print('Dense-masked reasoner timings are a latency upper bound only and do not count as sparse/depth evidence. Measurement only; no 100M authorization.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v17-kernel.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v17 kernel opportunity probe failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
