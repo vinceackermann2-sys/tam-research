@@ -1,0 +1,134 @@
+name: Modal AERA v22 real-language memory development gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v22-real-language-dev-8391-v1
+  cancel-in-progress: false
+
+jobs:
+  real-language-dev:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v22-real-language-dev-8391]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check launcher and protocol
+        run: python -m py_compile modal_aera_v22_real_language_dev_app.py tam_research/aera_real_language_v22.py tam_research/aera_real_language_v22_gpu.py tam_research/aera_hardware_core_v22.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v22_real_language_dev_app
+          print('v22 launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Refuse duplicate or rerun
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v22 real-language memory development gate"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq '[.[] | select(.title | startswith("[aera-v22-real-language-dev-8391]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate/rerun refused.** The AERA-v22 real-language seed8391 gate is single-shot. No Modal/GPU run was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record hard guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v22 real-language memory development gate** — fresh development seed8391 only; one L4; exact immutable production GPT-2 bytes; 8,388,608 training tokens/model; matched ~25M Transformer. Existing real-language memory_dim=50 is preserved exactly. V22 uses event-pair writes plus session-local inverse covariance P and covariance-preconditioned dual-delta correction, with token-wise prior-state reads. Training keeps the inherited next-token/routing/state objective and adds only the frozen conflict-free memory teaching signal: sampled address contrastive T=0.10 weight1 + frozen-decoder payload-token CE weight1, no latent payload cosine, max1024 deterministic label-independent adjacent events/step. All v18 thresholds remain unchanged: quality gap <=0.50 NLL; second-chunk fast-memory advantage >=0.005 NLL; overall memory advantage >=0; noncollapsed writes; adaptivity/routing gates; batch8 >=0.25x and batch64 >=1.25x Transformer. Report total M+P state bytes, P finite/symmetry, exact session isolation and zero base mutation. 1800s GPU ceiling; unique durable result; duplicate refusal; no auto-retry. Development only: no independent-replication credit or 100M authorization."
+      - name: Run AERA v22 development gate
+        if: steps.guard.outputs.allowed == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v22_real_language_dev_app.py | tee /tmp/aera-v22-dev.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V22_DEV_RESULT_JSON=' /tmp/aera-v22-dev.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v22-dev.log').read_text(errors='replace').splitlines()
+          marker='AERA_V22_DEV_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('v22 result marker missing')
+          r=json.loads(rows[-1])
+          a=r['aera']; t=r['transformer']; m=r['v22_memory_eval']; ad=r['v22_heldout_adaptivity']; sy=r['v22_systems_eval']; pc=r['parameter_accounting']; checks=r['v22_development_checks']
+          rates=ad['optional_stage_run_fractions']; w=m['executed_stage_effective_write_strength']; rd=m['executed_stage_memory_read_gate']; sec=m['second_chunk']; p=m['inverse_key_covariance']; aux=m['heldout_sampled_memory_auxiliary']
+          print('🧠 **AERA-v22 real-language dual-delta memory development seed8391 result**')
+          print()
+          print(f"- stored params: AERA **{pc['aera_stored_parameters']:,}**, Transformer **{pc['transformer_parameters']:,}**")
+          print(f"- tokens/model: **{a['tokens_seen']:,}**")
+          print(f"- training tok/s: AERA **{a['training_tokens_per_second']:.0f}**, Transformer **{t['training_tokens_per_second']:.0f}**")
+          print(f"- memory-enabled held-out NLL: AERA **{m['stream_plus_memory_nll']:.4f}**, Transformer **{m['transformer_nll']:.4f}** (gap {m['quality_gap_nll']:+.4f})")
+          print(f"- same-checkpoint stream-only NLL: **{m['stream_only_nll']:.4f}**; full reset **{m['reset_state_and_memory_nll']:.4f}**")
+          print(f"- overall fast-memory advantage: **{m['memory_overall_advantage_nll']:+.4f} NLL**")
+          print(f"- second-chunk fast-memory advantage: **{sec['memory_advantage_nll']:+.4f} NLL**")
+          print(f"- second-chunk stream advantage over reset: **{sec['stream_advantage_nll']:+.4f} NLL**")
+          print(f"- second-chunk memory-only advantage over reset: **{sec['memory_only_advantage_over_reset_nll']:+.4f} NLL**")
+          print(f"- effective write mean/p10/p90: **{w['mean']:.3f} / {w['p10']:.3f} / {w['p90']:.3f}**")
+          print(f"- memory-read gate mean/p10/p90: **{rd['mean']:.3f} / {rd['p10']:.3f} / {rd['p90']:.3f}**")
+          print(f"- M norm: **{m['mean_final_memory_frobenius_norm']:.4f}**; P norm **{p['mean_frobenius_norm']:.4f}**; P min eig **{p['min_eigenvalue']:.6f}**; P symmetry max error **{p['max_symmetry_error']:.2e}**")
+          print(f"- memory state bytes/session: M **{m['matrix_state_bytes_per_session']:,}** + P **{m['inverse_covariance_state_bytes_per_session']:,}** = total **{m['memory_state_bytes_per_session']:,}**")
+          print(f"- heldout sampled address top1/margin: **{aux['memory_address_sampled_top1']:.3f} / {aux['memory_address_sampled_margin']:+.4f}**; payload token acc **{aux['memory_payload_token_accuracy']:.3f}**")
+          print(f"- deployment base parameters unchanged / session isolation: **{m['deployment_base_parameter_versions_unchanged']} / {m['session_isolation_exact']}**")
+          print(f"- optional stage run fractions: **{100*rates[0]:.1f}% / {100*rates[1]:.1f}% / {100*rates[2]:.1f}%**")
+          print(f"- actual total per-example stage execution: **{100*ad['total_per_example_stage_execution_fraction']:.1f}%**")
+          print(f"- difficulty/compute Spearman rho: **{ad['difficulty_compute_spearman_rho']:.3f}**; adaptivity **{'PASS' if ad['pass'] else 'FAIL'}**")
+          for bs in ('8','64'):
+              row=sy['rows'][bs]
+              print(f"- batch{bs} memory-enabled throughput: AERA **{row['aera']['tokens_per_second']:.0f} tok/s**, Transformer **{row['transformer']['tokens_per_second']:.0f} tok/s**, ratio **{row['aera_vs_transformer_speed']:.3f}x**")
+          print(f"- frozen checks: `{json.dumps(checks, sort_keys=True)}`")
+          print(f"- v22 development pass: **{'PASS' if r['v22_development_pass'] else 'FAIL'}**")
+          print()
+          print('Seed8391 is development-only and excluded from independent replication. A PASS may authorize a separately recorded freeze/S2 boundary, but does not authorize 100M by itself.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 220 /tmp/aera-v22-dev.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v22 real-language development workflow failed.** This is not scientific evidence. No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
