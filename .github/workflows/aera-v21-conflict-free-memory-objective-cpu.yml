@@ -1,0 +1,79 @@
+name: AERA v21 conflict-free memory objective CPU gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-conflict-free-memory-objective-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-conflict-free-memory-objective-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 conflict-free memory objective controlled gate** — CPU only, architecture unchanged. Same #278 task/optimizer/LR=4e-3/500 steps. Total full-model teaching recipe is ordinary delayed-query CE + symmetric multi-positive address contrastive (T=0.10, weight 1.0) + frozen-decoder token payload CE (weight 1.0). Latent payload cosine is removed entirely (weight 0). Original strict local and end-to-end memory gates remain unchanged. No GPU, production v22 merge, freeze, 100M authorization, or breakthrough claim."
+      - name: Run controlled gate
+        run: |
+          set -o pipefail
+          python aera_v21_conflict_free_memory_objective_cpu.py | tee /tmp/aera-v21-conflict-free.log
+          grep -q 'AERA_V21_CONFLICT_FREE_RESULT_JSON=' /tmp/aera-v21-conflict-free.log
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_CONFLICT_FREE_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-conflict-free.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); local=r['heldout_local_code']; full=r['full_stream_plus_memory']; stream=r['separately_trained_stream_only']; off=r['same_checkpoint_memory_disabled']
+          print('🧠 **AERA-v21 conflict-free memory objective result**'); print()
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- address top-1: **{100*local['address_top1_accuracy']:.1f}%**")
+          print(f"- address mean margin: **{local['address_mean_diag_minus_best_other_margin']:+.4f}**")
+          print(f"- payload legal-value decode: **{100*local['payload_legal_value_accuracy']:.1f}%**")
+          print(f"- full memory query accuracy: **{100*full['query_accuracy']:.1f}%**; NLL **{full['query_nll']:.4f}**")
+          print(f"- stream-only accuracy: **{100*stream['query_accuracy']:.1f}%**; full gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same-checkpoint memory-off: **{100*off['query_accuracy']:.1f}%**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- overwrite current-value accuracy: **{100*full['overwrite_current_value_accuracy']:.1f}%**")
+          print(f"- stale-value error: **{100*full['stale_value_error_rate']:.1f}%**")
+          print(f"- local PASS: **{r['local_pass']}**")
+          print(f"- end-to-end PASS: **{r['end_to_end_pass']}**")
+          print(f"- overall PASS: **{r['pass']}**")
+          print(); print('CPU controlled gate only. A PASS authorizes production-v22 objective design and a separately frozen real-language development gate, not architecture freeze or 100M.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v21-conflict-free.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 conflict-free memory objective CPU gate implementation/runtime failure.** This is not scientific evidence. Fix CPU-first before any fresh boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
