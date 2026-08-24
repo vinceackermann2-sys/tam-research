@@ -1,0 +1,78 @@
+name: AERA v21 event-pair fast-memory necessity CPU diagnostic
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-memory-necessity-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-memory-necessity-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 event-pair fast-memory necessity CPU diagnostic** — no GPU. Reuses original #278 randomized delayed-associative task, optimizer, 500-step budget and thresholds unchanged. Only variable is v21 bounded adjacent-event writes plus learned pair gate. Ordinary delayed-query CE only; no synthetic memory auxiliary. Frozen gates: oracle >=95%; full query >=80%; full beats stream-only >=15pp; same-checkpoint memory-off drop >=15pp; overwrite current-value >=80%; stale error <=10%; fresh session <= chance+10pp; zero deployment base mutation; exact session isolation. Scientific FAIL stops memory architecture iteration for deeper audit. No GPU, real-language seed, architecture freeze, 100M authorization or breakthrough claim."
+      - name: Run diagnostic
+        run: |
+          set -o pipefail
+          python aera_v21_memory_necessity_cpu.py | tee /tmp/aera-v21-memory-necessity.log
+          grep -q 'AERA_V21_MEMORY_NECESSITY_RESULT_JSON=' /tmp/aera-v21-memory-necessity.log
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_MEMORY_NECESSITY_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-memory-necessity.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); f=r['full_stream_plus_memory']; off=r['same_checkpoint_memory_disabled']; s=r['separately_trained_stream_only']; safe=r['deployment_safety']
+          print('🧠 **AERA-v21 event-pair fast-memory necessity CPU result**'); print()
+          print(f"- oracle task validity: **{100*r['task']['oracle_accuracy']:.1f}%**")
+          print(f"- full stream+memory query accuracy: **{100*f['query_accuracy']:.1f}%**; NLL **{f['query_nll']:.4f}**")
+          print(f"- separately trained stream-only accuracy: **{100*s['query_accuracy']:.1f}%**; gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same full checkpoint with memory disabled: **{100*off['query_accuracy']:.1f}%**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- overwrite current-value accuracy: **{100*f['overwrite_current_value_accuracy']:.1f}%**")
+          print(f"- stale-value error: **{100*f['stale_value_error_rate']:.1f}%**")
+          print(f"- fresh-session query accuracy: **{100*safe['fresh_session_query_accuracy']:.1f}%** vs chance **{100*r['task']['chance_accuracy']:.1f}%**")
+          print(f"- deployment base parameters unchanged: **{safe['deployment_base_parameters_unchanged']}**")
+          print(f"- exact session isolation: **{safe['session_isolation_exact']}**")
+          print(f"- frozen checks: `{json.dumps(r['checks'], sort_keys=True)}`")
+          print(f"- event-pair memory necessity diagnostic: **{'PASS' if r['pass'] else 'FAIL'}**")
+          print(); print('CPU controlled-task evidence only. No GPU, real-language claim, architecture freeze, 100M authorization or breakthrough claim follows.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 120 /tmp/aera-v21-memory-necessity.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 memory-necessity CPU workflow implementation/runtime failure.** This is not scientific evidence. Fix CPU-first before any fresh run boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
