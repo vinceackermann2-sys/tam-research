@@ -1,0 +1,85 @@
+name: AERA v21 fast-memory pipeline CPU audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-memory-pipeline-audit-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-memory-pipeline-audit-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 fast-memory pipeline audit** — CPU only, diagnostic reproduction only, not independent evidence. Reproduces the already-failed v21 seed solely to instrument gradients/activity and evaluate frozen same-checkpoint interventions: q→k reads, forced memory-read gate, oracle adjacent-pair selection, and combinations. Interpretation hierarchy was preregistered in issue #290. No production architecture change, GPU, real-language run, v22, architecture freeze, 100M authorization, or breakthrough claim."
+      - name: Run audit
+        run: |
+          set -o pipefail
+          python aera_v21_memory_pipeline_audit_cpu.py | tee /tmp/aera-v21-memory-pipeline-audit.log
+          grep -q 'AERA_V21_MEMORY_PIPELINE_AUDIT_RESULT_JSON=' /tmp/aera-v21-memory-pipeline-audit.log
+      - name: Record authoritative diagnostic result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_MEMORY_PIPELINE_AUDIT_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-memory-pipeline-audit.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1])
+          print('🔬 **AERA-v21 fast-memory pipeline audit result**')
+          print()
+          print(f"- diagnosis: **{r['diagnosis']}**")
+          a=r['activity']
+          print(f"- mean write strength: **{a['event_pair_write_strength_mean']:.6f}**")
+          print(f"- matrix norm after writes: **{a['memory_matrix_norm_after_writes']:.6f}**")
+          print(f"- mean memory-read gate: **{a['memory_read_gate_mean']:.6f}**")
+          print(f"- mean recalled-vector norm: **{a['memory_read_vector_norm_mean']:.6f}**")
+          print('- counterfactual query accuracy:')
+          for name,row in r['counterfactuals'].items():
+              print(f"  - {name}: **{100*row['query_accuracy']:.1f}%**; NLL **{row['query_nll']:.4f}**")
+          print('- gains over normal:')
+          for name,gain in r['accuracy_gains_over_normal'].items():
+              print(f"  - {name}: **{100*gain:+.1f} pp**")
+          print('- final gradient snapshot:')
+          g=r['gradient_snapshots'][-1]
+          for key in ('pair_gate','memory_q','memory_k','memory_v','memory_out','controller_memory_read','controller_memory_write'):
+              print(f"  - {key}: **{g[key]:.6g}**")
+          print()
+          print('Diagnostic localization only. This run is not independent replication evidence and authorizes no architecture or scale claim by itself.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 160 /tmp/aera-v21-memory-pipeline-audit.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 memory-pipeline CPU audit implementation/runtime failure.** This is not scientific evidence. Fix CPU-first before any fresh diagnostic boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
