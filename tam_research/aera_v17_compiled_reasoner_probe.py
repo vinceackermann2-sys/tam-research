@@ -110,6 +110,13 @@ def _depth_logits(batch: int, device: torch.device) -> torch.Tensor:
     return logits
 
 
+def _configure_dynamo_dynamic_output_capture() -> None:
+    """Configure Dynamo without creating a local `torch` binding in run_probe."""
+    from torch import _dynamo
+
+    _dynamo.config.capture_dynamic_output_shape_ops = True
+
+
 @torch.no_grad()
 def run_probe() -> dict[str, Any]:
     if not torch.cuda.is_available():
@@ -126,9 +133,7 @@ def run_probe() -> dict[str, Any]:
     compile_setup_seconds: float | None = None
     compiled = None
     try:
-        import torch._dynamo
-
-        torch._dynamo.config.capture_dynamic_output_shape_ops = True
+        _configure_dynamo_dynamic_output_capture()
         compiled = torch.compile(
             candidate,
             mode="reduce-overhead",

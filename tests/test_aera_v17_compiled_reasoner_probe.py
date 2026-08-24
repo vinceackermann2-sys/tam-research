@@ -7,6 +7,7 @@ from tam_research.aera_v17_compiled_reasoner_probe import (
     CompileFriendlyHardSparseReasoner,
     SELECTED_SIZES,
     copy_reference_weights,
+    run_probe,
     validate_probe_protocol,
 )
 
@@ -24,6 +25,12 @@ def test_compiled_reasoner_probe_protocol_is_measurement_only() -> None:
     assert p["architecture_changed"] is False
     assert p["hard_selected_depth_changed"] is False
     assert p["dense_masked_is_latency_upper_bound_only"] is True
+
+
+def test_run_probe_does_not_shadow_module_torch_binding() -> None:
+    # Regression for issue #256: `import torch._dynamo` inside run_probe caused
+    # Python to mark `torch` as local, raising UnboundLocalError before CUDA work.
+    assert "torch" not in run_probe.__code__.co_varnames
 
 
 def test_compile_friendly_reasoner_matches_reference_mixed_depths_cpu() -> None:
