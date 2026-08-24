@@ -7,11 +7,11 @@ from aera_v21_residual_raw_recall_audit_cpu import (
     NO_DECAY,
     PRODUCTION_DIAGNOSTIC_DECAY,
     RAW_RECALL_MIN,
-    _least_squares_matrix,
     _temporary_memory_decay,
     learned_geometry,
     sequential_raw_recall,
 )
+from aera_v21_residual_raw_recall_audit_cpu_v2 import _least_squares_matrix
 from aera_v21_write_kinetics_audit_cpu import _evaluate_mode
 
 
@@ -23,6 +23,10 @@ def test_frozen_residual_raw_recall_constants():
 
 
 def test_least_squares_matrix_reconstructs_independent_bindings():
+    # Deliberately underdetermined, matching the audit geometry: fewer live
+    # bindings than memory dimensions.  The matrix-capacity oracle must preserve
+    # every exactly representable binding instead of depending on LAPACK's
+    # default underdetermined lstsq rank choice.
     k = torch.eye(8, 12)
     v = torch.randn(8, 12, generator=torch.Generator().manual_seed(9921))
     matrix = _least_squares_matrix(k, v)
