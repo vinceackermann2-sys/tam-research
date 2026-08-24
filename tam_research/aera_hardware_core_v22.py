@@ -8,6 +8,7 @@ import torch.nn.functional as F
 
 from .aera import AERAState, FastMemoryState
 from .aera_hardware_core import HardwareAERAConfig
+from .aera_hardware_core_v8 import StageRouteGate
 from .aera_hardware_core_v18 import PretrainableDeltaFastMemory
 from .aera_hardware_core_v21 import EventPairFastMemoryStage, HardwareAwareAERATextLMV21
 
@@ -57,9 +58,9 @@ def interference_corrected_dual_delta_update(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Sequential covariance-preconditioned error correction.
 
-    ``keys`` are expected normalized.  For a strength-one write, the dual
+    ``keys`` are expected normalized. For a strength-one write, the dual
     direction is normalized so the current key's own prediction is corrected by
-    the full residual.  The Sherman-Morrison state makes future dual directions
+    the full residual. The Sherman-Morrison state makes future dual directions
     account for key geometry already observed in this session.
     """
     if matrix.ndim != 3 or inverse_key_covariance.shape != matrix.shape:
@@ -164,6 +165,72 @@ class InterferenceCorrectedEventPairFastMemoryStage(EventPairFastMemoryStage):
             return update(detach_inputs=True)
 
 
+def _as_dual(memory: FastMemoryState) -> DualDeltaFastMemoryState:
+    if not isinstance(memory, DualDeltaFastMemoryState):
+        raise TypeError("v22 routing requires DualDeltaFastMemoryState")
+    return memory
+
+
+def _select_dual_state(state: AERAState, idx: torch.Tensor) -> AERAState:
+    memory = _as_dual(state.memory)
+    return AERAState(
+        stream=state.stream.index_select(0, idx),
+        memory=DualDeltaFastMemoryState(
+            memory.matrix.index_select(0, idx),
+            memory.inverse_key_covariance.index_select(0, idx),
+        ),
+    )
+
+
+def _restore_dual_state_dtype(base: AERAState, update: AERAState) -> AERAState:
+    base_memory = _as_dual(base.memory)
+    update_memory = _as_dual(update.memory)
+    return AERAState(
+        stream=update.stream.to(dtype=base.stream.dtype),
+        memory=DualDeltaFastMemoryState(
+            update_memory.matrix.to(dtype=base_memory.matrix.dtype),
+            update_memory.inverse_key_covariance.to(
+                dtype=base_memory.inverse_key_covariance.dtype
+            ),
+        ),
+    )
+
+
+def _merge_dual_state(base: AERAState, update: AERAState, idx: torch.Tensor) -> AERAState:
+    update = _restore_dual_state_dtype(base, update)
+    base_memory = _as_dual(base.memory)
+    update_memory = _as_dual(update.memory)
+    return AERAState(
+        stream=base.stream.index_copy(0, idx, update.stream),
+        memory=DualDeltaFastMemoryState(
+            base_memory.matrix.index_copy(0, idx, update_memory.matrix),
+            base_memory.inverse_key_covariance.index_copy(
+                0, idx, update_memory.inverse_key_covariance
+            ),
+        ),
+    )
+
+
+def _blend_dual_state(base: AERAState, update: AERAState, gate: torch.Tensor) -> AERAState:
+    base_memory = _as_dual(base.memory)
+    update_memory = _as_dual(update.memory)
+    g1 = gate.to(base.stream.dtype)
+    g2 = gate[:, :, None].to(base_memory.matrix.dtype)
+    gp = gate[:, :, None].to(base_memory.inverse_key_covariance.dtype)
+    return AERAState(
+        stream=base.stream + g1 * (update.stream - base.stream),
+        memory=DualDeltaFastMemoryState(
+            base_memory.matrix + g2 * (update_memory.matrix - base_memory.matrix),
+            base_memory.inverse_key_covariance
+            + gp
+            * (
+                update_memory.inverse_key_covariance
+                - base_memory.inverse_key_covariance
+            ),
+        ),
+    )
+
+
 class HardwareAwareAERATextLMV22(HardwareAwareAERATextLMV21):
     """V21 plus interference-corrected dual-delta fast-memory writes."""
 
@@ -178,6 +245,80 @@ class HardwareAwareAERATextLMV22(HardwareAwareAERATextLMV21):
             InterferenceCorrectedEventPairFastMemoryStage(stage)
             for stage in self.stages
         )
+
+    def _route_one_stage(
+        self,
+        x: torch.Tensor,
+        stage: nn.Module,
+        stage_state: AERAState,
+        router: StageRouteGate,
+        *,
+        route_mode: str,
+        update_memory: bool,
+    ) -> tuple[torch.Tensor, AERAState, dict[str, object]]:
+        """Preserve both M and P across v21's sparse/calibration routing semantics."""
+        gate, logits = router(x[:, 0], stage_state.stream, mode=route_mode)
+        prob = torch.sigmoid(logits)
+
+        if route_mode == "hard_sparse":
+            run_idx = (gate[:, 0] >= 0.5).nonzero(as_tuple=False).squeeze(-1)
+            if run_idx.numel() == 0:
+                return x, stage_state, {
+                    "stage_route_probability": prob,
+                    "stage_route_gate": gate,
+                    "executed_fraction": 0.0,
+                    "start": None,
+                    "end": None,
+                }
+
+            selected_x = x.index_select(0, run_idx)
+            selected_state = _select_dual_state(stage_state, run_idx)
+            selected_y, selected_new_state, selected_controls = stage.forward_chunk(
+                selected_x,
+                selected_state,
+                hard=True,
+                update_memory=update_memory,
+            )
+            selected_y = selected_y.to(dtype=x.dtype)
+            selected_new_state = _restore_dual_state_dtype(
+                selected_state, selected_new_state
+            )
+            y = x.index_copy(0, run_idx, selected_y)
+            new_state = _merge_dual_state(stage_state, selected_new_state, run_idx)
+            return y, new_state, {
+                "stage_route_probability": prob,
+                "stage_route_gate": gate,
+                "executed_fraction": float(run_idx.numel() / x.size(0)),
+                "start": selected_controls["start"],
+                "end": selected_controls["end"],
+            }
+
+        isolate = bool(
+            route_mode == "straight_through"
+            and getattr(self, "_isolate_router_task_gradient", False)
+        )
+        task_gate = gate.detach() if isolate else gate
+        processed, processed_state, controls = stage.forward_chunk(
+            x,
+            stage_state,
+            hard=False,
+            update_memory=update_memory,
+        )
+        processed = processed.to(dtype=x.dtype)
+        processed_state = _restore_dual_state_dtype(stage_state, processed_state)
+        gate_for_residual = task_gate.to(dtype=x.dtype)
+        y = x + gate_for_residual[:, None, :] * (processed - x)
+        new_state = _blend_dual_state(stage_state, processed_state, task_gate)
+        info: dict[str, object] = {
+            "stage_route_probability": prob,
+            "stage_route_gate": task_gate,
+            "executed_fraction": 1.0,
+            "start": controls["start"],
+            "end": controls["end"],
+        }
+        if isolate:
+            info["task_router_gradient_isolated"] = True
+        return y, new_state, info
 
 
 def dual_delta_memory_protocol() -> dict[str, object]:
