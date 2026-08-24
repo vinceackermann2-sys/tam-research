@@ -1,0 +1,81 @@
+name: AERA v19 memory-signal vs representation CPU diagnostic
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v19-memory-signal-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v19-memory-signal-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v19 memory-signal vs representation CPU diagnostic** — no GPU and no production architecture change. Same v19 single end-of-chunk write summary and same delta-memory equation. Training-only diagnostic auxiliary directly supervises the existing stage-0 memory address and payload projections while ordinary delayed-query CE remains active. Frozen gates: oracle >=95%; full query >=80%; same-checkpoint memory-off drop >=15pp; overwrite current-value >=80%; stale error <=10%; auxiliary address top-1 >=90%; auxiliary value prediction >=90%; fresh session <= chance+10pp; zero deployment base mutation; exact session isolation. PASS means training signal is the primary blocker; FAIL means the single-summary representation/injection is inadequate. No GPU, production memory objective, architecture freeze, 100M authorization or breakthrough claim."
+      - name: Run diagnostic
+        run: |
+          set -o pipefail
+          python aera_v19_memory_signal_cpu.py | tee /tmp/aera-v19-memory-signal.log
+          grep -q 'AERA_V19_MEMORY_SIGNAL_RESULT_JSON=' /tmp/aera-v19-memory-signal.log
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V19_MEMORY_SIGNAL_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v19-memory-signal.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows:
+              raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); f=r['full_stream_plus_memory']; off=r['same_checkpoint_memory_disabled']; a=r['auxiliary_memory_signal']; s=r['deployment_safety']
+          print('🧠 **AERA-v19 memory-signal vs representation CPU result**')
+          print()
+          print(f"- oracle validity: **{100*r['task']['oracle_accuracy']:.1f}%**")
+          print(f"- full memory-enabled query accuracy: **{100*f['query_accuracy']:.1f}%**; NLL **{f['query_nll']:.4f}**")
+          print(f"- same checkpoint memory-disabled accuracy: **{100*off['query_accuracy']:.1f}%**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- overwrite current-value accuracy: **{100*f['overwrite_current_value_accuracy']:.1f}%**; stale error **{100*f['stale_value_error_rate']:.1f}%**")
+          print(f"- auxiliary address top-1: **{100*a['address_accuracy']:.1f}%**; value prediction: **{100*a['value_accuracy']:.1f}%**")
+          print(f"- fresh-session accuracy: **{100*s['fresh_session_query_accuracy']:.1f}%** vs chance **{100*r['task']['chance_accuracy']:.1f}%**")
+          print(f"- deployment base parameters unchanged: **{s['deployment_base_parameters_unchanged']}**; session isolation: **{s['session_isolation_exact']}**")
+          print(f"- frozen checks: `{json.dumps(r['checks'], sort_keys=True)}`")
+          print(f"- diagnostic pass: **{'PASS' if r['pass'] else 'FAIL'}**")
+          print(f"- preregistered interpretation: **{r['interpretation']}**")
+          print()
+          print('CPU root-cause evidence only. No GPU, production objective, architecture freeze or 100M authorization follows.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 140 /tmp/aera-v19-memory-signal.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v19 memory-signal CPU workflow implementation/runtime failure.** This is not scientific evidence. Fix CPU-first and stop at a fresh run boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
