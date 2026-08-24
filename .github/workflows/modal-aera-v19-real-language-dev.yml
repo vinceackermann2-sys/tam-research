@@ -1,0 +1,111 @@
+name: Modal AERA v19 real-language token-wise-memory development gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  real-language-dev:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v19-real-language-dev-8371]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check launcher and protocol
+        run: python -m py_compile modal_aera_v19_real_language_dev_app.py tam_research/aera_real_language_v19.py tam_research/aera_real_language_v19_gpu.py tam_research/aera_hardware_core_v19.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v19_real_language_dev_app
+          print('v19 launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record hard guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v19 real-language token-wise-memory development gate** — fresh development seed8371 only; one L4; exact immutable production GPT-2 bytes; 8,388,608 training tokens/model; matched ~25M Transformer control. The only architecture delta from v18 seed8351 is fast-memory read addressing: the fixed prior-chunk memory is queried independently by each current causal token representation instead of one first-token query being broadcast. V17 pairwise difficulty routing, 50% / 33.3% / 16.7% optional-stage budgets, p>=0.5 threshold, chunk geometry, experts, latent depth, predictive recurrent stream, memory dimension, delta write rule/timing and detached deployment-local update are unchanged. Frozen v18 success thresholds are inherited without relaxation: quality gap <=0.50 NLL; second-chunk fast-memory advantage >=0.005 NLL; overall memory advantage >=0; noncollapsed writes; zero base-parameter mutation; nonzero memory; v17 held-out adaptivity PASS; all optional stages >=5%; target-rate MAE <=0.12; actual per-example stage execution 35-70%; batch8 speed >=0.25x and batch64 >=1.25x matched Transformer. 1800s GPU ceiling; unique durable result; duplicate refusal; no automatic retry. Development evidence only; cannot count as independent replication, freeze architecture, authorize 100M, or prove a breakthrough."
+      - name: Run AERA v19 development gate
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v19_real_language_dev_app.py | tee /tmp/aera-v19-dev.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V19_DEV_RESULT_JSON=' /tmp/aera-v19-dev.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          lines=Path('/tmp/aera-v19-dev.log').read_text(errors='replace').splitlines()
+          marker='AERA_V19_DEV_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('v19 result marker missing')
+          r=json.loads(rows[-1])
+          a=r['aera']; t=r['transformer']; d=r['diagnostics']; m=r['v19_memory_eval']; ad=r['v19_heldout_adaptivity']; sy=r['v19_systems_eval']; pc=r['parameter_accounting']; checks=r['v19_development_checks']
+          rates=ad['optional_stage_run_fractions']; w=m['executed_stage_effective_write_strength']; rd=m['executed_stage_memory_read_gate']; sec=m['second_chunk']
+          print('🧠 **AERA-v19 real-language token-wise-memory development seed8371 result**')
+          print()
+          print(f"- stored params: AERA **{pc['aera_stored_parameters']:,}**, Transformer **{pc['transformer_parameters']:,}**")
+          print(f"- tokens/model: **{a['tokens_seen']:,}**")
+          print(f"- training tok/s: AERA **{a['training_tokens_per_second']:.0f}**, Transformer **{t['training_tokens_per_second']:.0f}**")
+          print(f"- memory-enabled held-out NLL: AERA **{m['stream_plus_memory_nll']:.4f}**, Transformer **{m['transformer_nll']:.4f}** (gap {m['quality_gap_nll']:+.4f})")
+          print(f"- same-checkpoint stream-only NLL: **{m['stream_only_nll']:.4f}**; full reset **{m['reset_state_and_memory_nll']:.4f}**")
+          print(f"- overall fast-memory advantage: **{m['memory_overall_advantage_nll']:+.4f} NLL**")
+          print(f"- second-chunk fast-memory advantage: **{sec['memory_advantage_nll']:+.4f} NLL**")
+          print(f"- second-chunk stream advantage over reset: **{sec['stream_advantage_nll']:+.4f} NLL**")
+          print(f"- second-chunk memory-only advantage over reset: **{sec['memory_only_advantage_over_reset_nll']:+.4f} NLL**")
+          print(f"- effective write mean/p10/p90: **{w['mean']:.3f} / {w['p10']:.3f} / {w['p90']:.3f}**")
+          print(f"- memory-read gate mean/p10/p90: **{rd['mean']:.3f} / {rd['p10']:.3f} / {rd['p90']:.3f}**")
+          print(f"- final memory norm: **{m['mean_final_memory_frobenius_norm']:.4f}**; state bytes/session **{m['memory_state_bytes_per_session']:,}**")
+          print(f"- deployment base parameters unchanged: **{m['deployment_base_parameter_versions_unchanged']}**")
+          print(f"- optional stage run fractions: **{100*rates[0]:.1f}% / {100*rates[1]:.1f}% / {100*rates[2]:.1f}%**")
+          print(f"- actual total per-example stage execution: **{100*ad['total_per_example_stage_execution_fraction']:.1f}%**")
+          print(f"- difficulty/compute Spearman rho: **{ad['difficulty_compute_spearman_rho']:.3f}**; adaptivity **{'PASS' if ad['pass'] else 'FAIL'}**")
+          for bs in ('8','64'):
+              row=sy['rows'][bs]
+              print(f"- batch{bs} memory-enabled throughput: AERA **{row['aera']['tokens_per_second']:.0f} tok/s**, Transformer **{row['transformer']['tokens_per_second']:.0f} tok/s**, ratio **{row['aera_vs_transformer_speed']:.3f}x**")
+          print(f"- frozen checks: `{json.dumps(checks, sort_keys=True)}`")
+          print(f"- v19 development pass: **{'PASS' if r['v19_development_pass'] else 'FAIL'}**")
+          print()
+          print('Seed8371 is development-only and excluded from independent replication/breakthrough evidence. No automatic retry and no 100M authorization follows.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v19-dev.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v19 real-language development workflow failed.** No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
