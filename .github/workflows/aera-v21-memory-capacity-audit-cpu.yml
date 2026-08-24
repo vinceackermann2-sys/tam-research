@@ -1,0 +1,81 @@
+name: AERA v21 memory capacity CPU audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-memory-capacity-audit-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-memory-capacity-audit-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 memory address-collapse/payload-capacity audit** — CPU only; deterministic reproduction of failed #301 for diagnosis, not independent evidence. Measures current address separability/effective rank and payload decoding, then supervised upper-bound capacity of the unchanged stage-0 q/k and v/out projections. Capacity threshold is >=95% for both key retrieval and legal-value payload decoding. No new parameters, architecture change, GPU, v22, freeze, 100M authorization, or breakthrough claim."
+      - name: Run audit
+        run: |
+          set -o pipefail
+          python aera_v21_memory_capacity_audit_cpu.py | tee /tmp/aera-v21-memory-capacity-audit.log
+          grep -q 'AERA_V21_MEMORY_CAPACITY_AUDIT_RESULT_JSON=' /tmp/aera-v21-memory-capacity-audit.log
+      - name: Record authoritative diagnostic result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_MEMORY_CAPACITY_AUDIT_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-memory-capacity-audit.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1])
+          a=r['current_address']; p=r['current_payload']
+          ac=r['supervised_address_capacity']['final']; pc=r['supervised_payload_capacity']['final']
+          print('🧪 **AERA-v21 memory capacity audit result**'); print()
+          print(f"- diagnosis: **{r['diagnosis']}**")
+          print('- current learned code:')
+          print(f"  - q→k top-1: **{100*a['q_to_k_top1_accuracy']:.1f}%**")
+          print(f"  - diagonal cosine: **{a['diagonal_cosine_mean']:.4f}**")
+          print(f"  - off-diagonal cosine mean/max: **{a['off_diagonal_cosine_mean']:.4f} / {a['off_diagonal_cosine_max']:.4f}**")
+          print(f"  - q effective rank (1%): **{a['q_effective_rank_1pct']}**")
+          print(f"  - payload legal-value decode: **{100*p['legal_value_accuracy']:.1f}%**")
+          print('- supervised unchanged-projection upper bounds:')
+          print(f"  - key retrieval: **{100*ac['q_to_k_top1_accuracy']:.1f}%**")
+          print(f"  - payload decode: **{100*pc['legal_value_accuracy']:.1f}%**")
+          print(f"- key capacity PASS: **{r['checks']['supervised_key_capacity_ge_0_95']}**")
+          print(f"- payload capacity PASS: **{r['checks']['supervised_payload_capacity_ge_0_95']}**")
+          print(); print('Diagnostic upper bound only. No GPU, v22 merge, architecture freeze, 100M authorization, or breakthrough claim follows automatically.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v21-memory-capacity-audit.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 memory-capacity CPU audit implementation/runtime failure.** This is not scientific evidence. Fix CPU-first before any fresh diagnostic boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
