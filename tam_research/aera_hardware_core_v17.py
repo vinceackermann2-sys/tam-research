@@ -117,5 +117,4 @@ class HardwareAwareAERATextLMV17(HardwareAwareAERATextLMV16):
             "optional_stage_hard_run_fractions_st": per_stage_hard_fraction_st,
             "optional_stage_target_fractions": exact_target_rates,
             "optional_stage_budget_errors": per_stage_hard_budget_error,
-            "difficulty_teacher": torch.tensor(17.0, device=p.device),
         }
