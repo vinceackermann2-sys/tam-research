@@ -1,0 +1,80 @@
+name: AERA v21 raw recalled-payload CPU audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-raw-payload-audit-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-raw-payload-audit-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Record frozen guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 raw recalled-payload audit** — CPU only; deterministic reproduction of already-failed v21 for diagnosis, not independent evidence. Measures raw memory-space value decodability, existing out/LM decoding, oracle-pair and k-read counterfactuals, and downstream logit sensitivity. Interpretation was frozen in issue #295. No production architecture change, GPU, real-language run, v22, architecture freeze, 100M authorization, or breakthrough claim."
+      - name: Run audit
+        run: |
+          set -o pipefail
+          python aera_v21_raw_payload_audit_cpu.py | tee /tmp/aera-v21-raw-payload-audit.log
+          grep -q 'AERA_V21_RAW_PAYLOAD_AUDIT_RESULT_JSON=' /tmp/aera-v21-raw-payload-audit.log
+      - name: Record authoritative diagnostic result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_RAW_PAYLOAD_AUDIT_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-raw-payload-audit.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1])
+          print('🧬 **AERA-v21 raw recalled-payload audit result**'); print()
+          print(f"- diagnosis: **{r['diagnosis']}**")
+          print('- raw payload metrics:')
+          for name,row in r['raw_payload'].items():
+              print(f"  - {name}: raw value **{100*row['raw_value_accuracy']:.1f}%**, decoded value **{100*row['decoded_value_accuracy']:.1f}%**, margin **{row['raw_target_margin_mean']:+.4f}**")
+          s=r['logit_sensitivity']
+          print('- downstream sensitivity:')
+          print(f"  - normal query accuracy: **{100*s['normal_query_accuracy']:.1f}%**")
+          print(f"  - memory removed: **{100*s['removed_query_accuracy']:.1f}%**")
+          print(f"  - scaled memory injection: **{100*s['scaled_query_accuracy']:.1f}%**")
+          print(f"  - normal target-logit delta vs removed: **{s['normal_target_logit_delta_vs_removed']:+.6f}**")
+          print(f"  - scaled target-logit delta vs removed: **{s['scaled_target_logit_delta_vs_removed']:+.6f}**")
+          print(f"  - normal logits L2 vs removed: **{s['normal_logits_l2_vs_removed']:.6f}**")
+          print(f"  - scaled logits L2 vs removed: **{s['scaled_logits_l2_vs_removed']:.6f}**")
+          print(); print('Diagnostic localization only. No architecture or scale claim is authorized by this run.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v21-raw-payload-audit.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 raw-payload CPU audit implementation/runtime failure.** This is not scientific evidence. Fix CPU-first before any fresh diagnostic boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
