@@ -1,0 +1,95 @@
+name: AERA v21 write kinetics and interference CPU audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v21-write-kinetics-audit-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v21-write-kinetics-audit-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Refuse duplicate or rerun
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v21 write-kinetics/interference audit"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search 'aera-v21-write-kinetics-audit-cpu in:title' --limit 20 --json number --jq 'length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate/rerun refused.** The AERA-v21 write-kinetics/interference audit is single-shot. No training or counterfactual evaluation was started by this workflow invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record frozen guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v21 write-kinetics/interference audit** — CPU only, deterministic #313 reproduction for instrumentation only. Same 500 steps/LR=4e-3/seed/objective. Counterfactuals are evaluation-only: WRITE chunks only; WRITE chunks + learned candidate-1 gate only; diagnostic memory.lr=1.0 with normal candidates; and WRITE chunks + candidate-1 + lr=1.0. No production model edit, GPU, real-language run, v22 authorization, freeze, 100M authorization, auto-retry, or independent-evidence claim."
+      - name: Run audit
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          python aera_v21_write_kinetics_audit_cpu.py | tee /tmp/aera-v21-write-kinetics.log
+          grep -q 'AERA_V21_WRITE_KINETICS_AUDIT_RESULT_JSON=' /tmp/aera-v21-write-kinetics.log
+      - name: Record authoritative result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V21_WRITE_KINETICS_AUDIT_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v21-write-kinetics.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); modes=r['counterfactuals']; kin=r['write_kinetics']; f=r['findings']
+          def pct(x): return f'{100*x:.1f}%'
+          print('🧪 **AERA-v21 write-kinetics/interference audit result**'); print()
+          print(f"- diagnosis: **{r['diagnosis']}**")
+          print(f"- normal final/raw recall: **{pct(modes['normal']['final']['overall_accuracy'])} / {pct(modes['normal']['raw_memory_decode']['overall_accuracy'])}**")
+          print(f"- normal overwrite current/stale: **{pct(modes['normal']['final']['overwrite_current_value_accuracy'])} / {pct(modes['normal']['final']['overwrite_stale_value_error'])}**")
+          print(f"- initial / overwrite target effective eta: **{kin['initial_target_eta_mean']:.4f} / {kin['overwrite_target_eta_mean']:.4f}**")
+          print(f"- WRITE-only final/raw: **{pct(modes['write_chunks_only']['final']['overall_accuracy'])} / {pct(modes['write_chunks_only']['raw_memory_decode']['overall_accuracy'])}**")
+          print(f"- WRITE-only + candidate1 final/raw: **{pct(modes['write_chunks_only_candidate1']['final']['overall_accuracy'])} / {pct(modes['write_chunks_only_candidate1']['raw_memory_decode']['overall_accuracy'])}**")
+          print(f"- normal candidates + lr=1 final/raw: **{pct(modes['normal_lr1']['final']['overall_accuracy'])} / {pct(modes['normal_lr1']['raw_memory_decode']['overall_accuracy'])}**")
+          print(f"- WRITE-only + candidate1 + lr=1 final/raw: **{pct(modes['write_chunks_only_candidate1_lr1']['final']['overall_accuracy'])} / {pct(modes['write_chunks_only_candidate1_lr1']['raw_memory_decode']['overall_accuracy'])}**")
+          print(f"- oracle-lr1 overwrite current/stale: **{pct(modes['write_chunks_only_candidate1_lr1']['final']['overwrite_current_value_accuracy'])} / {pct(modes['write_chunks_only_candidate1_lr1']['final']['overwrite_stale_value_error'])}**")
+          print(f"- findings: `{json.dumps(f, sort_keys=True)}`")
+          print(); print('Diagnostic only. No GPU, production v22, real-language run, architecture freeze, 100M authorization, or breakthrough claim follows automatically.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 180 /tmp/aera-v21-write-kinetics.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v21 write-kinetics/interference CPU audit implementation/runtime failure.** This is not scientific evidence. Fix CPU-first; do not trigger a fresh boundary automatically.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
