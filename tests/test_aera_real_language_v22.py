@@ -11,7 +11,7 @@ def _tiny_model() -> HardwareAwareAERATextLMV22:
     cfg = HardwareAERAConfig(
         vocab_size=97,
         d_model=24,
-        n_stages=2,
+        n_stages=4,
         n_heads=4,
         chunk_size=v22.CHUNK_SIZE,
         n_experts=4,
