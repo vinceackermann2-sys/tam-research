@@ -14,8 +14,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import torch
-
 from . import aera_real_language_v18_gpu as base
 from . import aera_real_language_v19 as v19
 
@@ -52,9 +50,7 @@ def _install_v19_binding() -> None:
     base.SYSTEMS_EVAL_SEED = SYSTEMS_EVAL_SEED
 
 
-def validate_protocol(data_dir: str) -> dict[str, Any]:
-    _install_v19_binding()
-    protocol = base.validate_protocol(data_dir)
+def _decorate_protocol(protocol: dict[str, Any]) -> dict[str, Any]:
     if protocol.get("development_seed") != SEED:
         raise RuntimeError("v19 base protocol did not pick up frozen seed")
     protocol["version"] = "aera-v19-tokenwise-fast-memory-development"
@@ -71,7 +67,6 @@ def validate_protocol(data_dir: str) -> dict[str, Any]:
         "checkpoint_layout_changed": False,
         "stored_parameter_count_changed": False,
     }
-    # Explicitly restate that every success threshold is inherited unchanged.
     protocol["thresholds_inherited_unchanged_from_v18_seed8351"] = {
         "quality_gap_max_nll": QUALITY_GAP_MAX_NLL,
         "memory_second_chunk_min_advantage_nll": MEMORY_SECOND_CHUNK_MIN_ADVANTAGE_NLL,
@@ -87,6 +82,11 @@ def validate_protocol(data_dir: str) -> dict[str, Any]:
     return protocol
 
 
+def validate_protocol(data_dir: str) -> dict[str, Any]:
+    _install_v19_binding()
+    return _decorate_protocol(base.validate_protocol(data_dir))
+
+
 def _remap_result(result: dict[str, Any], run_dir: str) -> dict[str, Any]:
     for old, new in (
         ("v18_memory_eval", "v19_memory_eval"),
@@ -99,15 +99,10 @@ def _remap_result(result: dict[str, Any], run_dir: str) -> dict[str, Any]:
             raise RuntimeError(f"v19 expected inherited result key {old!r}")
         result[new] = result.pop(old)
 
-    result["protocol"] = validate_protocol(result["protocol"]["data"].get("path", "")) if False else result["protocol"]
-    result["protocol"]["version"] = "aera-v19-tokenwise-fast-memory-development"
-    result["protocol"]["gpu_authorization_scope"] = (
-        "one guarded AERA-v19 development seed8371 L4 run only"
-    )
-    result["protocol"]["architecture_delta_from_v18"] = {
-        "fast_memory_read_addressing": "broadcast-first-token -> token-wise prior-state queries",
-        "all_other_architecture_semantics": "unchanged by CPU equivalence gates",
-    }
+    protocol = result.get("protocol")
+    if not isinstance(protocol, dict):
+        raise RuntimeError("v19 inherited result missing protocol")
+    result["protocol"] = _decorate_protocol(protocol)
     result["claims"] = {
         "development_seed_only": True,
         "counts_toward_independent_replication": False,
@@ -124,25 +119,13 @@ def train_matched_pair(*, data_dir: str, run_dir: str, seed: int = SEED) -> dict
         raise ValueError(f"v19 development run is frozen to fresh seed {SEED}")
     _install_v19_binding()
 
-    # The base harness calls its own validate_protocol from inside v11. Replace it
-    # with this wrapper so the durable result records the v19-specific protocol.
+    # The inherited trainer installs base.validate_protocol into v11. Temporarily
+    # decorate that function so the checkpoint/result embeds the v19 protocol.
     original_validate = base.validate_protocol
 
     def v19_validate(path: str) -> dict[str, Any]:
         _install_v19_binding()
-        protocol = original_validate(path)
-        protocol["version"] = "aera-v19-tokenwise-fast-memory-development"
-        protocol["gpu_authorization_scope"] = (
-            "one guarded AERA-v19 development seed8371 L4 run only"
-        )
-        protocol["architecture_delta_from_v18"] = {
-            "fast_memory_read_addressing": "broadcast-first-token -> token-wise prior-state queries",
-            "routing_changed": False,
-            "memory_write_rule_changed": False,
-            "memory_write_timing_changed": False,
-            "stored_parameter_count_changed": False,
-        }
-        return protocol
+        return _decorate_protocol(original_validate(path))
 
     base.validate_protocol = v19_validate
     try:
