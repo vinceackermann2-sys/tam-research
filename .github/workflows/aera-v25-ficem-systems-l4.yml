@@ -1,0 +1,122 @@
+name: AERA v25 FICEM production-shape L4 systems gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v25-ficem-systems-l4
+  cancel-in-progress: false
+
+jobs:
+  systems-gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v25-ficem-systems-l4]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check v25 systems package
+        run: >-
+          python -m py_compile
+          modal_aera_v25_ficem_systems_app.py
+          aera_v25_ficem_systems_l4.py
+          tam_research/aera_v25_systems.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Refuse duplicate or unauthorized systems trigger
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          controlled_pass=$(gh api "repos/$GITHUB_REPOSITORY/issues/361/comments" --jq '[.[] | select(.body | contains("AERA-v25 FICEM controlled result")) | select(.body | contains("overall PASS: **True**"))] | length')
+          prereg=$(gh api "repos/$GITHUB_REPOSITORY/issues/362" --jq '.title | startswith("[research] AERA-v25 FICEM production-shape L4 systems gate")')
+          triggers=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 200 --json number,title --jq '[.[] | select(.title | startswith("[aera-v25-ficem-systems-l4]"))] | length')
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v25 FICEM production systems guard"))] | length')
+          if [ "$controlled_pass" -lt 1 ] || [ "$prereg" != "true" ] || [ "$triggers" -gt 1 ] || [ "$existing" -gt 0 ] || [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **AERA-v25 systems trigger refused.** GPU is authorized only after the authoritative #361 controlled PASS, frozen preregistration #362, exactly one systems trigger, and workflow attempt 1. No Modal/GPU run was started."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record frozen systems guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v25 FICEM production systems guard** — authorized only by the fresh #361 controlled PASS and frozen #362. Exact v25 core; chunk256, seq512, memory_dim50, four stages, 48 slots, 77,760-byte session state, 255 candidates -> exactly 16 physical writes, one vectorized update, top-4 factorized reads. Systems only: random inputs, zero optimizer steps, no corpus, no checkpoint. Frozen payload-cost clarification: <=256 events/microbatch = <=1024/optimizer step, payload CE weight1, address auxiliary weight0. PASS gates: exact 16/255/1 everywhere; batch8 write overhead <=25.0ms; batch64 <=40.0ms; projected 512-step train+eval <=1500s. One L4 <=600s, attempt 1 only, no automatic retry. PASS may authorize only one separately preregistered fresh small v25 real-language development seed; no freeze/S2/replication/100M/breakthrough claim."
+      - name: Run systems-only v25 benchmark
+        if: steps.guard.outputs.allowed == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v25_ficem_systems_app.py | tee /tmp/aera-v25-ficem-systems.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V25_FICEM_SYSTEMS_L4_RESULT_JSON=' /tmp/aera-v25-ficem-systems.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative v25 systems result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V25_FICEM_SYSTEMS_L4_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v25-ficem-systems.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows:
+              raise SystemExit('v25 FICEM systems result marker missing')
+          r=json.loads(rows[-1]); iso=r['isolated_ficem']; m=r['memory_overhead']; full=r['full_training_microbatch']; p=r['projection']; g=r['gates']; t=r['matched_transformer_descriptive']
+          b8=m['batch8']; b64=m['batch64']
+          print('⚙️ **AERA-v25 FICEM production-shape L4 systems result**')
+          print()
+          print(f"- GPU: **{r['gpu']}**; scientific training / optimizer steps / checkpoint / corpus: **{r['scientific_training_performed']} / {r['optimizer_steps_performed']} / {r['checkpoint_written']} / {r['corpus_reader_used']}**")
+          print(f"- isolated FICEM fwd+bwd: **{iso['ms_fwd_bwd_including_post_update_read']:.2f} ms**, writes **{iso['selected_writes']}/{iso['candidates']}**, vectorized updates **{iso['vectorized_update_calls']}**, peak **{iso['peak_allocated_gb']:.2f} GB**")
+          print(f"- batch8 memory-off / writes-only / full: **{b8['memory_disabled_read_bypass']['ms']:.2f} / {b8['writes_enabled_reads_bypassed']['ms']:.2f} / {b8['full_memory']['ms']:.2f} ms**; write overhead **{b8['write_overhead_ms']:+.2f} ms** vs <=25.0ms gate; read overhead **{b8['read_overhead_ms']:+.2f} ms**")
+          print(f"- batch64 memory-off / writes-only / full: **{b64['memory_disabled_read_bypass']['ms']:.2f} / {b64['writes_enabled_reads_bypassed']['ms']:.2f} / {b64['full_memory']['ms']:.2f} ms**; write overhead **{b64['write_overhead_ms']:+.2f} ms** vs <=40.0ms gate; read overhead **{b64['read_overhead_ms']:+.2f} ms**")
+          print(f"- v23 reference write overhead batch8 / batch64: **+38.44 / +57.48 ms**")
+          print(f"- training-shape straight-through / hard-sparse microbatch: **{full['straight_through']['ms']:.2f} / {full['hard_sparse']['ms']:.2f} ms**; payload events **{full['straight_through']['sampled_payload_events']:.0f} / {full['hard_sparse']['sampled_payload_events']:.0f}**")
+          print(f"- projected 512-step training: **{p['training_seconds']:.1f}s**; +150s eval => **{p['train_plus_eval_seconds']:.1f}s** vs **{p['target_max_seconds']:.0f}s** gate")
+          print(f"- matched Transformer batch8 / batch64: **{t['batch8']['tokens_per_second']:.0f} / {t['batch64']['tokens_per_second']:.0f} tok/s**")
+          print(f"- exact 16/255/1 gate: **{'PASS' if g['physical_16_of_255_and_one_vectorized_update'] else 'FAIL'}**")
+          print(f"- batch8 write-overhead gate: **{'PASS' if g['batch8_write_overhead'] else 'FAIL'}**")
+          print(f"- batch64 write-overhead gate: **{'PASS' if g['batch64_write_overhead'] else 'FAIL'}**")
+          print(f"- train+eval projection gate: **{'PASS' if g['train_plus_eval_projection'] else 'FAIL'}**")
+          print(f"- no-training/corpus/checkpoint gate: **{'PASS' if g['no_scientific_training_optimizer_checkpoint_or_corpus'] else 'FAIL'}**")
+          print(f"- overall systems gate: **{'PASS' if g['overall_pass'] else 'FAIL'}**")
+          print(f"- frozen decision: **{r['decision']}**")
+          print()
+          print('Systems evidence only. PASS authorizes only one separately preregistered fresh small v25 real-language development seed. No architecture freeze, S2, independent-replication credit, 100M authorization, or breakthrough claim follows.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record systems workflow failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 260 /tmp/aera-v25-ficem-systems.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v25 FICEM systems workflow failed.** This is implementation/runtime evidence only unless an authoritative systems result marker was posted. No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
