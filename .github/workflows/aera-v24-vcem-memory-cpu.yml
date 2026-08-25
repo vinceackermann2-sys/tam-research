@@ -1,0 +1,97 @@
+name: AERA v24 VCEM controlled CPU gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v24-vcem-memory-cpu-v1
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v24-vcem-memory-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package
+        run: pip install -e .
+      - name: Refuse duplicate or rerun
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v24 VCEM controlled gate"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq '[.[] | select(.title | startswith("[aera-v24-vcem-memory-cpu]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Duplicate/rerun refused.** The AERA-v24 VCEM controlled gate is single-shot. No training or evaluation was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record frozen guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🔒 **AERA-v24 VCEM controlled gate** — CPU only under #347. Established delayed-associative task, seed ${SEED:-8401}, LR=4e-3, 500 steps, matched separately trained stream-only control. V24 keeps v23 compute/routing and exact 2/5 controlled write budget; memory is 48-slot causal contextual episodic KV state with one vectorized update per completed stage chunk, newest-wins cosine>=0.95 replacement, top-4 read at T=0.10, and <=80KB real-language-shaped four-stage state. Frozen contextual auxiliary uses observed (current,next-token) transition identity only as q/k supervision; next token is never query input. Required behavioral/direct/ambiguity/safety thresholds are exactly those preregistered in #347. No GPU, production corpus, real-language seed, architecture freeze, S2, independent-replication credit, 100M, auto-retry, or breakthrough claim."
+      - name: Run targeted implementation guards
+        if: steps.guard.outputs.allowed == 'true'
+        run: pytest -q tests/test_aera_hardware_core_v24.py tests/test_aera_v24_vectorized_contextual_episodic_cpu.py
+      - name: Run controlled gate
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          python aera_v24_vectorized_contextual_episodic_memory_cpu.py | tee /tmp/aera-v24-vcem.log
+          grep -q 'AERA_V24_VCEM_RESULT_JSON=' /tmp/aera-v24-vcem.log
+      - name: Record authoritative result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V24_VCEM_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v24-vcem.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); m=r['mechanism_probe']; a=r['context_disambiguation_probe']; d=r['direct_episodic_read']; f=r['full_stream_plus_memory']; s=r['separately_trained_stream_only']; off=r['same_checkpoint_memory_disabled']; b=r['physical_budget_audit']
+          def pct(x): return f'{100*x:.1f}%'
+          print('🧠 **AERA-v24 VCEM controlled result**'); print()
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- mechanism current / overwrite / stale: **{pct(m['current_accuracy'])} / {pct(m['overwrite_current_accuracy'])} / {pct(m['stale_error'])}**")
+          print(f"- ambiguity contextual / cross-error / token-only reference: **{pct(a['contextual_accuracy'])} / {pct(a['contextual_cross_context_error'])} / {pct(a['token_only_reference_accuracy'])}**")
+          print(f"- direct episodic recall / overwrite / stale: **{pct(d['overall_accuracy'])} / {pct(d['overwrite_current_value_accuracy'])} / {pct(d['overwrite_stale_value_error'])}**")
+          print(f"- full query accuracy / NLL: **{pct(f['query_accuracy'])} / {f['query_nll']:.4f}**")
+          print(f"- stream-only: **{pct(s['query_accuracy'])}**; full gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same-checkpoint memory-off: **{pct(off['query_accuracy'])}**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- full overwrite current / stale: **{pct(f['overwrite_current_value_accuracy'])} / {pct(f['stale_value_error_rate'])}**")
+          print(f"- physical candidates / selected / vectorized calls: **{b['candidates']} / {b['selected']} / {b['vectorized_update_calls']}**")
+          print(f"- real-language-shaped session memory: **{r['state_bytes_real_language_four_stage_memory_dim50']} bytes**")
+          print(f"- overall PASS: **{r['pass']}**")
+          print(); print('Full PASS authorizes only a separately preregistered no-training L4 systems benchmark. It does not authorize real-language training, freeze, independent replication or 100M.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation/runtime failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 220 /tmp/aera-v24-vcem.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v24 VCEM controlled workflow implementation/runtime failure.** This is not scientific evidence. Fix CPU-first; do not automatically retry or open a fresh scientific boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
