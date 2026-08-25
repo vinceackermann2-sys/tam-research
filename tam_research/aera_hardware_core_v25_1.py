@@ -28,6 +28,7 @@ from .aera_hardware_core_v19 import TokenwiseFastMemoryStage
 from .aera_hardware_core_v23 import select_budgeted_event_pairs, sparse_write_budget
 from .aera_hardware_core_v24 import (
     ContextualEpisodicMemoryState,
+    VectorizedContextualEpisodicMemoryStage,
     episodic_state_bytes_per_session,
     _restore_epi_dtype,
 )
@@ -264,10 +265,13 @@ class HardwareAwareAERATextLMV251(HardwareAwareAERATextLMV25):
         self.foundation_direct_dispatch_calls = 0
 
     def _v24_stages_ready(self) -> bool:
-        # The inherited virtual initialization hook is invoked during construction.
-        # Once v25.1 wraps the stages, they still satisfy the v25/v24 memory contract.
+        # This virtual hook is called repeatedly during inherited construction.
+        # At the v24 boundary the stages are VectorizedContextualEpisodicMemoryStage;
+        # v25 factorized stages and v25.1 stages are subclasses of that same contract.
+        # Returning true for the whole v24+ family preserves the inherited setter's
+        # intended construction-time dispatch without recognizing older v18-v23 stages.
         return bool(self.stages) and all(
-            isinstance(stage, FactorizedIdentityContextEpisodicMemoryStage)
+            isinstance(stage, VectorizedContextualEpisodicMemoryStage)
             for stage in self.stages
         )
 
