@@ -1,0 +1,125 @@
+name: AERA v25 factorized identity-context episodic memory CPU gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v25-ficem-cpu
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v25-ficem-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package and test dependencies
+        run: pip install -e '.[test]'
+      - name: Refuse duplicate scientific trigger
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v25 FICEM scientific guard"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq '[.[] | select(.title | startswith("[aera-v25-ficem-cpu]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Duplicate AERA-v25 scientific trigger refused.** No training or evaluation was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify preregistered scientific boundary
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          result358=$(gh api "repos/$GITHUB_REPOSITORY/issues/358/comments" --jq '[.[] | select(.body | contains("AERA-v24.1 causal end-to-end addressing result"))] | length')
+          prereg359=$(gh api "repos/$GITHUB_REPOSITORY/issues/359" --jq '.title | startswith("[research] AERA-v25 factorized identity-context episodic memory")')
+          if [ "$result358" -lt 1 ] || [ "$prereg359" != "true" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **AERA-v25 prerequisite refused.** Required #358 scientific result and #359 preregistration were not found. No training or evaluation was started."
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - name: Record frozen scientific guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🔒 **AERA-v25 FICEM scientific guard** — preregistered in #359 after the valid #358 v24.1 FAIL. CPU only. Each unchanged-width episodic key is split equally into shared read/write current-event identity and strictly-prior causal-context factors; v24 selector/payload representation, 2-of-5 sparse writes, one vectorized update, 77,760-byte real-language-shaped state, and v24.1 causal objective remain frozen. Fresh train/eval seeds 8421/8422, batch 6, LR 4e-3, 500 steps, matched separately trained stream-only control. No GPU, production corpus, real-language run, freeze, S2, independent-replication credit, 100M, automatic retry, or breakthrough claim."
+      - name: Run targeted implementation guards
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          pytest -q tests/test_aera_hardware_core_v24.py tests/test_aera_v24_vectorized_contextual_episodic_cpu.py tests/test_aera_v24_1_causal_end_to_end_addressing_cpu.py tests/test_aera_v25_factorized_identity_context_cpu.py | tee /tmp/aera-v25-preflight.log
+      - name: Run controlled AERA v25 FICEM CPU gate
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          python aera_v25_factorized_identity_context_cpu.py | tee /tmp/aera-v25.log
+          grep -q 'AERA_V25_FICEM_RESULT_JSON=' /tmp/aera-v25.log
+      - name: Record authoritative AERA v25 result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V25_FICEM_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v25.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); m=r['mechanism_probe']; a=r['context_disambiguation_probe']; d=r['direct_episodic_read']; f=r['full_stream_plus_memory']; s=r['separately_trained_stream_only']; off=r['same_checkpoint_memory_disabled']; b=r['physical_budget_audit']; x=r['heldout_factorized_address_and_selector_diagnostics']; c=r['factorization_invariance_and_causality_probe']
+          def pct(v): return f'{100*v:.1f}%'
+          print('🧠 **AERA-v25 FICEM controlled result**'); print()
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- mechanism current / overwrite / stale: **{pct(m['current_accuracy'])} / {pct(m['overwrite_current_accuracy'])} / {pct(m['stale_error'])}**")
+          print(f"- ambiguity factorized / cross-error / identity-only: **{pct(a['contextual_accuracy'])} / {pct(a['contextual_cross_context_error'])} / {pct(a['token_only_reference_accuracy'])}**")
+          print(f"- identity invariant / context differs / future causal: **{c['write_query_identity_bit_identical']} / {c['write_query_context_differs']} / {c['future_value_combined_bit_identical']}**")
+          print(f"- identity latest-write top1 / margin: **{pct(x['identity_query_to_latest_write_top1'])} / {x['identity_query_to_latest_write_margin']:+.4f}**")
+          print(f"- combined latest-write top1 / margin: **{pct(x['combined_query_to_latest_write_top1'])} / {x['combined_query_to_latest_write_margin']:+.4f}**")
+          print(f"- context margin contribution: **{x['context_margin_contribution']:+.4f}**")
+          print(f"- true key->value selector coverage: **{pct(x['true_key_value_selector_coverage'])}**")
+          print(f"- write payload-token accuracy: **{pct(x['write_payload_token_accuracy'])}**")
+          print(f"- direct episodic recall / overwrite / stale: **{pct(d['overall_accuracy'])} / {pct(d['overwrite_current_value_accuracy'])} / {pct(d['overwrite_stale_value_error'])}**")
+          print(f"- full query accuracy / NLL: **{pct(f['query_accuracy'])} / {f['query_nll']:.4f}**")
+          print(f"- stream-only: **{pct(s['query_accuracy'])}**; full gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same-checkpoint memory-off: **{pct(off['query_accuracy'])}**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- full overwrite current / stale: **{pct(f['overwrite_current_value_accuracy'])} / {pct(f['stale_value_error_rate'])}**")
+          print(f"- physical candidates / selected / vectorized calls: **{b['candidates']} / {b['selected']} / {b['vectorized_update_calls']}**")
+          print(f"- session memory: **{r['state_bytes_real_language_four_stage_memory_dim50']} bytes**")
+          print(f"- overall PASS: **{r['pass']}**")
+          print(); print('A full PASS authorizes only a separately preregistered no-training production-shape L4 systems benchmark. No real-language training, freeze, independent replication, 100M, or breakthrough claim is authorized.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation or runtime failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '=== targeted implementation guards ==='
+            cat /tmp/aera-v25-preflight.log 2>/dev/null || true
+            echo
+            echo '=== controlled gate ==='
+            cat /tmp/aera-v25.log 2>/dev/null || true
+          } > /tmp/aera-v25-failure.log
+          tail -n 240 /tmp/aera-v25-failure.log > /tmp/tail.txt
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v25 implementation/runtime failure.** This is not scientific evidence. Do not automatically retry.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
