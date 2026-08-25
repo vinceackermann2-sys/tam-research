@@ -98,7 +98,9 @@ def preflight() -> dict:
 def run_systems() -> dict:
     import torch
 
-    from tam_research.aera_v25_1_systems import run_systems_comparison
+    from tam_research.aera_v25_1_systems_guarded import (
+        run_guarded_systems_comparison,
+    )
 
     volume.reload()
     result_path = Path(RESULT_PATH)
@@ -126,7 +128,7 @@ def run_systems() -> dict:
         ),
         flush=True,
     )
-    result = run_systems_comparison(run_dir=SOURCE_RUN_DIR)
+    result = run_guarded_systems_comparison(run_dir=SOURCE_RUN_DIR)
     result_path.parent.mkdir(parents=True, exist_ok=True)
     result_path.write_text(json.dumps(result, indent=2))
     volume.commit()
