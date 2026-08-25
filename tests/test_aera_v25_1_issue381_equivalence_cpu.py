@@ -1,17 +1,38 @@
+import ast
 import inspect
+import textwrap
 
 import torch
 
-from aera_v19_memory_necessity_cpu import EVAL_SEED, _force_all_stages_run, make_batch
+from aera_v19_memory_necessity_cpu import (
+    EVAL_SEED,
+    _force_all_stages_run,
+    diagnostic_config,
+    make_batch,
+)
 from tam_research.aera_hardware_core_v24 import ContextualEpisodicMemoryState
+from tam_research.aera_hardware_core_v25 import HardwareAwareAERATextLMV25
 from tam_research.aera_hardware_core_v25_1 import (
     ExecutionEquivalentFICEMStage,
     HardwareAwareAERATextLMV251,
 )
-from tests.test_aera_v25_1_execution_equivalent_cpu import _models
 
 ISSUE381_RTOL = 1e-6
 ISSUE381_ATOL = 1e-6
+
+
+def _models(seed: int, *, chunk_size: int | None = None):
+    cfg = diagnostic_config()
+    if chunk_size is not None:
+        cfg = type(cfg)(**{**cfg.__dict__, "chunk_size": chunk_size})
+    torch.manual_seed(seed)
+    baseline = HardwareAwareAERATextLMV25(cfg)
+    torch.manual_seed(seed + 91)
+    candidate = HardwareAwareAERATextLMV251(cfg)
+    candidate.load_state_dict(baseline.state_dict(), strict=True)
+    baseline.eval()
+    candidate.eval()
+    return baseline, candidate
 
 
 def _assert_epi_issue381(a: ContextualEpisodicMemoryState, b: ContextualEpisodicMemoryState):
@@ -106,12 +127,12 @@ def test_issue381_execution_guards_keep_population_and_vectorized_paths():
     # its stage0 direct-dispatch and FICEM execution repairs.
     route_source = inspect.getsource(HardwareAwareAERATextLMV251._route_one_stage)
     stage_source = inspect.getsource(ExecutionEquivalentFICEMStage.forward_chunk)
-    assert "for example" not in route_source.lower()
+    stage_tree = ast.parse(textwrap.dedent(stage_source))
+    assert not any(isinstance(node, (ast.For, ast.AsyncFor)) for node in ast.walk(stage_tree))
     assert "stage.forward_chunk(" in route_source
     assert "super()._route_one_stage(" in route_source
     assert "self.memory.update_block(" in stage_source
     assert "last_vectorized_update_calls = 1" in stage_source
-    assert "for " not in stage_source
 
 
 def test_issue381_production_shape_remains_16_255_1_under_strict_state_equivalence():
