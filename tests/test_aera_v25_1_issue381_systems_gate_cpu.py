@@ -112,6 +112,8 @@ def test_issue381_workflow_is_single_attempt_l4_and_launcher_has_no_corpus_bindi
     assert "[aera-v25-1-systems-l4]" in workflow
     assert "GITHUB_RUN_ATTEMPT" in workflow
     assert "issue #381" in workflow.lower()
+    assert "fetch-depth: 0" in workflow
+    assert "git merge-base --is-ancestor d6327653498da0c693c24d31b9090743b7e2a0d9 HEAD" in workflow
     assert workflow.count("modal run modal_aera_v25_1_systems_app.py") == 1
     assert "rerun" not in workflow.lower()
     assert 'gpu="L4"' in launcher
