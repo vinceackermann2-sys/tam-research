@@ -1,0 +1,118 @@
+name: AERA v23 sparse-write L4 systems gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v23-sparse-systems-l4-v1
+  cancel-in-progress: false
+
+jobs:
+  systems-gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v23-sparse-systems-l4]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check systems launcher
+        run: >-
+          python -m py_compile
+          modal_aera_v23_sparse_systems_app.py
+          aera_v23_sparse_systems_l4.py
+          tam_research/aera_real_language_v23_efficiency.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Refuse duplicate or rerun
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v23 sparse-write L4 systems gate"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 200 --json number,title --jq '[.[] | select(.title | startswith("[aera-v23-sparse-systems-l4]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ] || [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate/rerun refused.** The #333 AERA-v23 sparse-write L4 systems gate is single-shot. No Modal/GPU run was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record frozen guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v23 sparse-write L4 systems gate** — systems-only under #333 after #332 controlled PASS. CPU preflight must verify production chunk256/memory_dim50, exact 16/255 writes, no learned-parameter increase vs v22, memory-off bit-exactness, corrected auxiliary cap 256/microbatch = 1024/optimizer step, and finite sparse selector/memory gradients before GPU. One L4, <=600 GPU seconds, no corpus training, optimizer progression, checkpoint, torch.compile primary path, or automatic retry. PASS requires >=4.0x isolated 16-vs-255 recurrence speedup, exact 16/255 on every measured sparse path, and projected 512-step train+eval <=1500s. PASS authorizes only one separately preregistered fresh v23 real-language development seed; no freeze or 100M."
+      - name: Run systems-only sparse benchmark
+        if: steps.guard.outputs.allowed == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v23_sparse_systems_app.py | tee /tmp/aera-v23-sparse-systems.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V23_SPARSE_SYSTEMS_L4_RESULT_JSON=' /tmp/aera-v23-sparse-systems.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative systems result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V23_SPARSE_SYSTEMS_L4_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v23-sparse-systems.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows:
+              raise SystemExit('v23 sparse systems result marker missing')
+          r=json.loads(rows[-1])
+          rec=r['isolated_recurrence']; stage=r['selector_plus_stage_write']; aux=r['corrected_auxiliary']; full=r['full_microbatch']; p=r['projection']; g=r['gates']; inf=r['inference_descriptive']
+          print('⚙️ **AERA-v23 sparse-write L4 systems result**')
+          print()
+          print(f"- GPU: **{r['gpu']}**; scientific training performed: **{r['scientific_training_performed']}**")
+          print(f"- isolated dense255 / sparse16 fwd+bwd: **{rec['dense_255']['ms']:.2f} / {rec['sparse_16']['ms']:.2f} ms**; speedup **{rec['speedup']:.2f}x** (gate >= {rec['minimum_required_speedup']:.1f}x)")
+          print(f"- selector+stage path: **{stage['ms']:.2f} ms**, physical writes **{stage['selected_writes']}/{stage['candidates']} ({100*stage['selected_fraction']:.2f}%)**")
+          print(f"- corrected 256-event memory auxiliary fwd+bwd: **{aux['ms']:.2f} ms**, peak **{aux['peak_allocated_gb']:.2f} GB**")
+          print(f"- full straight-through microbatch: **{full['straight_through']['ms']:.2f} ms**; hard-sparse: **{full['hard_sparse']['ms']:.2f} ms**")
+          print(f"- projected 512-step training: **{p['training_seconds']:.1f}s**; +150s eval => **{p['train_plus_eval_seconds']:.1f}s** vs **{p['target_max_seconds']:.0f}s** gate")
+          print(f"- batch8 memory-off AERA / Transformer throughput: **{inf['batch8']['aera_memory_disabled']['tokens_per_second']:.0f} / {inf['batch8']['transformer']['tokens_per_second']:.0f} tok/s** ({inf['batch8']['aera_vs_transformer_throughput_ratio']:.2f}x)")
+          print(f"- batch64 memory-off AERA / Transformer throughput: **{inf['batch64']['aera_memory_disabled']['tokens_per_second']:.0f} / {inf['batch64']['transformer']['tokens_per_second']:.0f} tok/s** ({inf['batch64']['aera_vs_transformer_throughput_ratio']:.2f}x)")
+          print(f"- 16/255 physical-path gate: **{'PASS' if g['physical_16_of_255_every_measured_sparse_path'] else 'FAIL'}**")
+          print(f"- recurrence-speed gate: **{'PASS' if g['isolated_recurrence_speedup'] else 'FAIL'}**")
+          print(f"- train+eval projection gate: **{'PASS' if g['train_plus_eval_projection'] else 'FAIL'}**")
+          print(f"- overall systems gate: **{'PASS' if g['overall_pass'] else 'FAIL'}**")
+          print(f"- frozen decision: **{r['decision']}**")
+          print()
+          print('Systems evidence only. Even PASS authorizes only one separately preregistered fresh v23 real-language development seed; no architecture freeze, independent-replication credit, 100M authorization, or breakthrough claim follows.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 240 /tmp/aera-v23-sparse-systems.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v23 sparse systems workflow failed.** This is implementation/runtime evidence only, not a scientific systems result, and no automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
