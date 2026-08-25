@@ -50,7 +50,7 @@ def test_v24_newest_wins_within_same_incoming_vectorized_block():
     )
     assert isinstance(state, ContextualEpisodicMemoryState)
     assert int(state.valid.sum()) == 1
-    expected = torch.tanh(memory.v(payloads[:, 1]))[0, 0]
+    expected = torch.tanh(memory.v(payloads[:, 1]))[0]
     actual = state.values[0, state.valid[0]][0]
     torch.testing.assert_close(actual, expected, atol=1e-6, rtol=1e-6)
 
