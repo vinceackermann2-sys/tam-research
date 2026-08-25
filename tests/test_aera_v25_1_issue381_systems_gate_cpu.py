@@ -45,7 +45,7 @@ def test_issue381_known_empty_hint_is_ephemeral_and_cleared_after_update():
 
 def test_issue381_cuda_paths_do_not_require_python_bool_of_cuda_memory_or_stage0_gate():
     read_source = inspect.getsource(
-        ExecutionEquivalentFactorizedIdentityContextMemory.read
+        ExecutionEquivalentFactorizedIdentityContextMemory.read_with_reuse
     )
     route_source = inspect.getsource(HardwareAwareAERATextLMV251._route_one_stage)
     assert 'state.valid.device.type == "cpu" and not bool(state.valid.any())' in read_source
