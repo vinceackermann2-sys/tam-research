@@ -1,0 +1,153 @@
+name: AERA v25 post-seed8471 checkpoint triage repair2
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  diagnose:
+    if: >-
+      startsWith(github.event.issue.title, '[aera-v25-post8471-triage-repair2]') &&
+      github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Refuse workflow re-run attempt
+        if: github.run_attempt != 1
+        run: |
+          echo 'repair2 permits Actions attempt 1 only'
+          exit 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check frozen repair2 launcher
+        run: >-
+          python -m py_compile
+          modal_aera_v25_post8471_triage_repair2_app.py
+          tam_research/aera_v25_post8471_triage_repair2.py
+
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None
+          import modal_aera_v25_post8471_triage_repair2_app
+          print('v25 issue369 repair2 launcher import OK without local torch')
+          PY
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Verify source failures and repair2 preregistration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title=$(gh issue view 377 --repo "$GITHUB_REPOSITORY" --json title --jq .title)
+          test "$title" = "[research] AERA-v25 post8471 triage repair2: correct durable result seed-schema preflight"
+          fail371=$(gh issue view 371 --repo "$GITHUB_REPOSITORY" --comments --json comments --jq '[.comments[] | select(.body | contains("checkpoint triage implementation/runtime failure"))] | length')
+          fail376=$(gh issue view 376 --repo "$GITHUB_REPOSITORY" --comments --json comments --jq '[.comments[] | select(.body | contains("checkpoint triage repair1 implementation/runtime failure"))] | length')
+          result371=$(gh issue view 371 --repo "$GITHUB_REPOSITORY" --comments --json comments --jq '[.comments[] | select(.body | contains("checkpoint triage result"))] | length')
+          result376=$(gh issue view 376 --repo "$GITHUB_REPOSITORY" --comments --json comments --jq '[.comments[] | select(.body | contains("checkpoint triage repair1 result"))] | length')
+          test "$fail371" -ge 1
+          test "$fail376" -ge 1
+          test "$result371" -eq 0
+          test "$result376" -eq 0
+
+      - name: Refuse duplicate repair2 triage
+        id: duplicate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v25 post-seed8471 checkpoint triage repair2 result"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 400 --json number,title --jq '[.[] | select(.title | startswith("[aera-v25-post8471-triage-repair2]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Duplicate repair2 triage refused.** Repair #377 permits exactly one trigger and attempt 1 only."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Record repair2 hard guard
+        if: steps.duplicate.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          body="🔒 **AERA-v25 post-seed8471 checkpoint triage repair2** — frozen #369 diagnostic under preflight-schema repair #377 after #376 failed before L4 allocation. Same repair1 evaluator from #372 byte-for-byte; only source result seed validation is corrected to protocol.development_seed + aera.seed + transformer.seed = 8471, while both checkpoint seeds must also equal 8471. One L4 <=900s, Actions attempt 1 only; checked-out main **$sha**. No training/backward/optimizer/checkpoint mutation, no threshold/protocol change, no retry, no freeze/S2/replication/100M/breakthrough authorization."
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$body"
+
+      - name: Run checkpoint-only repair2 triage
+        if: steps.duplicate.outputs.allowed == 'true'
+        id: diagnostic
+        shell: bash --noprofile --norc -e -o pipefail {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v25_post8471_triage_repair2_app.py | tee /tmp/aera-v25-post8471-triage-repair2.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V25_POST8471_TRIAGE_REPAIR2_RESULT_JSON=' /tmp/aera-v25-post8471-triage-repair2.log; then
+            exit 0
+          fi
+          exit "$status"
+
+      - name: Record authoritative checkpoint triage repair2 result
+        if: steps.duplicate.outputs.allowed == 'true' && steps.diagnostic.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker = 'AERA_V25_POST8471_TRIAGE_REPAIR2_RESULT_JSON='
+          lines = Path('/tmp/aera-v25-post8471-triage-repair2.log').read_text(errors='replace').splitlines()
+          rows = [line.split(marker,1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('repair2 result marker missing')
+          r = json.loads(rows[-1])
+          memory = r['memory_diagnostic']
+          paired = memory['paired_statistics']['production_vs_stream_only_second_chunk']
+          sweep = memory['read_scale_sweep']
+          best_alpha, best_alpha_row = max(sweep.items(), key=lambda kv: kv[1]['second_chunk_advantage_vs_alpha0'])
+          stage = memory['stage_read_localization']
+          best_stage, best_stage_row = max(stage.items(), key=lambda kv: kv[1]['second_chunk_advantage_vs_all_zero'])
+          adapt = r['adaptivity_diagnostic']['memory_enabled_hard_sparse']
+          print('🔬 **AERA-v25 post-seed8471 checkpoint triage repair2 result**')
+          print()
+          print(f"- paired production second-chunk advantage vs stream-only: **{paired['control_minus_production_advantage_mean']:+.5f} NLL**; production-control CI **[{paired['production_minus_control_ci95_low']:+.5f}, {paired['production_minus_control_ci95_high']:+.5f}]**")
+          print(f"- best read alpha **{best_alpha}**: **{best_alpha_row['second_chunk_advantage_vs_alpha0']:+.5f} NLL** vs alpha0; production alpha1 **{sweep['1.00']['second_chunk_advantage_vs_alpha0']:+.5f}**")
+          print(f"- best stage-read config **{best_stage}**: **{best_stage_row['second_chunk_advantage_vs_all_zero']:+.5f} NLL** vs all-zero")
+          print(f"- large-sample adaptivity rho **{adapt['spearman_rho']:+.3f}**; quartiles **{adapt['quartile_compute_means_easy_to_hard']}**; Q4-Q3 **{adapt['q4_minus_q3_compute']:+.4f}**, CI **[{adapt['q4_minus_q3_bootstrap']['ci95_low']:+.4f}, {adapt['q4_minus_q3_bootstrap']['ci95_high']:+.4f}]**")
+          for bs in ('8','64'):
+              row = r['systems_diagnostic']['rows'][bs]
+              print(f"- batch{bs}: core AERA/Transformer **{row['memory_bypassed_aera_vs_transformer_speed_ratio']:.3f}x**, full **{row['full_aera_vs_transformer_speed_ratio']:.3f}x**, read overhead **{row['read_path_overhead_ms']:+.2f} ms**, write overhead **{row['write_path_overhead_ms']:+.2f} ms**")
+          print(f"- recommendations: **{', '.join(r['recommendations'])}**")
+          print(f"- parameter versions unchanged: **{r['source_checkpoint']['parameter_versions_unchanged']}**; training/backward/optimizer/new checkpoint: **False / False / False / False**")
+          print('- #368 remains scientific FAIL; no freeze/S2/replication/100M/breakthrough authorization.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+
+      - name: Record repair2 triage failure
+        if: failure() && steps.duplicate.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="⚠️ **AERA-v25 issue369 checkpoint triage repair2 implementation/runtime failure.** Not scientific evidence; #368 unchanged. No automatic retry or scale authorization."
