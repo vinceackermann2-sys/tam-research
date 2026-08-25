@@ -1,0 +1,138 @@
+name: AERA v23 seed8461 post-hoc diagnosis repair1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  diagnose:
+    if: >-
+      startsWith(github.event.issue.title, '[aera-v23-posthoc-diagnosis-repair1]') &&
+      github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check frozen repair1 diagnostic
+        run: >-
+          python -m py_compile
+          modal_aera_v23_posthoc_diagnosis_repair1_app.py
+          tam_research/aera_v23_posthoc_diagnosis_repair1.py
+
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v23_posthoc_diagnosis_repair1_app
+          print('v23 post-hoc repair1 launcher import OK without local torch')
+          PY
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Refuse duplicate repair1 diagnostic
+        id: duplicate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v23 seed8461 post-hoc diagnosis repair1 result"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 200 --json number,title --jq '[.[] | select(.title | startswith("[aera-v23-posthoc-diagnosis-repair1]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate repair1 diagnostic refused.** Repair #344 permits one explicit continuation only; no Modal/GPU run was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Record repair1 hard guard
+        if: steps.duplicate.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v23 seed8461 post-hoc diagnosis repair1** — frozen #341 diagnostic under implementation repair #344 only. Same saved seed8461 checkpoint, immutable validation corpus, diagnostic seed128461, alpha sweep/stage masks/address-selector/runtime measurements unchanged. Sole semantic repair: model construction/load and parameter-version snapshots occur outside inference mode; measurement routines remain inference-only. No optimizer/training/checkpoint mutation, no new scientific seed, one L4 <=600s, no automatic retry, no v24/freeze/replication/100M/breakthrough authorization."
+
+      - name: Run repaired post-hoc diagnosis
+        if: steps.duplicate.outputs.allowed == 'true'
+        id: diagnostic
+        shell: bash --noprofile --norc -e -o pipefail {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v23_posthoc_diagnosis_repair1_app.py | tee /tmp/aera-v23-posthoc-repair1.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V23_POSTHOC_RESULT_JSON=' /tmp/aera-v23-posthoc-repair1.log; then
+            exit 0
+          fi
+          exit "$status"
+
+      - name: Record authoritative repair1 diagnostic result
+        if: steps.duplicate.outputs.allowed == 'true' && steps.diagnostic.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+
+          marker = 'AERA_V23_POSTHOC_RESULT_JSON='
+          lines = Path('/tmp/aera-v23-posthoc-repair1.log').read_text(errors='replace').splitlines()
+          rows = [line.split(marker, 1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('repair1 post-hoc result marker missing')
+          r = json.loads(rows[-1])
+          sweep = r['read_strength_sweep']
+          best = r['read_strength_best']
+          mask = r['stage_mask_best']
+          addr = r['stage0_cross_chunk_address']
+          runtime = r['runtime_decomposition']
+          print('🔬 **AERA-v23 seed8461 post-hoc diagnosis repair1 result**')
+          print()
+          print(f"- best read alpha: **{best['alpha']:.2f}**; second-chunk NLL **{best['second_chunk_nll']:.4f}**; advantage vs no reads **{best['second_chunk_advantage_vs_alpha0']:+.4f} NLL**")
+          print(f"- production alpha1 advantage vs no reads: **{sweep['1.00']['second_chunk_advantage_vs_alpha0']:+.4f} NLL**")
+          print(f"- best stage mask: **{mask['name']}** `{mask['mask']}`; advantage vs all-zero reads **{mask['advantage_vs_all_zero']:+.4f} NLL**")
+          print(f"- hidden >=0.005 signal in frozen sweep/masks: **{r['hidden_signal_ge_0_005']}** (best **{r['hidden_signal_best_second_chunk_advantage_vs_no_reads']:+.4f} NLL**)")
+          print(f"- stage0 repeated-token q→k top1: full255 **{addr['full_255_top1_same_token_hit_rate_on_repeated_queries']:.3f}**, selected16 **{addr['selected_16_top1_same_token_hit_rate_on_repeated_queries']:.3f}**; cross-position similarity margin **{addr['same_token_different_pos_similarity_margin']:+.4f}**")
+          for row in r['selector_future_usefulness']:
+              m = row['metrics']
+              if m is None:
+                  print(f"- stage{row['stage']} selector: no executed examples")
+              else:
+                  print(f"- stage{row['stage']} selector repeat enrichment **{m['repeat_enrichment_ratio']:.3f}x**; selected repeat **{m['selected_repeat_rate']:.3f}** vs all255 **{m['all_candidate_repeat_rate']:.3f}**; payload-match|repeat **{m['selected_payload_match_given_repeat']:.3f}**")
+          for bs in ('8', '64'):
+              row = runtime[bs]
+              print(f"- batch{bs}: memory-off **{row['memory_off_full']['milliseconds']:.2f} ms**, production **{row['production_full_memory']['milliseconds']:.2f} ms**, writes+reads0 **{row['writes_enabled_reads_zero']['milliseconds']:.2f} ms**; write overhead **{row['write_path_overhead_ms_estimate']:+.2f} ms**, second-chunk read overhead **{row['read_path_overhead_ms_estimate_second_chunk']:+.2f} ms**")
+          print(f"- parameter versions unchanged: **{r['checkpoint']['base_parameter_versions_unchanged']}**; training **False**; checkpoint written **False**")
+          print('- claims remain: v24 **False**, freeze **False**, replication **False**, 100M **False**, breakthrough **False**')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+
+      - name: Record repair1 diagnostic failure
+        if: failure() && steps.duplicate.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="⚠️ **AERA-v23 seed8461 post-hoc diagnostic repair1 implementation/runtime failure.** This is not scientific evidence. No automatic retry, no new training, and no scale authorization. Stop and diagnose before any further invocation."
