@@ -1,0 +1,172 @@
+name: AERA v25 post-seed8471 checkpoint triage
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  diagnose:
+    if: >-
+      startsWith(github.event.issue.title, '[aera-v25-post8471-triage]') &&
+      github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Refuse workflow re-run attempt
+        if: github.run_attempt != 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🚫 **Issue369 checkpoint triage re-run refused.** `github.run_attempt=${{ github.run_attempt }}`; the frozen protocol permits attempt1 only. No Modal/GPU work is started by this attempt. No automatic retry."
+          exit 1
+
+      - uses: actions/setup-python@v5
+        if: github.run_attempt == 1
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check frozen issue369 diagnostic
+        if: github.run_attempt == 1
+        run: >-
+          python -m py_compile
+          modal_aera_v25_post8471_triage_app.py
+          tam_research/aera_v25_post8471_triage.py
+
+      - name: Install Modal
+        if: github.run_attempt == 1
+        run: pip install 'modal>=1.5,<2'
+
+      - name: Verify launcher imports without local PyTorch
+        if: github.run_attempt == 1
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v25_post8471_triage_app
+          print('v25 issue369 launcher import OK without local torch')
+          PY
+
+      - name: Verify Modal authentication
+        if: github.run_attempt == 1
+        run: modal token info
+
+      - name: Verify frozen source issue exists
+        if: github.run_attempt == 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          source_title=$(gh issue view 369 --repo "$GITHUB_REPOSITORY" --json title --jq .title)
+          test "$source_title" = "[research] AERA-v25 post-seed8471 checkpoint-only triage: memory calibration, hard-tail routing, end-to-end throughput"
+
+      - name: Refuse duplicate checkpoint triage
+        if: github.run_attempt == 1
+        id: duplicate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v25 post-seed8471 checkpoint triage result"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 300 --json number,title --jq '[.[] | select(.title | startswith("[aera-v25-post8471-triage]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate issue369 checkpoint triage refused.** Frozen #369 permits exactly one trigger and one Actions attempt. No Modal/GPU run was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Record issue369 hard guard
+        if: github.run_attempt == 1 && steps.duplicate.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v25 post-seed8471 checkpoint-only triage** — frozen research #369, source scientific FAIL #368, exact source checkpoint seed8471, diagnostic seed138471. Read-only source checkpoints; immutable validation corpus; 64x8 memory/calibration batches, 256x8 adaptivity batches, batch8/64 five-condition systems decomposition with 3 warmups + 20 timed calls x5 interleaved rounds and profiler summaries. One L4 <=900s; `run-attempt=${{ github.run_attempt }}`; checked-out main **$sha**. No optimizer/backward/resume/checkpoint mutation, no seed8471 training rerun, no threshold relaxation. No automatic retry. No freeze/S2/replication/100M/breakthrough authorization."
+
+      - name: Run checkpoint-only triage
+        if: github.run_attempt == 1 && steps.duplicate.outputs.allowed == 'true'
+        id: diagnostic
+        shell: bash --noprofile --norc -e -o pipefail {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v25_post8471_triage_app.py | tee /tmp/aera-v25-post8471-triage.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V25_POST8471_TRIAGE_RESULT_JSON=' /tmp/aera-v25-post8471-triage.log; then
+            exit 0
+          fi
+          exit "$status"
+
+      - name: Record authoritative checkpoint triage result
+        if: github.run_attempt == 1 && steps.duplicate.outputs.allowed == 'true' && steps.diagnostic.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+
+          marker = 'AERA_V25_POST8471_TRIAGE_RESULT_JSON='
+          lines = Path('/tmp/aera-v25-post8471-triage.log').read_text(errors='replace').splitlines()
+          rows = [line.split(marker, 1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('issue369 result marker missing')
+          r = json.loads(rows[-1])
+          mem = r['memory_diagnostic']
+          sweep = mem['read_scale_sweep']
+          stages = mem['stage_read_localization']
+          pair = mem['paired_statistics']['production_vs_stream_only_second_chunk']
+          best_alpha, best_alpha_row = max(
+              sweep.items(),
+              key=lambda item: item[1]['second_chunk_advantage_vs_alpha0'],
+          )
+          best_stage, best_stage_row = max(
+              stages.items(),
+              key=lambda item: item[1]['second_chunk_advantage_vs_all_zero'],
+          )
+          enabled = r['adaptivity_diagnostic']['memory_enabled_hard_sparse']
+          disabled = r['adaptivity_diagnostic']['memory_disabled_hard_sparse']
+          print('🔬 **AERA-v25 post-seed8471 checkpoint triage result**')
+          print()
+          print(f"- production second-chunk NLL **{mem['production']['second_chunk_nll']:.4f}**; stream-only **{mem['stream_only']['second_chunk_nll']:.4f}**; write+read0 **{mem['write_preserving_read_zero']['second_chunk_nll']:.4f}**")
+          print(f"- paired production vs stream-only second-chunk advantage **{pair['control_minus_production_advantage_mean']:+.4f} NLL**; production-minus-control 95% bootstrap CI **[{pair['production_minus_control_ci95_low']:+.4f}, {pair['production_minus_control_ci95_high']:+.4f}]**")
+          print(f"- best read alpha **{best_alpha}**: advantage vs alpha0 **{best_alpha_row['second_chunk_advantage_vs_alpha0']:+.4f} NLL**; production alpha1 **{sweep['1.00']['second_chunk_advantage_vs_alpha0']:+.4f}**")
+          print(f"- best stage-read mask **{best_stage}** `{best_stage_row['mask']}`: advantage vs all-zero **{best_stage_row['second_chunk_advantage_vs_all_zero']:+.4f} NLL**")
+          print(f"- larger-sample memory-enabled adaptivity rho **{enabled['spearman_rho']:+.3f}**; quartiles **{enabled['quartile_compute_means_easy_to_hard']}**; monotonic@0.05 **{enabled['quartile_monotonic_with_original_0_05_tolerance']}**")
+          q = enabled['q4_minus_q3_bootstrap']
+          print(f"- memory-enabled Q4-Q3 compute **{enabled['q4_minus_q3_compute']:+.4f}**; bootstrap 95% CI **[{q['ci95_low']:+.4f}, {q['ci95_high']:+.4f}]**")
+          print(f"- memory-disabled adaptivity rho **{disabled['spearman_rho']:+.3f}**; quartiles **{disabled['quartile_compute_means_easy_to_hard']}**")
+          for bs in ('8', '64'):
+              row = r['systems_diagnostic']['rows'][bs]
+              print(f"- batch{bs}: full AERA/Transformer **{row['full_aera_vs_transformer_speed_ratio']:.3f}x**; memory-bypassed core/Transformer **{row['memory_bypassed_aera_vs_transformer_speed_ratio']:.3f}x**; read overhead **{row['read_path_overhead_ms']:+.2f} ms**; write overhead **{row['write_path_overhead_ms']:+.2f} ms**; full-vs-#365 **{row['trained_full_minus_untrained_reference_full_ms']:+.2f} ms**")
+              top = row['profiler_top_cuda_full_aera'][:3]
+              print(f"- batch{bs} top CUDA operators: **{[(x['operator'], round(x['self_cuda_time_us'], 1)) for x in top]}**")
+          print(f"- recommendations: **{r['recommendations']}**")
+          print(f"- parameter versions unchanged: **{r['source_checkpoint']['parameter_versions_unchanged']}**; training/checkpoint mutation: **False / False**")
+          print("- #368 remains scientific **FAIL**. This diagnostic cannot retroactively PASS v25 and authorizes no freeze, S2, replication, 100M, or breakthrough claim.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+
+      - name: Record checkpoint triage failure
+        if: failure() && github.run_attempt == 1 && steps.duplicate.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="⚠️ **AERA-v25 issue369 checkpoint triage implementation/runtime failure.** This is not scientific evidence and does not change #368. No automatic retry, no new scientific seed, and no freeze/scale authorization. Stop and diagnose the implementation before any further invocation."
