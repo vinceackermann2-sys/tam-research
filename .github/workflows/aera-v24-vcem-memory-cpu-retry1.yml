@@ -1,0 +1,120 @@
+name: AERA v24 VCEM controlled CPU gate retry1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v24-vcem-memory-cpu-retry1
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v24-vcem-memory-cpu-retry1]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package and test dependencies
+        run: pip install -e '.[test]'
+      - name: Refuse duplicate retry1
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v24 VCEM controlled retry1 guard"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq '[.[] | select(.title | startswith("[aera-v24-vcem-memory-cpu-retry1]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Duplicate retry1 refused.** AERA-v24 VCEM retry1 is explicitly single-shot. No training or evaluation was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify pre-science failure and workflow repair
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          failure349=$(gh api "repos/$GITHUB_REPOSITORY/issues/349/comments" --jq '[.[] | select(.body | contains("AERA-v24 VCEM controlled workflow implementation/runtime failure"))] | length')
+          result349=$(gh api "repos/$GITHUB_REPOSITORY/issues/349/comments" --jq '[.[] | select(.body | contains("AERA-v24 VCEM controlled result"))] | length')
+          if [ "$failure349" -lt 1 ] || [ "$result349" -ne 0 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Retry1 prerequisite refused.** #349 is not in the required pre-science-failure/no-result state. No training or evaluation was started."
+            exit 1
+          fi
+          grep -Fq "Install package and test dependencies" .github/workflows/aera-v24-vcem-memory-cpu.yml
+          grep -Fq "pip install -e '.[test]'" .github/workflows/aera-v24-vcem-memory-cpu.yml
+      - name: Record frozen retry1 guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🔒 **AERA-v24 VCEM controlled retry1 guard** — explicitly authorized under #353 after #349 failed before science. CPU only. Science is unchanged from #347: train seed 8401, eval seed 8402, batch 6, LR=4e-3, 500 steps, matched separately trained stream-only control; causal previous-8 context, 48 slots/stage, exact 2/5 controlled physical writes, one vectorized state update, newest-wins cosine>=0.95, top-4 read T=0.10, unchanged contextual auxiliary and all preregistered mechanism/direct/end-to-end/ambiguity/safety thresholds. #349 remains non-evidence. No GPU, production corpus, real-language seed, freeze, S2, independent-replication credit, 100M, automatic retry2, or breakthrough claim."
+      - name: Run targeted implementation guards
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          pytest -q tests/test_aera_hardware_core_v24.py tests/test_aera_v24_vectorized_contextual_episodic_cpu.py | tee /tmp/aera-v24-vcem-retry1-preflight.log
+      - name: Run controlled gate retry1
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          python aera_v24_vectorized_contextual_episodic_memory_cpu.py | tee /tmp/aera-v24-vcem-retry1.log
+          grep -q 'AERA_V24_VCEM_RESULT_JSON=' /tmp/aera-v24-vcem-retry1.log
+      - name: Record authoritative retry1 result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V24_VCEM_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v24-vcem-retry1.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); m=r['mechanism_probe']; a=r['context_disambiguation_probe']; d=r['direct_episodic_read']; f=r['full_stream_plus_memory']; s=r['separately_trained_stream_only']; off=r['same_checkpoint_memory_disabled']; b=r['physical_budget_audit']
+          def pct(x): return f'{100*x:.1f}%'
+          print('🧠 **AERA-v24 VCEM controlled retry1 result**'); print()
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- mechanism current / overwrite / stale: **{pct(m['current_accuracy'])} / {pct(m['overwrite_current_accuracy'])} / {pct(m['stale_error'])}**")
+          print(f"- ambiguity contextual / cross-error / token-only reference: **{pct(a['contextual_accuracy'])} / {pct(a['contextual_cross_context_error'])} / {pct(a['token_only_reference_accuracy'])}**")
+          print(f"- direct episodic recall / overwrite / stale: **{pct(d['overall_accuracy'])} / {pct(d['overwrite_current_value_accuracy'])} / {pct(d['overwrite_stale_value_error'])}**")
+          print(f"- full query accuracy / NLL: **{pct(f['query_accuracy'])} / {f['query_nll']:.4f}**")
+          print(f"- stream-only: **{pct(s['query_accuracy'])}**; full gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same-checkpoint memory-off: **{pct(off['query_accuracy'])}**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- full overwrite current / stale: **{pct(f['overwrite_current_value_accuracy'])} / {pct(f['stale_value_error_rate'])}**")
+          print(f"- physical candidates / selected / vectorized calls: **{b['candidates']} / {b['selected']} / {b['vectorized_update_calls']}**")
+          print(f"- real-language-shaped session memory: **{r['state_bytes_real_language_four_stage_memory_dim50']} bytes**")
+          print(f"- overall PASS: **{r['pass']}**")
+          print(); print('A full retry1 PASS authorizes only a separately preregistered no-training L4 systems benchmark. It does not authorize real-language training, freeze, independent replication or 100M.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record retry1 implementation/runtime failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '=== targeted implementation guards ==='
+            cat /tmp/aera-v24-vcem-retry1-preflight.log 2>/dev/null || true
+            echo
+            echo '=== controlled gate retry1 ==='
+            cat /tmp/aera-v24-vcem-retry1.log 2>/dev/null || true
+          } > /tmp/aera-v24-vcem-retry1-failure.log
+          tail -n 220 /tmp/aera-v24-vcem-retry1-failure.log > /tmp/tail.txt
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v24 VCEM controlled retry1 implementation/runtime failure.** This is not scientific evidence. Do not automatically retry or open retry2.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
