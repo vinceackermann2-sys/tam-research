@@ -105,8 +105,13 @@ def test_issue381_soft_expert_output_and_gradients_remain_exact_inherited_path()
 
     old = run(old_expert)
     new = run(new_expert)
+    # The frozen diagnostic geometry has max_active_experts=1, so count_logits is
+    # intentionally absent from the soft output graph in both implementations.
+    assert old[3] is None and new[3] is None
     for old_tensor, new_tensor in zip(old, new):
-        assert old_tensor is not None and new_tensor is not None
+        assert (old_tensor is None) == (new_tensor is None)
+        if old_tensor is None:
+            continue
         torch.testing.assert_close(old_tensor, new_tensor, rtol=RTOL, atol=ATOL)
 
 
