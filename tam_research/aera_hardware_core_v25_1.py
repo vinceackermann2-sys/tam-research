@@ -2,19 +2,20 @@ from __future__ import annotations
 
 """AERA-v25.1 execution-equivalent sparse/FICEM runtime repair.
 
-Preregistered in issue #380 after the checkpoint-only #379 localization.
-This revision preserves v25 learned semantics and state while removing only three
-redundant execution costs:
+Preregistered in issue #380 after the checkpoint-only #379 localization and
+continued under the broader execution-only systems boundary in issue #381.
+This revision preserves v25 learned semantics and durable state while removing
+only redundant execution costs:
 
 1. direct-dispatch the architecturally mandatory foundation stage in hard-sparse
    mode instead of gathering/scattering the entire batch and episodic state;
 2. reuse the normalized factorized causal representation already computed for the
    stage read when the same completed chunk is scored for sparse writes;
-3. return exact zeros before FICEM top-k work when an entire selected batch has an
-   empty episodic state.
+3. return exact zeros before FICEM top-k work when an entire selected batch is
+   *known* empty, without forcing a CUDA tensor-to-host synchronization.
 
 No routing policy, memory equation, learned parameter, write budget, capacity,
-state shape, objective, or scientific threshold is changed.
+durable state shape, objective, or scientific threshold is changed.
 """
 
 from typing import Any
@@ -42,10 +43,23 @@ from .aera_hardware_core_v25 import (
 from .aera_hardware_core_v8 import StageRouteGate
 
 
+_KNOWN_EMPTY_HINT = "_v25_1_known_empty"
+
+
+def _set_known_empty_hint(state: ContextualEpisodicMemoryState, value: bool) -> None:
+    # Python-only execution metadata. ContextualEpisodicMemoryState is deliberately
+    # not slotted, so this does not change the dataclass/durable session schema.
+    object.__setattr__(state, _KNOWN_EMPTY_HINT, bool(value))
+
+
+def _known_empty_hint(state: ContextualEpisodicMemoryState) -> bool:
+    return bool(getattr(state, _KNOWN_EMPTY_HINT, False))
+
+
 class ExecutionEquivalentFactorizedIdentityContextMemory(
     FactorizedIdentityContextEpisodicMemory
 ):
-    """V25 FICEM with an exact all-empty read fast path only."""
+    """V25 FICEM with an exact non-synchronizing known-empty fast path."""
 
     def __init__(self, source: FactorizedIdentityContextEpisodicMemory) -> None:
         # Do not call the v25 constructor: it expects the older q/k/v/out source
@@ -61,6 +75,37 @@ class ExecutionEquivalentFactorizedIdentityContextMemory(
         self.out = source.out
         self.differentiable_pretraining = source.differentiable_pretraining
         self.empty_read_fastpath_calls = 0
+
+    def empty_state(
+        self,
+        batch_size: int,
+        device: torch.device,
+        dtype: torch.dtype,
+    ) -> ContextualEpisodicMemoryState:
+        state = super().empty_state(batch_size, device, dtype)
+        _set_known_empty_hint(state, True)
+        return state
+
+    def update_block(
+        self,
+        identity_source: torch.Tensor,
+        context_source: torch.Tensor,
+        payload_source: torch.Tensor,
+        write_strength: torch.Tensor,
+        state: ContextualEpisodicMemoryState,
+    ) -> ContextualEpisodicMemoryState:
+        next_state = super().update_block(
+            identity_source,
+            context_source,
+            payload_source,
+            write_strength,
+            state,
+        )
+        # Conservatively stop claiming emptiness after any write attempt. If every
+        # strength happened to be zero, this is only a missed optimization: the
+        # ordinary v25 read remains exact. No device scalar is inspected here.
+        _set_known_empty_hint(next_state, False)
+        return next_state
 
     def read(
         self,
@@ -79,11 +124,15 @@ class ExecutionEquivalentFactorizedIdentityContextMemory(
         if state.strengths.shape != state.valid.shape:
             raise ValueError("episodic strength shape mismatch")
 
-        # Under the frozen FICEM read, an all-invalid state masks every retrieval
-        # logit and therefore produces an exact zero weighted value sum. `out` is
-        # bias-free, so returning the final zero tensor is mathematically exact.
-        # This scalar guard is batch-wide only; mixed-valid batches use v25 below.
-        if not bool(state.valid.any()):
+        # A known-empty hint is exact because it is set only by empty_state and is
+        # cleared after every update attempt. CPU tests may additionally verify an
+        # externally constructed all-empty state directly. Crucially, CUDA never
+        # evaluates `bool(tensor.any())`, avoiding a host/device synchronization.
+        known_empty = _known_empty_hint(state)
+        cpu_verified_empty = (
+            state.valid.device.type == "cpu" and not bool(state.valid.any())
+        )
+        if known_empty or cpu_verified_empty:
             self.empty_read_fastpath_calls += 1
             return torch.zeros(
                 identity_source.size(0),
@@ -243,8 +292,8 @@ class ExecutionEquivalentFICEMStage(FactorizedIdentityContextEpisodicMemoryStage
             self.last_vectorized_update_calls = 1
             return h_out, AERAState(next_state.stream, memory_state), controls
         finally:
-            # This invariant is part of #380's CPU gate: never retain graph tensors
-            # or hidden session information after the stage invocation returns/raises.
+            # This invariant is part of #380/#381's CPU gate: never retain graph
+            # tensors or hidden session information after the stage invocation.
             self._runtime_factor_cache = None
 
 
@@ -303,6 +352,7 @@ class HardwareAwareAERATextLMV251(HardwareAwareAERATextLMV25):
         prob = torch.sigmoid(logits)
         if not bool((gate[:, 0] >= 0.5).all()):
             raise RuntimeError("v25.1 foundation-stage invariant violated")
+        prior_known_empty = _known_empty_hint(stage_state.memory)
         processed, processed_state, controls = stage.forward_chunk(
             x,
             stage_state,
@@ -311,6 +361,11 @@ class HardwareAwareAERATextLMV251(HardwareAwareAERATextLMV25):
         )
         processed = processed.to(dtype=x.dtype)
         processed_state = _restore_epi_dtype(stage_state, processed_state)
+        # _restore_epi_dtype rebuilds the dataclass and intentionally drops dynamic
+        # attributes. Preserve only the exact known-empty fact when no write was
+        # requested; this lets consecutive empty chunks avoid CUDA scalar guards.
+        if prior_known_empty and not update_memory:
+            _set_known_empty_hint(processed_state.memory, True)
         self.foundation_direct_dispatch_calls += 1
         return processed, processed_state, {
             "stage_route_probability": prob,
@@ -327,6 +382,7 @@ def execution_equivalent_v25_1_protocol() -> dict[str, Any]:
         {
             "version": "aera-v25.1-execution-equivalent-runtime",
             "research_issue": 380,
+            "systems_authority_issue": 381,
             "source_version": "aera-v25-factorized-identity-context-episodic-memory",
             "learned_equations_changed": False,
             "learned_parameter_count_changed": False,
@@ -337,7 +393,9 @@ def execution_equivalent_v25_1_protocol() -> dict[str, Any]:
             "write_factor_representation_changed": False,
             "write_factor_execution": "reuse exact within-call read factors",
             "runtime_factor_cache_persistent": False,
-            "all_empty_read_semantics": "exact zero early return",
+            "all_empty_read_semantics": "exact zero for known-empty state; exact v25 fallback otherwise",
+            "known_empty_hint_persistent": False,
+            "cuda_scalar_empty_read_sync": False,
             "mixed_valid_read_changed": False,
             "write_budget_changed": False,
             "real_language_selected_writes": sparse_write_budget(255),
