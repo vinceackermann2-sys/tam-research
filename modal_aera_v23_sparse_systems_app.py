@@ -42,6 +42,10 @@ def preflight() -> dict:
 def run_benchmark() -> dict:
     import importlib.util
 
+    from tam_research.aera_v23_sparse_systems_runtime_repair import (
+        patch_stage_measurement,
+    )
+
     spec = importlib.util.spec_from_file_location(
         "aera_v23_sparse_systems_l4",
         "/root/aera_v23_sparse_systems_l4.py",
@@ -50,6 +54,11 @@ def run_benchmark() -> dict:
         raise RuntimeError("unable to load v23 sparse systems benchmark")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    # #335 reached the L4 but failed before any systems measurement because the
+    # standalone stage timing wrapper bypassed the autocast context used by the
+    # actual training path. Patch only that measurement wrapper; frozen v23 and
+    # all #333 thresholds/other benchmark code remain unchanged.
+    patch_stage_measurement(module)
     result = module.run_l4_benchmark()
     print(
         "AERA_V23_SPARSE_SYSTEMS_L4_RESULT_JSON="
