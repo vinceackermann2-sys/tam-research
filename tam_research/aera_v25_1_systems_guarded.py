@@ -2,18 +2,51 @@ from __future__ import annotations
 
 """Authoritative #381 systems wrapper with the frozen v25↔v25.1 logit gate.
 
-This module does not change the timed systems protocol. It runs the already-frozen
+This module does not change the timed systems protocol. It binds the already-frozen
+systems evaluator to the final CPU-proven v25.1 execution class, runs the unchanged
 comparison, then performs one untimed full-FICEM equivalence call per implementation
-for each registered batch on the exact same fixed random tokens. The additional
-result is required for PASS at atol/rtol <= 1e-6, as preregistered by issue #381.
+for each registered batch. The additional result is required for PASS at atol/rtol
+<= 1e-6, as preregistered by issue #381.
 """
 
-from typing import Any
+from contextlib import contextmanager
+from typing import Any, Iterator
 
 import torch
 
 from . import aera_v25_1_systems as systems
 from . import aera_v25_post8471_triage as triage
+from .aera_hardware_core_v25_1_nohost import (
+    HardwareAwareAERATextLMV251NoHostTelemetry,
+)
+
+
+@contextmanager
+def _final_candidate_binding() -> Iterator[None]:
+    """Bind the frozen evaluator to the final v25.1 class for one scoped call.
+
+    `aera_v25_1_systems` deliberately remains byte-for-byte frozen. Its loader reads
+    the candidate constructor from this module global, so a scoped binding lets the
+    evaluator benchmark the final CPU-proven implementation without copying or
+    rewriting any timing, threshold, state, routing, or checkpoint logic. The prior
+    constructor is restored even when loading/evaluation raises.
+    """
+    previous = systems.HardwareAwareAERATextLMV251
+    systems.HardwareAwareAERATextLMV251 = HardwareAwareAERATextLMV251NoHostTelemetry
+    try:
+        yield
+    finally:
+        systems.HardwareAwareAERATextLMV251 = previous
+
+
+def load_guarded_models(*, run_dir: str, device: torch.device):
+    """Strict-load original v25, final v25.1, and Transformer under the final binding."""
+    with _final_candidate_binding():
+        loaded = systems.load_models(run_dir=run_dir, device=device)
+    candidate = loaded[1]
+    if not isinstance(candidate, HardwareAwareAERATextLMV251NoHostTelemetry):
+        raise RuntimeError("issue381 guarded loader did not construct final v25.1 candidate")
+    return loaded
 
 
 def _parameter_versions(model: torch.nn.Module) -> tuple[int, ...]:
@@ -142,12 +175,16 @@ def run_guarded_systems_comparison(*, run_dir: str) -> dict[str, Any]:
     device = torch.device("cuda")
 
     hashes_before_guard = systems.checkpoint_hashes(run_dir)
-    result = systems.run_systems_comparison(run_dir=run_dir)
-
-    original, candidate, transformer = systems.load_models(
-        run_dir=run_dir,
-        device=device,
-    )
+    # Keep the final binding active across the frozen timed evaluator and the
+    # untimed equivalence reload so both paths instantiate the identical candidate.
+    with _final_candidate_binding():
+        result = systems.run_systems_comparison(run_dir=run_dir)
+        original, candidate, transformer = systems.load_models(
+            run_dir=run_dir,
+            device=device,
+        )
+    if not isinstance(candidate, HardwareAwareAERATextLMV251NoHostTelemetry):
+        raise RuntimeError("issue381 systems comparison did not use final v25.1 candidate")
     del transformer
     original_before = _parameter_versions(original)
     candidate_before = _parameter_versions(candidate)

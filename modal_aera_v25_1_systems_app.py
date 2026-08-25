@@ -28,8 +28,8 @@ def preflight() -> dict:
         SOURCE_SEED,
         checkpoint_hashes,
         cpu_contract_preflight,
-        load_models,
     )
+    from tam_research.aera_v25_1_systems_guarded import load_guarded_models
     from tam_research.aera_v25_post8471_triage_repair2 import (
         validate_source_result_seed,
     )
@@ -59,9 +59,10 @@ def preflight() -> dict:
     source_result = json.loads(source_result_path.read_text())
     source_seed_fields = validate_source_result_seed(source_result)
 
-    # Actual seed8471 checkpoint is strict-loaded into both implementations on CPU
-    # before the sole GPU function can be called.
-    original, candidate, transformer = load_models(
+    # Actual seed8471 checkpoint is strict-loaded into original v25, the final
+    # CPU-proven v25.1 candidate, and the matched Transformer on CPU before the
+    # sole GPU function can be called.
+    original, candidate, transformer = load_guarded_models(
         run_dir=SOURCE_RUN_DIR, device=torch.device("cpu")
     )
     del original, candidate, transformer
@@ -70,7 +71,7 @@ def preflight() -> dict:
         "source_checkpoint_seed": SOURCE_SEED,
         "source_result_seed_fields": source_seed_fields,
         "source_checkpoint_hashes": checkpoint_hashes(SOURCE_RUN_DIR),
-        "strict_v25_and_v25_1_checkpoint_load_cpu": True,
+        "strict_v25_and_final_v25_1_checkpoint_load_cpu": True,
         "result_path_absent": True,
         "gpu_authorized_by_preflight": False,
         "training_performed": False,
