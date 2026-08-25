@@ -22,8 +22,8 @@ def test_issue381_repair1_has_distinct_single_attempt_trigger_and_source_identit
     assert '32885050371' in src
     assert '97923438291' in src
     assert 'a34511f2c535644edf1bcb4170ba51a17a3ec6a3' in src
-    assert 'test "$(jq -r \'.conclusion\' <<<"${source_run}")" = "failure"' in src
-    assert 'test "$(jq -r \'.run_attempt\' <<<"${source_run}")" = "1"' in src
+    assert 'test "$(jq -r \' .conclusion\' <<<"${source_run}")" = "failure"'.replace("' .", "'.") in src
+    assert 'test "$(jq -r \' .run_attempt\' <<<"${source_run}")" = "1"'.replace("' .", "'.") in src
     assert 'test "${guard_conclusion}" = "failure"' in src
     assert 'test "${modal_auth_conclusion}" = "skipped"' in src
     assert 'test "${l4_conclusion}" = "skipped"' in src
@@ -51,15 +51,18 @@ def test_issue381_repair1_keeps_authoritative_modal_result_marker_and_no_retry_l
     assert "AERA_V25_1_ISSUE381_SYSTEMS_RESULT_JSON=" in src
     assert "if [ \"${rc}\" = \"0\" ]; then exit 1; fi" in src
     assert "No automatic retry is authorized" in src
-    assert "rerun" not in src.lower().replace("do not rerun", "")
+    # Safety prose may say "no rerun"; reject executable rerun/re-dispatch mechanisms instead.
     forbidden = (
         "gh run rerun",
         "workflow_dispatch",
         "actions/runs/${GITHUB_RUN_ID}/rerun",
+        "/rerun-failed-jobs",
+        "rerun_workflow",
         "modal deploy",
     )
+    lowered = src.lower()
     for token in forbidden:
-        assert token not in src
+        assert token.lower() not in lowered
 
 
 def test_issue381_repair1_preserves_frozen_systems_launcher_contract():
