@@ -18,17 +18,17 @@ def test_issue381_repair1_has_distinct_single_attempt_trigger_and_source_identit
     assert "[aera-v25-1-systems-l4-repair1]" in src
     assert "[research] AERA-v25.1 issue381 systems repair1: pre-GPU issue-comment permission failure" in src
     assert "Issue #392 permits Actions attempt 1 only" in src
-    assert 'GITHUB_RUN_ATTEMPT' in src
-    assert '32885050371' in src
-    assert '97923438291' in src
-    assert 'a34511f2c535644edf1bcb4170ba51a17a3ec6a3' in src
-    assert 'test "$(jq -r \' .conclusion\' <<<"${source_run}")" = "failure"'.replace("' .", "'.") in src
-    assert 'test "$(jq -r \' .run_attempt\' <<<"${source_run}")" = "1"'.replace("' .", "'.") in src
+    assert "GITHUB_RUN_ATTEMPT" in src
+    assert "32885050371" in src
+    assert "97923438291" in src
+    assert "a34511f2c535644edf1bcb4170ba51a17a3ec6a3" in src
+    assert "test \"$(jq -r '.conclusion' <<<\"${source_run}\")\" = \"failure\"" in src
+    assert "test \"$(jq -r '.run_attempt' <<<\"${source_run}\")\" = \"1\"" in src
     assert 'test "${guard_conclusion}" = "failure"' in src
     assert 'test "${modal_auth_conclusion}" = "skipped"' in src
     assert 'test "${l4_conclusion}" = "skipped"' in src
-    assert 'repair_trigger_count' in src
-    assert 'Expected exactly one issue381 systems repair1 trigger' in src
+    assert "repair_trigger_count" in src
+    assert "Expected exactly one issue381 systems repair1 trigger" in src
     assert "cancel-in-progress: false" in src
 
 
