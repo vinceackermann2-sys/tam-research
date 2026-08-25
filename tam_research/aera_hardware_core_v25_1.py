@@ -9,10 +9,13 @@ only redundant execution costs:
 
 1. direct-dispatch the architecturally mandatory foundation stage in hard-sparse
    mode instead of gathering/scattering the entire batch and episodic state;
-2. reuse the normalized factorized causal representation already computed for the
-   stage read when the same completed chunk is scored for sparse writes;
+2. reuse the causal representation already computed for the stage read when the
+   same completed chunk is scored for sparse writes;
 3. return exact zeros before FICEM top-k work when an entire selected batch is
-   *known* empty, without forcing a CUDA tensor-to-host synchronization.
+   *known* empty, without forcing a CUDA tensor-to-host synchronization;
+4. on a nonempty read, reuse that read's exact projected query and normalized
+   prior-state keys in the same chunk's vectorized write update instead of
+   projecting/normalizing the same tensors again.
 
 No routing policy, memory equation, learned parameter, write budget, capacity,
 durable state shape, objective, or scientific threshold is changed.
@@ -22,14 +25,20 @@ from typing import Any
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from .aera import AERAState
 from .aera_hardware_core import HardwareAERAConfig
 from .aera_hardware_core_v19 import TokenwiseFastMemoryStage
 from .aera_hardware_core_v23 import select_budgeted_event_pairs, sparse_write_budget
 from .aera_hardware_core_v24 import (
+    DUPLICATE_SIMILARITY,
+    MIN_STRENGTH,
+    READ_TEMPERATURE,
+    READ_TOP_K,
     ContextualEpisodicMemoryState,
     VectorizedContextualEpisodicMemoryStage,
+    _gather_slots,
     episodic_state_bytes_per_session,
     _restore_epi_dtype,
 )
@@ -59,7 +68,7 @@ def _known_empty_hint(state: ContextualEpisodicMemoryState) -> bool:
 class ExecutionEquivalentFactorizedIdentityContextMemory(
     FactorizedIdentityContextEpisodicMemory
 ):
-    """V25 FICEM with an exact non-synchronizing known-empty fast path."""
+    """V25 FICEM with exact non-synchronizing and same-call reuse paths."""
 
     def __init__(self, source: FactorizedIdentityContextEpisodicMemory) -> None:
         # Do not call the v25 constructor: it expects the older q/k/v/out source
@@ -75,6 +84,7 @@ class ExecutionEquivalentFactorizedIdentityContextMemory(
         self.out = source.out
         self.differentiable_pretraining = source.differentiable_pretraining
         self.empty_read_fastpath_calls = 0
+        self.projected_update_reuse_calls = 0
 
     def empty_state(
         self,
@@ -107,12 +117,19 @@ class ExecutionEquivalentFactorizedIdentityContextMemory(
         _set_known_empty_hint(next_state, False)
         return next_state
 
-    def read(
+    def read_with_reuse(
         self,
         identity_source: torch.Tensor,
         context_source: torch.Tensor,
         state: ContextualEpisodicMemoryState,
-    ) -> torch.Tensor:
+    ) -> tuple[torch.Tensor, torch.Tensor | None, torch.Tensor | None]:
+        """Run exact v25 read math and expose safe same-call reusable tensors.
+
+        The second/third results are the exact projected query and normalized prior
+        keys used by this read. They are ephemeral graph tensors only; callers must
+        never persist them in session state. Known-empty reads deliberately return
+        ``None`` for both so the cheap empty path does not perform extra work.
+        """
         if identity_source.ndim != 3 or context_source.ndim != 3:
             raise ValueError("read sources must be [batch,time,d_model]")
         if identity_source.shape != context_source.shape:
@@ -124,28 +141,181 @@ class ExecutionEquivalentFactorizedIdentityContextMemory(
         if state.strengths.shape != state.valid.shape:
             raise ValueError("episodic strength shape mismatch")
 
-        # A known-empty hint is exact because it is set only by empty_state and is
-        # cleared after every update attempt. CPU tests may additionally verify an
-        # externally constructed all-empty state directly. Crucially, CUDA never
-        # evaluates `bool(tensor.any())`, avoiding a host/device synchronization.
         known_empty = _known_empty_hint(state)
         cpu_verified_empty = (
             state.valid.device.type == "cpu" and not bool(state.valid.any())
         )
         if known_empty or cpu_verified_empty:
             self.empty_read_fastpath_calls += 1
-            return torch.zeros(
-                identity_source.size(0),
-                identity_source.size(1),
-                self.out.out_features,
-                device=identity_source.device,
-                dtype=identity_source.dtype,
+            return (
+                torch.zeros(
+                    identity_source.size(0),
+                    identity_source.size(1),
+                    self.out.out_features,
+                    device=identity_source.device,
+                    dtype=identity_source.dtype,
+                ),
+                None,
+                None,
             )
-        return super().read(identity_source, context_source, state)
+
+        # Keep the operation sequence identical to v25's nonempty read. The only
+        # difference is retaining `query` and `keys` for this same stage invocation.
+        _, _, query = self.address_factors(identity_source, context_source)
+        keys = F.normalize(state.keys, dim=-1)
+        similarity = torch.einsum("btd,bsd->bts", query, keys)
+        strength_bias = torch.log(
+            state.strengths.clamp(MIN_STRENGTH, 1.0)
+        )[:, None, :]
+        logits = (similarity + strength_bias) / READ_TEMPERATURE
+        masked = logits.masked_fill(~state.valid[:, None, :], -torch.inf)
+        top_k = min(READ_TOP_K, self.capacity)
+        top_logits, top_indices = torch.topk(masked, k=top_k, dim=-1)
+        top_valid = state.valid[:, None, :].expand(
+            -1, identity_source.size(1), -1
+        ).gather(-1, top_indices)
+        safe_logits = top_logits.masked_fill(~top_valid, -1e9)
+        weights = torch.softmax(safe_logits.float(), dim=-1).to(identity_source.dtype)
+        weights = weights * top_valid.to(weights.dtype)
+        weights = weights / weights.sum(dim=-1, keepdim=True).clamp_min(1e-9)
+
+        expanded_values = state.values[:, None, :, :].expand(
+            -1, identity_source.size(1), -1, -1
+        )
+        gathered_values = expanded_values.gather(
+            2,
+            top_indices.unsqueeze(-1).expand(-1, -1, -1, self.memory_dim),
+        )
+        recalled = (weights.unsqueeze(-1) * gathered_values).sum(dim=2)
+        return self.out(recalled), query, keys
+
+    def read(
+        self,
+        identity_source: torch.Tensor,
+        context_source: torch.Tensor,
+        state: ContextualEpisodicMemoryState,
+    ) -> torch.Tensor:
+        recalled, _, _ = self.read_with_reuse(identity_source, context_source, state)
+        return recalled
+
+    def _vectorized_update_from_projected(
+        self,
+        projected_new_keys: torch.Tensor,
+        normalized_old_keys: torch.Tensor,
+        payload_source: torch.Tensor,
+        write_strength: torch.Tensor,
+        state: ContextualEpisodicMemoryState,
+        *,
+        detach_inputs: bool,
+    ) -> ContextualEpisodicMemoryState:
+        """Exact v25 update after substituting already-computed equivalent tensors."""
+        new_keys = projected_new_keys.detach() if detach_inputs else projected_new_keys
+        normalized_old = (
+            normalized_old_keys.detach() if detach_inputs else normalized_old_keys
+        )
+        payload = payload_source.detach() if detach_inputs else payload_source
+        strength = write_strength.detach() if detach_inputs else write_strength
+        old_keys = state.keys.detach() if detach_inputs else state.keys
+        old_values = state.values.detach() if detach_inputs else state.values
+        old_strengths = state.strengths.detach() if detach_inputs else state.strengths
+        old_valid = state.valid.detach()
+
+        new_values = torch.tanh(self.v(payload))
+        new_strengths = strength[..., 0].clamp(0.0, 1.0)
+        new_valid = new_strengths > 0.0
+
+        incoming_similarity = torch.einsum("bkd,bjd->bkj", new_keys, new_keys)
+        k_count = new_keys.size(1)
+        position = torch.arange(k_count, device=new_keys.device)
+        later = position[None, :, None] < position[None, None, :]
+        shadowed_incoming = (
+            incoming_similarity.ge(DUPLICATE_SIMILARITY)
+            & new_valid[:, :, None]
+            & new_valid[:, None, :]
+            & later
+        ).any(dim=2)
+        new_valid = new_valid & ~shadowed_incoming
+
+        similarity = torch.einsum("bkd,bsd->bks", new_keys, normalized_old)
+        duplicate_old = (
+            similarity.ge(DUPLICATE_SIMILARITY)
+            & new_valid[:, :, None]
+            & old_valid[:, None, :]
+        ).any(dim=1)
+        keep_old = old_valid & ~duplicate_old
+
+        new_keys = new_keys.flip(1)
+        new_values = new_values.flip(1)
+        new_strengths = new_strengths.flip(1)
+        new_valid = new_valid.flip(1)
+
+        all_keys = torch.cat((new_keys, old_keys), dim=1)
+        all_values = torch.cat((new_values, old_values), dim=1)
+        all_strengths = torch.cat((new_strengths, old_strengths), dim=1)
+        all_valid = torch.cat((new_valid, keep_old), dim=1)
+        total = all_valid.size(1)
+        slot_position = torch.arange(total, device=all_valid.device, dtype=torch.float32)
+        priority = all_valid.float() * 2.0 - slot_position[None, :] * 1e-6
+        keep_indices = torch.topk(
+            priority,
+            k=self.capacity,
+            dim=1,
+            largest=True,
+            sorted=True,
+        ).indices
+        next_state = ContextualEpisodicMemoryState(
+            keys=_gather_slots(all_keys, keep_indices),
+            values=_gather_slots(all_values, keep_indices),
+            strengths=_gather_slots(all_strengths, keep_indices),
+            valid=_gather_slots(all_valid, keep_indices),
+        )
+        return next_state.detach() if detach_inputs else next_state
+
+    def update_block_from_projected(
+        self,
+        projected_new_keys: torch.Tensor,
+        normalized_old_keys: torch.Tensor,
+        payload_source: torch.Tensor,
+        write_strength: torch.Tensor,
+        state: ContextualEpisodicMemoryState,
+    ) -> ContextualEpisodicMemoryState:
+        if projected_new_keys.ndim != 3:
+            raise ValueError("projected write keys must be [batch,candidates,memory_dim]")
+        if projected_new_keys.size(-1) != self.memory_dim:
+            raise ValueError("projected write key dimension mismatch")
+        if payload_source.ndim != 3 or payload_source.shape[:2] != projected_new_keys.shape[:2]:
+            raise ValueError("projected keys and payload batch/candidate axes must match")
+        if write_strength.shape != (*projected_new_keys.shape[:-1], 1):
+            raise ValueError("write_strength must be [batch,candidates,1]")
+        if normalized_old_keys.shape != state.keys.shape:
+            raise ValueError("normalized prior-key shape mismatch")
+
+        if self.differentiable_pretraining:
+            next_state = self._vectorized_update_from_projected(
+                projected_new_keys,
+                normalized_old_keys,
+                payload_source,
+                write_strength,
+                state,
+                detach_inputs=False,
+            )
+        else:
+            with torch.no_grad():
+                next_state = self._vectorized_update_from_projected(
+                    projected_new_keys,
+                    normalized_old_keys,
+                    payload_source,
+                    write_strength,
+                    state,
+                    detach_inputs=True,
+                )
+        self.projected_update_reuse_calls += 1
+        _set_known_empty_hint(next_state, False)
+        return next_state
 
 
 class ExecutionEquivalentFICEMStage(FactorizedIdentityContextEpisodicMemoryStage):
-    """V25 stage with within-call factor reuse and no scientific semantic change."""
+    """V25 stage with within-call tensor reuse and no scientific semantic change."""
 
     def __init__(self, source: FactorizedIdentityContextEpisodicMemoryStage) -> None:
         nn.Module.__init__(self)
@@ -191,8 +361,13 @@ class ExecutionEquivalentFICEMStage(FactorizedIdentityContextEpisodicMemoryStage
         self.last_pair_gate: torch.Tensor | None = None
         self.last_pair_strength: torch.Tensor | None = None
         self.last_vectorized_update_calls = 0
+        self.last_reused_read_key_update_calls = 0
         self._runtime_factor_cache: tuple[
-            torch.Tensor, torch.Tensor, torch.Tensor
+            torch.Tensor,
+            torch.Tensor,
+            torch.Tensor,
+            torch.Tensor | None,
+            torch.Tensor | None,
         ] | None = None
 
     def _tokenwise_context(
@@ -204,10 +379,20 @@ class ExecutionEquivalentFICEMStage(FactorizedIdentityContextEpisodicMemoryStage
         if not isinstance(state.memory, ContextualEpisodicMemoryState):
             raise TypeError("v25.1 requires contextual episodic state")
         identity, causal_context, contextual = causal_identity_context(h)
+        memory_read, projected_query, normalized_old_keys = self.memory.read_with_reuse(
+            identity,
+            causal_context,
+            state.memory,
+        )
         # Ephemeral within-forward cache only. It is cleared in `finally` before
         # forward_chunk exits, never appears in state_dict, and is not session state.
-        self._runtime_factor_cache = (identity, causal_context, contextual)
-        memory_read = self.memory.read(identity, causal_context, state.memory)
+        self._runtime_factor_cache = (
+            identity,
+            causal_context,
+            contextual,
+            projected_query,
+            normalized_old_keys,
+        )
         carried = self.state_to_chunk(state.stream)
         context = (
             carried[:, None, :]
@@ -230,8 +415,7 @@ class ExecutionEquivalentFICEMStage(FactorizedIdentityContextEpisodicMemoryStage
         self._runtime_factor_cache = None
         try:
             # Execute the exact inherited tokenwise stage core while suppressing its
-            # legacy write. Dynamic dispatch calls our `_tokenwise_context`, so the
-            # exact normalized factor tensors used by the read are retained once.
+            # legacy write. Dynamic dispatch calls our `_tokenwise_context`.
             h_out, next_state, controls = TokenwiseFastMemoryStage.forward_chunk(
                 self,
                 events,
@@ -248,10 +432,17 @@ class ExecutionEquivalentFICEMStage(FactorizedIdentityContextEpisodicMemoryStage
             self.last_selected_count = 0
             self.last_selected_indices = None
             self.last_vectorized_update_calls = 0
+            self.last_reused_read_key_update_calls = 0
             if not update_memory or candidate_count == 0:
                 return h_out, next_state, controls
 
-            identity, causal_context, contextual = factors
+            (
+                identity,
+                causal_context,
+                contextual,
+                projected_query,
+                normalized_old_keys,
+            ) = factors
             contextual_address = contextual[:, :-1]
             payload_source = contextual[:, 1:]
             pair_features = torch.cat((contextual_address, payload_source), dim=-1)
@@ -272,28 +463,46 @@ class ExecutionEquivalentFICEMStage(FactorizedIdentityContextEpisodicMemoryStage
             if selected.hard_count != sparse_write_budget(candidate_count):
                 raise RuntimeError("v25.1 sparse write budget mismatch")
 
-            gather = selected.indices.unsqueeze(-1).expand(
-                -1, -1, identity.size(-1)
-            )
-            selected_identity = identity[:, :-1].gather(1, gather)
-            selected_context = causal_context[:, :-1].gather(1, gather)
-
             self.last_pair_gate = pair_gate.detach()
             self.last_pair_strength = selected.strength.detach()
             self.last_selected_indices = selected.indices.detach()
             self.last_selected_count = selected.hard_count
-            memory_state = self.memory.update_block(
-                selected_identity,
-                selected_context,
-                selected.payload,
-                selected.strength,
-                prior_state.memory,
-            )
+
+            if projected_query is not None and normalized_old_keys is not None:
+                projected_gather = selected.indices.unsqueeze(-1).expand(
+                    -1, -1, projected_query.size(-1)
+                )
+                selected_projected_keys = projected_query[:, :-1].gather(
+                    1, projected_gather
+                )
+                memory_state = self.memory.update_block_from_projected(
+                    selected_projected_keys,
+                    normalized_old_keys,
+                    selected.payload,
+                    selected.strength,
+                    prior_state.memory,
+                )
+                self.last_reused_read_key_update_calls = 1
+            else:
+                # The known-empty read intentionally did no projection/normalization;
+                # retain the existing update path rather than defeating that fast path.
+                source_gather = selected.indices.unsqueeze(-1).expand(
+                    -1, -1, identity.size(-1)
+                )
+                selected_identity = identity[:, :-1].gather(1, source_gather)
+                selected_context = causal_context[:, :-1].gather(1, source_gather)
+                memory_state = self.memory.update_block(
+                    selected_identity,
+                    selected_context,
+                    selected.payload,
+                    selected.strength,
+                    prior_state.memory,
+                )
             self.last_vectorized_update_calls = 1
             return h_out, AERAState(next_state.stream, memory_state), controls
         finally:
-            # This invariant is part of #380/#381's CPU gate: never retain graph
-            # tensors or hidden session information after the stage invocation.
+            # Never retain graph tensors or hidden session information after the
+            # stage invocation; same invariant as the earlier #380/#381 repair.
             self._runtime_factor_cache = None
 
 
@@ -391,7 +600,10 @@ def execution_equivalent_v25_1_protocol() -> dict[str, Any]:
             "foundation_stage_policy_changed": False,
             "foundation_stage_execution": "direct dispatch; no full-batch gather/scatter",
             "write_factor_representation_changed": False,
-            "write_factor_execution": "reuse exact within-call read factors",
+            "write_factor_execution": "reuse exact within-call read factors and nonempty projected query/prior-key normalization",
+            "projected_read_query_reused_for_write": True,
+            "normalized_prior_keys_reused_for_write": True,
+            "known_empty_write_reuse_fallback": "existing v25.1 update path",
             "runtime_factor_cache_persistent": False,
             "all_empty_read_semantics": "exact zero for known-empty state; exact v25 fallback otherwise",
             "known_empty_hint_persistent": False,
