@@ -132,8 +132,6 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         strength_bias = torch.log(
             state.strengths.clamp(MIN_STRENGTH, 1.0)
         )[:, None, :]
-        # #347 freezes temperature over the complete retrieval score, not only
-        # cosine similarity.
         logits = (similarity + strength_bias) / READ_TEMPERATURE
         masked = logits.masked_fill(~state.valid[:, None, :], -torch.inf)
         top_k = min(READ_TOP_K, self.capacity)
@@ -178,8 +176,6 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         new_strengths = strength[..., 0].clamp(0.0, 1.0)
         new_valid = new_strengths > 0.0
 
-        # Newest wins within the incoming block as well as against prior state.
-        # Candidates arrive chronologically, so j>i means candidate j is newer.
         incoming_similarity = torch.einsum("bkd,bjd->bkj", new_keys, new_keys)
         k_count = new_keys.size(1)
         position = torch.arange(k_count, device=new_keys.device)
@@ -192,7 +188,6 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         ).any(dim=2)
         new_valid = new_valid & ~shadowed_incoming
 
-        # Any surviving incoming contextual key invalidates an older near-duplicate.
         similarity = torch.einsum("bkd,bsd->bks", new_keys, old_keys)
         duplicate_old = (
             similarity.ge(DUPLICATE_SIMILARITY)
@@ -201,7 +196,6 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         ).any(dim=1)
         keep_old = old_valid & ~duplicate_old
 
-        # Selected candidates arrive chronological; newest-first state reverses them.
         new_keys = new_keys.flip(1)
         new_values = new_values.flip(1)
         new_strengths = new_strengths.flip(1)
@@ -212,7 +206,6 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         all_strengths = torch.cat((new_strengths, old_strengths), dim=1)
         all_valid = torch.cat((new_valid, keep_old), dim=1)
 
-        # Stable vectorized compaction: valid/newer slots have higher priority.
         total = all_valid.size(1)
         slot_position = torch.arange(
             total, device=all_valid.device, dtype=torch.float32
@@ -472,14 +465,28 @@ class HardwareAwareAERATextLMV24(HardwareAwareAERATextLMV23):
         self.stages = nn.ModuleList(
             VectorizedContextualEpisodicMemoryStage(stage) for stage in self.stages
         )
+        self.set_memory_pretraining_mode(False)
+
+    def _v24_stages_ready(self) -> bool:
+        return bool(self.stages) and all(
+            isinstance(stage, VectorizedContextualEpisodicMemoryStage)
+            for stage in self.stages
+        )
 
     def set_memory_pretraining_mode(self, enabled: bool) -> None:
+        # The v18 constructor intentionally calls this virtual method before the
+        # v19-v23 constructors have wrapped their stages. During that inherited
+        # initialization window, delegate to the inherited implementation; once
+        # v24 stages exist, switch the episodic memories directly.
+        if not self._v24_stages_ready():
+            super().set_memory_pretraining_mode(enabled)
+            return
         for stage in self.stages:
-            if not isinstance(stage, VectorizedContextualEpisodicMemoryStage):
-                raise TypeError("v24 stage type mismatch")
             stage.memory.set_differentiable_pretraining(enabled)
 
     def memory_pretraining_mode(self) -> bool:
+        if not self._v24_stages_ready():
+            return super().memory_pretraining_mode()
         flags = [stage.memory.differentiable_pretraining for stage in self.stages]
         if len(set(flags)) != 1:
             raise RuntimeError("v24 memory pretraining flags disagree")
