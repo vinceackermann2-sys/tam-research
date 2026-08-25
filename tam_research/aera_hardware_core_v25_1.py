@@ -15,7 +15,9 @@ only redundant execution costs:
    *known* empty, without forcing a CUDA tensor-to-host synchronization;
 4. on a nonempty read, reuse that read's exact projected query and normalized
    prior-state keys in the same chunk's vectorized write update instead of
-   projecting/normalizing the same tensors again.
+   projecting/normalizing the same tensors again;
+5. retain router telemetry detached on the execution device during forward,
+   deferring any host materialization until diagnostics explicitly request stats.
 
 No routing policy, memory equation, learned parameter, write budget, capacity,
 durable state shape, objective, or scientific threshold is changed.
@@ -63,6 +65,47 @@ def _set_known_empty_hint(state: ContextualEpisodicMemoryState, value: bool) -> 
 
 def _known_empty_hint(state: ContextualEpisodicMemoryState) -> bool:
     return bool(getattr(state, _KNOWN_EMPTY_HINT, False))
+
+
+class ExecutionEquivalentStageRouteGate(StageRouteGate):
+    """Exact StageRouteGate math without eager CUDA-to-host telemetry copies."""
+
+    def __init__(self, source: StageRouteGate) -> None:
+        if not isinstance(source, StageRouteGate):
+            raise TypeError("v25.1 router wrapper requires a StageRouteGate source")
+        # Do not call StageRouteGate.__init__: that would allocate fresh parameters.
+        nn.Module.__init__(self)
+        self.proj = source.proj
+        self.last_probability = source.last_probability
+        self.last_hard_gate = source.last_hard_gate
+
+    def forward(
+        self,
+        first_event: torch.Tensor,
+        stream: torch.Tensor,
+        *,
+        mode: str,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if first_event.ndim != 2 or stream.shape != first_event.shape:
+            raise ValueError("stage router expects [batch,d_model] event and stream")
+        if mode not in {"soft", "straight_through", "hard_sparse"}:
+            raise ValueError(f"unknown stage routing mode: {mode}")
+
+        # Keep the exact inherited gate operation sequence. Only the detached
+        # diagnostic storage stays on-device instead of synchronously copying to CPU.
+        logits = self.proj(torch.cat((first_event, stream), dim=-1))
+        prob = torch.sigmoid(logits)
+        hard = (prob >= 0.5).to(prob.dtype)
+        if mode == "soft":
+            gate = prob
+        elif mode == "straight_through":
+            gate = hard.detach() - prob.detach() + prob
+        else:
+            gate = hard
+
+        self.last_probability = prob.detach()
+        self.last_hard_gate = hard.detach()
+        return gate, logits
 
 
 class ExecutionEquivalentFactorizedIdentityContextMemory(
@@ -516,6 +559,9 @@ class HardwareAwareAERATextLMV251(HardwareAwareAERATextLMV25):
         stream_forecast_tokens: int = 4,
     ) -> None:
         super().__init__(cfg, stream_forecast_tokens=stream_forecast_tokens)
+        self.stage_routers = nn.ModuleList(
+            ExecutionEquivalentStageRouteGate(router) for router in self.stage_routers
+        )
         self.stages = nn.ModuleList(
             ExecutionEquivalentFICEMStage(stage) for stage in self.stages
         )
@@ -597,6 +643,10 @@ def execution_equivalent_v25_1_protocol() -> dict[str, Any]:
             "learned_parameter_count_changed": False,
             "state_dict_schema_changed": False,
             "routing_policy_changed": False,
+            "router_gate_math_changed": False,
+            "router_telemetry_forward_host_copy": False,
+            "router_telemetry_storage": "detached on execution device; stats materializes only when explicitly called",
+            "router_state_dict_changed": False,
             "foundation_stage_policy_changed": False,
             "foundation_stage_execution": "direct dispatch; no full-batch gather/scatter",
             "write_factor_representation_changed": False,
