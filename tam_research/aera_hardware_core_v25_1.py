@@ -346,11 +346,11 @@ class HardwareAwareAERATextLMV251(HardwareAwareAERATextLMV25):
             )
 
         # Stage0's router parameters are frozen by the inherited architecture to a
-        # constant RUN decision. Preserve the router call/metadata exactly, but do
-        # not gather the entire batch/state only to scatter it back unchanged.
+        # constant RUN decision. Preserve its call/metadata exactly. CPU CI checks
+        # the invariant; CUDA does not synchronize a tensor solely to re-prove it.
         gate, logits = router(x[:, 0], stage_state.stream, mode=route_mode)
         prob = torch.sigmoid(logits)
-        if not bool((gate[:, 0] >= 0.5).all()):
+        if gate.device.type == "cpu" and not bool((gate[:, 0] >= 0.5).all()):
             raise RuntimeError("v25.1 foundation-stage invariant violated")
         prior_known_empty = _known_empty_hint(stage_state.memory)
         processed, processed_state, controls = stage.forward_chunk(
@@ -396,6 +396,7 @@ def execution_equivalent_v25_1_protocol() -> dict[str, Any]:
             "all_empty_read_semantics": "exact zero for known-empty state; exact v25 fallback otherwise",
             "known_empty_hint_persistent": False,
             "cuda_scalar_empty_read_sync": False,
+            "cuda_scalar_foundation_invariant_sync": False,
             "mixed_valid_read_changed": False,
             "write_budget_changed": False,
             "real_language_selected_writes": sparse_write_budget(255),
