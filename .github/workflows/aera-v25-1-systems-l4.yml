@@ -1,0 +1,149 @@
+name: AERA v25.1 issue381 systems L4
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  systems:
+    if: >-
+      github.actor == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v25-1-systems-l4]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check frozen launcher
+        run: python -m py_compile modal_aera_v25_1_systems_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Refuse duplicate or retried systems attempt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Issue #381 forbids Actions retries for the systems attempt." >&2
+            exit 1
+          fi
+
+          prereg_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/381" --jq '.title')"
+          case "${prereg_title}" in
+            "[research] AERA-v25.1 semantic-preserving packed execution after #379 systems localization") ;;
+            *) echo "Issue #381 preregistration title drifted: ${prereg_title}" >&2; exit 1 ;;
+          esac
+
+          merged_at="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/382" --jq '.merged_at')"
+          if [ -z "${merged_at}" ] || [ "${merged_at}" = "null" ]; then
+            echo "PR #382 is not merged; refusing systems run." >&2
+            exit 1
+          fi
+          git merge-base --is-ancestor d6327653498da0c693c24d31b9090743b7e2a0d9 HEAD
+
+          trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v25-1-systems-l4]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${trigger_count}" != "1" ]; then
+            echo "Expected exactly one v25.1 systems trigger, found ${trigger_count}." >&2
+            exit 1
+          fi
+
+          prior_result_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments?per_page=100" \
+              --jq '.[] | select(.body | contains("AERA_V25_1_ISSUE381_SYSTEMS_RESULT_JSON")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${prior_result_count}" != "0" ]; then
+            echo "Authoritative systems result already exists on trigger." >&2
+            exit 1
+          fi
+
+          head_sha="$(git rev-parse HEAD)"
+          gh issue comment "${TRIGGER_ISSUE}" --repo "${GITHUB_REPOSITORY}" --body "🔒 **AERA-v25.1 #381 sole systems attempt** — issue #381 frozen thresholds/protocol; PR #382 CPU-equivalent precursor merged; checked-out main **${head_sha}**. One NVIDIA L4, <=600 GPU seconds, Actions attempt 1 only. Seed8471 checkpoint is read-only inference geometry only. Fixed random tokens use the #379 seed rule; CUDA events; 3 warmups; 20 calls × 5 rotated rounds; batches 8/64. No corpus, training, backward, optimizer, model-checkpoint write, retry, threshold change, architecture freeze, S2, replication, 100M, or breakthrough authorization."
+
+      - name: Authenticate Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole L4 systems comparison
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set +e
+          modal run modal_aera_v25_1_systems_app.py 2>&1 | tee /tmp/aera-v25-1-systems.log
+          rc=${PIPESTATUS[0]}
+          set -e
+
+          if grep -q '^AERA_V25_1_ISSUE381_SYSTEMS_RESULT_JSON=' /tmp/aera-v25-1-systems.log; then
+            python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+
+          lines = Path('/tmp/aera-v25-1-systems.log').read_text().splitlines()
+          marker = 'AERA_V25_1_ISSUE381_SYSTEMS_RESULT_JSON='
+          payload = json.loads([line[len(marker):] for line in lines if line.startswith(marker)][-1])
+          out = [
+              '🔬 **AERA-v25.1 #381 sole L4 systems result**',
+              '',
+              f'- decision: **{payload["decision"]}**; overall PASS: **{payload["overall_pass"]}**',
+              f'- checkpoint hashes unchanged: **{payload["checkpoint_hashes_unchanged"]}**; parameter versions unchanged: **{payload["parameter_versions_unchanged"]}**',
+          ]
+          for batch in ('8', '64'):
+              row = payload['rows'][batch]
+              out += [
+                  f'- batch{batch}: full v25.1/Transformer **{row["v25_1_full_vs_transformer_speed_ratio"]:.3f}x** (required **{row["required_full_speed_ratio"]:.2f}x**); core **{row["v25_1_core_vs_transformer_speed_ratio"]:.3f}x**',
+                  f'  - full latency original v25 **{row["full_latency_original_v25_ms"]:.2f} ms** → v25.1 **{row["full_latency_v25_1_ms"]:.2f} ms**; no-regression **{row["no_full_latency_regression"]}**',
+                  f'  - routing exact **{row["routing_exact"]}**; state <=1e-6 **{row["state_equivalence"]["pass"]}**; 16/255/1 **{row["write_geometry"]["pass"]}**; finite **{row["candidate_output_state_finite"]}**; state bytes **{row["persistent_state_bytes_per_session_actual"]}**',
+                  f'  - FICEM overhead vs candidate core: read-empty **{row["v25_1_read_empty_incremental_over_core_ms"]:+.2f} ms**, writes-only **{row["v25_1_writes_only_incremental_over_core_ms"]:+.2f} ms**, full **{row["v25_1_full_incremental_memory_over_core_ms"]:+.2f} ms**',
+                  f'  - profiler fragmentation calls: `{json.dumps(row["profiler_v25_1_full"]["fragmentation_operator_calls"], sort_keys=True)}`',
+              ]
+          out += [
+              '',
+              '- training/backward/optimizer/corpus/new model checkpoint: **False / False / False / False / False**',
+              '- This systems result alone does **not** authorize architecture freeze, S2, independent replication, 100M, or a breakthrough claim.',
+              '',
+              '`AERA_V25_1_ISSUE381_SYSTEMS_RESULT_JSON` is present in the Actions log; the full durable JSON is stored in the guarded result path.',
+          ]
+          print('\n'.join(out))
+          PY
+            gh issue comment "${TRIGGER_ISSUE}" --repo "${GITHUB_REPOSITORY}" --body-file /tmp/result-comment.md
+            exit 0
+          fi
+
+          tail -n 80 /tmp/aera-v25-1-systems.log > /tmp/failure-tail.txt
+          {
+            echo '⚠️ **AERA-v25.1 #381 systems attempt failed before an authoritative result marker.**'
+            echo
+            echo "Actions run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo 'No automatic retry is authorized. Do not increase the timeout or launch a replacement until this exact failure is diagnosed and separately preregistered if repairable.'
+            echo
+            echo '<details><summary>log tail</summary>'
+            echo
+            echo '```text'
+            cat /tmp/failure-tail.txt
+            echo '```'
+            echo '</details>'
+          } > /tmp/failure-comment.md
+          gh issue comment "${TRIGGER_ISSUE}" --repo "${GITHUB_REPOSITORY}" --body-file /tmp/failure-comment.md
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
