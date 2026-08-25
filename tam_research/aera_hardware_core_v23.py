@@ -112,8 +112,9 @@ def select_budgeted_event_pairs(
         scores = pair_logits[..., 0]
         soft_k_hot = torch.softmax(scores / temperature, dim=1) * float(k)
         soft_selected = soft_k_hot.gather(1, indices)
-        # Forward value is exactly 1; backward follows the soft selector.
-        straight_through = 1.0 + soft_selected - soft_selected.detach()
+        # Compute the detached cancellation before adding one so the forward
+        # multiplier is bit-exact 1 rather than suffering (1+s)-s rounding.
+        straight_through = 1.0 + (soft_selected - soft_selected.detach())
         selected_strength = selected_strength * straight_through.unsqueeze(-1)
 
     return SparsePairSelection(
