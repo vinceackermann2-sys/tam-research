@@ -7,8 +7,8 @@ import torch
 from aera_v19_memory_necessity_cpu import EVAL_SEED, _force_all_stages_run, diagnostic_config, make_batch
 from tam_research.aera_hardware_core_v25_1_compact import HardwareAwareAERATextLMV251StableCompact
 from tam_research.aera_hardware_core_v25_1_nohost import (
+    ExecutionEquivalentNoHostBMMHardSparseExpertBank,
     ExecutionEquivalentNoHostDtypeSafeChunkLatentReasoner,
-    ExecutionEquivalentNoHostNativeGroupedMMSparseExpertBank,
     HardwareAwareAERATextLMV251NoHostTelemetry,
     no_host_adaptive_telemetry_v25_1_protocol,
 )
@@ -50,7 +50,7 @@ def test_issue381_nohost_state_dict_is_exact_and_wrappers_are_active():
     for key, value in baseline.state_dict().items():
         torch.testing.assert_close(value, candidate.state_dict()[key], rtol=0.0, atol=0.0)
     assert all(
-        isinstance(stage.experts, ExecutionEquivalentNoHostNativeGroupedMMSparseExpertBank)
+        isinstance(stage.experts, ExecutionEquivalentNoHostBMMHardSparseExpertBank)
         for stage in candidate.stages
     )
     assert all(
@@ -59,7 +59,7 @@ def test_issue381_nohost_state_dict_is_exact_and_wrappers_are_active():
     )
 
 
-def test_issue381_hard_expert_cpu_fallback_output_telemetry_and_stats_match():
+def test_issue381_hard_expert_bmm_output_telemetry_and_stats_match():
     baseline, candidate = _models(138602)
     old_expert = baseline.stages[0].experts
     new_expert = candidate.stages[0].experts
@@ -197,18 +197,15 @@ def test_issue381_nohost_full_model_hard_sparse_memory_on_and_off_match_compact_
 
 
 def test_issue381_hard_adaptive_execution_methods_have_no_eager_cpu_copy_and_protocol_is_frozen():
-    expert_bmm = inspect.getsource(
-        ExecutionEquivalentNoHostNativeGroupedMMSparseExpertBank._bmm_hard_forward
-    )
-    expert_native = inspect.getsource(
-        ExecutionEquivalentNoHostNativeGroupedMMSparseExpertBank._native_hard_forward
+    expert_hard = inspect.getsource(
+        ExecutionEquivalentNoHostBMMHardSparseExpertBank._hard_forward
     )
     reasoner = inspect.getsource(ExecutionEquivalentNoHostDtypeSafeChunkLatentReasoner.forward)
-    assert ".cpu(" not in expert_bmm
-    assert ".cpu(" not in expert_native
+    assert ".cpu(" not in expert_hard
     assert ".cpu(" not in reasoner
 
     protocol = no_host_adaptive_telemetry_v25_1_protocol()
+    assert protocol["expert_backend"] == "v9+ BMMHardSparseExpertBank"
     assert protocol["expert_hard_math_changed"] is False
     assert protocol["reasoner_math_changed"] is False
     assert protocol["expert_telemetry_forward_host_copy"] is False
