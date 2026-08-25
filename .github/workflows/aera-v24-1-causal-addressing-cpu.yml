@@ -1,0 +1,122 @@
+name: AERA v24.1 causal end-to-end addressing CPU gate
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v24-1-causal-addressing-cpu
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v24-1-causal-addressing-cpu]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install package and test dependencies
+        run: pip install -e '.[test]'
+      - name: Refuse duplicate scientific trigger
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v24.1 causal addressing guard"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq '[.[] | select(.title | startswith("[aera-v24-1-causal-addressing-cpu]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **Duplicate AERA-v24.1 scientific trigger refused.** No training or evaluation was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify preregistered scientific boundary
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          result355=$(gh api "repos/$GITHUB_REPOSITORY/issues/355/comments" --jq '[.[] | select(.body | contains("AERA-v24 VCEM controlled retry1 result"))] | length')
+          prereg356=$(gh api "repos/$GITHUB_REPOSITORY/issues/356" --jq '.title | startswith("[research] AERA-v24.1 causal end-to-end memory addressing")')
+          if [ "$result355" -lt 1 ] || [ "$prereg356" != "true" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🚫 **AERA-v24.1 prerequisite refused.** Required #355 scientific result and #356 preregistration were not found. No training or evaluation was started."
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - name: Record frozen scientific guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🔒 **AERA-v24.1 causal addressing guard** — preregistered in #356 after the valid #355 v24 FAIL. CPU only. Architecture remains exact v24 VCEM; address contrastive weight is 0; q/k and pair selector learn only through primary causal query CE; decoder-aligned payload CE remains weight 1. Fresh train/eval seeds 8411/8412, batch 6, LR 4e-3, 500 steps, matched separately trained stream-only control. All #347 behavioral thresholds remain unchanged. No GPU, production corpus, real-language run, freeze, S2, independent-replication credit, 100M, automatic retry, or breakthrough claim."
+      - name: Run targeted implementation guards
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          pytest -q tests/test_aera_hardware_core_v24.py tests/test_aera_v24_vectorized_contextual_episodic_cpu.py tests/test_aera_v24_1_causal_end_to_end_addressing_cpu.py | tee /tmp/aera-v24-1-preflight.log
+      - name: Run controlled AERA v24.1 CPU gate
+        if: steps.guard.outputs.allowed == 'true'
+        run: |
+          set -o pipefail
+          python aera_v24_1_causal_end_to_end_addressing_cpu.py | tee /tmp/aera-v24-1.log
+          grep -q 'AERA_V24_1_CAUSAL_RESULT_JSON=' /tmp/aera-v24-1.log
+      - name: Record authoritative AERA v24.1 result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V24_1_CAUSAL_RESULT_JSON='
+          rows=[line.split(marker,1)[1] for line in Path('/tmp/aera-v24-1.log').read_text(errors='replace').splitlines() if marker in line]
+          if not rows: raise SystemExit('result marker missing')
+          r=json.loads(rows[-1]); m=r['mechanism_probe']; a=r['context_disambiguation_probe']; d=r['direct_episodic_read']; f=r['full_stream_plus_memory']; s=r['separately_trained_stream_only']; off=r['same_checkpoint_memory_disabled']; b=r['physical_budget_audit']; x=r['heldout_address_and_selector_diagnostics']
+          def pct(v): return f'{100*v:.1f}%'
+          print('🧠 **AERA-v24.1 causal end-to-end addressing result**'); print()
+          print(f"- interpretation: **{r['interpretation']}**")
+          print(f"- mechanism current / overwrite / stale: **{pct(m['current_accuracy'])} / {pct(m['overwrite_current_accuracy'])} / {pct(m['stale_error'])}**")
+          print(f"- ambiguity contextual / cross-error / token-only: **{pct(a['contextual_accuracy'])} / {pct(a['contextual_cross_context_error'])} / {pct(a['token_only_reference_accuracy'])}**")
+          print(f"- query-view -> latest-write address top1 / margin: **{pct(x['query_to_latest_write_address_top1'])} / {x['query_to_latest_write_address_margin']:+.4f}**")
+          print(f"- true key->value selector coverage: **{pct(x['true_key_value_selector_coverage'])}**")
+          print(f"- write payload-token accuracy: **{pct(x['write_payload_token_accuracy'])}**")
+          print(f"- direct episodic recall / overwrite / stale: **{pct(d['overall_accuracy'])} / {pct(d['overwrite_current_value_accuracy'])} / {pct(d['overwrite_stale_value_error'])}**")
+          print(f"- full query accuracy / NLL: **{pct(f['query_accuracy'])} / {f['query_nll']:.4f}**")
+          print(f"- stream-only: **{pct(s['query_accuracy'])}**; full gap **{100*r['full_minus_stream_only_accuracy']:+.1f} pp**")
+          print(f"- same-checkpoint memory-off: **{pct(off['query_accuracy'])}**; memory contribution **{100*r['same_checkpoint_memory_contribution_accuracy']:+.1f} pp**")
+          print(f"- full overwrite current / stale: **{pct(f['overwrite_current_value_accuracy'])} / {pct(f['stale_value_error_rate'])}**")
+          print(f"- physical candidates / selected / vectorized calls: **{b['candidates']} / {b['selected']} / {b['vectorized_update_calls']}**")
+          print(f"- session memory: **{r['state_bytes_real_language_four_stage_memory_dim50']} bytes**")
+          print(f"- overall PASS: **{r['pass']}**")
+          print(); print('A full PASS authorizes only a separately preregistered no-training production-shape L4 systems benchmark. No real-language training, freeze, independent replication, 100M, or breakthrough claim is authorized.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record implementation or runtime failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo '=== targeted implementation guards ==='
+            cat /tmp/aera-v24-1-preflight.log 2>/dev/null || true
+            echo
+            echo '=== controlled gate ==='
+            cat /tmp/aera-v24-1.log 2>/dev/null || true
+          } > /tmp/aera-v24-1-failure.log
+          tail -n 220 /tmp/aera-v24-1-failure.log > /tmp/tail.txt
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v24.1 implementation/runtime failure.** This is not scientific evidence. Do not automatically retry.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
