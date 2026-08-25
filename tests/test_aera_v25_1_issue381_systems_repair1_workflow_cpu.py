@@ -87,3 +87,6 @@ def test_issue381_original_trigger_remains_distinct_and_unmodified_in_semantics(
     assert "Run sole repair1 L4 systems comparison" in repair
     # The failed source command remains historical evidence; repair1 does not rewrite it.
     assert "gh issue comment" in original
+
+
+# Fresh-head CI validation after a runner-start failure with zero executed steps.
