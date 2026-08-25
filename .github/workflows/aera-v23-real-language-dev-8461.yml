@@ -1,0 +1,142 @@
+name: Modal AERA v23 real-language development seed8461
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v23-real-language-dev-8461-v1
+  cancel-in-progress: false
+
+jobs:
+  real-language-dev:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v23-real-language-dev-8461]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check frozen launcher and protocol
+        run: >-
+          python -m py_compile
+          modal_aera_v23_real_language_dev_app.py
+          tam_research/aera_real_language_v23_gpu.py
+          tam_research/aera_real_language_v23_efficiency.py
+          tam_research/aera_hardware_core_v23.py
+      - name: Install Modal
+        run: pip install 'modal>=1.5,<2'
+      - name: Verify launcher imports without local PyTorch
+        run: |
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('torch') is None, 'runner unexpectedly has torch before Modal launch'
+          import modal_aera_v23_real_language_dev_app
+          print('v23 seed8461 launcher import OK without local torch')
+          PY
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Refuse duplicate seed/result
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --jq '[.[] | select(.body | contains("AERA-v23 real-language development seed8461"))] | length')
+          duplicates=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 200 --json number,title --jq '[.[] | select(.title | startswith("[aera-v23-real-language-dev-8461]"))] | length')
+          if [ "$existing" -gt 0 ] || [ "$duplicates" -gt 1 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+              -f body="🚫 **Duplicate/rerun refused.** AERA-v23 seed8461 is single-shot. No Modal/GPU run was started by this invocation."
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Record hard guard
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **AERA-v23 real-language development seed8461** — sole fresh development seed authorized by #338 after controlled #332 + systems #337 PASS. Exact immutable GPT-2 corpus; 8,388,608 training tokens/model; matched ~25M Transformer; one L4; 1800s ceiling. Existing memory_dim50/chunk256; all 255 event pairs scored but exactly 16 physically executed per completed stage/chunk; v22 M/P dual-delta equations unchanged. Corrected memory auxiliary budget is max256 events/microbatch ×4 =1024/optimizer step. All #324/v18 quality, memory, routing and throughput thresholds remain unchanged, especially second-chunk same-checkpoint memory advantage >=0.005 NLL. Development only: no freeze, replication, 100M or breakthrough authorization. Unique durable result; duplicate refusal; no auto-retry."
+      - name: Run AERA v23 development gate
+        if: steps.guard.outputs.allowed == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          modal run --timestamps modal_aera_v23_real_language_dev_app.py | tee /tmp/aera-v23-dev.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if grep -q 'AERA_V23_DEV_RESULT_JSON=' /tmp/aera-v23-dev.log; then
+            exit 0
+          fi
+          exit "$status"
+      - name: Record authoritative result
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result.md
+          import json
+          from pathlib import Path
+
+          marker = 'AERA_V23_DEV_RESULT_JSON='
+          lines = Path('/tmp/aera-v23-dev.log').read_text(errors='replace').splitlines()
+          rows = [line.split(marker, 1)[1] for line in lines if marker in line]
+          if not rows:
+              raise SystemExit('v23 result marker missing')
+          r = json.loads(rows[-1])
+          a = r['aera']; t = r['transformer']; m = r['v23_memory_eval']
+          ad = r['v23_heldout_adaptivity']; sy = r['v23_systems_eval']
+          pc = r['parameter_accounting']; checks = r['v23_development_checks']
+          sec = m['second_chunk']; w = m['executed_stage_effective_write_strength']
+          p = m['inverse_key_covariance']; sparse = m['sparse_write_execution']
+          rates = ad['optional_stage_run_fractions']
+          aux = m['heldout_sampled_memory_auxiliary']
+          print('🧠 **AERA-v23 sparse dual-delta real-language development seed8461 result**')
+          print()
+          print(f"- stored params: AERA **{pc['aera_stored_parameters']:,}**, Transformer **{pc['transformer_parameters']:,}**")
+          print(f"- tokens/model: **{a['tokens_seen']:,}**")
+          print(f"- training tok/s: AERA **{a['training_tokens_per_second']:.0f}**, Transformer **{t['training_tokens_per_second']:.0f}**")
+          print(f"- held-out NLL: AERA+memory **{m['stream_plus_memory_nll']:.4f}**, Transformer **{m['transformer_nll']:.4f}** (gap {m['quality_gap_nll']:+.4f})")
+          print(f"- same-checkpoint stream-only NLL: **{m['stream_only_nll']:.4f}**; reset **{m['reset_state_and_memory_nll']:.4f}**")
+          print(f"- overall fast-memory advantage: **{m['memory_overall_advantage_nll']:+.4f} NLL**")
+          print(f"- second-chunk fast-memory advantage: **{sec['memory_advantage_nll']:+.4f} NLL** (gate >= +0.0050)")
+          print(f"- second-chunk stream advantage: **{sec['stream_advantage_nll']:+.4f} NLL**; memory-only vs reset **{sec['memory_only_advantage_over_reset_nll']:+.4f} NLL**")
+          print(f"- effective write mean/p10/p90: **{w['mean']:.3f} / {w['p10']:.3f} / {w['p90']:.3f}**")
+          print(f"- sparse execution exact 16/255: **{sparse['all_completed_measured_stages_exact_16_of_255']}**; measured rows **{len(sparse['rows'])}**")
+          print(f"- M norm **{m['mean_final_memory_frobenius_norm']:.4f}**; P norm **{p['mean_frobenius_norm']:.4f}**; P min eig **{p['min_eigenvalue']:.6f}**; symmetry error **{p['max_symmetry_error']:.2e}**")
+          print(f"- state bytes/session: M **{m['matrix_state_bytes_per_session']:,}** + P **{m['inverse_covariance_state_bytes_per_session']:,}** = **{m['memory_state_bytes_per_session']:,}**")
+          print(f"- heldout sampled address top1 **{aux.get('memory_address_sampled_top1', float('nan')):.3f}**; payload token acc **{aux.get('memory_payload_token_accuracy', float('nan')):.3f}**")
+          print(f"- optional stage run fractions: **{100*rates[0]:.1f}% / {100*rates[1]:.1f}% / {100*rates[2]:.1f}%**; total stage execution **{100*ad['total_per_example_stage_execution_fraction']:.1f}%**")
+          print(f"- difficulty/compute Spearman rho **{ad['difficulty_compute_spearman_rho']:.3f}**; adaptivity **{'PASS' if ad['pass'] else 'FAIL'}**")
+          for bs in ('8', '64'):
+              row = sy['rows'][bs]
+              print(f"- batch{bs} memory-enabled: AERA **{row['aera']['tokens_per_second']:.0f} tok/s**, Transformer **{row['transformer']['tokens_per_second']:.0f} tok/s**, ratio **{row['aera_vs_transformer_speed']:.3f}x**")
+          print(f"- frozen checks: `{json.dumps(checks, sort_keys=True)}`")
+          print(f"- v23 development pass: **{'PASS' if r['v23_development_pass'] else 'FAIL'}**")
+          print()
+          print('Seed8461 is development-only. Even PASS authorizes only a separately preregistered exact freeze/S2 boundary; it does not count as independent replication or authorize 100M.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/result.md)"
+      - name: Record workflow failure
+        if: steps.guard.outputs.allowed == 'true' && failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 220 /tmp/aera-v23-dev.log > /tmp/tail.txt 2>/dev/null || true
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ **AERA-v23 real-language development seed8461 workflow failed.** This is not scientific evidence. No automatic retry was attempted. Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\n\nLast log lines:\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
