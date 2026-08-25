@@ -59,8 +59,6 @@ def causal_contextualize(h: torch.Tensor, *, window: int = CONTEXT_WINDOW) -> to
     previous_sum = prefix.index_select(1, end) - prefix.index_select(1, start)
     counts = (end - start).clamp_min(1).to(h.dtype).view(1, time, 1)
     previous_mean = previous_sum / counts
-    # At t=0 there are no prior events; the clamped denominator above is only a
-    # vectorization convenience and the sum is exactly zero.
     return h + previous_mean
 
 
@@ -129,11 +127,14 @@ class VectorizedContextualEpisodicMemory(nn.Module):
             raise ValueError("episodic strength shape mismatch")
 
         query = F.normalize(self.q(contextual_events), dim=-1)
-        similarity = torch.einsum("btd,bsd->bts", query, state.keys)
+        keys = F.normalize(state.keys, dim=-1)
+        similarity = torch.einsum("btd,bsd->bts", query, keys)
         strength_bias = torch.log(
             state.strengths.clamp(MIN_STRENGTH, 1.0)
         )[:, None, :]
-        logits = similarity / READ_TEMPERATURE + strength_bias
+        # #347 freezes temperature over the complete retrieval score, not only
+        # cosine similarity.
+        logits = (similarity + strength_bias) / READ_TEMPERATURE
         masked = logits.masked_fill(~state.valid[:, None, :], -torch.inf)
         top_k = min(READ_TOP_K, self.capacity)
         top_logits, top_indices = torch.topk(masked, k=top_k, dim=-1)
@@ -177,8 +178,21 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         new_strengths = strength[..., 0].clamp(0.0, 1.0)
         new_valid = new_strengths > 0.0
 
-        # One vectorized overwrite test: any incoming contextual key invalidates
-        # an older near-duplicate. There is intentionally no loop over writes.
+        # Newest wins within the incoming block as well as against prior state.
+        # Candidates arrive chronologically, so j>i means candidate j is newer.
+        incoming_similarity = torch.einsum("bkd,bjd->bkj", new_keys, new_keys)
+        k_count = new_keys.size(1)
+        position = torch.arange(k_count, device=new_keys.device)
+        later = position[None, :, None] < position[None, None, :]
+        shadowed_incoming = (
+            incoming_similarity.ge(DUPLICATE_SIMILARITY)
+            & new_valid[:, :, None]
+            & new_valid[:, None, :]
+            & later
+        ).any(dim=2)
+        new_valid = new_valid & ~shadowed_incoming
+
+        # Any surviving incoming contextual key invalidates an older near-duplicate.
         similarity = torch.einsum("bkd,bsd->bks", new_keys, old_keys)
         duplicate_old = (
             similarity.ge(DUPLICATE_SIMILARITY)
@@ -187,8 +201,7 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         ).any(dim=1)
         keep_old = old_valid & ~duplicate_old
 
-        # Selected candidates arrive in chronological order; newest-first state
-        # prepends the reversed block. All selected entries are encoded in parallel.
+        # Selected candidates arrive chronological; newest-first state reverses them.
         new_keys = new_keys.flip(1)
         new_values = new_values.flip(1)
         new_strengths = new_strengths.flip(1)
@@ -199,10 +212,12 @@ class VectorizedContextualEpisodicMemory(nn.Module):
         all_strengths = torch.cat((new_strengths, old_strengths), dim=1)
         all_valid = torch.cat((new_valid, keep_old), dim=1)
 
-        # Stable vectorized compaction: valid/newer slots receive larger priority.
+        # Stable vectorized compaction: valid/newer slots have higher priority.
         total = all_valid.size(1)
-        position = torch.arange(total, device=all_valid.device, dtype=torch.float32)
-        priority = all_valid.float() * 2.0 - position[None, :] * 1e-6
+        slot_position = torch.arange(
+            total, device=all_valid.device, dtype=torch.float32
+        )
+        priority = all_valid.float() * 2.0 - slot_position[None, :] * 1e-6
         keep_indices = torch.topk(
             priority,
             k=self.capacity,
@@ -216,9 +231,7 @@ class VectorizedContextualEpisodicMemory(nn.Module):
             strengths=_gather_slots(all_strengths, keep_indices),
             valid=_gather_slots(all_valid, keep_indices),
         )
-        if detach_inputs:
-            return next_state.detach()
-        return next_state
+        return next_state.detach() if detach_inputs else next_state
 
     def update_block(
         self,
@@ -265,7 +278,9 @@ class VectorizedContextualEpisodicMemoryStage(TokenwiseFastMemoryStage):
 
     def empty_state(self, x: torch.Tensor) -> AERAState:
         return AERAState(
-            stream=torch.zeros(x.size(0), self.cfg.d_model, device=x.device, dtype=x.dtype),
+            stream=torch.zeros(
+                x.size(0), self.cfg.d_model, device=x.device, dtype=x.dtype
+            ),
             memory=self.memory.empty_state(x.size(0), x.device, x.dtype),
         )
 
@@ -280,7 +295,10 @@ class VectorizedContextualEpisodicMemoryStage(TokenwiseFastMemoryStage):
         contextual = causal_contextualize(h)
         memory_read = self.memory.read(contextual, state.memory)
         carried = self.state_to_chunk(state.stream)
-        context = carried[:, None, :] + start_control["memory_read"][:, None, :] * memory_read
+        context = (
+            carried[:, None, :]
+            + start_control["memory_read"][:, None, :] * memory_read
+        )
         return context, memory_read
 
     def forward_chunk(
@@ -355,7 +373,9 @@ class VectorizedContextualEpisodicMemoryStage(TokenwiseFastMemoryStage):
         )
         result["vectorized_memory_update_calls"] = self.last_vectorized_update_calls
         if self.last_selected_indices is not None:
-            result["event_pair_selected_indices"] = self.last_selected_indices.cpu().tolist()
+            result["event_pair_selected_indices"] = (
+                self.last_selected_indices.cpu().tolist()
+            )
         return result
 
 
@@ -392,7 +412,11 @@ def _restore_epi_dtype(base: AERAState, update: AERAState) -> AERAState:
     )
 
 
-def _merge_epi_state(base: AERAState, update: AERAState, idx: torch.Tensor) -> AERAState:
+def _merge_epi_state(
+    base: AERAState,
+    update: AERAState,
+    idx: torch.Tensor,
+) -> AERAState:
     update = _restore_epi_dtype(base, update)
     bm = _as_epi(base.memory)
     um = _as_epi(update.memory)
@@ -493,7 +517,9 @@ class HardwareAwareAERATextLMV24(HardwareAwareAERATextLMV23):
                 update_memory=update_memory,
             )
             selected_y = selected_y.to(dtype=x.dtype)
-            selected_new_state = _restore_epi_dtype(selected_state, selected_new_state)
+            selected_new_state = _restore_epi_dtype(
+                selected_state, selected_new_state
+            )
             return (
                 x.index_copy(0, run_idx, selected_y),
                 _merge_epi_state(stage_state, selected_new_state, run_idx),
@@ -549,7 +575,7 @@ def episodic_state_bytes_per_session(
     per_stage = (
         2 * capacity * memory_dim * element_size
         + capacity * element_size
-        + capacity  # bool validity
+        + capacity
     )
     return n_stages * per_stage
 
@@ -562,8 +588,10 @@ def vectorized_contextual_episodic_protocol() -> dict[str, object]:
         "context_rule": "h_t + mean(previous up to 8 normalized stage events)",
         "capacity_slots_per_stage": EPISODIC_CAPACITY,
         "duplicate_similarity_threshold": DUPLICATE_SIMILARITY,
+        "within_incoming_block_newest_wins": True,
         "read_top_k": READ_TOP_K,
         "read_temperature": READ_TEMPERATURE,
+        "read_score": "(cosine + log(clamp(strength,1e-4,1))) / temperature",
         "write_budget_changed_from_v23": False,
         "controlled_selected_writes": sparse_write_budget(5),
         "real_language_selected_writes": sparse_write_budget(255),
