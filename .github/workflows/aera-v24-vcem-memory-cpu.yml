@@ -26,8 +26,8 @@ jobs:
           python-version: '3.11'
       - name: Install CPU PyTorch
         run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
-      - name: Install package
-        run: pip install -e .
+      - name: Install package and test dependencies
+        run: pip install -e '.[test]'
       - name: Refuse duplicate or rerun
         id: guard
         env:
@@ -51,7 +51,9 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="🔒 **AERA-v24 VCEM controlled gate** — CPU only under #347. Established delayed-associative task, seed ${SEED:-8401}, LR=4e-3, 500 steps, matched separately trained stream-only control. V24 keeps v23 compute/routing and exact 2/5 controlled write budget; memory is 48-slot causal contextual episodic KV state with one vectorized update per completed stage chunk, newest-wins cosine>=0.95 replacement, top-4 read at T=0.10, and <=80KB real-language-shaped four-stage state. Frozen contextual auxiliary uses observed (current,next-token) transition identity only as q/k supervision; next token is never query input. Required behavioral/direct/ambiguity/safety thresholds are exactly those preregistered in #347. No GPU, production corpus, real-language seed, architecture freeze, S2, independent-replication credit, 100M, auto-retry, or breakthrough claim."
       - name: Run targeted implementation guards
         if: steps.guard.outputs.allowed == 'true'
-        run: pytest -q tests/test_aera_hardware_core_v24.py tests/test_aera_v24_vectorized_contextual_episodic_cpu.py
+        run: |
+          set -o pipefail
+          pytest -q tests/test_aera_hardware_core_v24.py tests/test_aera_v24_vectorized_contextual_episodic_cpu.py | tee /tmp/aera-v24-vcem-preflight.log
       - name: Run controlled gate
         if: steps.guard.outputs.allowed == 'true'
         run: |
@@ -93,5 +95,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          tail -n 220 /tmp/aera-v24-vcem.log > /tmp/tail.txt 2>/dev/null || true
+          {
+            echo '=== targeted implementation guards ==='
+            cat /tmp/aera-v24-vcem-preflight.log 2>/dev/null || true
+            echo
+            echo '=== controlled gate ==='
+            cat /tmp/aera-v24-vcem.log 2>/dev/null || true
+          } > /tmp/aera-v24-vcem-failure.log
+          tail -n 220 /tmp/aera-v24-vcem-failure.log > /tmp/tail.txt
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="❌ **AERA-v24 VCEM controlled workflow implementation/runtime failure.** This is not scientific evidence. Fix CPU-first; do not automatically retry or open a fresh scientific boundary.\n\n\`\`\`text\n$(cat /tmp/tail.txt)\n\`\`\`"
