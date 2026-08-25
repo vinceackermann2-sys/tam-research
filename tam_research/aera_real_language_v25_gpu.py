@@ -10,7 +10,6 @@ state audit. It cannot count toward later post-freeze replication.
 
 import gc
 import json
-import math
 from pathlib import Path
 from typing import Any
 
@@ -55,7 +54,6 @@ MEMORY_EVAL_BATCHES = base.MEMORY_EVAL_BATCHES
 MEMORY_EVAL_BATCH_SIZE = base.MEMORY_EVAL_BATCH_SIZE
 
 _ORIGINAL_VALIDATE_PROTOCOL = base.validate_protocol
-_ORIGINAL_MEMORY_SUITE = base._memory_suite
 
 
 def _install_v25_binding() -> None:
@@ -211,6 +209,34 @@ def _second_chunk_nll(logits: torch.Tensor, y: torch.Tensor) -> float:
     )
 
 
+def _capture_sparse_write_stats(
+    aera,
+    *,
+    batch_index: int,
+    rows: list[dict[str, Any]],
+    pair_gate_values: list[torch.Tensor],
+    selected_strength_values: list[torch.Tensor],
+) -> None:
+    """Snapshot diagnostics immediately after a memory-enabled forward."""
+    for stage_index, stage in enumerate(aera.stages):
+        if not isinstance(stage, FactorizedIdentityContextEpisodicMemoryStage):
+            raise RuntimeError("v25 memory suite lost FICEM stage")
+        if stage.last_candidate_count:
+            rows.append(
+                {
+                    "batch": batch_index,
+                    "stage": stage_index,
+                    "candidates": int(stage.last_candidate_count),
+                    "selected_writes": int(stage.last_selected_count),
+                    "vectorized_updates": int(stage.last_vectorized_update_calls),
+                }
+            )
+            if stage.last_pair_gate is not None:
+                pair_gate_values.append(stage.last_pair_gate.detach().cpu())
+            if stage.last_pair_strength is not None:
+                selected_strength_values.append(stage.last_pair_strength.detach().cpu())
+
+
 @torch.no_grad()
 def _v25_memory_suite(*, data_dir: str, run_dir: str, seed: int) -> dict[str, Any]:
     device = torch.device("cuda")
@@ -262,6 +288,14 @@ def _v25_memory_suite(*, data_dir: str, run_dir: str, seed: int) -> dict[str, An
                 route_mode="hard_sparse",
                 update_memory=True,
             )
+        _capture_sparse_write_stats(
+            aera,
+            batch_index=batch_index,
+            rows=sparse_rows,
+            pair_gate_values=pair_gate_values,
+            selected_strength_values=selected_strength_values,
+        )
+        with base._autocast(device):
             stream_out = aera(
                 x,
                 hard=True,
@@ -341,7 +375,7 @@ def _v25_memory_suite(*, data_dir: str, run_dir: str, seed: int) -> dict[str, An
         if not isinstance(final_state, HardwareAERAState):
             raise RuntimeError("v25 memory output missing HardwareAERAState")
         bytes_this_batch = 0
-        for stage_index, stage_state in enumerate(final_state.stages):
+        for stage_state in final_state.stages:
             memory = stage_state.memory
             if not isinstance(memory, ContextualEpisodicMemoryState):
                 raise RuntimeError("v25 memory suite lost episodic state")
@@ -351,11 +385,11 @@ def _v25_memory_suite(*, data_dir: str, run_dir: str, seed: int) -> dict[str, An
                 capacity_bounded = False
             if memory.valid.dtype != torch.bool:
                 validity_boolean = False
-            all_state_finite = bool(
+            all_state_finite = (
                 all_state_finite
-                and torch.isfinite(memory.keys).all()
-                and torch.isfinite(memory.values).all()
-                and torch.isfinite(memory.strengths).all()
+                and bool(torch.isfinite(memory.keys).all())
+                and bool(torch.isfinite(memory.values).all())
+                and bool(torch.isfinite(memory.strengths).all())
             )
             key_norm = torch.linalg.vector_norm(
                 memory.keys.float().reshape(memory.keys.size(0), -1), dim=1
@@ -375,24 +409,6 @@ def _v25_memory_suite(*, data_dir: str, run_dir: str, seed: int) -> dict[str, An
             state_bytes_per_session = per_session
         elif state_bytes_per_session != per_session:
             raise RuntimeError("v25 episodic state bytes/session changed across batches")
-
-        for stage_index, stage in enumerate(aera.stages):
-            if not isinstance(stage, FactorizedIdentityContextEpisodicMemoryStage):
-                raise RuntimeError("v25 memory suite lost FICEM stage")
-            if stage.last_candidate_count:
-                sparse_rows.append(
-                    {
-                        "batch": batch_index,
-                        "stage": stage_index,
-                        "candidates": int(stage.last_candidate_count),
-                        "selected_writes": int(stage.last_selected_count),
-                        "vectorized_updates": int(stage.last_vectorized_update_calls),
-                    }
-                )
-                if stage.last_pair_gate is not None:
-                    pair_gate_values.append(stage.last_pair_gate)
-                if stage.last_pair_strength is not None:
-                    selected_strength_values.append(stage.last_pair_strength)
 
     parameter_versions_after = [p._version for p in aera.parameters()]
     if not sparse_rows:
