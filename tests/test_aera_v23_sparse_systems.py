@@ -4,9 +4,11 @@ import aera_v23_sparse_systems_l4 as bench
 from tam_research import aera_real_language_v23_efficiency as eff
 from tam_research.aera_hardware_core import HardwareAERAConfig
 from tam_research.aera_hardware_core_v23 import (
+    BudgetedSparseDualDeltaFastMemoryStage,
     HardwareAwareAERATextLMV23,
     sparse_write_budget,
 )
+from tam_research.aera_v23_sparse_systems_runtime_repair import _stage_probe_forward
 
 
 def _tiny_model() -> HardwareAwareAERATextLMV23:
@@ -84,3 +86,29 @@ def test_v23_production_cpu_preflight_is_sparse_and_memory_off_exact():
     assert result["sparse_smoke"]["selected_writes"] == 16
     assert result["sparse_smoke"]["pair_gate_grad_norm"] > 0.0
     assert result["sparse_smoke"]["memory_k_grad_norm"] > 0.0
+
+
+def test_post_335_stage_probe_enters_autocast_from_fp32_and_keeps_16_of_255():
+    """Regression for the L4-only dtype mismatch that stopped #335 pre-measurement."""
+    torch.manual_seed(8442)
+    model = _tiny_model().train()
+    stage = model.stages[0]
+    assert isinstance(stage, BudgetedSparseDualDeltaFastMemoryStage)
+    stage.memory.set_differentiable_pretraining(True)
+    events = torch.randn(
+        1,
+        eff.CHUNK_SIZE,
+        model.cfg.d_model,
+        dtype=torch.float32,
+        requires_grad=True,
+    )
+    _, state, loss = _stage_probe_forward(stage, events)
+    assert torch.isfinite(loss)
+    loss.backward()
+    assert events.grad is not None
+    assert torch.isfinite(events.grad).all()
+    assert torch.isfinite(state.memory.matrix).all()
+    assert torch.isfinite(state.memory.inverse_key_covariance).all()
+    assert stage.last_candidate_count == 255
+    assert stage.last_selected_count == 16
+    assert events.dtype == torch.float32
