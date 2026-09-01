@@ -139,15 +139,34 @@ def test_v26_3_kernel_source_preserves_frozen_top4_strength_mask_and_fp32_softma
     kernel = source.split("def _ficem_read_tail_kernel(", 1)[1].split(
         "def triton_ficem_read_available", 1
     )[0]
-    assert "tl.log(tl.maximum(strengths, MIN_STRENGTH))" in kernel
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_reference_rounding_repair3") is not True:
+        assert "tl.log(tl.maximum(strengths, MIN_STRENGTH))" in kernel
+        assert "READ_TEMPERATURE" in kernel
+        assert "-float(\"inf\")" in kernel
+        assert kernel.count("tl.argmax(") == 4
+        assert "-1.0e9" in kernel
+        assert "tl.exp(" in kernel
+        assert "tl.maximum(valid_weight_sum, 1.0e-9)" in kernel
+        assert "weight0 * value0" in kernel
+        assert "weight3 * value3" in kernel
+        return
+
+    assert source.count("@triton.jit") == 1
+    assert "tl.minimum(tl.maximum(strengths, MIN_STRENGTH), 1.0)" in kernel
     assert "READ_TEMPERATURE" in kernel
     assert "-float(\"inf\")" in kernel
     assert kernel.count("tl.argmax(") == 4
     assert "-1.0e9" in kernel
     assert "tl.exp(" in kernel
-    assert "tl.maximum(valid_weight_sum, 1.0e-9)" in kernel
-    assert "weight0 * value0" in kernel
-    assert "weight3 * value3" in kernel
+    assert "if IS_BF16:" in kernel
+    assert "strength_bias = tl.log(clamped_visible.to(tl.float32)).to(tl.bfloat16)" in kernel
+    assert "(similarity_visible + strength_bias).to(tl.bfloat16)" in kernel
+    assert "weight0_visible = weight0.to(tl.bfloat16)" in kernel
+    assert "similarity_visible = similarity.to(tl.float32)" in kernel
+    assert "strength_bias = tl.log(clamped_visible)" in kernel
+    assert "weight0.to(tl.float32) * value0.to(tl.float32)" in kernel
+    assert "weight3.to(tl.float32) * value3.to(tl.float32)" in kernel
 
 
 def test_v26_3_backend_keeps_projection_similarity_outside_kernel_and_reuse_exact():

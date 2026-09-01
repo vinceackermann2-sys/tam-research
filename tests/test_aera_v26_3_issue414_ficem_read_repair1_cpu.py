@@ -10,6 +10,7 @@ from tam_research.aera_hardware_core_v24 import (
 )
 from tam_research.aera_hardware_core_v26_3_ficem_read_triton import (
     fused_ficem_read_tail,
+    fused_ficem_read_v26_3_protocol,
 )
 from tam_research.aera_v26_3_ficem_read_probe import (
     BATCH_SIZES,
@@ -89,8 +90,19 @@ def test_issue414_kernel_constants_are_explicit_triton_constexpr_formals():
 def test_issue414_kernel_uses_exact_frozen_two_sided_strength_clamp():
     kernel = _kernel_source()
     assert "tl.minimum(tl.maximum(strengths, MIN_STRENGTH), 1.0)" in kernel
-    assert "strength_bias = tl.log(clamped_strengths)" in kernel
-    assert "logits = (similarity + strength_bias) / READ_TEMPERATURE" in kernel
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_reference_rounding_repair3") is not True:
+        assert "strength_bias = tl.log(clamped_strengths)" in kernel
+        assert "logits = (similarity + strength_bias) / READ_TEMPERATURE" in kernel
+        return
+
+    assert "if IS_BF16:" in kernel
+    assert "strength_bias = tl.log(clamped_visible.to(tl.float32)).to(tl.bfloat16)" in kernel
+    assert "(similarity_visible + strength_bias).to(tl.bfloat16)" in kernel
+    assert "similarity_visible = similarity.to(tl.float32)" in kernel
+    assert "clamped_visible = clamped_strengths.to(tl.float32)" in kernel
+    assert "strength_bias = tl.log(clamped_visible)" in kernel
+    assert "logits = (similarity_visible + strength_bias) / READ_TEMPERATURE" in kernel
 
 
 def test_issue414_launch_passes_exact_frozen_globals_as_constexpr_values():
@@ -115,8 +127,17 @@ def test_issue414_does_not_change_accelerated_tail_architecture():
     kernel = _kernel_source()
     assert kernel.count("tl.argmax(") == 4
     assert "tl.exp(" in kernel
-    assert "weight0 * value0" in kernel
-    assert "weight3 * value3" in kernel
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_reference_rounding_repair3") is not True:
+        assert "weight0 * value0" in kernel
+        assert "weight3 * value3" in kernel
+        return
+
+    assert "weight0_visible = weight0.to(tl.bfloat16)" in kernel
+    assert "weight3_visible = weight3.to(tl.bfloat16)" in kernel
+    assert "weight0.to(tl.float32) * value0.to(tl.float32)" in kernel
+    assert "weight3.to(tl.float32) * value3.to(tl.float32)" in kernel
+    assert source.count("@triton.jit") == 1
 
 
 def test_issue414_launcher_has_new_unique_result_and_reuses_original_probe():
