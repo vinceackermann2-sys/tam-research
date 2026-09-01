@@ -1,0 +1,200 @@
+name: AERA v26 issue400 synthetic state-movement L4
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v26-issue400-state-movement-l4
+  cancel-in-progress: false
+
+jobs:
+  state-movement:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-state-movement-l4]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue400 launcher
+        run: python -m py_compile modal_aera_v26_state_movement_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue400 one-attempt synthetic boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATE_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Issue #400 permits Actions attempt 1 only; no workflow retry." >&2
+            exit 1
+          fi
+
+          prereg_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/400" --jq '.title')"
+          test "${prereg_title}" = "[research] AERA-v26 synthetic L4 coalesced-state movement gate after #399 CPU proof"
+
+          cpu_pr="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/399")"
+          test "$(jq -r '.merged' <<<"${cpu_pr}")" = "true"
+          test "$(jq -r '.head.sha' <<<"${cpu_pr}")" = "94550b5d0844b61b8f62ee9f44063aece7785c36"
+          test "$(jq -r '.merge_commit_sha' <<<"${cpu_pr}")" = "8730e79b696288ef40951a72a826f98dbc536499"
+
+          trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-state-movement-l4]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${trigger_count}" != "1" ]; then
+            echo "Expected exactly one issue400 state-movement trigger, found ${trigger_count}." >&2
+            exit 1
+          fi
+
+          result_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${STATE_TRIGGER}/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v26 #400 synthetic state-movement result**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${result_comment_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(
+            printf '%s\n' "${event_body}" \
+              | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' \
+              | head -n 1
+          )"
+          if [ -z "${bound_main}" ]; then
+            echo "Trigger must contain an exact 'Bind main: `<40-hex-sha>`' line." >&2
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 8730e79b696288ef40951a72a826f98dbc536499 HEAD
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record frozen issue400 guard (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATE_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          head_sha="$(git rev-parse HEAD)"
+          body="🔒 **AERA-v26 #400 synthetic state-movement gate** — checked-out main **${head_sha}**. Synthetic production-shaped tensors only; d_model200, memory_dim50, capacity48, batches 8/64, fractions 25/50/75/100. One NVIDIA L4 <=300 GPU seconds, Actions attempt 1 only. No model/checkpoint/corpus/seed8471, no training/backward/optimizer, no end-to-end systems run, no automatic retry, and no freeze/S2/fresh-seed/100M/breakthrough authorization."
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${STATE_TRIGGER}/comments" -f body="${body}" || {
+            echo "warning: issue400 guard comment could not be posted; reporting is non-authoritative" >&2
+            exit 0
+          }
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue400 synthetic L4 probe
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_state_movement_app.py 2>&1 | tee /tmp/aera-v26-issue400-state-movement.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_ISSUE400_STATE_MOVEMENT_RESULT_JSON=' /tmp/aera-v26-issue400-state-movement.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Build issue400 result report
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        run: |
+          python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+
+          lines = Path('/tmp/aera-v26-issue400-state-movement.log').read_text(errors='replace').splitlines()
+          marker = 'AERA_V26_ISSUE400_STATE_MOVEMENT_RESULT_JSON='
+          rows = [line[len(marker):] for line in lines if line.startswith(marker)]
+          if not rows:
+              raise SystemExit('issue400 result marker missing')
+          payload = json.loads(rows[-1])
+          out = [
+              '🔬 **AERA-v26 #400 synthetic state-movement result**',
+              '',
+              f'- decision: **{payload["decision"]}**; overall PASS: **{payload["overall_pass"]}**',
+              f'- device: **{payload["device"]}**',
+              f'- batch64 latency geomean v26/legacy: **{payload["batch64_geomean_latency_ratio_v26_over_legacy"]:.3f}x** (required <= **0.90x**)',
+              f'- correctness: **{payload["correctness_pass"]}**; launch reduction: **{payload["kernel_launch_reduction_pass"]}**; row latency: **{payload["row_latency_pass"]}**',
+          ]
+          for key, row in payload['rows'].items():
+              out += [
+                  f'- {key}: latency **{row["latency_ratio_v26_over_legacy"]:.3f}x**, CUDA-event count **{row["kernel_event_ratio_v26_over_legacy"]:.3f}x**, exact **{row["correctness"]["pass"]}**',
+              ]
+          out += [
+              '',
+              '- Synthetic state movement only; model/checkpoint/corpus/training/scientific seed: **False / False / False / False / False**.',
+              '- Durable Modal result + Actions marker are authoritative; this comment is reporting only.',
+              '- This primitive result does **not** authorize architecture freeze, S2, a fresh scientific seed, 100M, or a breakthrough claim.',
+          ]
+          print('\n'.join(out))
+          PY
+
+      - name: Record issue400 result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATE_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${STATE_TRIGGER}/comments" \
+            -f body="$(cat /tmp/result-comment.md)" || {
+            echo "warning: authoritative issue400 result exists but GitHub reporting failed" >&2
+            exit 0
+          }
+
+      - name: Record issue400 workflow failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATE_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 100 /tmp/aera-v26-issue400-state-movement.log > /tmp/failure-tail.txt 2>/dev/null || true
+          {
+            echo '⚠️ **AERA-v26 #400 synthetic state-movement probe failed before an authoritative result marker.**'
+            echo
+            echo "Actions run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo 'No rerun, automatic retry, or timeout increase is authorized. Any continuation requires a new preregistration.'
+            echo
+            echo '<details><summary>log tail</summary>'
+            echo
+            echo '```text'
+            cat /tmp/failure-tail.txt
+            echo '```'
+            echo '</details>'
+          } > /tmp/failure-comment.md
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${STATE_TRIGGER}/comments" \
+            -f body="$(cat /tmp/failure-comment.md)" || {
+            echo "warning: issue400 failure reporting could not be posted" >&2
+            exit 0
+          }
