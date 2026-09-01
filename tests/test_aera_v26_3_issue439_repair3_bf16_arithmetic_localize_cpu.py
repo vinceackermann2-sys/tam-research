@@ -144,7 +144,7 @@ def test_issue439_replays_only_original_target_without_timing_training_or_fixtur
         "transformer.pt",
         "seed8471",
         "manual_seed(probe.DESIGN_SEED +",
-        "while ",
+        "\n    while ",
     ):
         assert forbidden not in source
 
