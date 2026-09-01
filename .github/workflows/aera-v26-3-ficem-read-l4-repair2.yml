@@ -1,0 +1,212 @@
+name: AERA v26.3 issue418 FICEM read L4 repair2
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v26-3-issue418-ficem-read-l4-repair2
+  cancel-in-progress: false
+
+jobs:
+  ficem-read-repair2:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-3-ficem-read-l4-repair2]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue418 launcher
+        run: python -m py_compile modal_aera_v26_3_ficem_read_repair2_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue418 one-attempt tie-aware repair boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Issue #418 permits Actions attempt 1 only; no workflow retry." >&2
+            exit 1
+          fi
+
+          prereg_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/418" --jq '.title')"
+          test "${prereg_title}" = "[research] AERA-v26.3 FICEM read repair2: tie-aware reference equivalence after #414 synthetic eligibility abort"
+
+          issue414_state="$(gh api "repos/${GITHUB_REPOSITORY}/issues/414" --jq '.state')"
+          issue416_state="$(gh api "repos/${GITHUB_REPOSITORY}/issues/416" --jq '.state')"
+          issue417_state="$(gh api "repos/${GITHUB_REPOSITORY}/issues/417" --jq '.state')"
+          test "${issue414_state}" = "closed"
+          test "${issue416_state}" = "closed"
+          test "${issue417_state}" = "closed"
+
+          trigger416_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/416" --jq '.title')"
+          test "${trigger416_title}" = "[aera-v26-3-ficem-read-l4-repair1] sole synthetic issue414 trigger"
+          run416_conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33497787407" --jq '.conclusion')"
+          run416_attempt="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33497787407" --jq '.run_attempt')"
+          test "${run416_conclusion}" = "failure"
+          test "${run416_attempt}" = "1"
+
+          source_failure_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/416/comments?per_page=100" \
+              --jq '.[] | select(.body | contains("tied fourth/fifth read boundary")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${source_failure_count}" -lt "1" ]; then
+            echo "Issue #416 does not contain the preregistered fourth/fifth tie failure evidence." >&2
+            exit 1
+          fi
+
+          trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-3-ficem-read-l4-repair2]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${trigger_count}" != "1" ]; then
+            echo "Expected exactly one issue418 FICEM read repair2 trigger, found ${trigger_count}." >&2
+            exit 1
+          fi
+
+          result_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v26.3 #418 FICEM read repair2 result**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${result_comment_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(
+            printf '%s\n' "${event_body}" \
+              | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' \
+              | head -n 1
+          )"
+          if [ -z "${bound_main}" ]; then
+            echo "Trigger must contain an exact 'Bind main: `<40-hex-sha>`' line." >&2
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 513d8d186f69aa69a4be4d53c76e718b36133310 HEAD
+
+          test -f tam_research/aera_hardware_core_v26_3_ficem_read_triton.py
+          test -f tam_research/aera_v26_3_ficem_read_probe.py
+          test -f modal_aera_v26_3_ficem_read_repair2_app.py
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record frozen issue418 repair2 guard (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          head_sha="$(git rev-parse HEAD)"
+          body="🔒 **AERA-v26.3 #418 FICEM read repair2 gate** — checked-out main **${head_sha}**. Separately preregistered after exhausted #414/#416 reference-only fourth/fifth tie abort. Original #411 case generation, seed/order, rows, timing, tolerances and PASS thresholds are unchanged; only exact-tie top4 correctness adjudication changes. Candidate Triton backend is unchanged by repair2. One NVIDIA L4 <=300 GPU seconds, Actions attempt 1 only. No model/checkpoint/corpus/training/scientific seed/end-to-end/freeze/S2/100M/breakthrough authorization."
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="${body}" || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue418 repair2 synthetic L4 probe
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_3_ficem_read_repair2_app.py 2>&1 | tee /tmp/aera-v26-3-issue418-ficem-read-repair2.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_ISSUE418_FICEM_READ_REPAIR2_RESULT_JSON=' /tmp/aera-v26-3-issue418-ficem-read-repair2.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Record issue418 result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+
+          lines = Path('/tmp/aera-v26-3-issue418-ficem-read-repair2.log').read_text(errors='replace').splitlines()
+          marker = 'AERA_V26_ISSUE418_FICEM_READ_REPAIR2_SUMMARY_JSON='
+          rows = [line[len(marker):] for line in lines if line.startswith(marker)]
+          if not rows:
+              raise SystemExit('issue418 compact summary marker missing')
+          payload = json.loads(rows[-1])
+          out = [
+              '🔬 **AERA-v26.3 #418 FICEM read repair2 result**',
+              '',
+              f'- decision: **{payload["decision"]}**; overall PASS: **{payload["overall_pass"]}**',
+              f'- device: **{payload["device"]}**',
+              f'- per-dtype geomean full-read latency ratios: **{payload["geomean_latency_ratio_by_dtype"]}** (each required <= **0.90x**)',
+              f'- correctness / known-empty / near-tie: **{payload["correctness_pass"]} / {payload["known_empty_pass"]} / {payload["near_tie_pass"]}**',
+              f'- row latency / full-event ratio / single fused tail / no reference tail ops: **{payload["row_latency_pass"]} / {payload["full_event_ratio_pass"]} / {payload["single_tail_kernel_pass"]} / {payload["candidate_no_reference_tail_ops_pass"]}**',
+          ]
+          for key, row in payload['row_ratios'].items():
+              out.append(
+                  f'- {key}: latency **{row["latency"]:.3f}x**, CUDA-event ratio **{row["events"]:.3f}x**, correctness **{row["correctness"]}**, tie queries **{row["tie_query_count"]} ({row["tie_query_fraction"]:.6f})**, tie-aware selection **{row["selection_semantically_equivalent"]}**'
+              )
+          out += [
+              '',
+              '- Original #411 synthetic fixtures/timing are unchanged; only the separately preregistered #418 exact-tie adjudication differs.',
+              '- Durable Modal result + authoritative result marker are the experiment record; this comment is reporting only.',
+              '- This result does **not** authorize end-to-end timing, architecture freeze, S2, a scientific seed, 100M, or a breakthrough claim.',
+          ]
+          print('\n'.join(out))
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" \
+            -f body="$(cat /tmp/result-comment.md)" || true
+
+      - name: Record issue418 workflow failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          tail -n 120 /tmp/aera-v26-3-issue418-ficem-read-repair2.log > /tmp/failure-tail.txt 2>/dev/null || true
+          {
+            echo '⚠️ **AERA-v26.3 #418 FICEM read repair2 gate failed before an authoritative result marker.**'
+            echo
+            echo "Actions run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo 'No rerun, automatic retry, or timeout increase is authorized. Any continuation requires another new preregistration.'
+            echo
+            echo '<details><summary>log tail</summary>'
+            echo
+            echo '```text'
+            cat /tmp/failure-tail.txt
+            echo '```'
+            echo '</details>'
+          } > /tmp/failure-comment.md
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" \
+            -f body="$(cat /tmp/failure-comment.md)" || true
