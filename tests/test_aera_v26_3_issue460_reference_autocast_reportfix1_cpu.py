@@ -8,6 +8,7 @@ import torch
 
 from tam_research import aera_v26_3_issue460_reference_autocast_reportfix1 as reportfix
 from tam_research import aera_v26_3_repair4_reference_autocast_localize as frozen_localize
+from tam_research.aera_hardware_core_v26_3_ficem_read_triton import fused_ficem_read_v26_3_protocol
 
 ROOT = Path(__file__).resolve().parents[1]
 SHIM = ROOT / "tam_research" / "aera_v26_3_issue460_reference_autocast_reportfix1.py"
@@ -33,6 +34,42 @@ FROZEN_REPAIR4_BACKEND_BLOB = "a3a603c8a2d4b20ebcccd7663970978f4288a760"
 def _git_blob(path: Path) -> str:
     data = path.read_bytes()
     return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+
+
+def _assert_repair5_successor_protocol(protocol: dict[str, object]) -> None:
+    assert protocol["bf16_reference_rounding_repair3"] is True
+    assert protocol["bf16_product_rounding_repair4"] is True
+    assert protocol["bf16_actual_autocast_tail_repair5"] is True
+    assert protocol["bf16_strength_bias_fp32_repair5"] is True
+    assert protocol["bf16_logits_fp32_repair5"] is True
+    assert protocol["bf16_final_weights_fp32_repair5"] is True
+    assert protocol["bf16_recalled_fp32_repair5"] is True
+    assert protocol["bf16_product_rounding_active_after_repair5"] is False
+    assert protocol["float32_path_changed_by_repair5"] is False
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["read_tail_triton_launches_target"] == 1
+    for key in (
+        "address_projection_changed",
+        "key_normalization_changed",
+        "similarity_einsum_changed",
+        "learned_out_projection_changed",
+        "write_backend_changed",
+        "training_backend_changed",
+        "persistent_state_changed",
+        "gpu_authorized_by_module",
+        "scientific_training_authorized",
+        "end_to_end_systems_authorized",
+        "architecture_freeze_authorized",
+        "s2_authorized",
+        "fresh_scientific_seed_authorized",
+        "100m_authorized",
+        "breakthrough_proven",
+    ):
+        assert protocol[key] is False
 
 
 def test_issue460_contract_is_reporting_only_and_source_attempt_is_exhausted() -> None:
@@ -79,11 +116,15 @@ def test_issue460_contract_is_reporting_only_and_source_attempt_is_exhausted() -
 
 def test_issue460_freezes_localization_backend_and_probe_byte_for_byte() -> None:
     assert _git_blob(FROZEN_LOCALIZATION) == FROZEN_LOCALIZATION_BLOB
-    assert _git_blob(BACKEND) == FROZEN_REPAIR4_BACKEND_BLOB
     assert _git_blob(PROBE) == FROZEN_PROBE_BLOB
     assert reportfix.FROZEN_LOCALIZATION_GIT_BLOB == FROZEN_LOCALIZATION_BLOB
     assert reportfix.FROZEN_REPAIR4_BACKEND_GIT_BLOB == FROZEN_REPAIR4_BACKEND_BLOB
     assert reportfix.FROZEN_PROBE_GIT_BLOB == FROZEN_PROBE_BLOB
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_actual_autocast_tail_repair5") is True:
+        _assert_repair5_successor_protocol(protocol)
+        return
+    assert _git_blob(BACKEND) == FROZEN_REPAIR4_BACKEND_BLOB
 
 
 def test_issue460_preserves_frozen_target_order_seed_and_primary_call() -> None:
