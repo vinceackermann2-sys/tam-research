@@ -81,8 +81,9 @@ def test_issue423_source_has_no_timing_training_or_alternate_fixture_path() -> N
         "MAX_FULL_EVENT_RATIO",
         "torch.load",
         "load_state_dict",
-        "optimizer",
+        "torch.optim",
         ".backward(",
+        ".step(",
         "SOURCE_RUN_DIR",
         "aera.pt",
         "transformer.pt",
@@ -114,14 +115,12 @@ def test_issue423_launcher_is_duplicate_safe_and_one_l4_only() -> None:
     assert "run_localization" in source
     for forbidden in (
         "torch.load",
-        "optimizer",
+        "load_state_dict",
+        "torch.optim",
         ".backward(",
-        "checkpoint",
-        "corpus",
+        ".step(",
         "modal deploy",
     ):
-        if forbidden in {"checkpoint", "corpus"}:
-            continue
         assert forbidden not in source
 
 
