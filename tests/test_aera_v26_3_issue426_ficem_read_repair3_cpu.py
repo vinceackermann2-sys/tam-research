@@ -17,6 +17,7 @@ from tam_research.aera_hardware_core_v26_3_ficem_read_triton import (
     fused_ficem_read_v26_3_protocol,
 )
 
+# #429/#431 migrate only historical CPU assertions; #426 runtime scope stays unchanged.
 ROOT = Path(__file__).resolve().parents[1]
 BACKEND_PATH = ROOT / "tam_research" / "aera_hardware_core_v26_3_ficem_read_triton.py"
 PROBE_PATH = ROOT / "tam_research" / "aera_v26_3_ficem_read_probe.py"
