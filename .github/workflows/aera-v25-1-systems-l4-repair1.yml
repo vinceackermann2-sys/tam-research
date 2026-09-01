@@ -1,0 +1,217 @@
+name: AERA v25.1 issue381 systems L4 repair1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v25-1-issue381-systems-l4-repair1
+  cancel-in-progress: false
+
+jobs:
+  systems-repair1:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v25-1-systems-l4-repair1]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check unchanged systems launcher
+        run: python -m py_compile modal_aera_v25_1_systems_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify source pre-GPU failure and refuse duplicate repair1
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Issue #392 permits Actions attempt 1 only; no workflow retry." >&2
+            exit 1
+          fi
+
+          prereg_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/392" --jq '.title')"
+          test "${prereg_title}" = "[research] AERA-v25.1 issue381 systems repair1: pre-GPU issue-comment permission failure"
+
+          original_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/391" --jq '.title')"
+          test "${original_title}" = "[aera-v25-1-systems-l4] final CPU-proven v25.1 systems gate"
+
+          source_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/32885050371")"
+          test "$(jq -r '.conclusion' <<<"${source_run}")" = "failure"
+          test "$(jq -r '.run_attempt' <<<"${source_run}")" = "1"
+          test "$(jq -r '.event' <<<"${source_run}")" = "issues"
+          test "$(jq -r '.head_sha' <<<"${source_run}")" = "a34511f2c535644edf1bcb4170ba51a17a3ec6a3"
+
+          source_job="$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/97923438291")"
+          guard_conclusion="$(jq -r '.steps[] | select(.name == "Refuse duplicate or retried systems attempt") | .conclusion' <<<"${source_job}")"
+          modal_auth_conclusion="$(jq -r '.steps[] | select(.name == "Authenticate Modal") | .conclusion' <<<"${source_job}")"
+          l4_conclusion="$(jq -r '.steps[] | select(.name == "Run sole L4 systems comparison") | .conclusion' <<<"${source_job}")"
+          test "${guard_conclusion}" = "failure"
+          test "${modal_auth_conclusion}" = "skipped"
+          test "${l4_conclusion}" = "skipped"
+
+          original_trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v25-1-systems-l4] ")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          test "${original_trigger_count}" = "1"
+
+          repair_trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v25-1-systems-l4-repair1]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${repair_trigger_count}" != "1" ]; then
+            echo "Expected exactly one issue381 systems repair1 trigger, found ${repair_trigger_count}." >&2
+            exit 1
+          fi
+
+          source_result_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/391/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v25.1 #381 sole L4 systems result**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${source_result_count}" = "0"
+
+          repair_result_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v25.1 #381 L4 systems result (repair1)**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${repair_result_count}" = "0"
+
+          git merge-base --is-ancestor a34511f2c535644edf1bcb4170ba51a17a3ec6a3 HEAD
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record frozen repair1 guard (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          head_sha="$(git rev-parse HEAD)"
+          body="🔒 **AERA-v25.1 #381 systems repair1** — workflow/reporting-only continuation preregistered by #392 after #391/run 32885050371 failed at non-scientific issue-comment reporting before Modal auth or L4 allocation. Checked-out main **${head_sha}**. Final v25.1 candidate, evaluator, launcher, fixed tokens, timing, thresholds, 16/255/1 accounting and 77,760-byte state contract are unchanged. One NVIDIA L4 <=600 GPU seconds, Actions attempt 1 only; no rerun of #391, no automatic retry, no training/backward/optimizer/checkpoint mutation, threshold change, freeze/S2/replication/100M/breakthrough authorization."
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments" -f body="${body}" || {
+            echo "warning: repair1 guard comment could not be posted; reporting is non-authoritative" >&2
+            exit 0
+          }
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole repair1 L4 systems comparison
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v25_1_systems_app.py 2>&1 | tee /tmp/aera-v25-1-systems-repair1.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V25_1_ISSUE381_SYSTEMS_RESULT_JSON=' /tmp/aera-v25-1-systems-repair1.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Build authoritative repair1 result report
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        run: |
+          python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+
+          lines = Path('/tmp/aera-v25-1-systems-repair1.log').read_text(errors='replace').splitlines()
+          marker = 'AERA_V25_1_ISSUE381_SYSTEMS_RESULT_JSON='
+          rows = [line[len(marker):] for line in lines if line.startswith(marker)]
+          if not rows:
+              raise SystemExit('issue381 repair1 result marker missing')
+          payload = json.loads(rows[-1])
+          out = [
+              '🔬 **AERA-v25.1 #381 L4 systems result (repair1)**',
+              '',
+              f'- decision: **{payload["decision"]}**; overall PASS: **{payload["overall_pass"]}**',
+              f'- checkpoint hashes unchanged: **{payload["checkpoint_hashes_unchanged"]}**; parameter versions unchanged: **{payload["parameter_versions_unchanged"]}**',
+          ]
+          for batch in ('8', '64'):
+              row = payload['rows'][batch]
+              out += [
+                  f'- batch{batch}: full v25.1/Transformer **{row["v25_1_full_vs_transformer_speed_ratio"]:.3f}x** (required **{row["required_full_speed_ratio"]:.2f}x**); core **{row["v25_1_core_vs_transformer_speed_ratio"]:.3f}x**',
+                  f'  - full latency original v25 **{row["full_latency_original_v25_ms"]:.2f} ms** → v25.1 **{row["full_latency_v25_1_ms"]:.2f} ms**; no-regression **{row["no_full_latency_regression"]}**',
+                  f'  - routing exact **{row["routing_exact"]}**; state <=1e-6 **{row["state_equivalence"]["pass"]}**; logits <=1e-6 **{row["logit_equivalence"]["pass"]}**; 16/255/1 **{row["write_geometry"]["pass"]}**; finite **{row["candidate_output_state_finite"]}**; state bytes **{row["persistent_state_bytes_per_session_actual"]}**',
+                  f'  - FICEM overhead vs candidate core: read-empty **{row["v25_1_read_empty_incremental_over_core_ms"]:+.2f} ms**, writes-only **{row["v25_1_writes_only_incremental_over_core_ms"]:+.2f} ms**, full **{row["v25_1_full_incremental_memory_over_core_ms"]:+.2f} ms**',
+              ]
+          out += [
+              '',
+              '- training/backward/optimizer/corpus/new model checkpoint: **False / False / False / False / False**',
+              '- The durable Modal result and Actions result marker are authoritative; this GitHub comment is reporting only.',
+              '- This systems result alone does **not** authorize architecture freeze, S2, independent replication, 100M, or a breakthrough claim.',
+          ]
+          print('\n'.join(out))
+          PY
+
+      - name: Record authoritative repair1 result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments" \
+            -f body="$(cat /tmp/result-comment.md)" || {
+            echo "warning: authoritative result exists but GitHub reporting comment failed" >&2
+            exit 0
+          }
+
+      - name: Record repair1 workflow failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 100 /tmp/aera-v25-1-systems-repair1.log > /tmp/failure-tail.txt 2>/dev/null || true
+          {
+            echo '⚠️ **AERA-v25.1 #381 systems repair1 failed before an authoritative result marker.**'
+            echo
+            echo "Actions run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo 'No automatic retry is authorized. Do not rerun this repair trigger or increase the timeout.'
+            echo
+            echo '<details><summary>log tail</summary>'
+            echo
+            echo '```text'
+            cat /tmp/failure-tail.txt
+            echo '```'
+            echo '</details>'
+          } > /tmp/failure-comment.md
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments" \
+            -f body="$(cat /tmp/failure-comment.md)" || {
+            echo "warning: repair1 failure reporting comment could not be posted" >&2
+            exit 0
+          }
