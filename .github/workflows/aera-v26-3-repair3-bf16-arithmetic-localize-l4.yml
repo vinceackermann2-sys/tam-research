@@ -1,0 +1,203 @@
+name: AERA v26.3 issue439 repair3 BF16 arithmetic localization
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v26-3-issue439-repair3-bf16-arithmetic-localize
+  cancel-in-progress: false
+
+jobs:
+  localize:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-3-repair3-bf16-arithmetic-localize-l4]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue439 launcher
+        run: python -m py_compile modal_aera_v26_3_repair3_bf16_arithmetic_localize_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue439 one-attempt localization boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Issue #439 permits Actions attempt 1 only; no workflow retry." >&2
+            exit 1
+          fi
+
+          prereg_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/439" --jq '.title')"
+          test "${prereg_title}" = "[research] AERA-v26.3 post-repair3 BF16 arithmetic localization after #438 L4 correctness miss"
+
+          trigger438_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/438" --jq '.title')"
+          test "${trigger438_title}" = "[aera-v26-3-ficem-read-l4-repair3-guard-repair1] sole synthetic issue436 trigger"
+
+          source_run_conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33510242472" --jq '.conclusion')"
+          source_run_attempt="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33510242472" --jq '.run_attempt')"
+          source_run_head="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33510242472" --jq '.head_sha')"
+          test "${source_run_conclusion}" = "failure"
+          test "${source_run_attempt}" = "1"
+          test "${source_run_head}" = "1ec7229f976b360440171b979bde63dedd8e9697"
+
+          source_l4_step="$(
+            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33510242472/jobs" \
+              --jq '.jobs[] | select(.id == 99863885932) | .steps[] | select(.name == "Run sole issue436 repaired synthetic L4 probe") | .conclusion'
+          )"
+          test "${source_l4_step}" = "failure"
+
+          source_failure_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/438/comments?per_page=100" \
+              --jq '.[] | select(.body | contains("failed before an authoritative result marker")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${source_failure_comment_count}" -ge 1
+
+          trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-3-repair3-bf16-arithmetic-localize-l4]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${trigger_count}" != "1" ]; then
+            echo "Expected exactly one issue439 arithmetic-localization trigger, found ${trigger_count}." >&2
+            exit 1
+          fi
+
+          result_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v26.3 #439 repair3 BF16 arithmetic localization**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${result_comment_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(
+            printf '%s\n' "${event_body}" \
+              | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' \
+              | head -n 1
+          )"
+          if [ -z "${bound_main}" ]; then
+            echo "Trigger must contain exact Bind main line." >&2
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 1ec7229f976b360440171b979bde63dedd8e9697 HEAD
+
+          test "$(git hash-object tam_research/aera_hardware_core_v26_3_ficem_read_triton.py)" = "b6b37f0379b280eea4e5c2b16f349951dadc4df9"
+          test "$(git hash-object tam_research/aera_v26_3_ficem_read_probe.py)" = "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b"
+          test -f tam_research/aera_v26_3_repair3_bf16_arithmetic_localize.py
+          test -f modal_aera_v26_3_repair3_bf16_arithmetic_localize_app.py
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record frozen issue439 guard (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          head_sha="$(git rev-parse HEAD)"
+          body="🔒 **AERA-v26.3 #439 localization gate** — checked-out main **${head_sha}**. Production repair3 backend/probe are frozen. Exact original \`bfloat16_batch8_mixed\` fixture stream, one diagnostic-only Triton mirror, one NVIDIA L4 <=180 seconds, Actions attempt 1 only. No timing/performance/model/checkpoint/corpus/training/scientific-seed/freeze/S2/100M/breakthrough authorization."
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="${body}" || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue439 repair3 BF16 arithmetic localization
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_3_repair3_bf16_arithmetic_localize_app.py 2>&1 | tee /tmp/aera-v26-3-issue439-repair3-bf16-arithmetic-localize.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_ISSUE439_REPAIR3_BF16_ARITHMETIC_LOCALIZE_RESULT_JSON=' /tmp/aera-v26-3-issue439-repair3-bf16-arithmetic-localize.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Record issue439 localization (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+          lines = Path('/tmp/aera-v26-3-issue439-repair3-bf16-arithmetic-localize.log').read_text(errors='replace').splitlines()
+          marker = 'AERA_V26_ISSUE439_REPAIR3_BF16_ARITHMETIC_LOCALIZE_SUMMARY_JSON='
+          rows = [line[len(marker):] for line in lines if line.startswith(marker)]
+          if not rows:
+              raise SystemExit('issue439 summary marker missing')
+          p = json.loads(rows[-1])
+          out = [
+              '🔬 **AERA-v26.3 #439 repair3 BF16 arithmetic localization**',
+              '',
+              f'- row: **{p["target_row"]}** on **{p["device"]}**',
+              f'- diagnostic mirror faithful to production repair3: **{p["diagnostic_mirror_valid"]}**',
+              f'- first reference vs repair3 divergence: **{p["first_reference_vs_repair3_divergence"]}**',
+              f'- selection semantic equivalence: **{p["selection_semantically_equivalent"]}**; distinct mismatches: **{p["distinct_query_mismatch_count"]}**; ties: **{p["tied_query_count"]}**',
+              f'- strength-bias bit exact: **{p["strength_bias_bit_equal"]}**; unmasked-logit bit exact: **{p["unmasked_logits_bit_equal"]}**',
+              f'- pre-out recalled allclose: **{p["pre_out_recalled"]["allclose"]}**; bit exact: **{p["pre_out_recalled"]["bit_equal"]}**; max finite abs error: **{p["pre_out_recalled"]["max_abs_error_finite_pairs"]:.6g}**',
+              '',
+              '- Localization only. No timing or performance decision was made.',
+              '- Durable result + authoritative marker are the record. No rerun is authorized.',
+          ]
+          print('\n'.join(out))
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/result-comment.md)" || true
+
+      - name: Record issue439 workflow failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          tail -n 140 /tmp/aera-v26-3-issue439-repair3-bf16-arithmetic-localize.log > /tmp/failure-tail.txt 2>/dev/null || true
+          {
+            echo '⚠️ **AERA-v26.3 #439 localization failed before an authoritative result marker.**'
+            echo
+            echo "Actions run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo 'No rerun, automatic retry, redispatch, alternate trigger, or timeout increase is authorized. Any continuation requires a new preregistration.'
+            echo
+            echo '<details><summary>log tail</summary>'
+            echo
+            echo '```text'
+            cat /tmp/failure-tail.txt
+            echo '```'
+            echo '</details>'
+          } > /tmp/failure-comment.md
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/failure-comment.md)" || true
