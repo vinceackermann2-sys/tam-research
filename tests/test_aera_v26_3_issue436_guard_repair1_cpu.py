@@ -3,12 +3,17 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+from tam_research.aera_hardware_core_v26_3_ficem_read_triton import (
+    fused_ficem_read_v26_3_protocol,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / "tam_research" / "aera_v26_3_ficem_read_probe.py"
 BACKEND = ROOT / "tam_research" / "aera_hardware_core_v26_3_ficem_read_triton.py"
 LAUNCHER = ROOT / "modal_aera_v26_3_ficem_read_repair3_app.py"
 FAILED_WORKFLOW = ROOT / ".github" / "workflows" / "aera-v26-3-ficem-read-l4-repair3.yml"
 REPAIR_WORKFLOW = ROOT / ".github" / "workflows" / "aera-v26-3-ficem-read-l4-repair3-guard-repair1.yml"
+HISTORICAL_REPAIR3_BACKEND_BLOB = "b6b37f0379b280eea4e5c2b16f349951dadc4df9"
 
 
 def _blob(path: Path) -> str:
@@ -16,9 +21,44 @@ def _blob(path: Path) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 
+def _assert_historical_repair3_or_explicit_repair4_successor() -> None:
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_product_rounding_repair4") is not True:
+        assert _blob(BACKEND) == HISTORICAL_REPAIR3_BACKEND_BLOB
+        return
+    assert protocol["bf16_reference_rounding_repair3"] is True
+    assert protocol["float32_path_changed_by_repair3"] is False
+    assert protocol["bf16_product_rounding_repair4"] is True
+    assert protocol["float32_path_changed_by_repair4"] is False
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["read_tail_triton_launches_target"] == 1
+    for key in (
+        "address_projection_changed",
+        "key_normalization_changed",
+        "similarity_einsum_changed",
+        "learned_out_projection_changed",
+        "write_backend_changed",
+        "training_backend_changed",
+        "persistent_state_changed",
+        "gpu_authorized_by_module",
+        "scientific_training_authorized",
+        "end_to_end_systems_authorized",
+        "architecture_freeze_authorized",
+        "s2_authorized",
+        "fresh_scientific_seed_authorized",
+        "100m_authorized",
+        "breakthrough_proven",
+    ):
+        assert protocol[key] is False
+
+
 def test_issue436_preserves_every_frozen_experiment_file():
     assert _blob(PROBE) == "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b"
-    assert _blob(BACKEND) == "b6b37f0379b280eea4e5c2b16f349951dadc4df9"
+    _assert_historical_repair3_or_explicit_repair4_successor()
     assert _blob(LAUNCHER) == "0768818305985809dc8ba232f8d5b4a115c7ea24"
     assert _blob(FAILED_WORKFLOW) == "19649b4f9abe42ccee1451071eb115f0461d1a70"
 
