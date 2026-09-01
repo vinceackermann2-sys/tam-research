@@ -1,0 +1,243 @@
+name: AERA v26 issue400 synthetic state-movement L4 repair1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-issue400-state-movement-l4-repair1
+  cancel-in-progress: false
+
+jobs:
+  state-movement-repair1:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-state-movement-l4-repair1]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check unchanged issue400 launcher
+        run: python -m py_compile modal_aera_v26_state_movement_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify consumed source and sole repair1 boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Issue #403 permits Actions attempt 1 only; no workflow retry." >&2
+            exit 1
+          fi
+
+          prereg_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/403" --jq '.title')"
+          test "${prereg_title}" = "[research] AERA-v26 issue400 state-movement repair1: permission-only continuation after pre-Modal 403"
+
+          issue400_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/400" --jq '.title')"
+          test "${issue400_title}" = "[research] AERA-v26 synthetic L4 coalesced-state movement gate after #399 CPU proof"
+
+          source_trigger_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/402" --jq '.title')"
+          test "${source_trigger_title}" = "[aera-v26-state-movement-l4] issue400 sole synthetic coalesced-state primitive measurement"
+
+          cpu_pr="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/399")"
+          test "$(jq -r '.merged' <<<"${cpu_pr}")" = "true"
+          test "$(jq -r '.head.sha' <<<"${cpu_pr}")" = "94550b5d0844b61b8f62ee9f44063aece7785c36"
+          test "$(jq -r '.merge_commit_sha' <<<"${cpu_pr}")" = "8730e79b696288ef40951a72a826f98dbc536499"
+
+          probe_pr="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/401")"
+          test "$(jq -r '.merged' <<<"${probe_pr}")" = "true"
+          test "$(jq -r '.head.sha' <<<"${probe_pr}")" = "81c1d7111ca8becf0a6248100351c94e597b9892"
+          test "$(jq -r '.merge_commit_sha' <<<"${probe_pr}")" = "ee46b17b55711e481d8b29fac98b9a66dba1ff67"
+
+          source_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33489236409")"
+          test "$(jq -r '.conclusion' <<<"${source_run}")" = "failure"
+          test "$(jq -r '.run_attempt' <<<"${source_run}")" = "1"
+          test "$(jq -r '.event' <<<"${source_run}")" = "issues"
+          test "$(jq -r '.head_sha' <<<"${source_run}")" = "ee46b17b55711e481d8b29fac98b9a66dba1ff67"
+          test "$(jq -r '.display_title' <<<"${source_run}")" = "[aera-v26-state-movement-l4] issue400 sole synthetic coalesced-state primitive measurement"
+
+          source_job="$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/99796514541")"
+          test "$(jq -r '.run_id' <<<"${source_job}")" = "33489236409"
+          source_guard_conclusion="$(jq -r '.steps[] | select(.name == "Verify issue400 one-attempt synthetic boundary") | .conclusion' <<<"${source_job}")"
+          modal_auth_conclusion="$(jq -r '.steps[] | select(.name == "Authenticate Modal") | .conclusion' <<<"${source_job}")"
+          l4_conclusion="$(jq -r '.steps[] | select(.name == "Run sole issue400 synthetic L4 probe") | .conclusion' <<<"${source_job}")"
+          test "${source_guard_conclusion}" = "failure"
+          test "${modal_auth_conclusion}" = "skipped"
+          test "${l4_conclusion}" = "skipped"
+
+          original_trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-state-movement-l4]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          test "${original_trigger_count}" = "1"
+
+          repair1_trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-state-movement-l4-repair1]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${repair1_trigger_count}" != "1" ]; then
+            echo "Expected exactly one issue400 repair1 trigger, found ${repair1_trigger_count}." >&2
+            exit 1
+          fi
+
+          source_result_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/402/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v26 #400 synthetic state-movement result**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${source_result_comment_count}" = "0"
+
+          repair_result_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v26 #400 synthetic state-movement result (repair1)**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${repair_result_comment_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(
+            printf '%s\n' "${event_body}" \
+              | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' \
+              | head -n 1
+          )"
+          if [ -z "${bound_main}" ]; then
+            echo "Repair1 trigger must contain an exact 'Bind main: `<40-hex-sha>`' line." >&2
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor ee46b17b55711e481d8b29fac98b9a66dba1ff67 HEAD
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record frozen repair1 guard (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          head_sha="$(git rev-parse HEAD)"
+          body="🔒 **AERA-v26 #400 state-movement repair1** — permission/guard-only continuation preregistered by #403 after #402/run 33489236409 failed before Modal auth or L4 allocation. Checked-out main **${head_sha}**. Harness, launcher, synthetic geometry, timing, profiling, thresholds, durable path and result marker are unchanged. One NVIDIA L4 <=300 GPU seconds, Actions attempt 1 only; #402 remains consumed, no automatic retry, and no end-to-end/freeze/S2/fresh-seed/100M/breakthrough authorization."
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments" -f body="${body}" || {
+            echo "warning: repair1 guard comment could not be posted; reporting is non-authoritative" >&2
+            exit 0
+          }
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue400 repair1 synthetic L4 probe
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_state_movement_app.py 2>&1 | tee /tmp/aera-v26-issue400-state-movement-repair1.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_ISSUE400_STATE_MOVEMENT_RESULT_JSON=' /tmp/aera-v26-issue400-state-movement-repair1.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Build repair1 result report
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        run: |
+          python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+
+          lines = Path('/tmp/aera-v26-issue400-state-movement-repair1.log').read_text(errors='replace').splitlines()
+          marker = 'AERA_V26_ISSUE400_STATE_MOVEMENT_RESULT_JSON='
+          rows = [line[len(marker):] for line in lines if line.startswith(marker)]
+          if not rows:
+              raise SystemExit('issue400 repair1 result marker missing')
+          payload = json.loads(rows[-1])
+          out = [
+              '🔬 **AERA-v26 #400 synthetic state-movement result (repair1)**',
+              '',
+              f'- decision: **{payload["decision"]}**; overall PASS: **{payload["overall_pass"]}**',
+              f'- device: **{payload["device"]}**',
+              f'- batch64 latency geomean v26/legacy: **{payload["batch64_geomean_latency_ratio_v26_over_legacy"]:.3f}x** (required <= **0.90x**)',
+              f'- correctness: **{payload["correctness_pass"]}**; launch reduction: **{payload["kernel_launch_reduction_pass"]}**; row latency: **{payload["row_latency_pass"]}**',
+          ]
+          for key, row in payload['rows'].items():
+              out.append(
+                  f'- {key}: latency **{row["latency_ratio_v26_over_legacy"]:.3f}x**, CUDA-event count **{row["kernel_event_ratio_v26_over_legacy"]:.3f}x**, exact **{row["correctness"]["pass"]}**'
+              )
+          out += [
+              '',
+              '- Synthetic state movement only; model/checkpoint/corpus/training/scientific seed: **False / False / False / False / False**.',
+              '- Durable Modal result + Actions marker are authoritative; this comment is reporting only.',
+              '- This primitive result does **not** authorize end-to-end AERA timing, architecture freeze, S2, a fresh scientific seed, 100M, or a breakthrough claim.',
+          ]
+          print('\n'.join(out))
+          PY
+
+      - name: Record repair1 result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments" \
+            -f body="$(cat /tmp/result-comment.md)" || {
+            echo "warning: authoritative repair1 result exists but GitHub reporting failed" >&2
+            exit 0
+          }
+
+      - name: Record repair1 workflow failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_TRIGGER: ${{ github.event.issue.number }}
+        run: |
+          tail -n 100 /tmp/aera-v26-issue400-state-movement-repair1.log > /tmp/failure-tail.txt 2>/dev/null || true
+          {
+            echo '⚠️ **AERA-v26 #400 state-movement repair1 failed before an authoritative result marker.**'
+            echo
+            echo "Actions run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo 'No rerun, automatic retry, or timeout increase is authorized. Any continuation requires a new preregistration.'
+            echo
+            echo '<details><summary>log tail</summary>'
+            echo
+            echo '```text'
+            cat /tmp/failure-tail.txt
+            echo '```'
+            echo '</details>'
+          } > /tmp/failure-comment.md
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${REPAIR_TRIGGER}/comments" \
+            -f body="$(cat /tmp/failure-comment.md)" || {
+            echo "warning: repair1 failure reporting could not be posted" >&2
+            exit 0
+          }
