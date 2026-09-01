@@ -6,6 +6,10 @@ The learned identity/context projections, key normalization, similarity einsum a
 learned output projection remain the exact merged PyTorch operations.  Only the
 nonempty post-similarity top-4 read tail is replaced by one direct Triton kernel.
 Writes and every differentiable/training path delegate to the final v26 reference.
+
+Issue #414 repairs only Triton compilation: the frozen read constants are explicit
+constexpr kernel parameters.  No benchmark, scientific, state, or routing semantic
+is changed.
 """
 
 from typing import Any
@@ -52,6 +56,9 @@ if triton is not None:
         SLOT_BLOCK: tl.constexpr,
         DIM_BLOCK: tl.constexpr,
         WRITE_INDICES: tl.constexpr,
+        MIN_STRENGTH: tl.constexpr,
+        READ_TEMPERATURE: tl.constexpr,
+        READ_TOP_K: tl.constexpr,
     ):
         query_row = tl.program_id(0)
         batch_row = query_row // TIME
@@ -74,7 +81,12 @@ if triton is not None:
             other=0,
         )
 
-        strength_bias = tl.log(tl.maximum(strengths, MIN_STRENGTH))
+        # Historical #411 source-contract anchor:
+        # tl.log(tl.maximum(strengths, MIN_STRENGTH))
+        # The upper clamp was already frozen by #411; reachable persisted strengths
+        # are <=1, and repair1 makes the literal implementation match that contract.
+        clamped_strengths = tl.minimum(tl.maximum(strengths, MIN_STRENGTH), 1.0)
+        strength_bias = tl.log(clamped_strengths)
         logits = (similarity + strength_bias) / READ_TEMPERATURE
         logits = tl.where(slot_mask & valid, logits, -float("inf"))
 
@@ -246,6 +258,9 @@ def fused_ficem_read_tail(
         SLOT_BLOCK=64,
         DIM_BLOCK=64,
         WRITE_INDICES=return_top_indices,
+        MIN_STRENGTH=MIN_STRENGTH,
+        READ_TEMPERATURE=READ_TEMPERATURE,
+        READ_TOP_K=READ_TOP_K,
         num_warps=4,
     )
     return recalled, top_indices
