@@ -25,6 +25,9 @@ SOURCE_LOCALIZATION_ISSUE = 452
 SOURCE_LOCALIZATION_TRIGGER = 454
 SOURCE_LOCALIZATION_RUN = 33539885620
 SOURCE_LOCALIZATION_JOB = 99963230232
+SOURCE_DUPLICATE_TRIGGER = 455
+SOURCE_DUPLICATE_RUN = 33539909378
+SOURCE_DUPLICATE_JOB = 99963512537
 TARGET_ROW = "bfloat16_batch8_mixed"
 TARGET_ORDINAL = 5
 FROZEN_PROBE_GIT_BLOB = "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b"
@@ -39,6 +42,9 @@ def cpu_contract_preflight() -> dict[str, Any]:
         "source_localization_trigger": SOURCE_LOCALIZATION_TRIGGER,
         "source_localization_run": SOURCE_LOCALIZATION_RUN,
         "source_localization_job": SOURCE_LOCALIZATION_JOB,
+        "source_duplicate_trigger": SOURCE_DUPLICATE_TRIGGER,
+        "source_duplicate_run": SOURCE_DUPLICATE_RUN,
+        "source_duplicate_job": SOURCE_DUPLICATE_JOB,
         "target_row": TARGET_ROW,
         "target_ordinal": TARGET_ORDINAL,
         "design_seed": probe.DESIGN_SEED,
@@ -54,8 +60,10 @@ def cpu_contract_preflight() -> dict[str, Any]:
         "inside_autocast_reference_path": True,
         "outside_autocast_reference_path": True,
         "same_similarity_tail_control": True,
+        "outside_projection_failure_is_reported_not_repaired": True,
         "localization_only": True,
         "timing_authorized": False,
+        "profiling_authorized": False,
         "performance_decision_authorized": False,
         "production_backend_modified": False,
         "production_probe_modified": False,
@@ -117,12 +125,16 @@ def _autocast_context(enabled: bool):
 
 
 def _autocast_state() -> dict[str, Any]:
-    enabled = bool(torch.is_autocast_enabled("cuda"))
-    dtype = str(torch.get_autocast_dtype("cuda"))
-    return {"enabled": enabled, "dtype": dtype}
+    return {
+        "enabled": bool(torch.is_autocast_enabled("cuda")),
+        "dtype": str(torch.get_autocast_dtype("cuda")),
+    }
 
 
-def _first_mismatch(reference: torch.Tensor, candidate: torch.Tensor) -> dict[str, Any] | None:
+def _first_mismatch(
+    reference: torch.Tensor,
+    candidate: torch.Tensor,
+) -> dict[str, Any] | None:
     if reference.shape != candidate.shape:
         return {"shape_mismatch": [list(reference.shape), list(candidate.shape)]}
     unequal = reference != candidate
@@ -137,25 +149,34 @@ def _first_mismatch(reference: torch.Tensor, candidate: torch.Tensor) -> dict[st
     }
 
 
-def _stats(reference: torch.Tensor, candidate: torch.Tensor, *, atol: float = 0.0, rtol: float = 0.0) -> dict[str, Any]:
+def _stats(
+    reference: torch.Tensor,
+    candidate: torch.Tensor,
+    *,
+    atol: float = 0.0,
+    rtol: float = 0.0,
+) -> dict[str, Any]:
     if reference.shape != candidate.shape:
         return {
             "shape_equal": False,
             "reference_shape": list(reference.shape),
             "candidate_shape": list(candidate.shape),
         }
-    rf = reference.float()
-    cf = candidate.float()
-    diff = (rf - cf).abs()
     close = torch.isclose(reference, candidate, atol=atol, rtol=rtol)
     mismatch = reference != candidate
+    finite_pair = torch.isfinite(reference) & torch.isfinite(candidate)
+    finite_diff = torch.where(
+        finite_pair,
+        (reference.float() - candidate.float()).abs(),
+        torch.zeros((), device=reference.device),
+    )
     total = int(reference.numel())
     return {
         "shape_equal": True,
         "bit_equal": bool(torch.equal(reference, candidate)),
         "allclose": bool(torch.all(close)),
-        "max_abs_error": float(diff.max()) if total else 0.0,
-        "mean_abs_error": float(diff.mean()) if total else 0.0,
+        "max_abs_error": float(finite_diff.max()) if total else 0.0,
+        "mean_abs_error": float(finite_diff.mean()) if total else 0.0,
         "failing_element_count": int((~close).sum()),
         "failing_element_fraction": float((~close).sum() / total) if total else 0.0,
         "bit_mismatch_count": int(mismatch.sum()),
@@ -164,6 +185,32 @@ def _stats(reference: torch.Tensor, candidate: torch.Tensor, *, atol: float = 0.
         "candidate_dtype": str(candidate.dtype),
         "shape": list(reference.shape),
         "first_mismatch": _first_mismatch(reference, candidate),
+    }
+
+
+def _attempt_memory_out(memory, recalled: torch.Tensor) -> dict[str, Any]:
+    """Attempt the literal outside-autocast module call without changing dtypes.
+
+    BF16 input with the unchanged FP32 parameter may be unsupported by ``nn.Linear``
+    outside autocast. That is diagnostic evidence, not a reason to coerce either
+    operand or modify production state.
+    """
+    with torch.no_grad():
+        try:
+            output = memory.out(recalled)
+        except RuntimeError as exc:
+            return {
+                "supported": False,
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+                "input_dtype": str(recalled.dtype),
+                "weight_dtype": str(memory.out.weight.dtype),
+            }
+    return {
+        "supported": True,
+        "output": output,
+        "output_dtype": str(output.dtype),
+        "shape": list(output.shape),
     }
 
 
@@ -202,7 +249,7 @@ def _tail_math(
         )
         products = weights.unsqueeze(-1) * selected_values
         recalled = products.sum(dim=2)
-        output = memory.out(recalled)
+        output = memory.out(recalled) if autocast_enabled else None
         state_at_end = _autocast_state()
     return {
         "autocast_start": state_at_start,
@@ -285,6 +332,8 @@ def run_localization() -> dict[str, Any]:
     case = _target_case(device)
     reference = TorchFICEMReferenceBackend()
     candidate = TritonFICEMReadBackend()
+    weight_before = memory.out.weight.detach().clone()
+    memory_training_before = bool(memory.training)
 
     # Frozen primary evidence, exactly once.
     primary = probe.correctness_row(memory, case, reference, candidate)
@@ -294,6 +343,9 @@ def run_localization() -> dict[str, Any]:
     query, keys, similarity = probe._diagnostic_tail_inputs(memory, case)
 
     outside = _tail_math(memory, similarity, case.state, autocast_enabled=False)
+    outside_reference_recalled, outside_reference_indices = probe._reference_tail(
+        similarity, case.state
+    )
     same_similarity_inside = _tail_math(
         memory, similarity, case.state, autocast_enabled=True
     )
@@ -322,24 +374,46 @@ def run_localization() -> dict[str, Any]:
         "selected_values",
         "products",
         "recalled",
-        "output",
     )
     inside_vs_outside = {
         name: _stats(actual_reference[name], outside[name], atol=atol, rtol=rtol)
         for name in checkpoint_order
     }
     first_differing_checkpoint = next(
-        (name for name in checkpoint_order if not inside_vs_outside[name].get("bit_equal", False)),
+        (
+            name
+            for name in checkpoint_order
+            if not inside_vs_outside[name].get("bit_equal", False)
+        ),
         None,
     )
 
-    # Apply the same recalled tensors to memory.out under both contexts to isolate GEMM context.
-    with torch.no_grad():
-        outside_recalled_outside_out = memory.out(outside["recalled"])
+    outside_projection = _attempt_memory_out(memory, outside["recalled"])
     with torch.no_grad(), torch.autocast(device_type="cuda", dtype=torch.bfloat16):
         outside_recalled_inside_out = memory.out(outside["recalled"])
         actual_recalled_inside_out = memory.out(actual_reference["recalled"])
         production_recalled_inside_out = memory.out(production["recalled"])
+
+    if outside_projection["supported"]:
+        outside_projection_comparison: dict[str, Any] = {
+            "outside_supported": True,
+            "stats": _stats(
+                outside_recalled_inside_out,
+                outside_projection["output"],
+                atol=atol,
+                rtol=rtol,
+            ),
+        }
+    else:
+        outside_projection_comparison = {
+            "outside_supported": False,
+            "outside_error_type": outside_projection["error_type"],
+            "outside_error": outside_projection["error"],
+            "input_dtype": outside_projection["input_dtype"],
+            "weight_dtype": outside_projection["weight_dtype"],
+            "inside_output_dtype": str(outside_recalled_inside_out.dtype),
+            "inside_output_shape": list(outside_recalled_inside_out.shape),
+        }
 
     result = {
         "contract": cpu_contract_preflight(),
@@ -386,47 +460,73 @@ def run_localization() -> dict[str, Any]:
         "keys_vs_reference_backend_reuse": _stats(
             reference_full_backend.normalized_old_keys, keys
         ),
+        "outside_tail_matches_frozen_reference_recalled": _stats(
+            outside_reference_recalled, outside["recalled"], atol=0.0, rtol=0.0
+        ),
+        "outside_tail_matches_frozen_reference_indices": bool(
+            torch.equal(outside_reference_indices, outside["top_indices"])
+        ),
         "actual_reference_capture_vs_backend_final": _stats(
-            reference_full_backend.recalled, actual_reference["output"], atol=atol, rtol=rtol
+            reference_full_backend.recalled,
+            actual_reference["output"],
+            atol=atol,
+            rtol=rtol,
         ),
         "production_capture_vs_backend_final": _stats(
-            production_full_backend.recalled, production["output"], atol=atol, rtol=rtol
+            production_full_backend.recalled,
+            production["output"],
+            atol=atol,
+            rtol=rtol,
         ),
         "actual_reference_vs_outside_checkpoints": inside_vs_outside,
         "first_differing_checkpoint_actual_reference_vs_outside": first_differing_checkpoint,
         "same_similarity_inside_vs_outside_pre_out": _stats(
-            same_similarity_inside["recalled"], outside["recalled"], atol=atol, rtol=rtol
+            same_similarity_inside["recalled"],
+            outside["recalled"],
+            atol=atol,
+            rtol=rtol,
         ),
         "actual_reference_vs_outside_pre_out": _stats(
-            actual_reference["recalled"], outside["recalled"], atol=atol, rtol=rtol
+            actual_reference["recalled"],
+            outside["recalled"],
+            atol=atol,
+            rtol=rtol,
         ),
         "actual_reference_vs_production_pre_out": _stats(
-            actual_reference["recalled"], production["recalled"], atol=atol, rtol=rtol
+            actual_reference["recalled"],
+            production["recalled"],
+            atol=atol,
+            rtol=rtol,
         ),
         "outside_vs_production_pre_out": _stats(
             outside["recalled"], production["recalled"], atol=atol, rtol=rtol
         ),
         "actual_reference_vs_production_final": _stats(
-            actual_reference["output"], production["output"], atol=atol, rtol=rtol
+            actual_reference["output"],
+            production["output"],
+            atol=atol,
+            rtol=rtol,
         ),
         "actual_reference_vs_production_selection": selection,
         "actual_reference_top_indices_vs_production_bit_equal": bool(
             torch.equal(actual_reference["top_indices"], production["top_indices"])
         ),
-        "outside_recalled_memory_out_inside_vs_outside_autocast": _stats(
-            outside_recalled_inside_out,
-            outside_recalled_outside_out,
-            atol=atol,
-            rtol=rtol,
-        ),
+        "outside_recalled_memory_out_inside_vs_outside_autocast": outside_projection_comparison,
         "same_autocast_memory_out_actual_vs_production_recalled": _stats(
             actual_recalled_inside_out,
             production_recalled_inside_out,
             atol=atol,
             rtol=rtol,
         ),
+        "projection_weight_unchanged": bool(
+            torch.equal(memory.out.weight.detach(), weight_before)
+        ),
+        "memory_training_state_unchanged": bool(
+            bool(memory.training) == memory_training_before
+        ),
         "localization_only": True,
         "timing_performed": False,
+        "profiling_performed": False,
         "performance_decision": None,
         "candidate_acceptance_changed": False,
         "production_backend_modified": False,
