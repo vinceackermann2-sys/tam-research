@@ -1,0 +1,193 @@
+name: AERA v26.3 issue442 repair3 full-row subgate localization
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v26-3-issue442-repair3-full-row-subgate-localize
+  cancel-in-progress: false
+
+jobs:
+  localize:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-3-repair3-full-row-subgate-localize-l4]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue442 launcher
+        run: python -m py_compile modal_aera_v26_3_repair3_full_row_subgate_localize_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue442 one-attempt localization boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Issue #442 permits Actions attempt 1 only; no workflow retry." >&2
+            exit 1
+          fi
+
+          prereg_title="$(gh api "repos/${GITHUB_REPOSITORY}/issues/442" --jq '.title')"
+          test "${prereg_title}" = "[research] AERA-v26.3 post-#439 full-row subgate localization for #438 discrepancy"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/441" --jq '.title')" = "[aera-v26-3-repair3-bf16-arithmetic-localize-l4] sole issue439 diagnostic trigger"
+          source_run_conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33512923203" --jq '.conclusion')"
+          source_run_attempt="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33512923203" --jq '.run_attempt')"
+          source_run_head="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33512923203" --jq '.head_sha')"
+          test "${source_run_conclusion}" = "success"
+          test "${source_run_attempt}" = "1"
+          test "${source_run_head}" = "58e7a2d15b7bc935eecb3ffce9097111adc8bcd7"
+
+          source_l4_step="$(
+            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33512923203/jobs" \
+              --jq '.jobs[] | select(.id == 99872764955) | .steps[] | select(.name == "Run sole issue439 repair3 BF16 arithmetic localization") | .conclusion'
+          )"
+          test "${source_l4_step}" = "success"
+
+          source_result_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/441/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v26.3 #439 repair3 BF16 arithmetic localization**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${source_result_comment_count}" -eq 1
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33510242472" --jq '.conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33510242472" --jq '.run_attempt')" = "1"
+
+          trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-3-repair3-full-row-subgate-localize-l4]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          if [ "${trigger_count}" != "1" ]; then
+            echo "Expected exactly one issue442 full-row localization trigger, found ${trigger_count}." >&2
+            exit 1
+          fi
+
+          result_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments?per_page=100" \
+              --jq '.[] | select(.body | startswith("🔬 **AERA-v26.3 #442 full-row subgate localization**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${result_comment_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(
+            printf '%s\n' "${event_body}" \
+              | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' \
+              | head -n 1
+          )"
+          if [ -z "${bound_main}" ]; then
+            echo "Trigger must contain exact Bind main line." >&2
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 58e7a2d15b7bc935eecb3ffce9097111adc8bcd7 HEAD
+
+          test "$(git hash-object tam_research/aera_hardware_core_v26_3_ficem_read_triton.py)" = "b6b37f0379b280eea4e5c2b16f349951dadc4df9"
+          test "$(git hash-object tam_research/aera_v26_3_ficem_read_probe.py)" = "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b"
+          test -f tam_research/aera_v26_3_repair3_full_row_subgate_localize.py
+          test -f modal_aera_v26_3_repair3_full_row_subgate_localize_app.py
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record frozen issue442 guard (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          head_sha="$(git rev-parse HEAD)"
+          body="🔒 **AERA-v26.3 #442 localization gate** — checked-out main **${head_sha}**. Frozen production repair3 backend/probe; exact ordinary row-5 \`bfloat16_batch8_mixed\` fixture; primary evidence is the unmodified frozen \`correctness_row()\` dictionary. One NVIDIA L4 <=180 seconds, Actions attempt 1 only. No timing/performance/model/checkpoint/corpus/training/scientific-seed/freeze/S2/100M/breakthrough authorization."
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="${body}" || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue442 full-row subgate localization
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_3_repair3_full_row_subgate_localize_app.py 2>&1 | tee /tmp/aera-v26-3-issue442-full-row-localize.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_ISSUE442_REPAIR3_FULL_ROW_SUBGATE_LOCALIZE_RESULT_JSON=' /tmp/aera-v26-3-issue442-full-row-localize.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Record issue442 localization (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/result-comment.md
+          import json
+          from pathlib import Path
+          lines = Path('/tmp/aera-v26-3-issue442-full-row-localize.log').read_text(errors='replace').splitlines()
+          marker = 'AERA_V26_ISSUE442_REPAIR3_FULL_ROW_SUBGATE_LOCALIZE_SUMMARY_JSON='
+          rows = [line[len(marker):] for line in lines if line.startswith(marker)]
+          if not rows:
+              raise SystemExit('issue442 summary marker missing')
+          p = json.loads(rows[-1])
+          final = p['final_learned_out_error']
+          pre = p['pre_out_recalled_error']
+          out = [
+              '🔬 **AERA-v26.3 #442 full-row subgate localization**',
+              '',
+              f'- row: **{p["target_row"]}** on **{p["device"]}**',
+              f'- frozen correctness_row PASS: **{p["primary_pass"]}**',
+              f'- false subgates: **{p["primary_false_subgates"]}**',
+              f'- projected query exact: **{p["projected_query_exact"]}**; normalized keys exact: **{p["normalized_old_keys_exact"]}**',
+              f'- pre-out: allclose **{pre["allclose"]}**, max abs **{pre["max_abs_error"]:.6g}**, failing elements **{pre["failing_element_count"]}**',
+              f'- final learned out: allclose **{final["allclose"]}**, max abs **{final["max_abs_error"]:.6g}**, failing elements **{final["failing_element_count"]}**',
+              f'- sequence replay target PASS: **{p["sequence_target_pass"]}**; false subgates: **{p["sequence_target_false_subgates"]}**',
+              f'- sequence target fixture matches primary: **{p["sequence_target_fixture_matches_primary"]}**; correctness dict matches primary: **{p["sequence_target_matches_primary_correctness"]}**',
+              '',
+              '- Localization only. No timing or performance decision was made.',
+              '- Durable result + authoritative marker are the record. No rerun is authorized.',
+          ]
+          print('\n'.join(out))
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/result-comment.md)" || true
+
+      - name: Record issue442 workflow failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.3 #442 localization failed before an authoritative result marker.** No rerun, retry, redispatch, alternate trigger, or timeout increase is authorized; continuation requires a new preregistration." || true
