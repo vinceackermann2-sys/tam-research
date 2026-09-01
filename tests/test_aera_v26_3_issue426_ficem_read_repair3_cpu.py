@@ -18,6 +18,8 @@ from tam_research.aera_hardware_core_v26_3_ficem_read_triton import (
 )
 
 # #429/#431 migrate only historical CPU assertions; #426 runtime scope stays unchanged.
+# #464 adds one explicit successor-aware migration: repair3 source-shape assertions
+# remain mandatory unless the separately preregistered repair5 marker is present.
 ROOT = Path(__file__).resolve().parents[1]
 BACKEND_PATH = ROOT / "tam_research" / "aera_hardware_core_v26_3_ficem_read_triton.py"
 PROBE_PATH = ROOT / "tam_research" / "aera_v26_3_ficem_read_probe.py"
@@ -35,6 +37,37 @@ def _kernel_source() -> str:
     return source.split("def _ficem_read_tail_kernel(", 1)[1].split(
         "def triton_ficem_read_available", 1
     )[0]
+
+
+def _repair5_active(protocol: dict[str, object]) -> bool:
+    return protocol.get("bf16_actual_autocast_tail_repair5") is True
+
+
+def _assert_repair5_successor_contract(protocol: dict[str, object]) -> None:
+    # This is deliberately not a generic future-version escape hatch. Only the
+    # explicit #463/#post-#464 repair5 marker may supersede repair3 runtime shape.
+    assert protocol["bf16_actual_autocast_tail_repair5"] is True
+    assert protocol["bf16_reference_rounding_repair3"] is True
+    assert protocol["bf16_product_rounding_repair4"] is True
+    assert protocol["bf16_product_rounding_active_after_repair5"] is False
+    assert protocol["float32_path_changed_by_repair5"] is False
+    assert protocol["read_tail_triton_launches_target"] == 1
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["write_backend_changed"] is False
+    assert protocol["training_backend_changed"] is False
+    assert protocol["persistent_state_changed"] is False
+    assert protocol["gpu_authorized_by_module"] is False
+    assert protocol["scientific_training_authorized"] is False
+    assert protocol["end_to_end_systems_authorized"] is False
+    assert protocol["architecture_freeze_authorized"] is False
+    assert protocol["s2_authorized"] is False
+    assert protocol["fresh_scientific_seed_authorized"] is False
+    assert protocol["100m_authorized"] is False
+    assert protocol["breakthrough_proven"] is False
 
 
 def test_issue426_frozen_ficem_constants_and_geometry_remain_exact():
@@ -66,6 +99,11 @@ def test_issue426_keeps_exactly_one_fused_triton_kernel():
 
 
 def test_issue426_bf16_has_explicit_reference_visible_rounding_checkpoints():
+    protocol = fused_ficem_read_v26_3_protocol()
+    if _repair5_active(protocol):
+        _assert_repair5_successor_contract(protocol)
+        return
+
     kernel = _kernel_source()
     assert "if IS_BF16:" in kernel
     assert "similarity_visible = similarity.to(tl.bfloat16)" in kernel
