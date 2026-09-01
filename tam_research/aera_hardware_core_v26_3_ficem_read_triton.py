@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-"""AERA-v26.3 inference-only fused FICEM read tail for issue #411.
+"""AERA-v26.3 inference-only fused FICEM read tail.
 
 The learned identity/context projections, key normalization, similarity einsum and
-learned output projection remain the exact merged PyTorch operations.  Only the
+learned output projection remain the exact merged PyTorch operations. Only the
 nonempty post-similarity top-4 read tail is replaced by one direct Triton kernel.
 Writes and every differentiable/training path delegate to the final v26 reference.
 
-Issue #414 repairs only Triton compilation: the frozen read constants are explicit
-constexpr kernel parameters.  No benchmark, scientific, state, or routing semantic
-is changed.
+Issue #414 made the frozen read constants explicit Triton constexpr parameters.
+Issue #426 keeps the same one-kernel architecture and adds a BF16-only execution
+branch whose visible rounding checkpoints follow the frozen PyTorch diagnostic
+reference localized by #423. The float32 execution path remains unchanged.
 """
 
 from typing import Any
@@ -56,6 +57,7 @@ if triton is not None:
         SLOT_BLOCK: tl.constexpr,
         DIM_BLOCK: tl.constexpr,
         WRITE_INDICES: tl.constexpr,
+        IS_BF16: tl.constexpr,
         MIN_STRENGTH: tl.constexpr,
         READ_TEMPERATURE: tl.constexpr,
         READ_TOP_K: tl.constexpr,
@@ -69,25 +71,41 @@ if triton is not None:
             similarity_ptr + query_row * CAPACITY + slot_offsets,
             mask=slot_mask,
             other=-float("inf"),
-        ).to(tl.float32)
+        )
         strengths = tl.load(
             strengths_ptr + batch_row * CAPACITY + slot_offsets,
             mask=slot_mask,
             other=MIN_STRENGTH,
-        ).to(tl.float32)
+        )
         valid = tl.load(
             valid_ptr + batch_row * CAPACITY + slot_offsets,
             mask=slot_mask,
             other=0,
         )
 
-        # Historical #411 source-contract anchor:
-        # tl.log(tl.maximum(strengths, MIN_STRENGTH))
-        # The upper clamp was already frozen by #411; reachable persisted strengths
-        # are <=1, and repair1 makes the literal implementation match that contract.
+        # Historical #411/#414 source-contract anchor: exact two-sided clamp.
         clamped_strengths = tl.minimum(tl.maximum(strengths, MIN_STRENGTH), 1.0)
-        strength_bias = tl.log(clamped_strengths)
-        logits = (similarity + strength_bias) / READ_TEMPERATURE
+
+        if IS_BF16:
+            # #423 localized two distinct-boundary mismatches to the region where
+            # the old candidate promoted BF16 source values before logit creation.
+            # Evaluate transcendental math with sufficient internal precision, then
+            # expose the same BF16-visible checkpoints as the frozen reference.
+            similarity_visible = similarity.to(tl.bfloat16)
+            clamped_visible = clamped_strengths.to(tl.bfloat16)
+            strength_bias = tl.log(clamped_visible.to(tl.float32)).to(tl.bfloat16)
+            logits = (
+                (similarity_visible + strength_bias).to(tl.bfloat16)
+                / READ_TEMPERATURE
+            ).to(tl.bfloat16)
+        else:
+            # Frozen pre-#426 float32/float16 execution behavior: promote the
+            # candidate arithmetic to FP32 before logit construction.
+            similarity_visible = similarity.to(tl.float32)
+            clamped_visible = clamped_strengths.to(tl.float32)
+            strength_bias = tl.log(clamped_visible)
+            logits = (similarity_visible + strength_bias) / READ_TEMPERATURE
+
         logits = tl.where(slot_mask & valid, logits, -float("inf"))
 
         index0 = tl.argmax(logits, axis=0, tie_break_left=True)
@@ -107,10 +125,18 @@ if triton is not None:
         valid2 = tl.load(valid_ptr + batch_row * CAPACITY + index2)
         valid3 = tl.load(valid_ptr + batch_row * CAPACITY + index3)
 
-        safe0 = tl.where(valid0, logit0, -1.0e9)
-        safe1 = tl.where(valid1, logit1, -1.0e9)
-        safe2 = tl.where(valid2, logit2, -1.0e9)
-        safe3 = tl.where(valid3, logit3, -1.0e9)
+        if IS_BF16:
+            # Reference boundary: selected BF16 logits become FP32 only for softmax.
+            safe0 = tl.where(valid0, logit0, -1.0e9).to(tl.bfloat16).to(tl.float32)
+            safe1 = tl.where(valid1, logit1, -1.0e9).to(tl.bfloat16).to(tl.float32)
+            safe2 = tl.where(valid2, logit2, -1.0e9).to(tl.bfloat16).to(tl.float32)
+            safe3 = tl.where(valid3, logit3, -1.0e9).to(tl.bfloat16).to(tl.float32)
+        else:
+            safe0 = tl.where(valid0, logit0, -1.0e9).to(tl.float32)
+            safe1 = tl.where(valid1, logit1, -1.0e9).to(tl.float32)
+            safe2 = tl.where(valid2, logit2, -1.0e9).to(tl.float32)
+            safe3 = tl.where(valid3, logit3, -1.0e9).to(tl.float32)
+
         maximum = tl.maximum(tl.maximum(safe0, safe1), tl.maximum(safe2, safe3))
         exp0 = tl.exp(safe0 - maximum)
         exp1 = tl.exp(safe1 - maximum)
@@ -122,12 +148,44 @@ if triton is not None:
         weight1 = tl.where(valid1, exp1 / softmax_sum, 0.0)
         weight2 = tl.where(valid2, exp2 / softmax_sum, 0.0)
         weight3 = tl.where(valid3, exp3 / softmax_sum, 0.0)
-        valid_weight_sum = weight0 + weight1 + weight2 + weight3
-        denominator = tl.maximum(valid_weight_sum, 1.0e-9)
-        weight0 = weight0 / denominator
-        weight1 = weight1 / denominator
-        weight2 = weight2 / denominator
-        weight3 = weight3 / denominator
+
+        if IS_BF16:
+            # Frozen reference performs softmax in FP32 then returns weights to the
+            # source dtype before validity masking / renormalization. Keep those
+            # BF16-visible values, accumulate their sum in FP32, round the visible
+            # denominator back to BF16, and expose BF16 final weights.
+            weight0_visible = weight0.to(tl.bfloat16)
+            weight1_visible = weight1.to(tl.bfloat16)
+            weight2_visible = weight2.to(tl.bfloat16)
+            weight3_visible = weight3.to(tl.bfloat16)
+            valid_weight_sum = (
+                weight0_visible.to(tl.float32)
+                + weight1_visible.to(tl.float32)
+                + weight2_visible.to(tl.float32)
+                + weight3_visible.to(tl.float32)
+            ).to(tl.bfloat16)
+            denominator = tl.maximum(
+                valid_weight_sum.to(tl.float32), 1.0e-9
+            ).to(tl.bfloat16)
+            weight0 = (
+                weight0_visible.to(tl.float32) / denominator.to(tl.float32)
+            ).to(tl.bfloat16)
+            weight1 = (
+                weight1_visible.to(tl.float32) / denominator.to(tl.float32)
+            ).to(tl.bfloat16)
+            weight2 = (
+                weight2_visible.to(tl.float32) / denominator.to(tl.float32)
+            ).to(tl.bfloat16)
+            weight3 = (
+                weight3_visible.to(tl.float32) / denominator.to(tl.float32)
+            ).to(tl.bfloat16)
+        else:
+            valid_weight_sum = weight0 + weight1 + weight2 + weight3
+            denominator = tl.maximum(valid_weight_sum, 1.0e-9)
+            weight0 = weight0 / denominator
+            weight1 = weight1 / denominator
+            weight2 = weight2 / denominator
+            weight3 = weight3 / denominator
 
         dim_offsets = tl.arange(0, DIM_BLOCK)
         dim_mask = dim_offsets < MEMORY_DIM
@@ -136,27 +194,30 @@ if triton is not None:
             values_ptr + base + index0 * MEMORY_DIM + dim_offsets,
             mask=dim_mask,
             other=0.0,
-        ).to(tl.float32)
+        )
         value1 = tl.load(
             values_ptr + base + index1 * MEMORY_DIM + dim_offsets,
             mask=dim_mask,
             other=0.0,
-        ).to(tl.float32)
+        )
         value2 = tl.load(
             values_ptr + base + index2 * MEMORY_DIM + dim_offsets,
             mask=dim_mask,
             other=0.0,
-        ).to(tl.float32)
+        )
         value3 = tl.load(
             values_ptr + base + index3 * MEMORY_DIM + dim_offsets,
             mask=dim_mask,
             other=0.0,
-        ).to(tl.float32)
+        )
+
+        # Both branches accumulate in FP32. In the BF16 branch both multiplicands
+        # are first constrained to their reference-visible BF16 values.
         recalled = (
-            weight0 * value0
-            + weight1 * value1
-            + weight2 * value2
-            + weight3 * value3
+            weight0.to(tl.float32) * value0.to(tl.float32)
+            + weight1.to(tl.float32) * value1.to(tl.float32)
+            + weight2.to(tl.float32) * value2.to(tl.float32)
+            + weight3.to(tl.float32) * value3.to(tl.float32)
         )
         tl.store(
             recalled_ptr + query_row * MEMORY_DIM + dim_offsets,
@@ -219,12 +280,7 @@ def fused_ficem_read_tail(
     *,
     return_top_indices: bool = False,
 ) -> tuple[torch.Tensor, torch.Tensor | None]:
-    """Run the one-kernel post-similarity FICEM read tail.
-
-    The optional index output exists only for synthetic correctness diagnostics and
-    is emitted by the same kernel/selection logic.  Production backend calls do not
-    allocate a top-index tensor.
-    """
+    """Run the one-kernel post-similarity FICEM read tail."""
     if triton is None or _ficem_read_tail_kernel is None:
         raise RuntimeError("Triton FICEM read kernel is unavailable")
     if not torch.cuda.is_available():
@@ -258,6 +314,7 @@ def fused_ficem_read_tail(
         SLOT_BLOCK=64,
         DIM_BLOCK=64,
         WRITE_INDICES=return_top_indices,
+        IS_BF16=similarity.dtype is torch.bfloat16,
         MIN_STRENGTH=MIN_STRENGTH,
         READ_TEMPERATURE=READ_TEMPERATURE,
         READ_TOP_K=READ_TOP_K,
@@ -371,6 +428,8 @@ def fused_ficem_read_v26_3_protocol() -> dict[str, Any]:
         "read_temperature": READ_TEMPERATURE,
         "min_strength": MIN_STRENGTH,
         "read_tail_triton_launches_target": 1,
+        "bf16_reference_rounding_repair3": True,
+        "float32_path_changed_by_repair3": False,
         "address_projection_changed": False,
         "key_normalization_changed": False,
         "similarity_einsum_changed": False,
