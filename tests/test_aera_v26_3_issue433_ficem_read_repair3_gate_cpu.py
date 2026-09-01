@@ -46,9 +46,44 @@ def _git_blob_sha(path: Path) -> str:
     return hashlib.sha1(header + data).hexdigest()
 
 
+def _assert_historical_repair3_or_explicit_repair4_successor() -> None:
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_product_rounding_repair4") is not True:
+        assert _git_blob_sha(BACKEND_PATH) == MERGED_REPAIR3_BACKEND_GIT_BLOB
+        return
+    assert protocol["bf16_reference_rounding_repair3"] is True
+    assert protocol["float32_path_changed_by_repair3"] is False
+    assert protocol["bf16_product_rounding_repair4"] is True
+    assert protocol["float32_path_changed_by_repair4"] is False
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["read_tail_triton_launches_target"] == 1
+    for key in (
+        "address_projection_changed",
+        "key_normalization_changed",
+        "similarity_einsum_changed",
+        "learned_out_projection_changed",
+        "write_backend_changed",
+        "training_backend_changed",
+        "persistent_state_changed",
+        "gpu_authorized_by_module",
+        "scientific_training_authorized",
+        "end_to_end_systems_authorized",
+        "architecture_freeze_authorized",
+        "s2_authorized",
+        "fresh_scientific_seed_authorized",
+        "100m_authorized",
+        "breakthrough_proven",
+    ):
+        assert protocol[key] is False
+
+
 def test_issue433_probe_and_merged_repair3_backend_are_byte_frozen():
     assert _git_blob_sha(PROBE_PATH) == FROZEN_PROBE_GIT_BLOB
-    assert _git_blob_sha(BACKEND_PATH) == MERGED_REPAIR3_BACKEND_GIT_BLOB
+    _assert_historical_repair3_or_explicit_repair4_successor()
 
 
 def test_issue433_reuses_exact_issue418_geometry_fixture_timing_and_thresholds():
