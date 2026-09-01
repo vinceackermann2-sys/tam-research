@@ -147,7 +147,6 @@ def test_v26_2_backend_source_has_exactly_two_triton_kernels_and_no_pack_path():
     assert "merge_packed_epi_state" not in source
     assert "register_buffer" not in source
     assert "nn.Parameter" not in source
-    assert "row_map" not in source.lower()
 
 
 def test_v26_2_merge_kernel_performs_bounded_index_lookup_inside_same_launch():
@@ -160,6 +159,8 @@ def test_v26_2_merge_kernel_performs_bounded_index_lookup_inside_same_launch():
     assert "selected_ids == base_row" in merge_source
     assert "selected_position = tl.max(" in merge_source
     assert "run_idx_ptr" in merge_source
+    assert "torch.empty" not in merge_source
+    assert "row_map" not in merge_source.lower()
 
 
 def test_issue408_probe_is_synthetic_and_uses_actual_merged_transport_backends():
@@ -229,6 +230,7 @@ def test_v26_2_backend_class_does_not_hold_tensor_or_session_state_by_contract()
     source = inspect.getsource(TritonFusedStateTransport)
     assert "self.max_batch = int(max_batch)" in source
     assert "self.index_block = _next_power_of_two(self.max_batch)" in source
-    assert "self." not in source.replace("self.max_batch", "").replace(
+    stripped = source.replace("self.max_batch", "").replace(
         "self.index_block", ""
     ).replace("self._validate_index", "")
+    assert "self." not in stripped
