@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-"""Issue #411 production-shaped synthetic gate for the fused FICEM read tail."""
+"""Issue #411 production-shaped synthetic gate for the fused FICEM read tail.
+
+Issue #419 repairs only ordinary performance-fixture eligibility: each frozen row
+uses a deterministic row-local generator and accepts the first full synthetic case
+whose exact reference fourth/fifth boundary is distinct. Candidate output, latency,
+profiling and PASS state never participate in fixture selection.
+"""
 
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -42,6 +48,7 @@ TIME = 256
 BATCH_SIZES: tuple[int, ...] = (8, 64)
 DTYPE_NAMES: tuple[str, ...] = ("float32", "bfloat16")
 VALIDITY_KINDS: tuple[str, ...] = ("mixed", "full")
+MAX_FIXTURE_CANDIDATES = 32
 
 WARMUP_CALLS = 10
 TIMED_ROUNDS = 5
@@ -115,6 +122,10 @@ def issue411_protocol() -> dict[str, Any]:
             "fresh_scientific_seed_authorized": False,
             "100m_authorized": False,
             "breakthrough_proven": False,
+            "repair2_fixture_eligibility_only": True,
+            "max_fixture_candidates_per_row": MAX_FIXTURE_CANDIDATES,
+            "fixture_selection_reference_only": True,
+            "fixture_selection_candidate_blind": True,
         }
     )
     return protocol
@@ -129,6 +140,8 @@ def cpu_contract_preflight() -> dict[str, Any]:
         raise RuntimeError("issue411 dtype set drifted")
     if VALIDITY_KINDS != ("mixed", "full"):
         raise RuntimeError("issue411 validity rows drifted")
+    if MAX_FIXTURE_CANDIDATES != 32:
+        raise RuntimeError("issue419 fixture-candidate cap drifted")
     if (WARMUP_CALLS, TIMED_ROUNDS, CALLS_PER_ROUND) != (10, 5, 100):
         raise RuntimeError("issue411 timing protocol drifted")
     if (FP32_ATOL, FP32_RTOL, BF16_ATOL, BF16_RTOL) != (
@@ -285,99 +298,80 @@ def _diagnostic_tail_inputs(memory: CoalescedFICEMMemory, case: ReadCase):
     return query, keys, similarity.contiguous()
 
 
-def _reference_masked_logits(
+def _reference_boundary_gap(
     similarity: torch.Tensor,
     state: ContextualEpisodicMemoryState,
-) -> torch.Tensor:
-    """Exact reference logits used only for #418 tie-aware top-4 adjudication."""
+) -> tuple[bool, float]:
+    """Return exact reference eligibility and minimum fourth-minus-fifth gap."""
     strength_bias = torch.log(state.strengths.clamp(MIN_STRENGTH, 1.0))[:, None, :]
     logits = (similarity + strength_bias) / READ_TEMPERATURE
-    return logits.masked_fill(~state.valid[:, None, :], -torch.inf)
+    masked = logits.masked_fill(~state.valid[:, None, :], -torch.inf)
+    values = torch.topk(masked, k=READ_TOP_K + 1, dim=-1).values
+    gap = values[..., READ_TOP_K - 1] - values[..., READ_TOP_K]
+    distinct = bool(torch.all(values[..., READ_TOP_K - 1] != values[..., READ_TOP_K]))
+    return distinct, float(gap.float().min())
 
 
-def _tie_aware_top4_equivalence(
-    masked_logits: torch.Tensor,
-    valid: torch.Tensor,
-    reference_indices: torch.Tensor,
-    candidate_indices: torch.Tensor,
-) -> dict[str, Any]:
-    """Adjudicate top-4 sets without assigning semantics to PyTorch tie ordering.
+def _boundary_is_distinct(similarity: torch.Tensor, state: ContextualEpisodicMemoryState) -> bool:
+    distinct, _ = _reference_boundary_gap(similarity, state)
+    return distinct
 
-    Distinct fourth/fifth boundaries retain #411's exact selected-set rule. At an
-    exact tie, the candidate must choose a mathematically valid top-4 set, while the
-    full recalled/final tensors remain subject to the unchanged numerical gates in
-    ``correctness_row``.
+
+def _row_id(dtype_name: str, batch_size: int, validity_kind: str) -> int:
+    dtype_index = DTYPE_NAMES.index(dtype_name)
+    batch_index = BATCH_SIZES.index(batch_size)
+    validity_index = VALIDITY_KINDS.index(validity_kind)
+    return dtype_index * (len(BATCH_SIZES) * len(VALIDITY_KINDS)) + batch_index * len(
+        VALIDITY_KINDS
+    ) + validity_index
+
+
+def _row_seed(dtype_name: str, batch_size: int, validity_kind: str) -> int:
+    """Stable design-only seed derived solely from DESIGN_SEED + frozen row identity."""
+    return DESIGN_SEED + 10_000 * (_row_id(dtype_name, batch_size, validity_kind) + 1)
+
+
+def _select_eligible_case(
+    *,
+    memory: CoalescedFICEMMemory,
+    dtype_name: str,
+    batch_size: int,
+    validity_kind: str,
+    device: torch.device,
+) -> tuple[ReadCase, dict[str, Any]]:
+    """Choose a tie-free fixture using the exact reference computation only.
+
+    This function intentionally has no candidate backend argument and never calls
+    Triton. Rejected fixtures are discarded before correctness, timing or profiling.
     """
-    if masked_logits.ndim != 3:
-        raise ValueError("masked_logits must be [batch,time,capacity]")
-    if valid.shape != (masked_logits.size(0), masked_logits.size(2)):
-        raise ValueError("valid shape must match masked-logit batch/capacity")
-    expected_index_shape = (*masked_logits.shape[:2], READ_TOP_K)
-    if reference_indices.shape != expected_index_shape:
-        raise ValueError("reference_indices must be [batch,time,top_k]")
-    if candidate_indices.shape != expected_index_shape:
-        raise ValueError("candidate_indices must be [batch,time,top_k]")
-
-    capacity = int(masked_logits.size(-1))
-    candidate_long = candidate_indices.to(torch.long)
-    reference_long = reference_indices.to(torch.long)
-    candidate_in_range = (candidate_long >= 0) & (candidate_long < capacity)
-    safe_candidate = candidate_long.clamp(0, capacity - 1)
-
-    raw_set_equal = torch.all(
-        torch.sort(reference_long, dim=-1).values
-        == torch.sort(safe_candidate, dim=-1).values,
-        dim=-1,
-    ) & torch.all(candidate_in_range, dim=-1)
-
-    boundary_values = torch.topk(masked_logits, k=READ_TOP_K + 1, dim=-1).values
-    cutoff = boundary_values[..., READ_TOP_K - 1]
-    fifth = boundary_values[..., READ_TOP_K]
-    distinct = cutoff != fifth
-    tied = ~distinct
-
-    sorted_candidate = torch.sort(safe_candidate, dim=-1).values
-    unique = torch.all(sorted_candidate[..., 1:] != sorted_candidate[..., :-1], dim=-1)
-    expanded_valid = valid[:, None, :].expand(-1, masked_logits.size(1), -1)
-    selected_valid = torch.all(expanded_valid.gather(-1, safe_candidate), dim=-1)
-    selected_logits = masked_logits.gather(-1, safe_candidate)
-    selected_meet_cutoff = torch.all(selected_logits >= cutoff.unsqueeze(-1), dim=-1)
-
-    slot_ids = torch.arange(capacity, device=masked_logits.device, dtype=torch.long)
-    candidate_membership = torch.any(
-        safe_candidate.unsqueeze(-1) == slot_ids.view(1, 1, 1, capacity),
-        dim=-2,
+    row_id = _row_id(dtype_name, batch_size, validity_kind)
+    row_seed = _row_seed(dtype_name, batch_size, validity_kind)
+    generator = torch.Generator().manual_seed(row_seed)
+    for ordinal in range(1, MAX_FIXTURE_CANDIDATES + 1):
+        case = make_case(
+            dtype_name=dtype_name,
+            batch_size=batch_size,
+            validity_kind=validity_kind,
+            generator=generator,
+            device=device,
+        )
+        _, _, similarity = _diagnostic_tail_inputs(memory, case)
+        distinct, min_gap = _reference_boundary_gap(similarity, case.state)
+        if distinct:
+            return case, {
+                "row_id": row_id,
+                "row_seed": row_seed,
+                "selected_candidate_ordinal": ordinal,
+                "max_fixture_candidates": MAX_FIXTURE_CANDIDATES,
+                "min_reference_fourth_minus_fifth_logit_gap": min_gap,
+                "reference_only": True,
+                "candidate_output_used": False,
+                "selected_before_correctness_timing_profiling": True,
+            }
+    raise RuntimeError(
+        "issue419 found no tie-free reference fixture within the frozen 32-candidate cap "
+        f"for {_row_key(dtype_name, batch_size, validity_kind)}"
     )
-    strictly_above = masked_logits > cutoff.unsqueeze(-1)
-    strict_above_included = torch.all(~strictly_above | candidate_membership, dim=-1)
-
-    tied_semantically_valid = (
-        torch.all(candidate_in_range, dim=-1)
-        & unique
-        & selected_valid
-        & selected_meet_cutoff
-        & strict_above_included
-    )
-    selection_ok = torch.where(distinct, raw_set_equal, tied_semantically_valid)
-
-    tie_count = int(tied.sum())
-    total_count = int(tied.numel())
-    tied_raw_match_count = int((raw_set_equal & tied).sum())
-    return {
-        "selection_semantically_equivalent": bool(torch.all(selection_ok)),
-        "raw_selected_set_equal_all_queries": bool(torch.all(raw_set_equal)),
-        "distinct_selected_set_exact": bool(torch.all(raw_set_equal | tied)),
-        "tied_selection_semantically_valid": bool(
-            torch.all(tied_semantically_valid | distinct)
-        ),
-        "tie_query_count": tie_count,
-        "total_query_count": total_count,
-        "tie_query_fraction": (tie_count / total_count) if total_count else 0.0,
-        "tied_raw_selected_set_match_count": tied_raw_match_count,
-        "tied_raw_selected_set_match_fraction": (
-            tied_raw_match_count / tie_count if tie_count else 1.0
-        ),
-    }
 
 
 def correctness_row(
@@ -395,6 +389,8 @@ def correctness_row(
     torch.cuda.synchronize()
 
     query, keys, similarity = _diagnostic_tail_inputs(memory, case)
+    if not _boundary_is_distinct(similarity, case.state):
+        raise RuntimeError("issue411 synthetic row has a tied fourth/fifth read boundary")
     with torch.no_grad():
         reference_recalled, reference_indices = _reference_tail(similarity, case.state)
         candidate_recalled, candidate_indices = fused_ficem_read_tail(
@@ -408,14 +404,11 @@ def correctness_row(
     if candidate_indices is None:
         raise RuntimeError("issue411 candidate did not return diagnostic top indices")
 
-    masked_logits = _reference_masked_logits(similarity, case.state)
-    selection = _tie_aware_top4_equivalence(
-        masked_logits,
-        case.state.valid,
-        reference_indices,
-        candidate_indices,
-    )
     atol, rtol = _tolerances(case.dtype_name)
+    selected_set_exact = torch.equal(
+        torch.sort(reference_indices, dim=-1).values,
+        torch.sort(candidate_indices.to(torch.long), dim=-1).values,
+    )
     recalled_close = torch.allclose(
         reference_recalled, candidate_recalled, atol=atol, rtol=rtol
     )
@@ -462,7 +455,7 @@ def correctness_row(
         and candidate_result.recalled.device.type == "cuda"
     )
     passed = bool(
-        selection["selection_semantically_equivalent"]
+        selected_set_exact
         and recalled_close
         and final_close
         and reuse_exact
@@ -472,23 +465,7 @@ def correctness_row(
     )
     return {
         "pass": passed,
-        "selected_top4_set_exact": selection["raw_selected_set_equal_all_queries"],
-        "selection_semantically_equivalent": selection[
-            "selection_semantically_equivalent"
-        ],
-        "distinct_selected_set_exact": selection["distinct_selected_set_exact"],
-        "tied_selection_semantically_valid": selection[
-            "tied_selection_semantically_valid"
-        ],
-        "tie_query_count": selection["tie_query_count"],
-        "total_query_count": selection["total_query_count"],
-        "tie_query_fraction": selection["tie_query_fraction"],
-        "tied_raw_selected_set_match_count": selection[
-            "tied_raw_selected_set_match_count"
-        ],
-        "tied_raw_selected_set_match_fraction": selection[
-            "tied_raw_selected_set_match_fraction"
-        ],
+        "selected_top4_set_exact": selected_set_exact,
         "pre_out_recalled_close": recalled_close,
         "final_out_close": final_close,
         "query_and_normalized_keys_bit_exact": reuse_exact,
@@ -697,7 +674,6 @@ def run_ficem_read_probe() -> dict[str, Any]:
     memory = build_memory(device)
     reference = TorchFICEMReferenceBackend()
     candidate = TritonFICEMReadBackend()
-    generator = torch.Generator().manual_seed(DESIGN_SEED)
 
     near_tie = {
         dtype_name: near_tie_correctness(dtype_name, device)
@@ -720,14 +696,14 @@ def run_ficem_read_probe() -> dict[str, Any]:
     for dtype_name in DTYPE_NAMES:
         for batch_size in BATCH_SIZES:
             for validity_kind in VALIDITY_KINDS:
-                case = make_case(
+                key = _row_key(dtype_name, batch_size, validity_kind)
+                case, eligibility = _select_eligible_case(
+                    memory=memory,
                     dtype_name=dtype_name,
                     batch_size=batch_size,
                     validity_kind=validity_kind,
-                    generator=generator,
                     device=device,
                 )
-                key = _row_key(dtype_name, batch_size, validity_kind)
                 correctness = correctness_row(memory, case, reference, candidate)
                 if not correctness["pass"]:
                     raise RuntimeError(f"issue411 correctness failed for {key}")
@@ -761,6 +737,7 @@ def run_ficem_read_probe() -> dict[str, Any]:
                     "dtype": dtype_name,
                     "batch_size": batch_size,
                     "validity_kind": validity_kind,
+                    "eligibility": eligibility,
                     "correctness": correctness,
                     "timing": timing,
                     "latency_ratio_candidate_over_reference": float(latency_ratio),
@@ -802,10 +779,19 @@ def run_ficem_read_probe() -> dict[str, Any]:
     no_reference_tail_ops_pass = all(
         row["candidate_no_reference_tail_ops_pass"] for row in rows.values()
     )
+    eligibility_pass = all(
+        row["eligibility"]["reference_only"]
+        and not row["eligibility"]["candidate_output_used"]
+        and row["eligibility"]["selected_before_correctness_timing_profiling"]
+        and row["eligibility"]["selected_candidate_ordinal"] <= MAX_FIXTURE_CANDIDATES
+        and row["eligibility"]["min_reference_fourth_minus_fifth_logit_gap"] > 0.0
+        for row in rows.values()
+    )
     overall_pass = bool(
         correctness_pass
         and known_empty_pass
         and near_tie_pass
+        and eligibility_pass
         and row_latency_pass
         and event_ratio_pass
         and single_tail_kernel_pass
@@ -824,6 +810,7 @@ def run_ficem_read_probe() -> dict[str, Any]:
         "correctness_pass": correctness_pass,
         "known_empty_pass": known_empty_pass,
         "near_tie_pass": near_tie_pass,
+        "eligibility_pass": eligibility_pass,
         "row_latency_pass": row_latency_pass,
         "full_event_ratio_pass": event_ratio_pass,
         "single_tail_kernel_pass": single_tail_kernel_pass,
