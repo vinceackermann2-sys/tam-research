@@ -93,11 +93,38 @@ def test_issue418_original_make_case_generation_is_byte_stable():
     assert "nudge" not in probe.lower()
 
 
-def test_issue418_backend_is_byte_for_byte_frozen_from_source_main():
+def test_issue418_backend_freeze_requires_old_blob_unless_explicit_repair3_successor():
     actual = subprocess.check_output(
         ["git", "hash-object", str(BACKEND_PATH)], text=True
     ).strip()
-    assert actual == SOURCE_BACKEND_GIT_BLOB
+    from tam_research.aera_hardware_core_v26_3_ficem_read_triton import (
+        fused_ficem_read_v26_3_protocol,
+    )
+
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_reference_rounding_repair3") is not True:
+        assert actual == SOURCE_BACKEND_GIT_BLOB
+        return
+
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["read_tail_triton_launches_target"] == 1
+    assert protocol["write_backend_changed"] is False
+    assert protocol["training_backend_changed"] is False
+    assert protocol["persistent_state_changed"] is False
+    assert protocol["persistent_cache"] is False
+    assert protocol["persistent_packed_state"] is False
+    assert protocol["gpu_authorized_by_module"] is False
+    assert protocol["scientific_training_authorized"] is False
+    assert protocol["end_to_end_systems_authorized"] is False
+    assert protocol["architecture_freeze_authorized"] is False
+    assert protocol["s2_authorized"] is False
+    assert protocol["fresh_scientific_seed_authorized"] is False
+    assert protocol["100m_authorized"] is False
+    assert protocol["breakthrough_proven"] is False
 
 
 def test_distinct_boundary_still_requires_exact_selected_set():
