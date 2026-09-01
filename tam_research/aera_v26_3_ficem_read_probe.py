@@ -285,12 +285,99 @@ def _diagnostic_tail_inputs(memory: CoalescedFICEMMemory, case: ReadCase):
     return query, keys, similarity.contiguous()
 
 
-def _boundary_is_distinct(similarity: torch.Tensor, state: ContextualEpisodicMemoryState) -> bool:
+def _reference_masked_logits(
+    similarity: torch.Tensor,
+    state: ContextualEpisodicMemoryState,
+) -> torch.Tensor:
+    """Exact reference logits used only for #418 tie-aware top-4 adjudication."""
     strength_bias = torch.log(state.strengths.clamp(MIN_STRENGTH, 1.0))[:, None, :]
     logits = (similarity + strength_bias) / READ_TEMPERATURE
-    masked = logits.masked_fill(~state.valid[:, None, :], -torch.inf)
-    values = torch.topk(masked, k=READ_TOP_K + 1, dim=-1).values
-    return bool(torch.all(values[..., READ_TOP_K - 1] != values[..., READ_TOP_K]))
+    return logits.masked_fill(~state.valid[:, None, :], -torch.inf)
+
+
+def _tie_aware_top4_equivalence(
+    masked_logits: torch.Tensor,
+    valid: torch.Tensor,
+    reference_indices: torch.Tensor,
+    candidate_indices: torch.Tensor,
+) -> dict[str, Any]:
+    """Adjudicate top-4 sets without assigning semantics to PyTorch tie ordering.
+
+    Distinct fourth/fifth boundaries retain #411's exact selected-set rule. At an
+    exact tie, the candidate must choose a mathematically valid top-4 set, while the
+    full recalled/final tensors remain subject to the unchanged numerical gates in
+    ``correctness_row``.
+    """
+    if masked_logits.ndim != 3:
+        raise ValueError("masked_logits must be [batch,time,capacity]")
+    if valid.shape != (masked_logits.size(0), masked_logits.size(2)):
+        raise ValueError("valid shape must match masked-logit batch/capacity")
+    expected_index_shape = (*masked_logits.shape[:2], READ_TOP_K)
+    if reference_indices.shape != expected_index_shape:
+        raise ValueError("reference_indices must be [batch,time,top_k]")
+    if candidate_indices.shape != expected_index_shape:
+        raise ValueError("candidate_indices must be [batch,time,top_k]")
+
+    capacity = int(masked_logits.size(-1))
+    candidate_long = candidate_indices.to(torch.long)
+    reference_long = reference_indices.to(torch.long)
+    candidate_in_range = (candidate_long >= 0) & (candidate_long < capacity)
+    safe_candidate = candidate_long.clamp(0, capacity - 1)
+
+    raw_set_equal = torch.all(
+        torch.sort(reference_long, dim=-1).values
+        == torch.sort(safe_candidate, dim=-1).values,
+        dim=-1,
+    ) & torch.all(candidate_in_range, dim=-1)
+
+    boundary_values = torch.topk(masked_logits, k=READ_TOP_K + 1, dim=-1).values
+    cutoff = boundary_values[..., READ_TOP_K - 1]
+    fifth = boundary_values[..., READ_TOP_K]
+    distinct = cutoff != fifth
+    tied = ~distinct
+
+    sorted_candidate = torch.sort(safe_candidate, dim=-1).values
+    unique = torch.all(sorted_candidate[..., 1:] != sorted_candidate[..., :-1], dim=-1)
+    expanded_valid = valid[:, None, :].expand(-1, masked_logits.size(1), -1)
+    selected_valid = torch.all(expanded_valid.gather(-1, safe_candidate), dim=-1)
+    selected_logits = masked_logits.gather(-1, safe_candidate)
+    selected_meet_cutoff = torch.all(selected_logits >= cutoff.unsqueeze(-1), dim=-1)
+
+    slot_ids = torch.arange(capacity, device=masked_logits.device, dtype=torch.long)
+    candidate_membership = torch.any(
+        safe_candidate.unsqueeze(-1) == slot_ids.view(1, 1, 1, capacity),
+        dim=-2,
+    )
+    strictly_above = masked_logits > cutoff.unsqueeze(-1)
+    strict_above_included = torch.all(~strictly_above | candidate_membership, dim=-1)
+
+    tied_semantically_valid = (
+        torch.all(candidate_in_range, dim=-1)
+        & unique
+        & selected_valid
+        & selected_meet_cutoff
+        & strict_above_included
+    )
+    selection_ok = torch.where(distinct, raw_set_equal, tied_semantically_valid)
+
+    tie_count = int(tied.sum())
+    total_count = int(tied.numel())
+    tied_raw_match_count = int((raw_set_equal & tied).sum())
+    return {
+        "selection_semantically_equivalent": bool(torch.all(selection_ok)),
+        "raw_selected_set_equal_all_queries": bool(torch.all(raw_set_equal)),
+        "distinct_selected_set_exact": bool(torch.all(raw_set_equal | tied)),
+        "tied_selection_semantically_valid": bool(
+            torch.all(tied_semantically_valid | distinct)
+        ),
+        "tie_query_count": tie_count,
+        "total_query_count": total_count,
+        "tie_query_fraction": (tie_count / total_count) if total_count else 0.0,
+        "tied_raw_selected_set_match_count": tied_raw_match_count,
+        "tied_raw_selected_set_match_fraction": (
+            tied_raw_match_count / tie_count if tie_count else 1.0
+        ),
+    }
 
 
 def correctness_row(
@@ -308,8 +395,6 @@ def correctness_row(
     torch.cuda.synchronize()
 
     query, keys, similarity = _diagnostic_tail_inputs(memory, case)
-    if not _boundary_is_distinct(similarity, case.state):
-        raise RuntimeError("issue411 synthetic row has a tied fourth/fifth read boundary")
     with torch.no_grad():
         reference_recalled, reference_indices = _reference_tail(similarity, case.state)
         candidate_recalled, candidate_indices = fused_ficem_read_tail(
@@ -323,11 +408,14 @@ def correctness_row(
     if candidate_indices is None:
         raise RuntimeError("issue411 candidate did not return diagnostic top indices")
 
-    atol, rtol = _tolerances(case.dtype_name)
-    selected_set_exact = torch.equal(
-        torch.sort(reference_indices, dim=-1).values,
-        torch.sort(candidate_indices.to(torch.long), dim=-1).values,
+    masked_logits = _reference_masked_logits(similarity, case.state)
+    selection = _tie_aware_top4_equivalence(
+        masked_logits,
+        case.state.valid,
+        reference_indices,
+        candidate_indices,
     )
+    atol, rtol = _tolerances(case.dtype_name)
     recalled_close = torch.allclose(
         reference_recalled, candidate_recalled, atol=atol, rtol=rtol
     )
@@ -374,7 +462,7 @@ def correctness_row(
         and candidate_result.recalled.device.type == "cuda"
     )
     passed = bool(
-        selected_set_exact
+        selection["selection_semantically_equivalent"]
         and recalled_close
         and final_close
         and reuse_exact
@@ -384,7 +472,23 @@ def correctness_row(
     )
     return {
         "pass": passed,
-        "selected_top4_set_exact": selected_set_exact,
+        "selected_top4_set_exact": selection["raw_selected_set_equal_all_queries"],
+        "selection_semantically_equivalent": selection[
+            "selection_semantically_equivalent"
+        ],
+        "distinct_selected_set_exact": selection["distinct_selected_set_exact"],
+        "tied_selection_semantically_valid": selection[
+            "tied_selection_semantically_valid"
+        ],
+        "tie_query_count": selection["tie_query_count"],
+        "total_query_count": selection["total_query_count"],
+        "tie_query_fraction": selection["tie_query_fraction"],
+        "tied_raw_selected_set_match_count": selection[
+            "tied_raw_selected_set_match_count"
+        ],
+        "tied_raw_selected_set_match_fraction": selection[
+            "tied_raw_selected_set_match_fraction"
+        ],
         "pre_out_recalled_close": recalled_close,
         "final_out_close": final_close,
         "query_and_normalized_keys_bit_exact": reuse_exact,
