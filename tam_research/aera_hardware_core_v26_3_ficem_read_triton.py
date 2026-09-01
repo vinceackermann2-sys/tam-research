@@ -10,7 +10,9 @@ Writes and every differentiable/training path delegate to the final v26 referenc
 Issue #414 made the frozen read constants explicit Triton constexpr parameters.
 Issue #426 keeps the same one-kernel architecture and adds a BF16-only execution
 branch whose visible rounding checkpoints follow the frozen PyTorch diagnostic
-reference localized by #423. The float32 execution path remains unchanged.
+reference localized by #423. Issue #445 preserves those checkpoints and rounds
+each BF16 selected weight×value product before the existing FP32 reduction, as
+localized by #439/#442. The float32 execution path remains unchanged.
 """
 
 from typing import Any
@@ -211,14 +213,29 @@ if triton is not None:
             other=0.0,
         )
 
-        # Both branches accumulate in FP32. In the BF16 branch both multiplicands
-        # are first constrained to their reference-visible BF16 values.
-        recalled = (
-            weight0.to(tl.float32) * value0.to(tl.float32)
-            + weight1.to(tl.float32) * value1.to(tl.float32)
-            + weight2.to(tl.float32) * value2.to(tl.float32)
-            + weight3.to(tl.float32) * value3.to(tl.float32)
-        )
+        if IS_BF16:
+            # #439/#442: the reference rounds each BF16-visible selected product
+            # before reduction. Preserve one kernel while reproducing that boundary.
+            product0 = (
+                weight0.to(tl.float32) * value0.to(tl.float32)
+            ).to(tl.bfloat16).to(tl.float32)
+            product1 = (
+                weight1.to(tl.float32) * value1.to(tl.float32)
+            ).to(tl.bfloat16).to(tl.float32)
+            product2 = (
+                weight2.to(tl.float32) * value2.to(tl.float32)
+            ).to(tl.bfloat16).to(tl.float32)
+            product3 = (
+                weight3.to(tl.float32) * value3.to(tl.float32)
+            ).to(tl.bfloat16).to(tl.float32)
+            recalled = product0 + product1 + product2 + product3
+        else:
+            recalled = (
+                weight0.to(tl.float32) * value0.to(tl.float32)
+                + weight1.to(tl.float32) * value1.to(tl.float32)
+                + weight2.to(tl.float32) * value2.to(tl.float32)
+                + weight3.to(tl.float32) * value3.to(tl.float32)
+            )
         tl.store(
             recalled_ptr + query_row * MEMORY_DIM + dim_offsets,
             recalled,
@@ -430,6 +447,8 @@ def fused_ficem_read_v26_3_protocol() -> dict[str, Any]:
         "read_tail_triton_launches_target": 1,
         "bf16_reference_rounding_repair3": True,
         "float32_path_changed_by_repair3": False,
+        "bf16_product_rounding_repair4": True,
+        "float32_path_changed_by_repair4": False,
         "address_projection_changed": False,
         "key_normalization_changed": False,
         "similarity_einsum_changed": False,
