@@ -5,6 +5,9 @@ import subprocess
 
 from tam_research import aera_v26_3_ficem_read_probe as probe
 from tam_research import aera_v26_3_repair3_full_row_subgate_localize as localize
+from tam_research.aera_hardware_core_v26_3_ficem_read_triton import (
+    fused_ficem_read_v26_3_protocol,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE = ROOT / "tam_research" / "aera_v26_3_repair3_full_row_subgate_localize.py"
@@ -12,12 +15,49 @@ LAUNCHER = ROOT / "modal_aera_v26_3_repair3_full_row_subgate_localize_app.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "aera-v26-3-repair3-full-row-subgate-localize-l4.yml"
 BACKEND = ROOT / "tam_research" / "aera_hardware_core_v26_3_ficem_read_triton.py"
 PROBE = ROOT / "tam_research" / "aera_v26_3_ficem_read_probe.py"
+HISTORICAL_REPAIR3_BACKEND_BLOB = "b6b37f0379b280eea4e5c2b16f349951dadc4df9"
+FROZEN_PROBE_BLOB = "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b"
 
 
 def _git_blob(path: Path) -> str:
     return subprocess.check_output(
         ["git", "hash-object", str(path.relative_to(ROOT))], cwd=ROOT, text=True
     ).strip()
+
+
+def _assert_historical_repair3_or_explicit_repair4_successor() -> None:
+    protocol = fused_ficem_read_v26_3_protocol()
+    if protocol.get("bf16_product_rounding_repair4") is not True:
+        assert _git_blob(BACKEND) == HISTORICAL_REPAIR3_BACKEND_BLOB
+        return
+    assert protocol["bf16_reference_rounding_repair3"] is True
+    assert protocol["float32_path_changed_by_repair3"] is False
+    assert protocol["bf16_product_rounding_repair4"] is True
+    assert protocol["float32_path_changed_by_repair4"] is False
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["read_tail_triton_launches_target"] == 1
+    for key in (
+        "address_projection_changed",
+        "key_normalization_changed",
+        "similarity_einsum_changed",
+        "learned_out_projection_changed",
+        "write_backend_changed",
+        "training_backend_changed",
+        "persistent_state_changed",
+        "gpu_authorized_by_module",
+        "scientific_training_authorized",
+        "end_to_end_systems_authorized",
+        "architecture_freeze_authorized",
+        "s2_authorized",
+        "fresh_scientific_seed_authorized",
+        "100m_authorized",
+        "breakthrough_proven",
+    ):
+        assert protocol[key] is False
 
 
 def test_issue442_contract_is_full_row_localization_only() -> None:
@@ -69,8 +109,8 @@ def test_issue442_frozen_probe_order_and_gate_are_unchanged() -> None:
 
 
 def test_issue442_production_backend_and_probe_blobs_are_frozen() -> None:
-    assert _git_blob(BACKEND) == "b6b37f0379b280eea4e5c2b16f349951dadc4df9"
-    assert _git_blob(PROBE) == "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b"
+    _assert_historical_repair3_or_explicit_repair4_successor()
+    assert _git_blob(PROBE) == FROZEN_PROBE_BLOB
 
 
 def test_issue442_source_invokes_frozen_correctness_row_and_has_no_benchmark_path() -> None:
@@ -117,8 +157,8 @@ def test_issue442_launcher_is_duplicate_safe_and_one_l4_only() -> None:
     assert "MAX_GPU_SECONDS = 180" in source
     assert "if result_path.exists():" in source
     assert "run_localization" in source
-    assert "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b" in source
-    assert "b6b37f0379b280eea4e5c2b16f349951dadc4df9" in source
+    assert FROZEN_PROBE_BLOB in source
+    assert HISTORICAL_REPAIR3_BACKEND_BLOB in source
     for forbidden in (
         "torch.load",
         "load_state_dict",
