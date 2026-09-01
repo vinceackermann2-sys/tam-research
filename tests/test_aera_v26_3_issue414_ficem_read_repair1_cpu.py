@@ -47,6 +47,35 @@ def _kernel_source() -> str:
     )[0]
 
 
+def _assert_repair5_successor_contract(protocol: dict[str, object]) -> None:
+    assert protocol["bf16_reference_rounding_repair3"] is True
+    assert protocol["bf16_product_rounding_repair4"] is True
+    assert protocol["bf16_actual_autocast_tail_repair5"] is True
+    assert protocol["bf16_strength_bias_fp32_repair5"] is True
+    assert protocol["bf16_logits_fp32_repair5"] is True
+    assert protocol["bf16_final_weights_fp32_repair5"] is True
+    assert protocol["bf16_recalled_fp32_repair5"] is True
+    assert protocol["bf16_product_rounding_active_after_repair5"] is False
+    assert protocol["float32_path_changed_by_repair5"] is False
+    assert protocol["read_tail_triton_launches_target"] == 1
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["write_backend_changed"] is False
+    assert protocol["training_backend_changed"] is False
+    assert protocol["persistent_state_changed"] is False
+    assert protocol["gpu_authorized_by_module"] is False
+    assert protocol["scientific_training_authorized"] is False
+    assert protocol["end_to_end_systems_authorized"] is False
+    assert protocol["architecture_freeze_authorized"] is False
+    assert protocol["s2_authorized"] is False
+    assert protocol["fresh_scientific_seed_authorized"] is False
+    assert protocol["100m_authorized"] is False
+    assert protocol["breakthrough_proven"] is False
+
+
 def test_issue414_inherits_every_issue411_decision_constant_unchanged():
     assert DESIGN_SEED == 408_411
     assert (D_MODEL, TIME, CAPACITY, MEMORY_DIM) == (200, 256, 48, 50)
@@ -97,6 +126,14 @@ def test_issue414_kernel_uses_exact_frozen_two_sided_strength_clamp():
         return
 
     assert "if IS_BF16:" in kernel
+    if protocol.get("bf16_actual_autocast_tail_repair5") is True:
+        _assert_repair5_successor_contract(protocol)
+        assert "similarity_visible = similarity.to(tl.float32)" in kernel
+        assert "clamped_visible = clamped_strengths.to(tl.float32)" in kernel
+        assert "strength_bias = tl.log(clamped_visible)" in kernel
+        assert "logits = (similarity_visible + strength_bias) / READ_TEMPERATURE" in kernel
+        return
+
     assert "strength_bias = tl.log(clamped_visible.to(tl.float32)).to(tl.bfloat16)" in kernel
     assert "(similarity_visible + strength_bias).to(tl.bfloat16)" in kernel
     assert "similarity_visible = similarity.to(tl.float32)" in kernel
@@ -131,6 +168,11 @@ def test_issue414_does_not_change_accelerated_tail_architecture():
     if protocol.get("bf16_reference_rounding_repair3") is not True:
         assert "weight0 * value0" in kernel
         assert "weight3 * value3" in kernel
+        return
+
+    if protocol.get("bf16_actual_autocast_tail_repair5") is True:
+        _assert_repair5_successor_contract(protocol)
+        assert source.count("@triton.jit") == 1
         return
 
     assert "weight0_visible = weight0.to(tl.bfloat16)" in kernel
