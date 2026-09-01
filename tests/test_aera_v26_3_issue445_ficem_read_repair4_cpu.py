@@ -32,6 +32,36 @@ def _kernel_source() -> str:
     )[0]
 
 
+def _repair5_active(protocol: dict[str, object]) -> bool:
+    return protocol.get("bf16_actual_autocast_tail_repair5") is True
+
+
+def _assert_repair5_successor_contract(protocol: dict[str, object]) -> None:
+    # #464 intentionally recognizes only the explicit preregistered repair5 marker.
+    assert protocol["bf16_actual_autocast_tail_repair5"] is True
+    assert protocol["bf16_reference_rounding_repair3"] is True
+    assert protocol["bf16_product_rounding_repair4"] is True
+    assert protocol["bf16_product_rounding_active_after_repair5"] is False
+    assert protocol["float32_path_changed_by_repair5"] is False
+    assert protocol["read_tail_triton_launches_target"] == 1
+    assert protocol["capacity"] == 48
+    assert protocol["memory_dim"] == 50
+    assert protocol["read_top_k"] == 4
+    assert protocol["read_temperature"] == 0.10
+    assert protocol["min_strength"] == 1e-4
+    assert protocol["write_backend_changed"] is False
+    assert protocol["training_backend_changed"] is False
+    assert protocol["persistent_state_changed"] is False
+    assert protocol["gpu_authorized_by_module"] is False
+    assert protocol["scientific_training_authorized"] is False
+    assert protocol["end_to_end_systems_authorized"] is False
+    assert protocol["architecture_freeze_authorized"] is False
+    assert protocol["s2_authorized"] is False
+    assert protocol["fresh_scientific_seed_authorized"] is False
+    assert protocol["100m_authorized"] is False
+    assert protocol["breakthrough_proven"] is False
+
+
 def test_issue445_protocol_freezes_repair4_scope_and_authorization():
     protocol = fused_ficem_read_v26_3_protocol()
     assert protocol["bf16_reference_rounding_repair3"] is True
@@ -78,6 +108,11 @@ def test_issue445_keeps_frozen_geometry_constants_and_single_kernel():
 
 
 def test_issue445_bf16_rounds_each_selected_product_before_fp32_reduction():
+    protocol = fused_ficem_read_v26_3_protocol()
+    if _repair5_active(protocol):
+        _assert_repair5_successor_contract(protocol)
+        return
+
     kernel = _kernel_source()
     assert "# #439/#442: the reference rounds each BF16-visible selected product" in kernel
     for i in range(4):
@@ -91,6 +126,16 @@ def test_issue445_bf16_rounds_each_selected_product_before_fp32_reduction():
 
 
 def test_issue445_non_bf16_path_keeps_direct_fp32_products_without_forced_rounding():
+    protocol = fused_ficem_read_v26_3_protocol()
+    if _repair5_active(protocol):
+        _assert_repair5_successor_contract(protocol)
+        kernel = _kernel_source()
+        # Repair5 is BF16-only. The historical direct non-BF16 product path remains.
+        float_tail = kernel.rsplit("        else:\n            recalled = (", 1)[1]
+        for i in range(4):
+            assert f"weight{i}.to(tl.float32) * value{i}.to(tl.float32)" in float_tail
+        return
+
     kernel = _kernel_source()
     tail = kernel.split("if IS_BF16:\n            # #439/#442", 1)[1]
     bf16_part, non_bf16_part = tail.split("        else:\n            recalled = (", 1)
@@ -103,6 +148,11 @@ def test_issue445_non_bf16_path_keeps_direct_fp32_products_without_forced_roundi
 
 
 def test_issue445_preserves_prior_repair3_visible_checkpoints():
+    protocol = fused_ficem_read_v26_3_protocol()
+    if _repair5_active(protocol):
+        _assert_repair5_successor_contract(protocol)
+        return
+
     kernel = _kernel_source()
     required = (
         "similarity_visible = similarity.to(tl.bfloat16)",
