@@ -188,6 +188,7 @@ def _reference_product_inputs(memory, case) -> dict[str, torch.Tensor]:
     selected_values = expanded_values.gather(
         2, top_indices.unsqueeze(-1).expand(-1, -1, -1, probe.MEMORY_DIM)
     )
+    raw_products_fp32 = weights.float().unsqueeze(-1) * selected_values.float()
     products_bf16 = weights.unsqueeze(-1) * selected_values
     native_recalled = products_bf16.sum(dim=2)
     p = products_bf16.float()
@@ -198,6 +199,7 @@ def _reference_product_inputs(memory, case) -> dict[str, torch.Tensor]:
         "top_indices": top_indices,
         "weights": weights.contiguous(),
         "selected_values": selected_values.contiguous(),
+        "raw_products_fp32": raw_products_fp32.contiguous(),
         "products_bf16": products_bf16.contiguous(),
         "native_recalled": native_recalled.contiguous(),
         "sequential_fp32": sequential_fp32.contiguous(),
@@ -334,6 +336,8 @@ def run_localization() -> dict[str, Any]:
         "reference_vs_production_final_out": _error_stats(reference_full.recalled, production_full.recalled),
         "reference_vs_production_top_indices_bit_equal": bool(torch.equal(reference_indices, production_indices.to(torch.long))),
         "product_checkpoints": {
+            "reference_raw_products_fp32_vs_micro_raw_products_fp32": _error_stats(inputs["raw_products_fp32"], micro["raw_products_fp32"]),
+            "first_raw_product_mismatches": _first_mismatches(inputs["raw_products_fp32"], micro["raw_products_fp32"]),
             "reference_products_bf16_vs_micro_rounded_fp32": _error_stats(products_reference_fp32, micro["rounded_products_fp32"]),
             "first_product_mismatches": _first_mismatches(products_reference_fp32, micro["rounded_products_fp32"]),
             "reference_native_recalled_vs_micro_bf16": _error_stats(inputs["native_recalled"], micro["recalled_bf16"]),
