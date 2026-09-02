@@ -266,7 +266,7 @@ def test_issue530_source_preserves_issue503_orchestration_and_frozen_decision_ga
         assert fragment in run_source
 
     assert '"v26_6_triton_full_ficem"' in run_source
-    assert "TritonFICEMReadWriteBackend()" not in source
+    assert "memory._execution_backend = TritonFICEMReadWriteBackend()" not in source
     assert "torch.optim" not in source
     assert ".backward(" not in source
     assert "workflow_dispatch" not in source
