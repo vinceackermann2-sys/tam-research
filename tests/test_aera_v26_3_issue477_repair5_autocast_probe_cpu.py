@@ -131,7 +131,7 @@ def test_issue477_preserves_fixture_order_tie_semantics_and_timing_accounting() 
     assert "selection = frozen._tie_aware_top4_equivalence(" in source
     assert 'selection["selection_semantically_equivalent"]' in source
     assert 'selection["distinct_selected_set_exact"]' in source
-    assert 'selection["tied_selection_semantically_valid"]' in source
+    assert '"tied_selection_semantically_valid": selection[' in source
     assert '"pre_out_recalled_close": recalled_close' in source
     assert '"final_out_close": final_close' in source
     assert '"query_and_normalized_keys_bit_exact": reuse_exact' in source
