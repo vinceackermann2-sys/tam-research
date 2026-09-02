@@ -25,7 +25,7 @@ def _git_blob_sha(path: Path) -> str:
 def test_issue545_freezes_exact_evaluator_successor_and_historical_harness_blobs() -> None:
     assert _git_blob_sha(Path(evaluator.__file__)) == "9d5a3c31f4a3862f96b957540baa2e0ec6a84c6b"
     assert _git_blob_sha(LAUNCHER) == "da3afb37245d5e4434648ba3b0d83e13dae5ca6f"
-    assert _git_blob_sha(WORKFLOW) == "e1b4e8af29709a9b1e274db2c8479d2e3c3b92e0"
+    assert _git_blob_sha(WORKFLOW) == "42dd30f77e00c74b265509e3cfe6259e24753258"
     assert _git_blob_sha(HISTORICAL_539_LAUNCHER) == "4663d86e9dc2f8eedb68213cf673ce1f80e15574"
     assert _git_blob_sha(HISTORICAL_539_WORKFLOW) == "4e03f6e42c7635f4779f17aaa8d30488d968bc1f"
 
@@ -108,17 +108,16 @@ def test_issue545_launcher_is_distinct_duplicate_safe_one_l4_result_before_marke
     assert source.index("volume.commit()") < source.index("print(RESULT_MARKER +")
     assert source.count("result_path.exists()") == 2
     assert "refusing duplicate issue545 successor1" in source
-    assert "issue539_modal_or_l4_executed\": False" in source
+    assert '"issue539_modal_or_l4_executed": False' in source
     assert "modal.deploy" not in source
     assert "torch.optim" not in source
     assert ".backward(" not in source
 
 
-def test_issue545_workflow_hard_guards_consumed_issue539_pre_gpu_failure() -> None:
+def test_issue545_workflow_uses_canonical_lowest_trigger_and_guards_consumed_issue539() -> None:
     source = WORKFLOW.read_text()
     assert "types: [opened]" in source
     assert "workflow_dispatch" not in source
-    assert "cancel-in-progress: false" in source
     assert "github.event.issue.user.login == github.repository_owner" in source
     assert "[aera-v26-6-issue545-e2e-systems-l4-successor1]" in source
     assert 'test "${GITHUB_RUN_ATTEMPT}" = "1"' in source
@@ -130,10 +129,18 @@ def test_issue545_workflow_hard_guards_consumed_issue539_pre_gpu_failure() -> No
     assert "100428014282" in source
     assert '.name == "Authenticate Modal"' in source
     assert '.name == "Run sole issue539 end-to-end systems L4 gate"' in source
-    assert 'actions/runs/33684274250/jobs" --jq ".total_count"' not in source
     assert "actions/runs/33684274250/jobs" in source
-    assert source.count("trigger_count=") == 2
-    assert source.count('test "${trigger_count}" = "1"') == 2
+
+    # Pre-implementation amendment: no count-based deadlock and no cross-run cancellation.
+    assert "\nconcurrency:" not in source
+    assert "trigger_count=" not in source
+    assert 'test "${trigger_count}" = "1"' not in source
+    assert source.count("mapfile -t successor_triggers") == 2
+    assert 'canonical_trigger="${successor_triggers[0]}"' in source
+    assert 'test "${TRIGGER_ISSUE}" = "${canonical_trigger}"' in source
+    assert 'test "${TRIGGER_ISSUE}" = "${successor_triggers[0]}"' in source
+    assert 'test "${#successor_triggers[@]}" -ge 1' in source
+
     assert "Bind main:" in source
     assert 'test "$(git rev-parse HEAD)" = "${bound_main}"' in source
     assert "git merge-base --is-ancestor 8db5422929f66f89f323f2fc518c1d6b9b224581 HEAD" in source
@@ -144,7 +151,6 @@ def test_issue545_workflow_hard_guards_consumed_issue539_pre_gpu_failure() -> No
     assert "modal run modal_aera_v26_6_issue545_end_to_end_systems_successor1_app.py" in source
     assert "modal deploy" not in source
     assert "gh run rerun" not in source.lower()
-    assert "workflow_dispatch" not in source.lower()
 
 
 def test_issue545_cpu_contract_keeps_all_higher_authorizations_false() -> None:
