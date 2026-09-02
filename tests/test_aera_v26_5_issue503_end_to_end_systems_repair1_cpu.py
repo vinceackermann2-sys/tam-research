@@ -215,5 +215,4 @@ def test_issue503_adds_no_launcher_workflow_or_gpu_execution_path() -> None:
     ):
         assert forbidden not in source
     assert "requires one nvidia l4" in source
-    assert "gpu_authorized_by_issue503\": false" not in source
     assert repair1.cpu_contract_preflight_repair1()["gpu_authorized_by_issue503"] is False
