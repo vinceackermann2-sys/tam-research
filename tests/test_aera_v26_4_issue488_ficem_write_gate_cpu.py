@@ -92,7 +92,7 @@ def test_issue488_probe_edge_semantics_are_explicit_before_gpu() -> None:
     assert "surviving_new = inputs.new_valid & ~shadowed" in source
     assert "keep_old = inputs.state.valid & ~duplicate_old" in source
     assert "inputs.new_keys.flip(1)" in source
-    assert "inputs.new_valid.flip(1)" in source
+    assert "surviving_new.flip(1)" in source
     assert "valid_exact" in source
     assert "source_unchanged" in source
     assert "dtype_device_shape_exact" in source
