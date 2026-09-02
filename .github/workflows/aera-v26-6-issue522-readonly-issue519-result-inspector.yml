@@ -1,0 +1,130 @@
+name: AERA v26.6 issue522 read-only issue519 result inspector
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: aera-v26-6-issue522-readonly-issue519-result-inspector
+  cancel-in-progress: false
+
+jobs:
+  inspect-existing-result:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-6-issue522-readonly-issue519-result-inspector]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue522 read-only inspector
+        run: python -m py_compile modal_aera_v26_6_issue522_readonly_issue519_result_inspector_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify sole CPU-only issue522 inspection boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/522" --jq '.title')" = "[research] AERA-v26.6 read-only durable #519 failure localization before any repair2"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/522" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/521" --jq '.title')" = "[aera-v26-6-issue519-ficem-write-materialize-cast-l4] sole #519 trigger"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33672232063" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33672232063" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33672232063" --jq '.head_sha')" = "b4c117b01ae851327e9feca25ea3c12078831904"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100388368044" --jq '.conclusion')" = "success"
+
+          trigger_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-6-issue522-readonly-issue519-result-inspector]")) | .number' | wc -l | tr -d ' ')"
+          test "${trigger_count}" = "1"
+          report_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA-v26.6 #522 read-only #519 result inspection**")) | .id' | wc -l | tr -d ' ')"
+          test "${report_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' | head -n 1)"
+          test -n "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor b4c117b01ae851327e9feca25ea3c12078831904 HEAD
+
+          test "$(git hash-object tam_research/aera_hardware_core_v26_6_ficem_write_materialize_cast.py)" = "d45c262314a0b4691f26812a279937a225043ad9"
+          test "$(git hash-object tam_research/aera_v26_6_issue519_ficem_write_materialize_cast_probe.py)" = "ec22807434192f58e292bffc3de9828be2b44272"
+          test "$(git hash-object modal_aera_v26_6_issue522_readonly_issue519_result_inspector_app.py)" = "9fb159be98c006d7181445a5a9c8be64eb454e4d"
+
+          test "$(grep -c 'gpu=' modal_aera_v26_6_issue522_readonly_issue519_result_inspector_app.py || true)" = "0"
+          test "$(grep -c 'volume.commit' modal_aera_v26_6_issue522_readonly_issue519_result_inspector_app.py || true)" = "0"
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record issue522 inspection start (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.6 #522 read-only inspection started** — exact bound main and consumed #519 evidence verified. CPU-only Modal reader; zero GPU; no #519 rerun; no volume/result mutation." || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Inspect immutable issue519 durable result once
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_6_issue522_readonly_issue519_result_inspector_app.py 2>&1 | tee /tmp/issue522.log
+          grep -q '^AERA_V26_6_ISSUE522_READONLY_ISSUE519_RESULT_INSPECTOR_RESULT_JSON=' /tmp/issue522.log
+
+      - name: Record issue522 inspection result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue522-summary.md
+          import json
+          from pathlib import Path
+          prefix = "AERA_V26_6_ISSUE522_READONLY_ISSUE519_RESULT_INSPECTOR_RESULT_JSON="
+          lines = Path('/tmp/issue522.log').read_text().splitlines()
+          payload = json.loads([line[len(prefix):] for line in lines if line.startswith(prefix)][-1])
+          direct = payload['direct_classification']
+          edge = payload['edge_classification']
+          print('🔎 **AERA-v26.6 #522 read-only #519 result inspection**')
+          print()
+          print(f"Frozen source SHA verified: `{payload['source_result_sha256']}`")
+          print(f"Direct: {direct['pass_count']}/{direct['row_count']} pass; frozen 32-mask set exact: `{payload['frozen_pass_masks_match']}`")
+          print(f"Direct category counts: `{json.dumps(direct['category_counts'], sort_keys=True)}`")
+          for field in ('keys','values','strengths'):
+              row = direct['per_field'][field]
+              print(f"{field}: float-close failures={row['float_close_failure_count']}, dtype-exact failures={row['dtype_exact_failure_count']}, pair-dtype mismatches={row['pair_dtype_mismatch_count']}, max-abs-by-destination={json.dumps(row['max_abs_by_destination_dtype'], sort_keys=True)}")
+          print(f"Edge: {edge['pass_count']}/{edge['row_count']} pass; categories: `{json.dumps(edge['category_counts'], sort_keys=True)}`")
+          print(f"Public all pass: `{payload['public_all_pass']}`; topology all pass: `{payload['topology_all_pass']}`")
+          print()
+          print('Full immutable per-row inspection remains in the Actions log marker. This read does not alter #519 FAIL and authorizes no repair/GPU/system/science step.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue522-summary.md)" || true
