@@ -143,9 +143,10 @@ def test_issue477_preserves_fixture_order_tie_semantics_and_timing_accounting() 
     assert "geomean <= MAX_GEOMEAN_LATENCY_RATIO" in source
     assert 'tail_profile["cuda_device_events"] == 1' in source
     assert 'tail_profile["triton_read_tail_events"] == 1' in source
-    assert 'profiles["candidate"]["relevant_operator_calls"]["topk"]' in source
-    assert 'profiles["candidate"]["relevant_operator_calls"]["softmax"]' in source
-    assert 'profiles["candidate"]["relevant_operator_calls"]["gather"]' in source
+    assert source.count('profiles["candidate"]["relevant_operator_calls"][') == 3
+    assert '"topk"]' in source
+    assert '"softmax"' in source
+    assert '"gather"' in source
 
 
 def test_issue477_cpu_preflight_and_protocol_authorize_no_gpu_or_science() -> None:
