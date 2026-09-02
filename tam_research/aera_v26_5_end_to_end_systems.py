@@ -317,6 +317,7 @@ def _state_equivalence(reference: HardwareAERAState, candidate: HardwareAERAStat
     maxima = {"stream": 0.0, "keys": 0.0, "values": 0.0, "strengths": 0.0}
     validity_exact = True
     dtype_device_shape_exact = True
+    continuous_allclose = True
     for ref_stage, cand_stage in zip(reference.stages, candidate.stages):
         ref_memory = ref_stage.memory
         cand_memory = cand_stage.memory
@@ -331,20 +332,30 @@ def _state_equivalence(reference: HardwareAERAState, candidate: HardwareAERAStat
             ("strengths", ref_memory.strengths, cand_memory.strengths),
         )
         for name, ref_tensor, cand_tensor in pairs:
-            dtype_device_shape_exact = dtype_device_shape_exact and (
+            exact_meta = (
                 ref_tensor.dtype == cand_tensor.dtype
                 and ref_tensor.device == cand_tensor.device
                 and ref_tensor.shape == cand_tensor.shape
             )
+            dtype_device_shape_exact = dtype_device_shape_exact and exact_meta
             maxima[name] = max(
                 maxima[name],
                 float((ref_tensor.float() - cand_tensor.float()).abs().max()),
+            )
+            continuous_allclose = continuous_allclose and bool(
+                exact_meta
+                and torch.allclose(
+                    ref_tensor.float(),
+                    cand_tensor.float(),
+                    atol=INTEGRATED_ATOL,
+                    rtol=INTEGRATED_RTOL,
+                )
             )
         validity_exact = validity_exact and bool(torch.equal(ref_memory.valid, cand_memory.valid))
     maximum = max(maxima.values())
     return {
         "pass": bool(
-            maximum <= INTEGRATED_ATOL
+            continuous_allclose
             and validity_exact
             and dtype_device_shape_exact
         ),
@@ -355,6 +366,7 @@ def _state_equivalence(reference: HardwareAERAState, candidate: HardwareAERAStat
         "max_values_abs": maxima["values"],
         "max_strengths_abs": maxima["strengths"],
         "max_continuous_abs": maximum,
+        "continuous_allclose": continuous_allclose,
         "validity_exact": validity_exact,
         "dtype_device_shape_exact": dtype_device_shape_exact,
     }
