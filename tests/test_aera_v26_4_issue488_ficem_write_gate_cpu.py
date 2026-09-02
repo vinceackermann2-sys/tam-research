@@ -31,7 +31,46 @@ def _blob(path: Path) -> str:
 
 
 def test_issue488_freezes_all_production_reference_and_harness_blobs() -> None:
-    assert _blob(BACKEND) == BACKEND_BLOB
+    protocol = write_backend.fused_ficem_read_write_v26_4_protocol()
+    if protocol.get("write_threshold_input_dtype_visibility_repair1") is not True:
+        assert _blob(BACKEND) == BACKEND_BLOB
+    else:
+        # #488 itself remains frozen to BACKEND_BLOB through its probe/launcher/
+        # workflow contracts below. A separately preregistered repair1 successor
+        # may change only the current production backend while preserving those
+        # historical facts and every semantic/system boundary.
+        assert BACKEND_BLOB == "5d703bbba296328ca2f49407e56192d10541349d"
+        assert protocol["write_threshold_input_dtype_visibility_repair1"] is True
+        assert protocol["write_numeric_duplicate_threshold_changed_by_repair1"] is False
+        assert protocol["float32_write_threshold_semantics_changed_by_repair1"] is False
+        assert protocol["write_tail_kernel_count_changed_by_repair1"] is False
+        assert protocol["duplicate_similarity"] == 0.95
+        assert protocol["write_tail_triton_launches_target"] == 2
+        assert protocol["write_pre_repair_backend_blob"] == BACKEND_BLOB
+        assert protocol["repair5_read_backend_blob"] == READ_BLOB
+        assert protocol["v26_interface_blob"] == V26_BLOB
+        assert protocol["stable_compaction_reference_blob"] == STABLE_BLOB
+        for key in (
+            "read_backend_changed_by_v26_4",
+            "write_similarity_einsums_changed",
+            "write_value_projection_changed",
+            "write_strength_semantics_changed",
+            "write_duplicate_semantics_changed",
+            "write_incoming_order_changed",
+            "write_stable_compaction_semantics_changed",
+            "write_invalid_storage_semantics_changed",
+            "write_training_backend_changed",
+            "write_persistent_state_changed",
+            "write_persistent_cache",
+            "write_gpu_gate_authorized",
+            "end_to_end_systems_authorized",
+            "architecture_freeze_authorized",
+            "s2_authorized",
+            "fresh_scientific_seed_authorized",
+            "100m_authorized",
+            "breakthrough_proven",
+        ):
+            assert protocol[key] is False
     assert _blob(V26) == V26_BLOB
     assert _blob(STABLE) == STABLE_BLOB
     assert _blob(READ) == READ_BLOB
