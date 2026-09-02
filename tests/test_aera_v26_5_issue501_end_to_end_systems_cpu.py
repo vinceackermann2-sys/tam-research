@@ -142,6 +142,10 @@ def test_issue501_integrated_equivalence_keeps_discrete_routing_exact_and_bf16_b
     assert "atol=INTEGRATED_ATOL" in logit_source
     assert "rtol=INTEGRATED_RTOL" in logit_source
     state_source = inspect.getsource(systems._state_equivalence)
+    assert "torch.allclose" in state_source
+    assert "atol=INTEGRATED_ATOL" in state_source
+    assert "rtol=INTEGRATED_RTOL" in state_source
+    assert "continuous_allclose" in state_source
     assert "validity_exact" in state_source
     assert "dtype_device_shape_exact" in state_source
     assert "max_continuous_abs" in state_source
