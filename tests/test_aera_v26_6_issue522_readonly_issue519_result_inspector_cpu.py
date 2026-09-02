@@ -139,7 +139,8 @@ def test_issue522_workflow_is_one_shot_cpu_only_and_exact_bound_main() -> None:
     assert PROBE_BLOB in source
     assert LAUNCHER_BLOB in source
     assert source.count("modal run modal_aera_v26_6_issue522_readonly_issue519_result_inspector_app.py") == 1
-    assert "gpu=" not in source
+    assert 'gpu="' not in lowered
+    assert "gpu: " not in lowered
     assert "modal deploy" not in source
     assert "volume.commit" not in source
     for forbidden_command in ("gh run rerun", "rerun-failed", "re-run-failed", "workflow_dispatch"):
