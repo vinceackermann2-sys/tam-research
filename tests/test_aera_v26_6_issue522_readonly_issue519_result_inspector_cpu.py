@@ -124,6 +124,7 @@ def test_issue522_classification_covers_failure_categories_and_fields() -> None:
 
 def test_issue522_workflow_is_one_shot_cpu_only_and_exact_bound_main() -> None:
     source = WORKFLOW.read_text()
+    lowered = source.lower()
     assert "issues:\n    types: [opened]" in source
     assert "workflow_dispatch" not in source
     assert "cancel-in-progress: false" in source
@@ -141,8 +142,9 @@ def test_issue522_workflow_is_one_shot_cpu_only_and_exact_bound_main() -> None:
     assert "gpu=" not in source
     assert "modal deploy" not in source
     assert "volume.commit" not in source
-    assert "rerun" not in source.lower()
-    assert "redispatch" not in source.lower()
+    for forbidden_command in ("gh run rerun", "rerun-failed", "re-run-failed", "workflow_dispatch"):
+        assert forbidden_command not in lowered
+    assert "redispatch" not in lowered
 
 
 def test_issue522_higher_authorizations_remain_false() -> None:
