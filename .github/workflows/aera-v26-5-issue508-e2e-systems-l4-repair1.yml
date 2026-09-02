@@ -1,0 +1,150 @@
+name: AERA v26.5 issue508 end-to-end systems L4 repair1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-5-issue508-e2e-systems-l4-repair1
+  cancel-in-progress: false
+
+jobs:
+  end-to-end-systems-repair1:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-5-issue508-e2e-systems-l4-repair1]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue508 frozen evaluator and successor launcher
+        run: |
+          python -m py_compile tam_research/aera_v26_5_end_to_end_systems.py
+          python -m py_compile tam_research/aera_v26_5_end_to_end_systems_repair1.py
+          python -m py_compile modal_aera_v26_5_issue508_end_to_end_systems_repair1_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue508 sole successor boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/508" --jq '.title')" = "[research] AERA-v26.5 #505 preflight repair1: checkpoint-hash inventory key names"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/508" --jq '.state')" = "open"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/507" --jq '.title')" = "[aera-v26-5-issue505-e2e-systems-l4] sole #505 trigger"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33660377370" --jq '.conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33660377370" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33660377370" --jq '.head_sha')" = "371c97380c1488689a6a1ddacfb89f47a64aabfc"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100349177580" --jq '.conclusion')" = "failure"
+
+          old_result_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.5 #505 end-to-end systems result**")) | .id' | wc -l | tr -d ' ')"
+          test "${old_result_count}" = "0"
+          old_failure_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("⚠️ **AERA-v26.5 #505 end-to-end systems gate failed before an authoritative result marker.**")) | .id' | wc -l | tr -d ' ')"
+          test "${old_failure_count}" = "1"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/506" --jq '.merged')" = "true"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/506" --jq '.head.sha')" = "df0f264f0eba305845f9d95d1c56c82ba94bafbc"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/506" --jq '.merge_commit_sha')" = "371c97380c1488689a6a1ddacfb89f47a64aabfc"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33659021797" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33659021797" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33659021797" --jq '.head_sha')" = "df0f264f0eba305845f9d95d1c56c82ba94bafbc"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100344666507" --jq '.conclusion')" = "success"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33618950619" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100211244996" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33651216734" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100318422299" --jq '.conclusion')" = "success"
+
+          trigger_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-5-issue508-e2e-systems-l4-repair1]")) | .number' | wc -l | tr -d ' ')"
+          test "${trigger_count}" = "1"
+          report_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.5 #508 end-to-end systems repair1 result**")) | .id' | wc -l | tr -d ' ')"
+          test "${report_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' | head -n 1)"
+          test -n "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 371c97380c1488689a6a1ddacfb89f47a64aabfc HEAD
+
+          test "$(git hash-object tam_research/aera_v26_5_end_to_end_systems.py)" = "c9731cae7e386f09b2a190b045532591c4fa00be"
+          test "$(git hash-object tam_research/aera_v26_5_end_to_end_systems_repair1.py)" = "b3f7082b188644007b873db3733492f424d4941a"
+          test "$(git hash-object tam_research/aera_hardware_core_v26.py)" = "268644ac4edee15a4cc4e29d3fed7f61eeb3caa7"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_3_ficem_read_triton.py)" = "263f68eb1186a8ac14a08fc4b4df1fc5b292c711"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_4_ficem_write_triton.py)" = "e54570292489bd17570038dca7518419ac00418c"
+          test "$(git hash-object tam_research/aera_hardware_core_v25_1_compact.py)" = "4e336b6e1a6238dac782fa320751d68281493ee1"
+          test "$(git hash-object modal_aera_v26_5_issue505_end_to_end_systems_app.py)" = "491fe31b0f701c1a67e91a9bd877069eeba42e55"
+          test "$(git hash-object .github/workflows/aera-v26-5-issue505-e2e-systems-l4.yml)" = "06240f93cf779050a8615957fe431bc7e5fd2ccd"
+          test "$(git hash-object modal_aera_v26_5_issue508_end_to_end_systems_repair1_app.py)" = "5597dbbd79c782420d48ed538ef2669aebfe5fae"
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record issue508 successor gate (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.5 #508 end-to-end systems repair1 gate** — exhausted #505 preflight failure, exact bound main, frozen evaluator/backends and checkpoint-hash API-key repair verified. One NVIDIA L4, Actions attempt 1 only. No rerun/freeze/scientific-seed/100M/breakthrough authorization." || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue508 end-to-end systems repair1 L4 gate
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_5_issue508_end_to_end_systems_repair1_app.py 2>&1 | tee /tmp/issue508.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_5_ISSUE508_END_TO_END_SYSTEMS_REPAIR1_RESULT_JSON=' /tmp/issue508.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Record issue508 result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          marker="$(grep '^AERA_V26_5_ISSUE508_END_TO_END_SYSTEMS_REPAIR1_SUMMARY_JSON=' /tmp/issue508.log | tail -n 1)"
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔬 **AERA-v26.5 #508 end-to-end systems repair1 result**\n\n${marker}\n\nDurable Modal result + authoritative marker are the experiment record. Systems PASS alone does not authorize architecture freeze/scientific seed/100M/breakthrough." || true
+
+      - name: Record issue508 failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.5 #508 end-to-end systems repair1 failed before an authoritative result marker.** No rerun, automatic retry, redispatch, alternate trigger, or timeout increase is authorized; continuation requires a new preregistration." || true
