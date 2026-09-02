@@ -70,12 +70,17 @@ if triton is not None:
             + incoming[:, None] * K
             + other_incoming[None, :]
         )
+        # Match PyTorch tensor.ge(0.95): make the frozen numeric threshold visible
+        # in the loaded similarity dtype before either duplicate comparison.
+        duplicate_threshold = tl.full(
+            (1,), DUPLICATE_THRESHOLD, incoming_similarity.dtype
+        )
         # Reference direction: position i is shadowed by a valid later position j.
         later = other_incoming[None, :] > incoming[:, None]
         shadowed = (
             tl.sum(
                 (
-                    (incoming_similarity >= DUPLICATE_THRESHOLD)
+                    (incoming_similarity >= duplicate_threshold)
                     & incoming_valid[:, None]
                     & other_valid[None, :]
                     & later
@@ -108,7 +113,7 @@ if triton is not None:
         duplicate_old = (
             tl.sum(
                 (
-                    (new_old_similarity >= DUPLICATE_THRESHOLD)
+                    (new_old_similarity >= duplicate_threshold)
                     & surviving_new[:, None]
                     & old_valid[None, :]
                 ).to(tl.int32),
@@ -549,6 +554,12 @@ def fused_ficem_read_write_v26_4_protocol() -> dict[str, Any]:
         "memory_dim": WRITE_MEMORY_DIM,
         "duplicate_similarity": WRITE_DUPLICATE_SIMILARITY,
         "write_tail_triton_launches_target": 2,
+        "write_threshold_input_dtype_visibility_repair1": True,
+        "write_numeric_duplicate_threshold_changed_by_repair1": False,
+        "float32_write_threshold_semantics_changed_by_repair1": False,
+        "write_tail_kernel_count_changed_by_repair1": False,
+        "write_threshold_repair1_issue": 495,
+        "write_pre_repair_backend_blob": "5d703bbba296328ca2f49407e56192d10541349d",
         "read_backend_changed_by_v26_4": False,
         "write_similarity_einsums_changed": False,
         "write_value_projection_changed": False,
