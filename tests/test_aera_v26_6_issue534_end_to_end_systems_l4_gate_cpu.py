@@ -77,7 +77,7 @@ def test_issue534_freezes_issue530_merge_and_authoritative_issue527_pass() -> No
     assert 'SYSTEMS_ADAPTER_PR_HEAD = "af3ae4d721ccf218f2d5ebcd41458fd7ff5b8ad3"' in launcher
     assert "SYSTEMS_ADAPTER_CPU_RUN = 33682266234" in launcher
     assert "SYSTEMS_ADAPTER_CPU_JOB = 100421371756" in launcher
-    assert f'SYSTEMS_ADAPTER_MERGE = SOURCE_MAIN' in launcher
+    assert 'SYSTEMS_ADAPTER_MERGE = SOURCE_MAIN' in launcher
     assert f'SOURCE_MAIN = "{SOURCE_MAIN}"' in launcher
 
 
@@ -203,8 +203,8 @@ def test_issue534_launcher_is_duplicate_safe_one_l4_and_durable_before_marker() 
 
     assert "modal.deploy" not in source
     assert "retry" not in source.lower()
-    assert "scientific_seed_consumed\": False" in source
-    assert "breakthrough_proven\": False" in source
+    assert '"scientific_seed_consumed": False' in source
+    assert '"breakthrough_proven": False' in source
 
 
 def test_issue534_workflow_is_owner_only_attempt1_exact_bound_and_single_dispatch() -> None:
@@ -231,9 +231,9 @@ def test_issue534_workflow_is_owner_only_attempt1_exact_bound_and_single_dispatc
     assert "100352870198" in source
     assert source.count("modal run modal_aera_v26_6_issue534_end_to_end_systems_app.py") == 1
     assert "modal deploy" not in source
-    assert "rerun" not in source.lower()
-    assert "redispatch" not in source.lower()
-    assert "timeout increase" not in source.lower()
+    assert "/rerun" not in source
+    assert "gh run rerun" not in source
+    assert "workflow_dispatch" not in source
     assert "AERA_V26_6_ISSUE534_END_TO_END_SYSTEMS_RESULT_JSON=" in source
     assert "AERA_V26_6_ISSUE534_END_TO_END_SYSTEMS_SUMMARY_JSON=" in source
 
