@@ -1,0 +1,135 @@
+name: AERA v26.3 issue479 FICEM read L4 repair5 successor
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-3-issue479-ficem-read-l4-repair5-successor
+  cancel-in-progress: false
+
+jobs:
+  ficem-read-repair5-successor:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-3-ficem-read-l4-repair5-successor]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue479 launcher
+        run: python -m py_compile modal_aera_v26_3_ficem_read_repair5_successor_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue479 one-attempt successor boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/479" --jq '.title')" = "[research] AERA-v26.3 repair5 successor-probe fused FICEM read synthetic L4 gate"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/479" --jq '.state')" = "open"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/477" --jq '.title')" = "[research] AERA-v26.3 repair5 actual-autocast diagnostic probe successor after #474 predecision abort"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/478" --jq '.merged')" = "true"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/478" --jq '.head.sha')" = "d092464d3b62a0703c53b238164ee16e975142ce"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/478" --jq '.merge_commit_sha')" = "fb1cc86f51f1b012cf2f74bfaf30d6d9b389ee34"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33611259063" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33611259063" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33611259063" --jq '.head_sha')" = "d092464d3b62a0703c53b238164ee16e975142ce"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100186694663" --jq '.conclusion')" = "success"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33608906596" --jq '.conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33608906596" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100179200965" --jq '.conclusion')" = "failure"
+          test "${TRIGGER_ISSUE}" != "476"
+
+          trigger_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-3-ficem-read-l4-repair5-successor]")) | .number' | wc -l | tr -d ' ')"
+          test "${trigger_count}" = "1"
+
+          marker_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | contains("AERA_V26_ISSUE479_FICEM_READ_REPAIR5_SUCCESSOR_RESULT_JSON=")) | .id' | wc -l | tr -d ' ')"
+          test "${marker_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' | head -n 1)"
+          test -n "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor fb1cc86f51f1b012cf2f74bfaf30d6d9b389ee34 HEAD
+
+          test "$(git hash-object tam_research/aera_hardware_core_v26_3_ficem_read_triton.py)" = "263f68eb1186a8ac14a08fc4b4df1fc5b292c711"
+          test "$(git hash-object tam_research/aera_v26_3_ficem_read_probe.py)" = "16aa99b9f6f0a1d11bd7bf5f36b2f0b1fb97047b"
+          test "$(git hash-object tam_research/aera_v26_3_ficem_read_probe_repair5.py)" = "6fd6518e10ed1ef4115863f98ac591ffd77ce903"
+          test "$(git hash-object modal_aera_v26_3_ficem_read_repair5_successor_app.py)" = "bc0e14c56530e713d3638cd96431329e254a4fcb"
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Record issue479 gate (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.3 #479 repair5 successor read gate** — exact bound main, repair5 backend, historical probe and CPU-green actual-autocast successor probe verified. One NVIDIA L4, Actions attempt 1 only. No rerun/end-to-end/freeze/S2/scientific-seed/100M/breakthrough authorization." || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue479 repair5 successor synthetic L4 probe
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_3_ficem_read_repair5_successor_app.py 2>&1 | tee /tmp/issue479.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_ISSUE479_FICEM_READ_REPAIR5_SUCCESSOR_RESULT_JSON=' /tmp/issue479.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Record issue479 result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          marker="$(grep '^AERA_V26_ISSUE479_FICEM_READ_REPAIR5_SUCCESSOR_SUMMARY_JSON=' /tmp/issue479.log | tail -n 1)"
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔬 **AERA-v26.3 #479 FICEM read repair5 successor result**\n\n${marker}\n\nDurable Modal result + authoritative marker are the experiment record. No end-to-end/freeze/S2/scientific-seed/100M/breakthrough authorization." || true
+
+      - name: Record issue479 failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.3 #479 repair5 successor gate failed before an authoritative result marker.** No rerun, automatic retry, redispatch, alternate trigger, or timeout increase is authorized; continuation requires a new preregistration." || true
