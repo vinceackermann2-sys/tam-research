@@ -16,7 +16,7 @@ RESEARCH_ISSUE = 534
 SOURCE_MAIN = "67b9559cafaf72d08261ff5c988233f2bc20932b"
 SYSTEMS_ADAPTER_BLOB = "9d5a3c31f4a3862f96b957540baa2e0ec6a84c6b"
 LAUNCHER_BLOB = "b8fe5715375a1a7eb87311cca053ee071d5736c0"
-WORKFLOW_BLOB = "ecf67b64768836dcc548bf5390912bab1f4e8249"
+WORKFLOW_BLOB = "b7407b5af7ea4f681f5766d9475fc135fd3b1a78"
 V26_6_CANDIDATE_BLOB = "d45c262314a0b4691f26812a279937a225043ad9"
 ISSUE527_RESULT_SHA256 = "a07790c2d55d7a696baf0e903a05dbdf925e3ef2a08b84c784c77d1fbdd31874"
 ISSUE527_ORACLE_BLOB = "8f472451af4024bb3faacb56d814f7d6bdb25cc9"
@@ -73,11 +73,11 @@ def test_issue534_freezes_issue530_merge_and_authoritative_issue527_pass() -> No
     assert protocol["issue527_topology_pass"] == [4, 4]
 
     launcher = LAUNCHER.read_text()
-    assert 'SYSTEMS_ADAPTER_PR = 533' in launcher
+    assert "SYSTEMS_ADAPTER_PR = 533" in launcher
     assert 'SYSTEMS_ADAPTER_PR_HEAD = "af3ae4d721ccf218f2d5ebcd41458fd7ff5b8ad3"' in launcher
     assert "SYSTEMS_ADAPTER_CPU_RUN = 33682266234" in launcher
     assert "SYSTEMS_ADAPTER_CPU_JOB = 100421371756" in launcher
-    assert 'SYSTEMS_ADAPTER_MERGE = SOURCE_MAIN' in launcher
+    assert "SYSTEMS_ADAPTER_MERGE = SOURCE_MAIN" in launcher
     assert f'SOURCE_MAIN = "{SOURCE_MAIN}"' in launcher
 
 
@@ -94,8 +94,9 @@ def test_issue534_preserves_consumed_issue508_failure_without_rerun() -> None:
 
     workflow = WORKFLOW.read_text()
     assert 'issues/510" --jq' in workflow
-    assert 'actions/runs/33661498305' in workflow
-    assert 'actions/jobs/100352870198' in workflow
+    assert "actions/runs/33661498305" in workflow
+    assert "actions/jobs/100352870198" in workflow
+    assert "1d475a199cfd2b14d5e94e5cffa29e05ac868ab1" in workflow
     assert '"failure"' in workflow
 
 
@@ -157,8 +158,8 @@ def test_issue534_exact_evaluator_keeps_all_decision_bearing_checks() -> None:
         "base._episodic_state_bytes_per_session",
         "base._threshold_for_batch",
         "candidate_ms <= reference_ms",
-        "row[\"throughput_pass\"]",
-        "row[\"no_reference_full_latency_regression\"]",
+        'row["throughput_pass"]',
+        'row["no_reference_full_latency_regression"]',
         "base._parameter_versions",
         "base.checkpoint_hashes",
         "with torch.inference_mode():",
@@ -183,7 +184,7 @@ def test_issue534_launcher_is_duplicate_safe_one_l4_and_durable_before_marker() 
     assert "MAX_GPU_SECONDS = 600" in source
     assert source.count('gpu="L4"') == 1
     assert "timeout=MAX_GPU_SECONDS" in source
-    assert 'create_if_missing=False' in source
+    assert "create_if_missing=False" in source
     assert source.count("run_end_to_end_systems_v26_6()") == 1
     assert "refusing duplicate issue534" in source
     assert "volume.reload()" in source
@@ -218,6 +219,9 @@ def test_issue534_workflow_is_owner_only_attempt1_exact_bound_and_single_dispatc
     assert 'test "${GITHUB_RUN_ATTEMPT}" = "1"' in source
     assert "trigger_count=" in source
     assert 'test "${trigger_count}" = "1"' in source
+    assert "bound_lines=" in source
+    assert "bound_count=" in source
+    assert 'test "${bound_count}" = "1"' in source
     assert "Bind main:" in source
     assert 'test "$(git rev-parse HEAD)" = "${bound_main}"' in source
     assert SOURCE_MAIN in source
@@ -227,8 +231,10 @@ def test_issue534_workflow_is_owner_only_attempt1_exact_bound_and_single_dispatc
     assert "100421371756" in source
     assert "33680028132" in source
     assert "100414089065" in source
+    assert "2c0c28005bff8d9b4f36a96de86144dd74107e39" in source
     assert "33661498305" in source
     assert "100352870198" in source
+    assert "1d475a199cfd2b14d5e94e5cffa29e05ac868ab1" in source
     assert source.count("modal run modal_aera_v26_6_issue534_end_to_end_systems_app.py") == 1
     assert "modal deploy" not in source
     assert "/rerun" not in source
