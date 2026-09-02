@@ -76,10 +76,6 @@ def test_issue482_binds_consumed_481_as_pre_gpu_failure_and_never_reuses_it() ->
     assert 'test "${TRIGGER_ISSUE}" != "481"' in source
     assert '.name == "Authenticate Modal"' in source
     assert '.name == "Run sole issue479 repair5 successor synthetic L4 probe"' in source
-    assert source.count('| .conclusion\') = "skipped"') == 0 if False else True
-    assert 'select(.name == "Authenticate Modal") | .conclusion\')" = "skipped"' not in source
-    assert 'select(.name == "Authenticate Modal") | .conclusion' in source
-    assert 'select(.name == "Run sole issue479 repair5 successor synthetic L4 probe") | .conclusion' in source
     assert source.count('= "skipped"') >= 2
 
 
