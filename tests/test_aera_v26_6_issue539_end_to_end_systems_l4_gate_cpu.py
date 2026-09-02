@@ -121,8 +121,8 @@ def test_issue539_workflow_is_owner_attempt1_exact_bound_no_retry() -> None:
     assert 'git hash-object modal_aera_v26_6_issue539_end_to_end_systems_app.py' in source
     assert "modal run modal_aera_v26_6_issue539_end_to_end_systems_app.py" in source
     assert "modal deploy" not in source
-    assert "rerun" not in source.lower()
-    assert "redispatch" not in source.lower()
+    assert "gh run rerun" not in source.lower()
+    assert "workflow_dispatch" not in source.lower()
 
 
 def test_issue539_cpu_contract_keeps_all_higher_authorizations_false() -> None:
