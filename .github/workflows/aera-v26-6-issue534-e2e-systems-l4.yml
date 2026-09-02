@@ -61,11 +61,13 @@ jobs:
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/529" --jq '.title')" = "[aera-v26-6-issue527-ficem-write-repaired-oracle-l4] sole #527 trigger"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33680028132" --jq '.conclusion')" = "success"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33680028132" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33680028132" --jq '.head_sha')" = "2c0c28005bff8d9b4f36a96de86144dd74107e39"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100414089065" --jq '.conclusion')" = "success"
 
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/510" --jq '.title')" = "[aera-v26-5-issue508-e2e-systems-l4-repair1] sole #508 trigger"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33661498305" --jq '.conclusion')" = "failure"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33661498305" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33661498305" --jq '.head_sha')" = "1d475a199cfd2b14d5e94e5cffa29e05ac868ab1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100352870198" --jq '.conclusion')" = "failure"
 
           trigger_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-6-issue534-e2e-systems-l4]")) | .number' | wc -l | tr -d ' ')"
@@ -74,7 +76,10 @@ jobs:
           test "${report_count}" = "0"
 
           event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
-          bound_main="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p' | head -n 1)"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          bound_count="$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')"
+          test "${bound_count}" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
           test -n "${bound_main}"
           test "$(git rev-parse HEAD)" = "${bound_main}"
           git merge-base --is-ancestor 67b9559cafaf72d08261ff5c988233f2bc20932b HEAD
