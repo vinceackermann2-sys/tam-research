@@ -10,6 +10,10 @@ permissions:
   issues: write
   pull-requests: read
 
+concurrency:
+  group: aera-v26-6-issue545-e2e-systems-l4-successor1
+  cancel-in-progress: false
+
 jobs:
   end-to-end-systems-successor1:
     if: >-
@@ -33,7 +37,7 @@ jobs:
       - name: Install Modal client
         run: pip install 'modal>=1.2,<1.3'
 
-      - name: Verify issue545 canonical successor systems boundary
+      - name: Verify issue545 sole successor systems boundary
         id: guard
         env:
           GH_TOKEN: ${{ github.token }}
@@ -43,7 +47,6 @@ jobs:
           test "${GITHUB_RUN_ATTEMPT}" = "1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/545" --jq '.title')" = "[research] AERA-v26.6 systems gate successor after #539 duplicate-trigger pre-GPU abort"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/545" --jq '.state')" = "open"
-          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/546" --jq '.state')" = "closed"
 
           test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/541" --jq '.merged')" = "true"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/541" --jq '.head.sha')" = "37599439e7d0dcdb26d45a1e04bedb6b1ec18a14"
@@ -60,9 +63,11 @@ jobs:
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100427851578" --jq '.conclusion')" = "failure"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100427851578" --jq '.steps[] | select(.name == "Authenticate Modal") | .conclusion')" = "skipped"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100427851578" --jq '.steps[] | select(.name == "Run sole issue539 end-to-end systems L4 gate") | .conclusion')" = "skipped"
+
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33684274250" --jq '.conclusion')" = "cancelled"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33684274250" --jq '.run_attempt')" = "1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33684274250/jobs" --jq '.total_count')" = "0"
+
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33684290786" --jq '.conclusion')" = "failure"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33684290786" --jq '.run_attempt')" = "1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100428014282" --jq '.conclusion')" = "failure"
@@ -73,20 +78,14 @@ jobs:
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33680028132" --jq '.conclusion')" = "success"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33680028132" --jq '.run_attempt')" = "1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100414089065" --jq '.conclusion')" = "success"
+
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/510" --jq '.title')" = "[aera-v26-5-issue508-e2e-systems-l4-repair1] sole #508 trigger"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33661498305" --jq '.conclusion')" = "failure"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33661498305" --jq '.run_attempt')" = "1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100352870198" --jq '.conclusion')" = "failure"
 
-          mapfile -t successor_triggers < <(
-            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
-              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-6-issue545-e2e-systems-l4-successor1]")) | .number' \
-              | sort -n
-          )
-          test "${#successor_triggers[@]}" -ge 1
-          canonical_trigger="${successor_triggers[0]}"
-          test "${TRIGGER_ISSUE}" = "${canonical_trigger}"
-
+          trigger_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-6-issue545-e2e-systems-l4-successor1]")) | .number' | wc -l | tr -d ' ')"
+          test "${trigger_count}" = "1"
           report_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.6 #545 successor1 end-to-end systems result**")) | .id' | wc -l | tr -d ' ')"
           test "${report_count}" = "0"
 
@@ -111,20 +110,14 @@ jobs:
           test "$(git hash-object modal_aera_v26_6_issue545_end_to_end_systems_successor1_app.py)" = "da3afb37245d5e4434648ba3b0d83e13dae5ca6f"
           echo "allowed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Re-verify issue545 canonical trigger immediately before Modal
+      - name: Re-verify issue545 sole trigger immediately before Modal
         if: steps.guard.outputs.allowed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          TRIGGER_ISSUE: ${{ github.event.issue.number }}
         run: |
           set -euo pipefail
-          mapfile -t successor_triggers < <(
-            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
-              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-6-issue545-e2e-systems-l4-successor1]")) | .number' \
-              | sort -n
-          )
-          test "${#successor_triggers[@]}" -ge 1
-          test "${TRIGGER_ISSUE}" = "${successor_triggers[0]}"
+          trigger_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-6-issue545-e2e-systems-l4-successor1]")) | .number' | wc -l | tr -d ' ')"
+          test "${trigger_count}" = "1"
 
       - name: Record issue545 successor1 gate (best effort)
         if: steps.guard.outputs.allowed == 'true'
@@ -133,7 +126,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TRIGGER_ISSUE: ${{ github.event.issue.number }}
         run: |
-          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.6 #545 successor1 systems gate** — canonical-lowest trigger, exact bound main, frozen #530 evaluator, #527 primitive PASS and #539 pre-GPU abort evidence verified. One NVIDIA L4, Actions attempt 1 only. No rerun/freeze/scientific-seed/replication/100M/breakthrough authorization." || true
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.6 #545 successor1 systems gate** — exact bound main, frozen #530 evaluator, #527 primitive PASS and #539 pre-GPU abort evidence verified. One NVIDIA L4, Actions attempt 1 only. No rerun/freeze/scientific-seed/replication/100M/breakthrough authorization." || true
 
       - name: Authenticate Modal
         if: steps.guard.outputs.allowed == 'true'
@@ -142,7 +135,7 @@ jobs:
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
         run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
 
-      - name: Run canonical issue545 successor1 end-to-end systems L4 gate
+      - name: Run sole issue545 successor1 end-to-end systems L4 gate
         if: steps.guard.outputs.allowed == 'true'
         id: modal
         env:
@@ -178,4 +171,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TRIGGER_ISSUE: ${{ github.event.issue.number }}
         run: |
-          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.6 #545 successor1 systems gate failed before an authoritative result marker.** No rerun, retry, redispatch, alternate eligible trigger, or timeout increase is authorized; continuation requires a new preregistration." || true
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.6 #545 successor1 systems gate failed before an authoritative result marker.** No rerun, retry, redispatch, alternate trigger, or timeout increase is authorized; continuation requires a new preregistration." || true
