@@ -1,0 +1,125 @@
+name: AERA v26.9 issue610 read-only issue602 dtype inspector successor
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  inspect-issue602-dtypes-successor:
+    if: >-
+      github.actor == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-9-issue610-readonly-issue602-dtype-inspector]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check reused issue605 reader
+        run: |
+          python -m py_compile modal_aera_v26_9_issue605_readonly_issue602_dtype_inspector_app.py
+          python -m py_compile tam_research/aera_v26_9_issue605_readonly_issue602_dtype_inspector.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify canonical authorized issue610 boundary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/610" --jq '.title')" = "[research] #605 CPU inspector guard-collision successor after consumed #609"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/610" --jq '.state')" = "open"
+
+          mapfile -t eligible < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue610-readonly-issue602-dtype-inspector]")) | .number' \
+              | sort -n
+          )
+          test "${#eligible[@]}" -ge "1"
+          test "${TRIGGER_ISSUE}" = "${eligible[0]}"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bind_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bind_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bind_lines}" | sed -n '1p')"
+          test -n "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor b48f4c437aa23047b3918a827cb3ed1b8e14dcea HEAD
+
+          auth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/610/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #610 sole CPU inspector authorization")) | .id' | wc -l | tr -d ' ')"
+          test "${auth_count}" = "1"
+          auth_body="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/610/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #610 sole CPU inspector authorization")) | .body')"
+          auth_lines="$(printf '%s\n' "${auth_body}" | sed -n 's/^Authorize main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${auth_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          test "$(printf '%s\n' "${auth_lines}" | sed -n '1p')" = "${bound_main}"
+
+          test "$(git hash-object tam_research/aera_v26_9_issue605_readonly_issue602_dtype_inspector.py)" = "bcf22ae6e04b1a8cc2e39316627e5be7aec3e22b"
+          test "$(git hash-object modal_aera_v26_9_issue605_readonly_issue602_dtype_inspector_app.py)" = "53546ec65b2b9b34edde20e71ae19bd927cb5325"
+          test "$(grep -c 'gpu=' modal_aera_v26_9_issue605_readonly_issue602_dtype_inspector_app.py)" = "0"
+          test "$(grep -c 'volume\.commit(' modal_aera_v26_9_issue605_readonly_issue602_dtype_inspector_app.py)" = "0"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/609" --jq '.title')" = "[aera-v26-9-issue605-readonly-issue602-dtype-inspector] sole #605 trigger"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33787400848" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33787400848" --jq '.head_sha')" = "b48f4c437aa23047b3918a827cb3ed1b8e14dcea"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33787400848" --jq '.conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100755389648" --jq '.conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100755389648" --jq '.steps[] | select(.name=="Verify canonical authorized issue605 boundary") | .conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100755389648" --jq '.steps[] | select(.name=="Authenticate Modal") | .conclusion')" = "skipped"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100755389648" --jq '.steps[] | select(.name=="Run sole issue605 CPU inspection") | .conclusion')" = "skipped"
+
+      - name: Recheck canonical trigger immediately before Modal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t eligible < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue610-readonly-issue602-dtype-inspector]")) | .number' \
+              | sort -n
+          )
+          test "${#eligible[@]}" -ge "1"
+          test "${TRIGGER_ISSUE}" = "${eligible[0]}"
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_main="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+
+      - name: Authenticate Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue610 CPU inspection
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue605_readonly_issue602_dtype_inspector_app.py 2>&1 | tee /tmp/issue610.log
+          test "$(grep -c '^AERA_V26_9_ISSUE605_READONLY_ISSUE602_DTYPE_INSPECTOR_JSON=' /tmp/issue610.log)" = "1"
+
+      - name: Record issue610 evidence
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          if test -f /tmp/issue610.log; then
+            evidence="$(grep '^AERA_V26_9_ISSUE605_READONLY_ISSUE602_DTYPE_INSPECTOR_JSON=' /tmp/issue610.log | tail -1 | sed 's/^AERA_V26_9_ISSUE605_READONLY_ISSUE602_DTYPE_INSPECTOR_JSON=//')"
+            if test -n "${evidence}"; then
+              gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔎 **#610 authoritative CPU-only read of immutable #602 dtype evidence**\n\n\`${evidence}\`\n\nRead-only evidence extraction only; #602 remains FAIL and no repair, systems run, GPU execution, or higher scientific step is authorized." || true
+            fi
+          fi
