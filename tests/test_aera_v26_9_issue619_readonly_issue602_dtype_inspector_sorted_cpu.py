@@ -78,4 +78,6 @@ def test_issue619_workflow_is_single_attempt_single_modal_run() -> None:
     assert text.count("modal run modal_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_app.py") == 1
     assert "33793519431" in text
     assert "100775569626" in text
-    assert "gpu=" not in text
+    gpu_guard = 'test "$(grep -c \'gpu=\' modal_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_app.py)" = "0"'
+    assert gpu_guard in text
+    assert text.count("gpu=") == 1
