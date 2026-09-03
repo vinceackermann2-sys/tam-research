@@ -5,8 +5,8 @@ import hashlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INSPECTOR = ROOT / "modal_aera_v26_8_issue574_issue571_result_inspector.py"
-WORKFLOW = ROOT / ".github" / "workflows" / "aera-v26-8-issue574-issue571-result-inspector.yml"
+INSPECTOR = ROOT / "modal_aera_v26_8_issue574_consumed_systems_result_inspector.py"
+WORKFLOW = ROOT / ".github" / "workflows" / "aera-v26-8-issue574-consumed-systems-result-inspector.yml"
 ISSUE571_LAUNCHER = ROOT / "modal_aera_v26_8_issue571_memory_safe_end_to_end_systems_l4_app.py"
 ISSUE571_WORKFLOW = ROOT / ".github" / "workflows" / "aera-v26-8-issue571-memory-safe-e2e-systems-l4.yml"
 ISSUE571_TEST = ROOT / "tests" / "test_aera_v26_8_issue571_memory_safe_end_to_end_systems_l4_cpu.py"
@@ -16,7 +16,7 @@ SOURCE_TREE = "646ffe7f96ed2f1322408fcd2dc3eee2ff886161"
 SOURCE_RESULT_PATH = "/vol/aera-v26/issue571-memory-safe-end-to-end-systems/result.json"
 SOURCE_RESULT_SHA256 = "afeeb62351cc4fb97d272c5b55c9621839e26f83753ae1fb237733d58a5ee472"
 INSPECTOR_BLOB = "e5ff20ff60b0b00e70c1e8d7b1ca8516459d2749"
-WORKFLOW_BLOB = "e29d851b7c8baae07dcbc17f0779b7b391c4c2b7"
+WORKFLOW_BLOB = "49e53caf27a8f60dc9f7e0653f1dce11087f92a8"
 
 FROZEN_BLOBS = {
     ROOT / "tam_research" / "aera_v26_5_end_to_end_systems.py": "c9731cae7e386f09b2a190b045532591c4fa00be",
@@ -205,14 +205,14 @@ def test_issue574_workflow_is_one_shot_cpu_only_exact_bound_main() -> None:
     assert "100604889696" in source
     assert SOURCE_RESULT_SHA256 in source
     assert INSPECTOR_BLOB in source
-    assert source.count("modal run modal_aera_v26_8_issue574_issue571_result_inspector.py") == 1
+    assert source.count("modal run modal_aera_v26_8_issue574_consumed_systems_result_inspector.py") == 1
     assert 'gpu="' not in lowered
     assert "gpu: " not in lowered
     assert "modal deploy" not in lowered
     assert "gh run rerun" not in lowered
     assert "rerun-failed" not in lowered
     assert "redispatch" not in lowered
-    assert "grep -c 'volume.commit' modal_aera_v26_8_issue574_issue571_result_inspector.py" in source
+    assert "grep -c 'volume.commit' modal_aera_v26_8_issue574_consumed_systems_result_inspector.py" in source
 
 
 def test_issue574_higher_authorizations_remain_false() -> None:
