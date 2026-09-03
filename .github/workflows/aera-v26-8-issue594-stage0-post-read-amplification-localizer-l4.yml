@@ -1,0 +1,149 @@
+name: AERA v26.8 issue594 stage0 post-read amplification localizer L4
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  localize-stage0-post-read-amplification:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-8-issue594-stage0-post-read-amplification-localizer-l4]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue594 harness
+        run: |
+          python -m py_compile modal_aera_v26_8_issue594_stage0_post_read_amplification_localizer_app.py
+          python -m py_compile tam_research/aera_v26_8_issue594_stage0_post_read_amplification_localizer.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify canonical authorized issue594 boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/594" --jq '.title')" = "[research] AERA-v26.8 stage0 post-read amplification localization after #593"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/594" --jq '.state')" = "open"
+
+          mapfile -t eligible < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-8-issue594-stage0-post-read-amplification-localizer-l4]")) | .number' \
+              | sort -n
+          )
+          test "${#eligible[@]}" -ge "1"
+          test "${TRIGGER_ISSUE}" = "${eligible[0]}"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bind_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bind_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bind_lines}" | sed -n '1p')"
+          test -n "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 9547bb0b4c340d793acb1e12c655dc3d22513234 HEAD
+
+          auth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/594/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #594 sole L4 diagnostic authorization")) | .id' | wc -l | tr -d ' ')"
+          test "${auth_count}" = "1"
+          auth_body="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/594/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #594 sole L4 diagnostic authorization")) | .body')"
+          auth_lines="$(printf '%s\n' "${auth_body}" | sed -n 's/^Authorize main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${auth_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          test "$(printf '%s\n' "${auth_lines}" | sed -n '1p')" = "${bound_main}"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/592" --jq '.merged')" = "true"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/pulls/592" --jq '.merge_commit_sha')" = "9547bb0b4c340d793acb1e12c655dc3d22513234"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33763382230" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33763382230" --jq '.head_sha')" = "45c007b52811c0b62f5da254fd2ae862d6ed81aa"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33763382230" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100674987954" --jq '.conclusion')" = "success"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/590" --jq '.title')" = "[aera-v26-8-issue588-first-divergence-guard-repair1-l4] sole #588 trigger"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33753926605" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33753926605" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100643674944" --jq '.conclusion')" = "success"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/593" --jq '.title')" = "[aera-v26-8-issue591-readonly-issue588-result-inspector] sole #591 read-only trigger"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33764045085" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33764045085" --jq '.head_sha')" = "9547bb0b4c340d793acb1e12c655dc3d22513234"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33764045085" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100677235816" --jq '.conclusion')" = "success"
+
+          test "$(git hash-object tam_research/aera_v26_8_issue594_stage0_post_read_amplification_localizer.py)" = "2b72454ea74929ac7254cfc399bb2ab201dfc2cb"
+          test "$(git hash-object modal_aera_v26_8_issue594_stage0_post_read_amplification_localizer_app.py)" = "4b4d0d4640f6638e410d89fe4256e1aa868e8a4f"
+          test "$(git hash-object tam_research/aera_v26_8_issue578_first_divergence_localizer.py)" = "5933d1113b950348bb63e5f3eb8713ad36dbf580"
+          test "$(git hash-object tam_research/aera_v26_8_issue581_first_divergence_no_grad.py)" = "8800bb399e21b691e0d7703cc3eeaf486d3223b6"
+          test "$(git hash-object tam_research/aera_v26_8_issue562_end_to_end_systems.py)" = "3534103eea21f7c4d9d31798ad34601fd47090d6"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_8_ficem_read_mixed_strength_precision.py)" = "3575c58d1cd730be77649f087908c51dbf3e6088"
+
+          test "$(grep -c 'gpu="L4"' modal_aera_v26_8_issue594_stage0_post_read_amplification_localizer_app.py)" = "1"
+          test "$(grep -c 'run_stage0_post_read_amplification_localization(' modal_aera_v26_8_issue594_stage0_post_read_amplification_localizer_app.py)" = "1"
+          echo "bound_main=${bound_main}" >> "$GITHUB_OUTPUT"
+
+      - name: Record issue594 localization start (best effort)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔬 **AERA-v26.8 #594 stage0 post-read amplification localization started** — exact authorized main and #590/#593 evidence verified. One L4 diagnostic only; no training, checkpoint mutation, performance tuning, or repair." || true
+
+      - name: Recheck canonical trigger immediately before Modal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t eligible < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-8-issue594-stage0-post-read-amplification-localizer-l4]")) | .number' \
+              | sort -n
+          )
+          test "${#eligible[@]}" -ge "1"
+          test "${TRIGGER_ISSUE}" = "${eligible[0]}"
+          test "$(git rev-parse HEAD)" = "${{ steps.guard.outputs.bound_main }}"
+
+      - name: Authenticate Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue594 L4 diagnostic
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_8_issue594_stage0_post_read_amplification_localizer_app.py 2>&1 | tee /tmp/issue594.log
+          test "$(grep -c '^AERA_V26_8_ISSUE594_STAGE0_POST_READ_AMPLIFICATION_RESULT_JSON=' /tmp/issue594.log)" = "1"
+          test "$(grep -c '^AERA_V26_8_ISSUE594_STAGE0_POST_READ_AMPLIFICATION_SUMMARY_JSON=' /tmp/issue594.log)" = "1"
+
+      - name: Record issue594 result (best effort)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          if test -f /tmp/issue594.log; then
+            summary="$(grep '^AERA_V26_8_ISSUE594_STAGE0_POST_READ_AMPLIFICATION_SUMMARY_JSON=' /tmp/issue594.log | tail -1 | sed 's/^AERA_V26_8_ISSUE594_STAGE0_POST_READ_AMPLIFICATION_SUMMARY_JSON=//')"
+            result="$(grep '^AERA_V26_8_ISSUE594_STAGE0_POST_READ_AMPLIFICATION_RESULT_JSON=' /tmp/issue594.log | tail -1 | sed 's/^AERA_V26_8_ISSUE594_STAGE0_POST_READ_AMPLIFICATION_RESULT_JSON=//')"
+            if test -n "${result}"; then
+              gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔬 **AERA-v26.8 #594 authoritative stage0 post-read amplification localization**\n\nResult: \`${result}\`\n\nSummary: \`${summary}\`\n\nDiagnostic evidence only. No repair, rerun, architecture freeze, S2, fresh scientific seed, replication, 100M scaling, or breakthrough claim is authorized." || true
+            fi
+          fi
