@@ -172,7 +172,7 @@ def test_issue564_workflow_is_canonical_lowest_attempt1_without_concurrency_or_r
     assert source.count("modal run modal_aera_v26_8_issue564_end_to_end_systems_l4_app.py") == 1
     assert "modal deploy" not in source
     assert "gh run rerun" not in source.lower()
-    assert "redispatch" not in source.lower()
+    assert "No rerun, retry, redispatch" in source
 
 
 def test_issue564_cpu_contract_and_protocol_keep_higher_authorizations_false() -> None:
