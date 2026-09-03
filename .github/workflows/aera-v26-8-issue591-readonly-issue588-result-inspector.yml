@@ -1,0 +1,142 @@
+name: AERA v26.8 issue591 read-only issue588 result inspector
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  inspect-existing-result:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-8-issue591-readonly-issue588-result-inspector]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue591 read-only inspector
+        run: python -m py_compile modal_aera_v26_8_issue591_readonly_issue588_result_inspector.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify canonical CPU-only issue591 inspection boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/591" --jq '.title')" = "[research] AERA-v26.8 read-only full #588 first-divergence result inspector after authoritative #590"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/591" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/590" --jq '.title')" = "[aera-v26-8-issue588-first-divergence-guard-repair1-l4] sole #588 trigger"
+
+          mapfile -t eligible < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-8-issue591-readonly-issue588-result-inspector]")) | .number' \
+              | sort -n
+          )
+          test "${#eligible[@]}" -ge "1"
+          test "${TRIGGER_ISSUE}" = "${eligible[0]}"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bind_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bind_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bind_lines}" | sed -n '1p')"
+          test -n "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor e08e49e2e5d01010f42dc7119d7bcacc12dd1f83 HEAD
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33753926605" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33753926605" --jq '.head_sha')" = "e08e49e2e5d01010f42dc7119d7bcacc12dd1f83"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33753926605" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33753926605" --jq '.path')" = ".github/workflows/aera-v26-8-issue588-first-divergence-guard-repair1.yml"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/100643674944" --jq '.conclusion')" = "success"
+
+          test "$(git hash-object modal_aera_v26_8_issue588_first_divergence_guard_repair1_app.py)" = "f5ea8a279578edd57266bfead57371e15faab853"
+          test "$(git hash-object .github/workflows/aera-v26-8-issue588-first-divergence-guard-repair1.yml)" = "33e721f457f518805ebfbb359e7a945947e48b31"
+          test "$(git hash-object tests/test_aera_v26_8_issue588_first_divergence_guard_repair1_cpu.py)" = "703d5dc3f229d0fb5d5edcf981a65b6ac76369aa"
+          test "$(git hash-object tam_research/aera_v26_8_issue581_first_divergence_no_grad.py)" = "8800bb399e21b691e0d7703cc3eeaf486d3223b6"
+          test "$(git hash-object tam_research/aera_v26_8_issue578_first_divergence_localizer.py)" = "5933d1113b950348bb63e5f3eb8713ad36dbf580"
+
+          grep -q 'SOURCE_RESULT_PATH = "/vol/aera-v26/issue588-first-divergence-guard-repair1/result.json"' modal_aera_v26_8_issue591_readonly_issue588_result_inspector.py
+          grep -q 'SOURCE_RESULT_SHA256 = "495c6f49210074580553aa4b55bf0970624a8abaee910f6d2bf7315e26d2a540"' modal_aera_v26_8_issue591_readonly_issue588_result_inspector.py
+          test "$(grep -c 'gpu=' modal_aera_v26_8_issue591_readonly_issue588_result_inspector.py || true)" = "0"
+          test "$(grep -c 'volume.commit' modal_aera_v26_8_issue591_readonly_issue588_result_inspector.py || true)" = "0"
+          echo "bound_main=${bound_main}" >> "$GITHUB_OUTPUT"
+
+      - name: Record issue591 inspection start (best effort)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.8 #591 read-only #588 result inspection started** — immutable #590 authority and exact source SHA contract verified. CPU-only reader; zero GPU/model/checkpoint execution and no volume mutation." || true
+
+      - name: Recheck canonical trigger immediately before Modal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t eligible < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-8-issue591-readonly-issue588-result-inspector]")) | .number' \
+              | sort -n
+          )
+          test "${#eligible[@]}" -ge "1"
+          test "${TRIGGER_ISSUE}" = "${eligible[0]}"
+          test "$(git rev-parse HEAD)" = "${{ steps.guard.outputs.bound_main }}"
+
+      - name: Authenticate Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Inspect immutable issue588 durable result once
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_8_issue591_readonly_issue588_result_inspector.py 2>&1 | tee /tmp/issue591.log
+          test "$(grep -c '^AERA_V26_8_ISSUE591_READONLY_ISSUE588_RESULT_INSPECTOR_JSON=' /tmp/issue591.log)" = "1"
+
+      - name: Record issue591 inspection result (best effort)
+        if: steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue591-summary.md
+          import json
+          from pathlib import Path
+          prefix = "AERA_V26_8_ISSUE591_READONLY_ISSUE588_RESULT_INSPECTOR_JSON="
+          lines = Path('/tmp/issue591.log').read_text().splitlines()
+          payload = json.loads([line[len(prefix):] for line in lines if line.startswith(prefix)][-1])
+          print('🔎 **AERA-v26.8 #591 read-only #588 full-result inspection**')
+          print()
+          print(f"Source SHA: `{payload['source_result_sha256']}`; decision: `{payload['source_decision']}`.")
+          for batch in ('8', '64'):
+              row = payload['batches'][batch]
+              print(f"Batch {batch}: first bitwise `{row['first_bitwise_difference']['name']}` -> first integrated failure `{row['first_integrated_tolerance_or_metadata_failure']['name']}` -> first discrete `{row['first_discrete_decision_difference']['name']}`.")
+              print(f"Batch {batch}: boundary indices `{json.dumps(row['boundary_indices'], sort_keys=True)}`, failures `{row['failure_count']}`, unavailable requested tokens `{json.dumps(row['requested_but_unavailable_tokens'])}`.")
+          print()
+          print('Diagnostic read only. Adjudication replay remains diagnostic-only; no production repair or higher scientific authorization follows.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue591-summary.md)" || true
