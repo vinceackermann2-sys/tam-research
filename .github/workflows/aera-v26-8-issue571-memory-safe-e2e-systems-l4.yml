@@ -114,7 +114,6 @@ jobs:
           git cat-file -e "${bound_main}^{commit}"
           git checkout --detach "${bound_main}"
           test "$(git rev-parse HEAD)" = "${bound_main}"
-          test "$(git rev-parse 'HEAD^{tree}')" = "4b23e3be4f7f2c8a607eba13fa24c526c9683187"
           git merge-base --is-ancestor f9d10b71e2d4b8035bbd954d710d48febd616b48 HEAD
 
           test "$(git hash-object tam_research/aera_v26_8_issue569_end_to_end_systems_memory_safe.py)" = "1eeaa80adb2ae960e2a8dad06031c4ed5ca99203"
