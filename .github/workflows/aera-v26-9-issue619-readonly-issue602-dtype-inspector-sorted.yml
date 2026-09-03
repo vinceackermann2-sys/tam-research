@@ -85,7 +85,7 @@ jobs:
 
           test "$(git hash-object tam_research/aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted.py)" = "b19744bf7e107409a90b62f26bde9e5cb88f36af"
           test "$(git hash-object modal_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_app.py)" = "37ce2a34c46af99ca46a4cfd6cac8fb9af3679dc"
-          test "$(git hash-object tests/test_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_cpu.py)" = "dfff75ebff3005ccaba123767c47ffe700dad828"
+          test "$(git hash-object tests/test_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_cpu.py)" = "4cb6c8f20c4f511bd027fa8a7bc1c9a9689d0da3"
           test "$(grep -c 'from tam_research\|import tam_research' modal_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_app.py)" = "0"
           test "$(grep -c 'gpu=' modal_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_app.py)" = "0"
           test "$(grep -c 'volume\.commit(' modal_aera_v26_9_issue619_readonly_issue602_dtype_inspector_sorted_app.py)" = "0"
