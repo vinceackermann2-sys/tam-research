@@ -219,8 +219,11 @@ def test_issue553_workflow_is_canonical_lowest_attempt1_without_concurrency() ->
     assert 'test "${#matching_triggers[@]}" = "1"' not in source
     assert "Bind main:" in source
     assert "git rev-parse HEAD" in source
-    assert "Re-verify issue553 canonical trigger immediately before Modal" in source
-    assert source.index("Re-verify issue553 canonical trigger immediately before Modal") < source.index("Authenticate Modal")
+    reverify_step = "\n      - name: Re-verify issue553 canonical trigger immediately before Modal\n"
+    authenticate_step = "\n      - name: Authenticate Modal\n"
+    assert reverify_step in source
+    assert authenticate_step in source
+    assert source.index(reverify_step) < source.index(authenticate_step)
     assert source.count(
         "modal run modal_aera_v26_7_issue553_ficem_read_mixed_dtype_l4_app.py"
     ) == 1
