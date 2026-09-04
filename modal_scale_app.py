@@ -196,10 +196,13 @@ def main(
     issue_number: int = 0,
 ):
     scale = model_scale.strip().lower()
-    if scale not in {"25m", "50m", "100m"}:
-        raise ValueError("model_scale must be 25m, 50m, or 100m")
+    allowed_scales = {"25m", "50m", "100m", "300m", "1b"}
+    if scale not in allowed_scales:
+        raise ValueError("model_scale must be one of 25m, 50m, 100m, 300m, or 1b")
     if micro_batch_size * grad_accum_steps != 128:
         raise ValueError("micro_batch_size * grad_accum_steps must equal 128")
+    if scale in {"300m", "1b"} and micro_batch_size > 32:
+        raise ValueError("300m/1b single-H100 runs require micro_batch_size <= 32")
 
     archs = [a.strip() for a in architectures.split(",") if a.strip()]
     seed_values = [int(s.strip()) for s in seeds.split(",") if s.strip()]
