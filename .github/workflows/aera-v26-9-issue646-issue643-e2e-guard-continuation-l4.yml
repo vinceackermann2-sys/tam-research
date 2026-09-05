@@ -1,0 +1,201 @@
+name: AERA v26.9 issue646 #643 E2E guard continuation L4
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  issue643-e2e-guard-continuation:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-9-issue646-issue643-e2e-guard-continuation-l4]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue646 continuation launcher
+        run: |
+          python -m py_compile tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py
+          python -m py_compile modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue646 canonical guard-only continuation boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/646" --jq '.title')" = "[research] AERA-v26.9 #643 E2E guard-only continuation after consumed #645 pre-Modal failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/646" --jq '.state')" = "open"
+
+          freeze_comment_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/646/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #646 pre-implementation E2E guard-continuation freeze")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${freeze_comment_count}" = "1"
+          freeze_comment="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/646/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #646 pre-implementation E2E guard-continuation freeze")) | .body'
+          )"
+          printf '%s\n' "${freeze_comment}" | grep -F 'research/aera-v26-9-issue646-issue643-e2e-guard-continuation-l4' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F '[aera-v26-9-issue646-issue643-e2e-guard-continuation-l4]' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F '/vol/aera-v26/issue646-issue643-e2e-guard-continuation/result.json' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'hard timeout `600` seconds maximum' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'ISSUE643_ADAPTER_BLOB=512572340cc09e2e7ad6729712258c12cb377ef2' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'LAUNCHER_BLOB=f39ebfca13fd11bb4893710754643e2df1c428a8' >/dev/null
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/645" --jq '.title')" = "[aera-v26-9-issue643-bounded-memory-e2e-systems-l4] sole #643 trigger"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/645" --jq '.body' | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')" = "25fd672e923ea66bab5a529de0c3e8a8680bf41e"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33991449361" --jq '.conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/33991449361" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/101374299440" --jq '.conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/101374299440" --jq '.steps[] | select(.name=="Verify issue643 canonical bounded-memory systems boundary") | .conclusion')" = "failure"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/101374299440" --jq '.steps[] | select(.name=="Authenticate Modal") | .conclusion')" = "skipped"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/101374299440" --jq '.steps[] | select(.name=="Run canonical issue643 bounded-memory end-to-end systems L4 gate") | .conclusion')" = "skipped"
+
+          old_result_report_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/645/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.9 #643 bounded-memory end-to-end systems result**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${old_result_report_count}" = "0"
+
+          old_trigger_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue643-bounded-memory-e2e-systems-l4]")) | .number' \
+              | wc -l | tr -d ' '
+          )"
+          test "${old_trigger_count}" = "1"
+
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue646-issue643-e2e-guard-continuation-l4]")) | .number' \
+              | sort -n
+          )
+          test "${#matching_triggers[@]}" -ge 1
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          auth_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/646/comments?per_page=100" \
+              --jq --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #646 sole L4 #643 E2E guard-continuation authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 25fd672e923ea66bab5a529de0c3e8a8680bf41e HEAD
+
+          test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
+          test "$(git hash-object modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py)" = "f39ebfca13fd11bb4893710754643e2df1c428a8"
+          test "$(git hash-object tam_research/aera_v26_9_issue641_physical_sparse_backend_identity_compat.py)" = "5ea1919d15904add0f9e0fb714757f32b11442cb"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_9_ficem_read_identity_weight_visibility.py)" = "b81cc209f5d95abbe1fb8bd620c78e87c067bc19"
+          test "$(git hash-object tam_research/aera_v26_9_issue625_schema_guard_repair1.py)" = "92d06a4954bca1b302355e81f5bf09b06fcee222"
+          test "$(git hash-object tam_research/aera_v26_8_issue569_end_to_end_systems_memory_safe.py)" = "1eeaa80adb2ae960e2a8dad06031c4ed5ca99203"
+          test "$(git hash-object tam_research/aera_v26_8_issue562_end_to_end_systems.py)" = "3534103eea21f7c4d9d31798ad34601fd47090d6"
+          test "$(git hash-object tam_research/aera_v26_6_issue530_end_to_end_systems.py)" = "9d5a3c31f4a3862f96b957540baa2e0ec6a84c6b"
+          test "$(git hash-object tam_research/aera_v26_5_end_to_end_systems.py)" = "c9731cae7e386f09b2a190b045532591c4fa00be"
+          test "$(git hash-object tam_research/aera_v26_5_end_to_end_systems_repair1.py)" = "b3f7082b188644007b873db3733492f424d4941a"
+
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Re-verify issue646 canonical trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue646-issue643-e2e-guard-continuation-l4]")) | .number' \
+              | sort -n
+          )
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+          bound_main="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          auth_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/646/comments?per_page=100" \
+              --jq --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #646 sole L4 #643 E2E guard-continuation authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+
+      - name: Record issue646 continuation gate (best effort)
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.9 #646 #643-E2E guard continuation** — #645 consumed pre-Modal guard-only failure verified; frozen #643 scientific adapter and lineage unchanged. Exactly one NVIDIA L4, Actions attempt 1 only. No rerun/freeze/fresh-seed/S2/replication/100M/breakthrough authorization." || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run canonical issue646 #643 E2E guard continuation L4
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          set +e
+          modal run modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py 2>&1 | tee /tmp/issue646.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -q '^AERA_V26_9_ISSUE646_ISSUE643_E2E_GUARD_CONTINUATION_RESULT_JSON=' /tmp/issue646.log; then
+            exit 0
+          fi
+          if [ "${rc}" = "0" ]; then exit 1; fi
+          exit "${rc}"
+
+      - name: Record issue646 authoritative result (best effort)
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          marker="$(grep '^AERA_V26_9_ISSUE646_ISSUE643_E2E_GUARD_CONTINUATION_SUMMARY_JSON=' /tmp/issue646.log | tail -n 1)"
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔬 **AERA-v26.9 #643 bounded-memory E2E result via #646 guard continuation**\n\n${marker}\n\nFresh durable Modal JSON plus RESULT marker are authority for the frozen #643 E2E question. PASS permits only a separately preregistered architecture-freeze audit; no S2/fresh-seed/replication/100M/breakthrough claim." || true
+
+      - name: Record issue646 pre-result failure (best effort)
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.9 #646 #643-E2E continuation failed before an authoritative RESULT marker.** The attempt is consumed. No rerun/retry/redispatch/alternate eligible trigger/timeout increase is authorized; any continuation requires separate preregistration." || true
