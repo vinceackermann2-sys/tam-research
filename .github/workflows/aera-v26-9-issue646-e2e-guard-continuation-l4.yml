@@ -28,7 +28,7 @@ jobs:
       - name: Syntax-check issue646 continuation launcher
         run: |
           python -m py_compile tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py
-          python -m py_compile modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py
+          python -m py_compile modal_aera_v26_9_issue646_e2e_guard_continuation_l4_app.py
 
       - name: Install Modal client
         run: pip install 'modal>=1.2,<1.3'
@@ -112,7 +112,7 @@ jobs:
           git merge-base --is-ancestor 25fd672e923ea66bab5a529de0c3e8a8680bf41e HEAD
 
           test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
-          test "$(git hash-object modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py)" = "f39ebfca13fd11bb4893710754643e2df1c428a8"
+          test "$(git hash-object modal_aera_v26_9_issue646_e2e_guard_continuation_l4_app.py)" = "f39ebfca13fd11bb4893710754643e2df1c428a8"
           test "$(git hash-object tam_research/aera_v26_9_issue641_physical_sparse_backend_identity_compat.py)" = "5ea1919d15904add0f9e0fb714757f32b11442cb"
           test "$(git hash-object tam_research/aera_hardware_core_v26_9_ficem_read_identity_weight_visibility.py)" = "b81cc209f5d95abbe1fb8bd620c78e87c067bc19"
           test "$(git hash-object tam_research/aera_v26_9_issue625_schema_guard_repair1.py)" = "92d06a4954bca1b302355e81f5bf09b06fcee222"
@@ -172,7 +172,7 @@ jobs:
         run: |
           set -o pipefail
           set +e
-          modal run modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py 2>&1 | tee /tmp/issue646.log
+          modal run modal_aera_v26_9_issue646_e2e_guard_continuation_l4_app.py 2>&1 | tee /tmp/issue646.log
           rc=${PIPESTATUS[0]}
           set -e
           if grep -q '^AERA_V26_9_ISSUE646_ISSUE643_E2E_GUARD_CONTINUATION_RESULT_JSON=' /tmp/issue646.log; then

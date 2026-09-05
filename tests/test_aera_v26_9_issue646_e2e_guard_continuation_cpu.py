@@ -9,15 +9,15 @@ from tam_research import aera_v26_9_issue643_bounded_memory_end_to_end_systems a
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py"
-LAUNCHER = ROOT / "modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py"
-WORKFLOW = ROOT / ".github/workflows/aera-v26-9-issue646-issue643-e2e-guard-continuation-l4.yml"
-CPU_TEST = ROOT / "tests/test_aera_v26_9_issue646_issue643_e2e_guard_continuation_cpu.py"
+LAUNCHER = ROOT / "modal_aera_v26_9_issue646_e2e_guard_continuation_l4_app.py"
+WORKFLOW = ROOT / ".github/workflows/aera-v26-9-issue646-e2e-guard-continuation-l4.yml"
+CPU_TEST = ROOT / "tests/test_aera_v26_9_issue646_e2e_guard_continuation_cpu.py"
 
 SOURCE_MAIN = "25fd672e923ea66bab5a529de0c3e8a8680bf41e"
 SOURCE_TREE = "118f66652b7767a979fb7126aa71603e41c29723"
 ADAPTER_BLOB = "512572340cc09e2e7ad6729712258c12cb377ef2"
 LAUNCHER_BLOB = "f39ebfca13fd11bb4893710754643e2df1c428a8"
-WORKFLOW_BLOB = "f981bca0d1a6f095ee1fef8e14ef28cc297a87ca"
+WORKFLOW_BLOB = "310e8b81634e733f1cf0b428397e07c2b39c9810"
 
 
 def _git_blob(path: Path) -> str:
@@ -137,8 +137,8 @@ def test_issue646_paths_are_exactly_three_additive_continuation_files() -> None:
     )
     assert issue646_paths == sorted(
         [
-            ".github/workflows/aera-v26-9-issue646-issue643-e2e-guard-continuation-l4.yml",
-            "modal_aera_v26_9_issue646_issue643_e2e_guard_continuation_l4_app.py",
-            "tests/test_aera_v26_9_issue646_issue643_e2e_guard_continuation_cpu.py",
+            ".github/workflows/aera-v26-9-issue646-e2e-guard-continuation-l4.yml",
+            "modal_aera_v26_9_issue646_e2e_guard_continuation_l4_app.py",
+            "tests/test_aera_v26_9_issue646_e2e_guard_continuation_cpu.py",
         ]
     )
