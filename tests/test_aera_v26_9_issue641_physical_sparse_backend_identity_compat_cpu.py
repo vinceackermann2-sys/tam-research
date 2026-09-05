@@ -80,7 +80,9 @@ def test_issue641_frozen_lineage_and_corrected_issue630_evidence_are_exact() -> 
 
 
 def test_issue641_backend_identity_is_single_exact_version_name() -> None:
-    assert repair.HISTORICAL_BACKEND_NAME == "triton-ficem-read-repair5-write-v26.4"
+    assert repair.HISTORICAL_BACKEND_NAME == (
+        "triton-fused-ficem-read-repair5-write-tail-v26.4"
+    )
     assert repair.V26_9_BACKEND_NAME == (
         "triton-ficem-read-v26.9-identity-weight-visibility-"
         "write-v26.6-materialize-cast"
