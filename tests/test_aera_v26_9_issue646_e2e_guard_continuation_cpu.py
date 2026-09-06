@@ -16,8 +16,8 @@ CPU_TEST = ROOT / "tests/test_aera_v26_9_issue646_e2e_guard_continuation_cpu.py"
 SOURCE_MAIN = "25fd672e923ea66bab5a529de0c3e8a8680bf41e"
 SOURCE_TREE = "118f66652b7767a979fb7126aa71603e41c29723"
 ADAPTER_BLOB = "512572340cc09e2e7ad6729712258c12cb377ef2"
-LAUNCHER_BLOB = "f39ebfca13fd11bb4893710754643e2df1c428a8"
-WORKFLOW_BLOB = "310e8b81634e733f1cf0b428397e07c2b39c9810"
+LAUNCHER_BLOB = "b016ad90807f7460d4d02325739f7efa37b0712e"
+WORKFLOW_BLOB = "c271a6b8304e9e1e78885a3ac4419282a6b9af91"
 
 
 def _git_blob(path: Path) -> str:
@@ -90,6 +90,8 @@ def test_issue646_launcher_is_fresh_result_namespace_and_exactly_one_l4_systems_
     assert source.count("volume.commit()") == 1
     assert source.index("volume.commit()") < source.index("print(RESULT_MARKER +")
     assert source.count("result_path.exists()") == 2
+    assert 'payload630.get("overall_pass") is not True' in source
+    assert 'payload630.get("all_pass")' not in source
     assert "issue645_consumed_pre_modal" in source
     assert "scientific_seed_consumed" in source
     assert "breakthrough_proven" in source
@@ -110,6 +112,12 @@ def test_issue646_workflow_fixes_multiline_comment_guard_without_scientific_rela
     assert "freeze_comment=" in source
     assert '| .body' in source
     assert 'test "${freeze_comment_count}" = "1"' in source
+
+    assert "correction2_count=" in source
+    assert '## #646 correction2 pre-trigger #630 overall_pass schema repair' in source
+    assert 'LAUNCHER_BLOB=b016ad90807f7460d4d02325739f7efa37b0712e' in source
+    assert 'payload630.get("overall_pass")' in source
+    assert 'payload630.get("all_pass")' in source
 
     assert "33991449361" in source
     assert "101374299440" in source
