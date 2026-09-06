@@ -69,12 +69,28 @@ jobs:
           printf '%s\n' "${freeze_comment}" | grep -F '/vol/aera-v26/issue650-e2e-cli-guard-continuation/result.json' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F '914615db5267565563dcc9e82bfc31f444a656a68bd560f50447a8fd03588431' >/dev/null
 
-          inspector_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^INSPECTOR_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          cpu_test_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/658" --jq '.title')" = "[research] AERA-v26.9 #654 read-only inspector artifact-manifest repair2 after consumed #657 CI"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/658" --jq '.state')" = "open"
+          repair_manifest_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/658/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #658 pre-implementation artifact-manifest repair2 freeze")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${repair_manifest_count}" = "1"
+          repair_manifest="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/658/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #658 pre-implementation artifact-manifest repair2 freeze")) | .body'
+          )"
+
+          original_inspector_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^INSPECTOR_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          inspector_blob="$(printf '%s\n' "${repair_manifest}" | sed -n 's/^INSPECTOR_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "${repair_manifest}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${repair_manifest}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${original_inspector_blob}"
           test -n "${inspector_blob}"
           test -n "${workflow_blob}"
           test -n "${cpu_test_blob}"
+          test "${inspector_blob}" = "${original_inspector_blob}"
 
           mapfile -t matching_triggers < <(
             gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
