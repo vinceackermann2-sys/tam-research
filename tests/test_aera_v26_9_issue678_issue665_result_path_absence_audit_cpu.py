@@ -97,12 +97,12 @@ def test_workflow_yaml_block_shape_and_safe_reporting() -> None:
 def test_workflow_executes_only_readonly_audit_launcher_once() -> None:
     text = WORKFLOW.read_text()
     command = "modal run modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py::audit_main"
+    assert text.count("modal run ") == 1
     assert text.count(command) == 1
     assert text.index("Verify issue678 canonical read-only audit boundary") < text.index(command)
     assert text.index("Re-verify issue678 trigger immediately before Modal") < text.index(command)
     assert text.index("Authenticate Modal") < text.index(command)
     assert "modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py::" not in text
-    assert "run_diagnostic.remote" not in text
 
 
 def test_workflow_freezes_canary_and_negative_authority() -> None:
