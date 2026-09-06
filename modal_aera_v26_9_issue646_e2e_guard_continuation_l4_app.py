@@ -210,7 +210,7 @@ def preflight() -> dict:
     payload630 = json.loads(primitive630.read_text())
     if (
         payload630.get("decision") != ISSUE630_DECISION
-        or payload630.get("all_pass") is not True
+        or payload630.get("overall_pass") is not True
     ):
         raise RuntimeError("issue646 immutable #630 decision drifted")
 
