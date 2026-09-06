@@ -1,0 +1,252 @@
+name: AERA v26.9 issue654 read-only throughput evidence inspector
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-9-issue654-readonly-throughput-evidence-inspector
+  cancel-in-progress: false
+
+jobs:
+  inspect-existing-throughput-evidence:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-9-issue654-readonly-throughput-evidence-inspector]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue654 read-only inspector
+        run: python -m py_compile modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue654 canonical read-only inspection boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/654" --jq '.title')" = "[research] AERA-v26.9 #653 read-only E2E throughput evidence inspector"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/654" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/653" --jq '.title')" = "[aera-v26-9-issue650-e2e-cli-guard-continuation-l4] sole #650 trigger"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34022331841" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34022331841" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34022331841" --jq '.head_sha')" = "1eebb678609523aa67401e482dcc63e0ea858aa2"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34022331841" --jq '.path')" = ".github/workflows/aera-v26-9-issue650-e2e-cli-guard-continuation-l4.yml"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/101457058965" --jq '.conclusion')" = "success"
+
+          freeze_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/654/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #654 pre-implementation read-only throughput inspector freeze")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${freeze_count}" = "1"
+          freeze_comment="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/654/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #654 pre-implementation read-only throughput inspector freeze")) | .body'
+          )"
+          printf '%s\n' "${freeze_comment}" | grep -F 'research/aera-v26-9-issue654-readonly-throughput-evidence-inspector' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F '[aera-v26-9-issue654-readonly-throughput-evidence-inspector]' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F '/vol/aera-v26/issue650-e2e-cli-guard-continuation/result.json' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F '914615db5267565563dcc9e82bfc31f444a656a68bd560f50447a8fd03588431' >/dev/null
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/658" --jq '.title')" = "[research] AERA-v26.9 #654 read-only inspector artifact-manifest repair2 after consumed #657 CI"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/658" --jq '.state')" = "open"
+          repair_manifest_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/658/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #658 pre-implementation artifact-manifest repair2 freeze")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${repair_manifest_count}" = "1"
+          repair_manifest="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/658/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #658 pre-implementation artifact-manifest repair2 freeze")) | .body'
+          )"
+
+          original_inspector_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^INSPECTOR_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          inspector_blob="$(printf '%s\n' "${repair_manifest}" | sed -n 's/^INSPECTOR_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "${repair_manifest}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${repair_manifest}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${original_inspector_blob}"
+          test -n "${inspector_blob}"
+          test -n "${workflow_blob}"
+          test -n "${cpu_test_blob}"
+          test "${inspector_blob}" = "${original_inspector_blob}"
+
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue654-readonly-throughput-evidence-inspector]")) | .number' \
+              | sort -n
+          )
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+
+          report_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("🔎 **AERA-v26.9 #654 read-only #653 throughput evidence inspection**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${report_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          auth_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/654/comments?per_page=100" |
+              jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #654 sole read-only throughput inspector authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' |
+              wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 1eebb678609523aa67401e482dcc63e0ea858aa2 "${bound_main}"
+
+          test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
+          test "$(git hash-object modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py)" = "${inspector_blob}"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue654-readonly-throughput-evidence-inspector.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_9_issue654_readonly_throughput_evidence_inspector_cpu.py)" = "${cpu_test_blob}"
+
+          grep -F 'SOURCE_RESULT_PATH = "/vol/aera-v26/issue650-e2e-cli-guard-continuation/result.json"' modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py >/dev/null
+          grep -F 'SOURCE_RESULT_SHA256 = "914615db5267565563dcc9e82bfc31f444a656a68bd560f50447a8fd03588431"' modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py >/dev/null
+          test "$(grep -c 'gpu=' modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py || true)" = "0"
+          test "$(grep -c 'volume.commit' modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py || true)" = "0"
+          test "$(grep -c '^import torch' modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py || true)" = "0"
+          test "$(grep -c '^from torch' modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py || true)" = "0"
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Re-verify issue654 canonical trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue654-readonly-throughput-evidence-inspector]")) | .number' \
+              | sort -n
+          )
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+          bound_main="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          auth_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/654/comments?per_page=100" |
+              jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #654 sole read-only throughput inspector authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' |
+              wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+
+      - name: Record issue654 inspection start
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.9 #654 read-only throughput inspection started** — immutable #653/#650 source authority and exact bound main verified. The Modal function only reads the frozen durable JSON and emits existing evidence; it creates no model/checkpoint execution or new benchmark." || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Inspect immutable issue650 throughput evidence once
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue654_readonly_throughput_evidence_inspector.py 2>&1 | tee /tmp/issue654.log
+          test "$(grep -c '^AERA_V26_9_ISSUE654_READONLY_THROUGHPUT_EVIDENCE_JSON=' /tmp/issue654.log)" = "1"
+
+      - name: Record issue654 read-only evidence
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue654-summary.md
+          import json
+          from pathlib import Path
+
+          prefix = "AERA_V26_9_ISSUE654_READONLY_THROUGHPUT_EVIDENCE_JSON="
+          lines = Path("/tmp/issue654.log").read_text().splitlines()
+          payloads = [json.loads(line[len(prefix):]) for line in lines if line.startswith(prefix)]
+          if len(payloads) != 1:
+              raise SystemExit(f"expected one issue654 marker, found {len(payloads)}")
+          payload = payloads[0]
+
+          print("🔎 **AERA-v26.9 #654 read-only #653 throughput evidence inspection**")
+          print()
+          print(f"Frozen source SHA verified: `{payload['source_result_sha256']}`; decision remains `{payload['source_decision']}`.")
+          for batch in ("8", "64"):
+              row = payload["batches"][batch]
+              gate = row["gate"]
+              print()
+              print(
+                  f"Batch {batch} gate: ratio=`{gate['candidate_full_vs_transformer_speed_ratio']}` "
+                  f"required=`{gate['required_full_speed_ratio']}`; pass=`{gate['throughput_pass']}`."
+              )
+              print(f"Batch {batch} timing summaries: `{json.dumps(row['timings'], sort_keys=True)}`")
+              print(
+                  f"Batch {batch} fragmentation calls: "
+                  f"`{json.dumps(row['candidate_profiler']['fragmentation_operator_calls'], sort_keys=True)}`"
+              )
+              top = row["candidate_profiler"]["top_cuda_operators"][:8]
+              print(f"Batch {batch} top CUDA operators: `{json.dumps(top, sort_keys=True)}`")
+              print(f"Batch {batch} peak VRAM: `{json.dumps(row['peak_vram'], sort_keys=True)}`")
+              print(
+                  f"Batch {batch} physical-sparse counters: "
+                  f"`{json.dumps(row['physical_sparse_counters'], sort_keys=True)}`"
+              )
+              print(
+                  f"Batch {batch} routing accounting: "
+                  f"`{json.dumps(row['routing_accounting'], sort_keys=True)}`"
+              )
+          print()
+          print(
+              "This is read-only extraction from the consumed #653 durable result. "
+              "It earns no systems PASS, replication credit, architecture freeze, S2, fresh seed, 100M, or breakthrough authorization."
+          )
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue654-summary.md)" || true
+
+      - name: Record issue654 pre-marker failure
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.9 #654 read-only inspection failed before its evidence marker.** This trigger/attempt is consumed; do not create another execution attempt for it. No scientific measurement, model execution, seed, or systems credit occurred." || true
