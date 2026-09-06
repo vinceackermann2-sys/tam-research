@@ -1,0 +1,185 @@
+name: AERA v26.9 issue678 issue665 result-path absence audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-9-issue678-issue665-result-path-absence-audit
+  cancel-in-progress: false
+
+jobs:
+  issue678-readonly-result-path-audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-9-issue678-issue665-result-path-absence-audit]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue678 read-only audit launcher
+        run: python -m py_compile modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue678 canonical read-only audit boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/678" --jq '.title')" = "[infra] AERA-v26.9 #675 pre-authorization read-only issue665 result-path absence audit"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/678" --jq '.state')" = "open"
+
+          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/678/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #678 pre-implementation read-only result-path absence audit freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${freeze_count}" = "1"
+          freeze_comment="$(gh api "repos/${GITHUB_REPOSITORY}/issues/678/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #678 pre-implementation read-only result-path absence audit freeze")) | .body')"
+
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_MAIN=8f4ee620e50fd112bab488f822a917ddf34cad49' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_TREE=b92a770d598d17dda3a6db312cec020074ff0723' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'BRANCH=infra/aera-v26-9-issue678-issue665-result-path-absence-audit' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'TRIGGER_PREFIX=[aera-v26-9-issue678-issue665-result-path-absence-audit]' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'RESULT_PATH=/vol/aera-v26/issue665-frozen-throughput-component-attribution/result.json' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'FROZEN_ISSUE665_LAUNCHER_BLOB=72f27391ff2f0a7bff8d4532f307ddc4869cf494' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'FROZEN_ISSUE675_WORKFLOW_BLOB=942f71f626c85d450fff81fd9f5fc13eefd3d0aa' >/dev/null
+
+          audit_launcher_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^AUDIT_LAUNCHER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${audit_launcher_blob}" && test -n "${workflow_blob}" && test -n "${cpu_test_blob}" && test -n "${frozen_tree}" && test -n "${frozen_commit}"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/677" --jq '.title')" = "[infra-issue675-workflow-registration-canary] post-merge registration probe"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34054750867" --jq '.conclusion')" = "skipped"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34054750867" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34054750867" --jq '.head_sha')" = "8f4ee620e50fd112bab488f822a917ddf34cad49"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34054750867" --jq '.path')" = ".github/workflows/aera-v26-9-issue675-issue665-workflow-registration-repair2.yml"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/675/comments?per_page=100" --jq '.[] | select(.id == 5561583050) | select((.body // "") | startswith("## #675 workflow-registration canary PASS")) | .id' | wc -l | tr -d ' ')" = "1"
+
+          mapfile -t matching_triggers < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue678-issue665-result-path-absence-audit]")) | .number' | sort -n)
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+          test "$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA-v26.9 #678 read-only issue665 result-path absence evidence**")) | .id' | wc -l | tr -d ' ')" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/678/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #678 sole read-only result-path audit authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+          test "${auth_count}" = "1"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 8f4ee620e50fd112bab488f822a917ddf34cad49 "${bound_main}"
+          test "$(git rev-parse 8f4ee620e50fd112bab488f822a917ddf34cad49^{tree})" = "b92a770d598d17dda3a6db312cec020074ff0723"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
+          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
+
+          test "$(git hash-object modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py)" = "72f27391ff2f0a7bff8d4532f307ddc4869cf494"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue675-issue665-workflow-registration-repair2.yml)" = "942f71f626c85d450fff81fd9f5fc13eefd3d0aa"
+          test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
+          test "$(git hash-object tam_research/aera_hardware_core_v26.py)" = "268644ac4edee15a4cc4e29d3fed7f61eeb3caa7"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_9_ficem_read_identity_weight_visibility.py)" = "b81cc209f5d95abbe1fb8bd620c78e87c067bc19"
+          test "$(git hash-object modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py)" = "${audit_launcher_blob}"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue678-issue665-result-path-absence-audit.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_9_issue678_issue665_result_path_absence_audit_cpu.py)" = "${cpu_test_blob}"
+          test "$(grep -c 'issue665.preflight.remote()' modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py)" = "1"
+          test "$(grep -c 'run_diagnostic.remote' modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py || true)" = "0"
+          test "$(grep -c 'gpu=' modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py || true)" = "0"
+          test "$(grep -c 'volume.commit' modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py || true)" = "0"
+          echo "allowed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Re-verify issue678 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t matching_triggers < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue678-issue665-result-path-absence-audit]")) | .number' | sort -n)
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+          bound_main="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/678/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #678 sole read-only result-path audit authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+          test "${auth_count}" = "1"
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Audit frozen issue665 result path once
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue678_issue665_result_path_absence_audit.py::audit_main 2>&1 | tee /tmp/issue678.log
+          test "$(grep -c '^AERA_V26_9_ISSUE678_ISSUE665_RESULT_PATH_ABSENCE_AUDIT_JSON=' /tmp/issue678.log)" = "1"
+
+      - name: Record issue678 read-only result-path absence evidence
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue678-summary.md
+          import json
+          from pathlib import Path
+          prefix = "AERA_V26_9_ISSUE678_ISSUE665_RESULT_PATH_ABSENCE_AUDIT_JSON="
+          lines = Path("/tmp/issue678.log").read_text().splitlines()
+          payloads = [json.loads(line[len(prefix):]) for line in lines if line.startswith(prefix)]
+          if len(payloads) != 1:
+              raise SystemExit(f"expected one issue678 evidence marker, found {len(payloads)}")
+          payload = payloads[0]
+          required_false = ("gpu_used", "model_constructed", "new_measurement_performed", "systems_pass_earned", "optimization_authorized", "architecture_freeze_authorized", "s2_authorized", "fresh_scientific_seed_authorized", "independent_replication_credit", "100m_authorized", "breakthrough_proven")
+          if payload.get("research_issue") != 665 or payload.get("result_absent") is not True:
+              raise SystemExit("issue678 result-path evidence drift")
+          if payload.get("source_result_sha256") != "914615db5267565563dcc9e82bfc31f444a656a68bd560f50447a8fd03588431":
+              raise SystemExit("source result SHA drift")
+          if payload.get("source_decision") != "FAIL_FROZEN_E2E_SYSTEMS_GATE":
+              raise SystemExit("source decision drift")
+          if any(payload.get(key) is not False for key in required_false):
+              raise SystemExit("forbidden flag drift")
+          print("🔎 **AERA-v26.9 #678 read-only issue665 result-path absence evidence**")
+          print()
+          print(f"Frozen #665 preflight proved result_absent=`{payload['result_absent']}` for `/vol/aera-v26/issue665-frozen-throughput-component-attribution/result.json`.")
+          print(f"Immutable #650 source SHA remains `{payload['source_result_sha256']}`; decision remains `{payload['source_decision']}`.")
+          print(f"Frozen blobs: `{json.dumps(payload['frozen_blobs'], sort_keys=True)}`.")
+          print()
+          print("This evidence satisfies only the fresh result-path prerequisite for #675 authorization. It executes no diagnostic L4 measurement and creates no higher-stage authority.")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue678-summary.md)"
+
+      - name: Record issue678 consumed pre-evidence attempt
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.9 #678 read-only result-path audit ended before its evidence marker.** This exact trigger and Actions attempt are consumed. No diagnostic L4 execution or higher-stage authority is created." || true
