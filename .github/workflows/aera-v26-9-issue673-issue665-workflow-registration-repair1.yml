@@ -1,0 +1,272 @@
+name: AERA v26.9 issue673 issue665 workflow-registration repair1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-9-issue673-issue665-workflow-registration-repair1
+  cancel-in-progress: false
+
+jobs:
+  issue673-issue665-registration-repair1:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-9-issue673-issue665-workflow-registration-repair1]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check frozen issue665 diagnostic launcher
+        run: python -m py_compile modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue673 canonical diagnostic-continuation boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/673" --jq '.title')" = "[research] AERA-v26.9 #665 workflow-registration repair1 after consumed #671/#672"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/673" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/665" --jq '.title')" = "[research] AERA-v26.9 post-#661 frozen-throughput component-attribution diagnostic"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/665" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/671" --jq '.title')" = "[aera-v26-9-issue665-frozen-throughput-component-attribution] sole #665 diagnostic trigger"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/672" --jq '.title')" = "[infra-issue665-workflow-registration-canary] post-#671 registration probe"
+
+          terminal_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/665/comments?per_page=100" \
+              --jq '.[] | select(.id == 5561237545) | select((.body // "") | startswith("## #665 terminal classification of consumed registration canary #672 + repair-successor boundary")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${terminal_count}" = "1"
+
+          freeze_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/673/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #673 pre-implementation issue665 workflow-registration repair1 freeze")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${freeze_count}" = "1"
+          freeze_comment="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/673/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #673 pre-implementation issue665 workflow-registration repair1 freeze")) | .body'
+          )"
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_MAIN=2fb477ce1323f59460678a3cbb0e260e70559ef2' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_TREE=3ed87b6378338d49d2a46c90ab6580714bd5c046' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'FROZEN_ISSUE665_LAUNCHER_BLOB=72f27391ff2f0a7bff8d4532f307ddc4869cf494' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'FROZEN_BAD_ISSUE665_WORKFLOW_BLOB=d2642917ed1e9009edfe1b255131d0e55723ea6a' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'REGISTRATION_CANARY_TITLE=[infra-issue673-workflow-registration-canary] post-merge registration probe' >/dev/null
+
+          workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${workflow_blob}"
+          test -n "${cpu_test_blob}"
+          test -n "${frozen_tree}"
+          test -n "${frozen_commit}"
+
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue673-issue665-workflow-registration-repair1]")) | .number' \
+              | sort -n
+          )
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+
+          mapfile -t registration_canaries < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title == "[infra-issue673-workflow-registration-canary] post-merge registration probe") | .number' \
+              | sort -n
+          )
+          test "${#registration_canaries[@]}" = "1"
+
+          canary_pass_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/673/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #673 workflow-registration canary PASS")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${canary_pass_count}" = "1"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          auth_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/673/comments?per_page=100" |
+              jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #673 sole diagnostic continuation authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' |
+              wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+
+          report_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.9 #673/#665 component-attribution evidence**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${report_count}" = "0"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 2fb477ce1323f59460678a3cbb0e260e70559ef2 "${bound_main}"
+          test "$(git rev-parse 2fb477ce1323f59460678a3cbb0e260e70559ef2^{tree})" = "3ed87b6378338d49d2a46c90ab6580714bd5c046"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
+          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
+
+          test "$(git hash-object modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py)" = "72f27391ff2f0a7bff8d4532f307ddc4869cf494"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue665-frozen-throughput-component-attribution.yml)" = "d2642917ed1e9009edfe1b255131d0e55723ea6a"
+          test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
+          test "$(git hash-object tam_research/aera_hardware_core_v26.py)" = "268644ac4edee15a4cc4e29d3fed7f61eeb3caa7"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_9_ficem_read_identity_weight_visibility.py)" = "b81cc209f5d95abbe1fb8bd620c78e87c067bc19"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue673-issue665-workflow-registration-repair1.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_9_issue673_issue665_workflow_registration_repair1_cpu.py)" = "${cpu_test_blob}"
+
+          grep -F 'RESULT_PATH = "/vol/aera-v26/issue665-frozen-throughput-component-attribution/result.json"' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py >/dev/null
+          grep -F 'volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=False)' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py >/dev/null
+          test "$(grep -c 'gpu="L4"' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py)" = "1"
+          echo "allowed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Re-verify issue673 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue673-issue665-workflow-registration-repair1]")) | .number' \
+              | sort -n
+          )
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+          bound_main="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          auth_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/673/comments?per_page=100" |
+              jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #673 sole diagnostic continuation authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' |
+              wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+          canary_pass_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/673/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #673 workflow-registration canary PASS")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${canary_pass_count}" = "1"
+
+      - name: Record issue673 diagnostic start
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="🔒 **AERA-v26.9 #673 diagnostic continuation started** — registration canary, exact bound main, frozen #665 launcher, and immutable systems authority verified. This diagnostic cannot earn systems PASS." || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run frozen issue665 diagnostic once
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py 2>&1 | tee issue673.log
+
+      - name: Record issue673 component-attribution evidence
+        if: steps.guard.outputs.allowed == 'true' && steps.modal.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue673-summary.md
+          import json
+          from pathlib import Path
+
+          prefix = "AERA_V26_9_ISSUE665_COMPONENT_ATTRIBUTION_RESULT_JSON="
+          lines = Path("issue673.log").read_text().splitlines()
+          payloads = [json.loads(line[len(prefix):]) for line in lines if line.startswith(prefix)]
+          if len(payloads) != 1:
+              raise SystemExit(f"expected exactly one frozen issue665 result marker, found {len(payloads)}")
+          payload = payloads[0]
+          required_false = (
+              "source_decision_changed",
+              "systems_pass_earned",
+              "optimization_authorized",
+              "architecture_freeze_authorized",
+              "s2_authorized",
+              "fresh_scientific_seed_authorized",
+              "independent_replication_credit",
+              "100m_authorized",
+              "breakthrough_proven",
+          )
+          if payload.get("research_issue") != 665:
+              raise SystemExit("unexpected research_issue")
+          if payload.get("source_decision") != "FAIL_FROZEN_E2E_SYSTEMS_GATE":
+              raise SystemExit("immutable source decision drifted")
+          for key in required_false:
+              if payload.get(key) is not False:
+                  raise SystemExit(f"forbidden authority drift: {key}={payload.get(key)!r}")
+
+          print("🔬 **AERA-v26.9 #673/#665 component-attribution evidence**")
+          print()
+          print(f"Frozen source decision remains `{payload['source_decision']}`; device=`{payload['device']}`.")
+          for batch in ("8", "64"):
+              row = payload["batches"][batch]
+              print()
+              print(
+                  f"Batch {batch}: full-call median=`{row['full_call_median_ms']}` ms; "
+                  f"dominant measured category=`{row['dominant_measured_category']}`; "
+                  f"diagnostic next-target label=`{row['diagnostic_next_target_label']}`."
+              )
+              print(
+                  "Exclusive category medians (diagnostic, nested timing caveat retained): "
+                  f"`{json.dumps(row['exclusive_category_medians_ms'], sort_keys=True)}`"
+              )
+              print(
+                  "Per-stage route medians: "
+                  f"`{json.dumps(row['per_stage_route_medians_ms'], sort_keys=True)}`"
+              )
+          print()
+          print("This is the preregistered diagnostic attribution only. It creates no systems PASS or optimization/higher-stage authorization.")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue673-summary.md)"
+
+      - name: Record issue673 consumed non-result attempt
+        if: failure() && steps.guard.outputs.allowed == 'true' && steps.modal.outcome != 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.9 #673 diagnostic continuation ended without a recorded evidence marker.** This exact trigger/attempt is consumed. No systems PASS, optimization, architecture freeze, S2, fresh scientific seed, replication, 100M scaling, or breakthrough authority is created." || true
