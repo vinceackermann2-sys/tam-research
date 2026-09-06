@@ -233,4 +233,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TRIGGER_ISSUE: ${{ github.event.issue.number }}
         run: |
-          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.9 #654 read-only inspection failed before its evidence marker.** This trigger/attempt is consumed; do not rerun/retry/redispatch it. No scientific measurement, model execution, seed, or systems credit occurred." || true
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="⚠️ **AERA-v26.9 #654 read-only inspection failed before its evidence marker.** This trigger/attempt is consumed; do not create another execution attempt for it. No scientific measurement, model execution, seed, or systems credit occurred." || true
