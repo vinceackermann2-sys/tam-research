@@ -1,0 +1,237 @@
+name: AERA v26.9 issue665 frozen-throughput component attribution
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-9-issue665-frozen-throughput-component-attribution
+  cancel-in-progress: false
+
+jobs:
+  frozen-throughput-component-attribution:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-9-issue665-frozen-throughput-component-attribution]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue665 diagnostic launcher
+        run: python -m py_compile modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue665 canonical diagnostic boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/665" --jq '.title')" = "[research] AERA-v26.9 post-#661 frozen-throughput component-attribution diagnostic"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/665" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/666" --jq '.title')" = "TEMP-INERT-DO-NOT-USE-665"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/666" --jq '.state')" = "closed"
+
+          freeze_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/665/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #665 pre-implementation frozen-throughput component-attribution freeze")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${freeze_count}" = "1"
+          freeze_comment="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/665/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("## #665 pre-implementation frozen-throughput component-attribution freeze")) | .body'
+          )"
+
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_MAIN=6a87dd8c3d3f9e73d34aa7a3c1e2ed991b53a002' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_TREE=3daf8e0fce277a65f9ae3daa56d8252dd15ff664' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'BRANCH=research/aera-v26-9-issue665-frozen-throughput-component-attribution' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'TRIGGER_PREFIX=[aera-v26-9-issue665-frozen-throughput-component-attribution]' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'RESULT_PATH=/vol/aera-v26/issue665-frozen-throughput-component-attribution/result.json' >/dev/null
+
+          launcher_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^LAUNCHER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${launcher_blob}"
+          test -n "${workflow_blob}"
+          test -n "${cpu_test_blob}"
+          test -n "${frozen_tree}"
+          test -n "${frozen_commit}"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34039744132" --jq '.conclusion')" = "success"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34039744132" --jq '.run_attempt')" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/34039744132" --jq '.head_sha')" = "6a87dd8c3d3f9e73d34aa7a3c1e2ed991b53a002"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/101504212730" --jq '.conclusion')" = "success"
+
+          readonly_evidence_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/664/comments?per_page=100" \
+              --jq '.[] | select(.id == 5559943198) | select((.body // "") | startswith("🔎 **AERA-v26.9 #661 read-only throughput schema-successor evidence**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${readonly_evidence_count}" = "1"
+
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue665-frozen-throughput-component-attribution]")) | .number' \
+              | sort -n
+          )
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+
+          report_count="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" \
+              --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.9 #665 frozen-throughput component-attribution evidence**")) | .id' \
+              | wc -l | tr -d ' '
+          )"
+          test "${report_count}" = "0"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          auth_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/665/comments?per_page=100" |
+              jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #665 sole diagnostic L4 authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' |
+              wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 6a87dd8c3d3f9e73d34aa7a3c1e2ed991b53a002 "${bound_main}"
+
+          test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
+          test "$(git hash-object tam_research/aera_hardware_core_v26.py)" = "268644ac4edee15a4cc4e29d3fed7f61eeb3caa7"
+          test "$(git hash-object tam_research/aera_v26_5_end_to_end_systems.py)" = "c9731cae7e386f09b2a190b045532591c4fa00be"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_9_ficem_read_identity_weight_visibility.py)" = "b81cc209f5d95abbe1fb8bd620c78e87c067bc19"
+          test "$(git hash-object modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py)" = "${launcher_blob}"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue665-frozen-throughput-component-attribution.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_9_issue665_frozen_throughput_component_attribution_cpu.py)" = "${cpu_test_blob}"
+
+          test "$(git rev-parse 6a87dd8c3d3f9e73d34aa7a3c1e2ed991b53a002^{tree})" = "3daf8e0fce277a65f9ae3daa56d8252dd15ff664"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
+          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
+
+          grep -F 'RESULT_PATH = "/vol/aera-v26/issue665-frozen-throughput-component-attribution/result.json"' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py >/dev/null
+          grep -F 'SYSTEM_BATCH_SIZES = (8, 64)' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py >/dev/null
+          grep -F 'TOKEN_SEED_BASE = 138471' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py >/dev/null
+          grep -F 'DIAGNOSTIC_WARMUP_CALLS = 2' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py >/dev/null
+          grep -F 'DIAGNOSTIC_MEASURED_CALLS = 12' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py >/dev/null
+          test "$(grep -c 'gpu="L4"' modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py)" = "1"
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Re-verify issue665 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          mapfile -t matching_triggers < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" \
+              --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue665-frozen-throughput-component-attribution]")) | .number' \
+              | sort -n
+          )
+          test "${#matching_triggers[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matching_triggers[0]}"
+          bound_main="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          auth_count="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/665/comments?per_page=100" |
+              jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #665 sole diagnostic L4 authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' |
+              wc -l | tr -d ' '
+          )"
+          test "${auth_count}" = "1"
+
+      - name: Record issue665 diagnostic start
+        if: steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" \
+            -f body="🔒 **AERA-v26.9 #665 diagnostic started** — exact bound main, frozen artifacts, #653/#650 authority, and #664 read-only evidence verified. This is diagnostic-only and cannot earn systems PASS." || true
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run issue665 diagnostic once
+        if: steps.guard.outputs.allowed == 'true'
+        id: modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py 2>&1 | tee issue665.log
+
+      - name: Record issue665 component-attribution evidence
+        if: steps.modal.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          marker='AERA_V26_9_ISSUE665_COMPONENT_ATTRIBUTION_RESULT_JSON='
+          result_line="$(grep -F "${marker}" issue665.log | tail -n 1)"
+          test -n "${result_line}"
+          payload="${result_line#*${marker}}"
+          printf '%s' "${payload}" | jq -e '
+            .research_issue == 665 and
+            .source_decision == "FAIL_FROZEN_E2E_SYSTEMS_GATE" and
+            .source_decision_changed == false and
+            .systems_pass_earned == false and
+            .optimization_authorized == false and
+            .architecture_freeze_authorized == false and
+            .s2_authorized == false and
+            .fresh_scientific_seed_authorized == false and
+            .independent_replication_credit == false and
+            .["100m_authorized"] == false and
+            .breakthrough_proven == false
+          ' >/dev/null
+          compact="$(printf '%s' "${payload}" | jq -c .)"
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" \
+            -f body="🔬 **AERA-v26.9 #665 frozen-throughput component-attribution evidence**
+
+\`${compact}\`
+
+The immutable #653/#650 decision remains FAIL. This diagnostic creates no systems PASS or optimization/higher-stage authorization."
+
+      - name: Record issue665 consumed non-result attempt
+        if: failure() && steps.guard.outputs.allowed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" \
+            -f body="⚠️ **AERA-v26.9 #665 diagnostic attempt ended without a recorded evidence marker.** This exact trigger and Actions attempt are consumed. No systems PASS, optimization authorization, architecture freeze, S2, fresh scientific seed, replication credit, 100M scaling, or breakthrough claim is created." || true
