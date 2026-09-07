@@ -1,0 +1,255 @@
+name: AERA v26.9 issue687 stage-internal throughput attribution
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-9-issue687-stage-internal-throughput-attribution
+  cancel-in-progress: false
+
+jobs:
+  issue687-stage-attribution:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      (startsWith(github.event.issue.title, '[aera-v26-9-issue687-stage-internal-preauth]') ||
+       startsWith(github.event.issue.title, '[aera-v26-9-issue687-stage-internal-l4]'))
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue687 launchers
+        run: |
+          python -m py_compile modal_aera_v26_9_issue687_stage_internal_throughput_attribution.py
+          python -m py_compile modal_aera_v26_9_issue687_stage_internal_preflight.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue687 immutable boundary and select mode
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/687" --jq '.title')" = "[research] AERA-v26.9 stage-internal throughput attribution after #686"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/687" --jq '.state')" = "open"
+
+          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/687/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #687 pre-implementation stage-internal attribution freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${freeze_count}" = "1"
+          freeze_comment="$(gh api "repos/${GITHUB_REPOSITORY}/issues/687/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #687 pre-implementation stage-internal attribution freeze")) | .body')"
+
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_MAIN=bc74136533f27d9f39bf437f52975efd7a929fd4' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_TREE=c8835002261c1b249f90468085ad0c868afb2d90' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'BRANCH=research/aera-v26-9-issue687-stage-internal-throughput-attribution' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'PREAUTH_PREFIX=[aera-v26-9-issue687-stage-internal-preauth]' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'L4_PREFIX=[aera-v26-9-issue687-stage-internal-l4]' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'RESULT_PATH=/vol/aera-v26/issue687-stage-internal-throughput-attribution/result.json' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_TRIGGER=686' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_EVIDENCE_COMMENT=5562153718' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'ISSUE665_LAUNCHER_BLOB=72f27391ff2f0a7bff8d4532f307ddc4869cf494' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'SCIENTIFIC_ADAPTER_BLOB=512572340cc09e2e7ad6729712258c12cb377ef2' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'RUNTIME_INTERFACE_BLOB=268644ac4edee15a4cc4e29d3fed7f61eeb3caa7' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'STAGE_V25_1_BLOB=1c3456d8040455b4cd1194db4c8586f77d0f3e43' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'TOKENWISE_V19_BLOB=98008bceb8c68af3bc346e5dfcc7a8218875661e' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'NOHOST_V25_1_BLOB=237e5615cf32f644e8675808a6b3e9adaf04fb23' >/dev/null
+          printf '%s\n' "${freeze_comment}" | grep -F 'V26_9_BACKEND_BLOB=b81cc209f5d95abbe1fb8bd620c78e87c067bc19' >/dev/null
+
+          launcher_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^LAUNCHER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          preflight_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^PREFLIGHT_WRAPPER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${launcher_blob}" && test -n "${preflight_blob}" && test -n "${workflow_blob}" && test -n "${cpu_test_blob}" && test -n "${frozen_tree}" && test -n "${frozen_commit}"
+
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/686" --jq '.title')" = "[aera-v26-9-issue675-issue665-workflow-registration-repair2] sole frozen-throughput component-attribution diagnostic"
+          source_evidence_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/686/comments?per_page=100" --jq '.[] | select(.id == 5562153718) | select((.body // "") | startswith("🔬 **AERA-v26.9 #675/#665 component-attribution evidence**")) | .id' | wc -l | tr -d ' ')"
+          test "${source_evidence_count}" = "1"
+          source_evidence="$(gh api "repos/${GITHUB_REPOSITORY}/issues/686/comments?per_page=100" --jq '.[] | select(.id == 5562153718) | .body')"
+          printf '%s\n' "${source_evidence}" | grep -F 'Dominant measured category: `stage_compute_excluding_ficem`.' >/dev/null
+          printf '%s\n' "${source_evidence}" | grep -F 'Batch 8: full-call median `50.84833526611328` ms.' >/dev/null
+          printf '%s\n' "${source_evidence}" | grep -F 'Batch 64: full-call median `117.23713684082031` ms.' >/dev/null
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor bc74136533f27d9f39bf437f52975efd7a929fd4 "${bound_main}"
+          test "$(git rev-parse bc74136533f27d9f39bf437f52975efd7a929fd4^{tree})" = "c8835002261c1b249f90468085ad0c868afb2d90"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
+          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
+
+          test "$(git hash-object modal_aera_v26_9_issue687_stage_internal_throughput_attribution.py)" = "${launcher_blob}"
+          test "$(git hash-object modal_aera_v26_9_issue687_stage_internal_preflight.py)" = "${preflight_blob}"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue687-stage-internal-throughput-attribution.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_9_issue687_stage_internal_throughput_attribution_cpu.py)" = "${cpu_test_blob}"
+          test "$(git hash-object modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py)" = "72f27391ff2f0a7bff8d4532f307ddc4869cf494"
+          test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
+          test "$(git hash-object tam_research/aera_hardware_core_v26.py)" = "268644ac4edee15a4cc4e29d3fed7f61eeb3caa7"
+          test "$(git hash-object tam_research/aera_hardware_core_v25_1.py)" = "1c3456d8040455b4cd1194db4c8586f77d0f3e43"
+          test "$(git hash-object tam_research/aera_hardware_core_v19.py)" = "98008bceb8c68af3bc346e5dfcc7a8218875661e"
+          test "$(git hash-object tam_research/aera_hardware_core_v25_1_nohost.py)" = "237e5615cf32f644e8675808a6b3e9adaf04fb23"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_9_ficem_read_identity_weight_visibility.py)" = "b81cc209f5d95abbe1fb8bd620c78e87c067bc19"
+
+          title="$(jq -r '.issue.title' "${GITHUB_EVENT_PATH}")"
+          if [[ "${title}" == '[aera-v26-9-issue687-stage-internal-preauth]'* ]]; then
+            mode=preauth
+            mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue687-stage-internal-preauth]")) | .number' | sort -n)
+            test "${#matches[@]}" = "1"
+            test "${TRIGGER_ISSUE}" = "${matches[0]}"
+            evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA-v26.9 #687 preauthorization result-path absence evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "${evidence_count}" = "0"
+          else
+            mode=l4
+            mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-9-issue687-stage-internal-l4]")) | .number' | sort -n)
+            test "${#matches[@]}" = "1"
+            test "${TRIGGER_ISSUE}" = "${matches[0]}"
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("🔎 **AERA-v26.9 #687 preauthorization result-path absence evidence**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${preauth_count}" = "1"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/687/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #687 sole L4 stage-internal attribution authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+            result_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.9 #687 stage-internal attribution evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "${result_count}" = "0"
+          fi
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+          echo "bound_main=${bound_main}" >> "${GITHUB_OUTPUT}"
+          echo "allowed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Re-verify issue687 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          MODE: ${{ steps.guard.outputs.mode }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${BOUND_MAIN}"
+          if [[ "${MODE}" == "preauth" ]]; then
+            prefix='[aera-v26-9-issue687-stage-internal-preauth]'
+          else
+            prefix='[aera-v26-9-issue687-stage-internal-l4]'
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/687/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("## #687 sole L4 stage-internal attribution authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+          fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run issue687 zero-GPU preauthorization audit
+        if: steps.guard.outputs.mode == 'preauth'
+        id: preauth
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue687_stage_internal_preflight.py::main 2>&1 | tee /tmp/issue687-preauth.log
+          test "$(grep -c '^AERA_V26_9_ISSUE687_STAGE_INTERNAL_PREAUTH_JSON=' /tmp/issue687-preauth.log)" = "1"
+
+      - name: Record issue687 preauthorization evidence
+        if: steps.guard.outputs.mode == 'preauth' && steps.preauth.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        run: |
+          python - <<'PY' >/tmp/issue687-preauth.md
+          import json, os
+          from pathlib import Path
+          prefix = "AERA_V26_9_ISSUE687_STAGE_INTERNAL_PREAUTH_JSON="
+          payloads = [json.loads(line[len(prefix):]) for line in Path("/tmp/issue687-preauth.log").read_text().splitlines() if line.startswith(prefix)]
+          if len(payloads) != 1:
+              raise SystemExit("expected one #687 preauth payload")
+          p = payloads[0]
+          if p.get("research_issue") != 687 or p.get("result_absent") is not True:
+              raise SystemExit("#687 preauth evidence drift")
+          for key in ("gpu_used", "model_constructed", "new_measurement_performed", "optimization_authorized", "systems_pass_earned", "architecture_freeze_authorized", "s2_authorized", "fresh_scientific_seed_authorized", "independent_replication_credit", "100m_authorized", "breakthrough_proven"):
+              if p.get(key) is not False:
+                  raise SystemExit(f"forbidden #687 preauth flag: {key}")
+          print("🔎 **AERA-v26.9 #687 preauthorization result-path absence evidence**")
+          print()
+          print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
+          print(f"Fresh result path absent: `{p['result_absent']}`.")
+          print(f"Source decision remains `{p['source_decision']}`; source evidence comment `{p['source_evidence_comment']}`.")
+          print("Zero GPU/model/measurement/higher-stage authority was used.")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue687-preauth.md)"
+
+      - name: Run issue687 sole L4 stage-internal diagnostic
+        if: steps.guard.outputs.mode == 'l4'
+        id: diagnostic
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue687_stage_internal_throughput_attribution.py::main 2>&1 | tee /tmp/issue687-l4.log
+          test "$(grep -c '^AERA_V26_9_ISSUE687_STAGE_INTERNAL_PRECHECK_JSON=' /tmp/issue687-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_9_ISSUE687_STAGE_INTERNAL_L4_START_JSON=' /tmp/issue687-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_9_ISSUE687_STAGE_INTERNAL_RESULT_JSON=' /tmp/issue687-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_9_ISSUE687_STAGE_INTERNAL_SUMMARY_JSON=' /tmp/issue687-l4.log)" = "1"
+
+      - name: Record issue687 stage-internal attribution evidence
+        if: steps.guard.outputs.mode == 'l4' && steps.diagnostic.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue687-summary.md
+          import json
+          from pathlib import Path
+          prefix = "AERA_V26_9_ISSUE687_STAGE_INTERNAL_SUMMARY_JSON="
+          payloads = [json.loads(line[len(prefix):]) for line in Path("/tmp/issue687-l4.log").read_text().splitlines() if line.startswith(prefix)]
+          if len(payloads) != 1:
+              raise SystemExit("expected one #687 summary")
+          p = payloads[0]
+          if p.get("research_issue") != 687 or p.get("source_decision") != "FAIL_FROZEN_E2E_SYSTEMS_GATE":
+              raise SystemExit("#687 summary authority drift")
+          for key in ("optimization_authorized", "systems_pass_earned", "architecture_freeze_authorized", "s2_authorized", "fresh_scientific_seed_authorized", "independent_replication_credit", "100m_authorized", "breakthrough_proven"):
+              if p.get(key) is not False:
+                  raise SystemExit(f"forbidden #687 result flag: {key}")
+          print("🔬 **AERA-v26.9 #687 stage-internal attribution evidence**")
+          print()
+          print(f"Device: `{p['device']}`; source systems decision remains `{p['source_decision']}`.")
+          print(f"Dominant by batch: `{json.dumps(p['dominant_by_batch'], sort_keys=True)}`.")
+          print(f"Diagnostic next target: `{p['next_target']}`.")
+          for batch, row in sorted(p["batches"].items(), key=lambda item: int(item[0])):
+              print()
+              print(f"Batch {batch}: full-call median `{row['full_call_median_ms']}` ms; stage-compute-ex-FICEM median `{row['stage_compute_excluding_ficem_median_ms']}` ms.")
+              print(f"Dominant stage-internal category: `{row['dominant_stage_internal_category']}` at `{row['dominant_stage_internal_median_ms']}` ms.")
+              print(f"Exclusive medians: `{json.dumps(row['exclusive_stage_internal_medians_ms'], sort_keys=True)}`.")
+          print()
+          print("Diagnostic attribution only. No optimization, systems PASS, architecture freeze, S2, scaling, or breakthrough authority is created automatically.")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue687-summary.md)"
