@@ -40,7 +40,7 @@ jobs:
       - name: Install Modal client
         run: pip install 'modal>=1.2,<1.3'
 
-      - name: Verify issue724 immutable boundary and select mode
+      - name: Verify issue724 corrected immutable boundary and select mode
         id: guard
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,6 +51,8 @@ jobs:
           test "${GITHUB_RUN_ATTEMPT}" = "1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/724" --jq '.title')" = "[infra] AERA-v26.10 #723 preauth source-vs-bound provenance repair1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/724" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/727" --jq '.title')" = "[infra] AERA-v26.10 #724 correction1 stale immutable-guard pointer repair"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/727" --jq '.state')" = "open"
 
           failure="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/5574302025" --jq '.body')"
           printf '%s\n' "${failure}" | grep -F 'workflow run `34150467379`' >/dev/null
@@ -58,25 +60,32 @@ jobs:
           printf '%s\n' "${failure}" | grep -F "#716 preauth drift source_main: '8371d9ab3988df33c7b92b529016618ebf60f9ee'" >/dev/null
           printf '%s\n' "${failure}" | grep -F 'remote zero-GPU preflight succeeded' >/dev/null
 
-          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/724/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #724 pre-implementation source-bound provenance repair1 freeze")) | .id' | wc -l | tr -d ' ')"
-          test "${freeze_count}" = "1"
-          freeze="$(gh api "repos/${GITHUB_REPOSITORY}/issues/724/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #724 pre-implementation source-bound provenance repair1 freeze")) | .body')"
+          original_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/724/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #724 pre-implementation source-bound provenance repair1 freeze")) | .id' | wc -l | tr -d ' ')"
+          correction_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/724/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #724 correction1 CPU static-contract freeze after consumed #725")) | .id' | wc -l | tr -d ' ')"
+          repair_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/727/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #727 pre-implementation stale immutable-guard pointer repair1 freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${original_count}" = "1"
+          test "${correction_count}" = "1"
+          test "${repair_count}" = "1"
+
+          original="$(gh api "repos/${GITHUB_REPOSITORY}/issues/724/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #724 pre-implementation source-bound provenance repair1 freeze")) | .body')"
+          correction="$(gh api "repos/${GITHUB_REPOSITORY}/issues/724/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #724 correction1 CPU static-contract freeze after consumed #725")) | .body')"
+          repair="$(gh api "repos/${GITHUB_REPOSITORY}/issues/727/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #727 pre-implementation stale immutable-guard pointer repair1 freeze")) | .body')"
 
           for required in \
             'SOURCE_MAIN=8371d9ab3988df33c7b92b529016618ebf60f9ee' \
             'SOURCE_TREE=fd171423b5878c9082e689d7d83da9f8c7c81569' \
             'ORCHESTRATION_BASE_MAIN=67344b9535dd305f1478ea6ea692fe45a64c86d8' \
             'ORCHESTRATION_BASE_TREE=a208565bdad203e2cfb2354f53c07d022b977d85' \
-            'BRANCH=infra/aera-v26-10-issue724-source-bound-provenance-repair1' \
+            'RESULT_PATH=/vol/aera-v26/issue724-v26-10-source-bound-provenance-repair1/result.json' \
             'PREAUTH_PREFIX=[aera-v26-10-issue724-source-bound-provenance-repair1-preauth]' \
             'L4_PREFIX=[aera-v26-10-issue724-source-bound-provenance-repair1-l4]' \
-            'RESULT_PATH=/vol/aera-v26/issue724-v26-10-source-bound-provenance-repair1/result.json' \
             'AUTHORIZATION_HEADING=## #724 sole L4 source-bound provenance repair1 authorization' \
             'CONSUMED_TRIGGER=723' \
             'CONSUMED_RUN=34150467379' \
             'CONSUMED_JOB=101831501185' \
             'CONSUMED_ATTEMPT=1' \
             'CONSUMED_FAILURE_COMMENT=5574302025' \
+            'LAUNCHER_BLOB=c58b9988d28c1a3a4c9bb9d1ec8f704dfd377285' \
             'ISSUE710_LAUNCHER_BLOB=b885250753ea169cd89dd7a978bb3647fd261fe8' \
             'V26_10_IMPL_BLOB=d8f691c198eed1fa96bcbb78a4e76cad82d18779' \
             'LOGIT_COMPARE_BATCH_CHUNK=1' \
@@ -88,15 +97,38 @@ jobs:
             'MIN_STREAM_SYNCHRONIZE_REDUCTION=20' \
             'INTEGRATED_ATOL=0.01' \
             'INTEGRATED_RTOL=0.01'; do
-            printf '%s\n' "${freeze}" | grep -F "${required}" >/dev/null
+            printf '%s\n' "${original}" | grep -F "${required}" >/dev/null
           done
 
-          launcher_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^LAUNCHER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          workflow_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          cpu_test_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          frozen_tree="$(printf '%s\n' "${freeze}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
-          frozen_commit="$(printf '%s\n' "${freeze}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
-          test -n "${launcher_blob}" && test -n "${workflow_blob}" && test -n "${cpu_test_blob}" && test -n "${frozen_tree}" && test -n "${frozen_commit}"
+          for required in \
+            'SOURCE_MAIN=67344b9535dd305f1478ea6ea692fe45a64c86d8' \
+            'SOURCE_TREE=a208565bdad203e2cfb2354f53c07d022b977d85' \
+            'PARENT_FREEZE_COMMENT=5574367353' \
+            'CORRECTION1_CPU_TEST_BLOB=9227b776736ae63344c38d51e1197b31ab1b1447' \
+            'FROZEN_TREE=8876c7f62082626b3ba260b341709dd3bdabca67' \
+            'FROZEN_COMMIT=907089eba01315dd7908fd01c949eb62c31179bc'; do
+            printf '%s\n' "${correction}" | grep -F "${required}" >/dev/null
+          done
+
+          for required in \
+            'SOURCE_MAIN=97809025087cc0432867a24dbbd8b28afc3ad338' \
+            'SOURCE_TREE=8876c7f62082626b3ba260b341709dd3bdabca67' \
+            'ORIGINAL_FREEZE_COMMENT=5574367353' \
+            'CORRECTION1_FREEZE_COMMENT=5574467360' \
+            'WRAPPER_BLOB=c58b9988d28c1a3a4c9bb9d1ec8f704dfd377285' \
+            'PREVIOUS_WORKFLOW_BLOB=c0955686c86611c465b680079c0bf4e582020590' \
+            'PREVIOUS_CPU_TEST_BLOB=9227b776736ae63344c38d51e1197b31ab1b1447' \
+            'CORRECTION1_TREE=8876c7f62082626b3ba260b341709dd3bdabca67' \
+            'CORRECTION1_COMMIT=907089eba01315dd7908fd01c949eb62c31179bc' \
+            'BRANCH=infra/aera-v26-10-issue727-stale-guard-pointer-repair1'; do
+            printf '%s\n' "${repair}" | grep -F "${required}" >/dev/null
+          done
+
+          workflow_blob="$(printf '%s\n' "${repair}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${repair}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          repair_tree="$(printf '%s\n' "${repair}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          repair_commit="$(printf '%s\n' "${repair}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${workflow_blob}" && test -n "${cpu_test_blob}" && test -n "${repair_tree}" && test -n "${repair_commit}"
 
           body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
           bound_lines="$(printf '%s\n' "${body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
@@ -107,14 +139,14 @@ jobs:
           git cat-file -e "${bound_main}^{commit}"
           git checkout --detach "${bound_main}"
           test "$(git rev-parse HEAD)" = "${bound_main}"
-          git merge-base --is-ancestor 67344b9535dd305f1478ea6ea692fe45a64c86d8 "${bound_main}"
-          test "$(git rev-parse 67344b9535dd305f1478ea6ea692fe45a64c86d8^{tree})" = "a208565bdad203e2cfb2354f53c07d022b977d85"
+          git merge-base --is-ancestor 97809025087cc0432867a24dbbd8b28afc3ad338 "${bound_main}"
+          git merge-base --is-ancestor 907089eba01315dd7908fd01c949eb62c31179bc "${bound_main}"
+          git merge-base --is-ancestor "${repair_commit}" "${bound_main}"
+          test "$(git rev-parse 97809025087cc0432867a24dbbd8b28afc3ad338^{tree})" = "8876c7f62082626b3ba260b341709dd3bdabca67"
+          test "$(git rev-parse "${repair_commit}^{tree}")" = "${repair_tree}"
           test "$(git rev-parse 8371d9ab3988df33c7b92b529016618ebf60f9ee^{tree})" = "fd171423b5878c9082e689d7d83da9f8c7c81569"
-          git cat-file -e "${frozen_commit}^{commit}"
-          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
-          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
 
-          test "$(git hash-object modal_aera_v26_10_issue724_source_bound_provenance_repair1.py)" = "${launcher_blob}"
+          test "$(git hash-object modal_aera_v26_10_issue724_source_bound_provenance_repair1.py)" = "c58b9988d28c1a3a4c9bb9d1ec8f704dfd377285"
           test "$(git hash-object .github/workflows/aera-v26-10-issue724-source-bound-provenance-repair1.yml)" = "${workflow_blob}"
           test "$(git hash-object tests/test_aera_v26_10_issue724_source_bound_provenance_repair1_cpu.py)" = "${cpu_test_blob}"
           test "$(git hash-object modal_aera_v26_10_issue710_memory_safe_harness.py)" = "b885250753ea169cd89dd7a978bb3647fd261fe8"
@@ -203,10 +235,15 @@ jobs:
             'source_main':'8371d9ab3988df33c7b92b529016618ebf60f9ee',
             'source_tree':'fd171423b5878c9082e689d7d83da9f8c7c81569',
             'bound_main':os.environ['BOUND_MAIN'],
-            'orchestration_base_main':'67344b9535dd305f1478ea6ea692fe45a64c86d8',
-            'consumed_trigger':723,'consumed_failure_comment':5574302025,
-            'consumed_run':34150467379,'consumed_job':101831501185,'consumed_attempt':1,
-            'result_absent':True,'gpu_used':False,'model_constructed':False,'new_measurement_performed':False,
+            'consumed_trigger':723,
+            'consumed_failure_comment':5574302025,
+            'consumed_run':34150467379,
+            'consumed_job':101831501185,
+            'consumed_attempt':1,
+            'result_absent':True,
+            'gpu_used':False,
+            'model_constructed':False,
+            'new_measurement_performed':False,
             'provenance_reporting_repair_only':True,
           }
           for k,v in required.items():
@@ -215,10 +252,10 @@ jobs:
               if p.get(k) is not False: raise SystemExit(f'forbidden #724 preauth flag {k}')
           print('🔎 **AERA-v26.10 #724 source-bound preauthorization evidence**')
           print()
+          print(f"Frozen source lineage: `{p['source_main']}` / `{p['source_tree']}`")
           print(f"Bound main: `{p['bound_main']}`")
-          print(f"Frozen source main: `{p['source_main']}`")
           print('Zero-GPU preflight passed: `result_absent=true`, `gpu_used=false`, `model_constructed=false`, `new_measurement_performed=false`.')
-          print('Source lineage and execution binding were validated as distinct provenance fields. Frozen #710 memory-safe launcher, v26.10 implementation, checkpoints and thresholds were revalidated. No L4 or higher-stage authority is created by this evidence.')
+          print('No L4, optimization PASS, E2E systems, or higher-stage authority is created by this evidence.')
           PY
           gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue724-preauth.md)"
 
@@ -250,18 +287,17 @@ jobs:
           payloads=[json.loads(x[len(marker):]) for x in Path('/tmp/issue724-l4.log').read_text().splitlines() if x.startswith(marker)]
           if len(payloads)!=1: raise SystemExit('expected exactly one #724 summary')
           p=payloads[0]
-          if p.get('research_issue')!=724: raise SystemExit('#724 summary issue drift')
-          if p.get('source_main')!='8371d9ab3988df33c7b92b529016618ebf60f9ee': raise SystemExit('#724 summary source drift')
-          if p.get('bound_main')!=os.environ['BOUND_MAIN']: raise SystemExit('#724 summary bound drift')
-          if p.get('decision') not in ('PASS_V26_10_LATENT_DEPTH_SYNC_COALESCING_MICROBENCH','FAIL_V26_10_LATENT_DEPTH_SYNC_COALESCING_MICROBENCH'): raise SystemExit('#724 invalid decision')
-          if set(p.get('batches',{}))!={'8','64'}: raise SystemExit('#724 batch summary drift')
+          if p.get('research_issue')!=724: raise SystemExit('#724 result identity drift')
+          if p.get('source_main')!='8371d9ab3988df33c7b92b529016618ebf60f9ee': raise SystemExit('#724 result source lineage drift')
+          if p.get('bound_main')!=os.environ['BOUND_MAIN']: raise SystemExit('#724 result bound main drift')
+          if p.get('systems_pass_earned') is not False: raise SystemExit('#724 cannot earn systems PASS')
+          for k in ('architecture_freeze_authorized','s2_authorized','fresh_scientific_seed_authorized','independent_replication_credit','100m_authorized','breakthrough_proven'):
+              if p.get(k) is not False: raise SystemExit(f'forbidden #724 result flag {k}')
           print('⚙️ **AERA-v26.10 #724 optimization microbenchmark evidence**')
           print()
-          print(f"Bound main: `{p['bound_main']}`; frozen source main: `{p['source_main']}`; device: `{p['device']}`.")
-          print(f"Decision: `{p['decision']}`; overall pass: `{p['overall_pass']}`.")
-          for batch,row in sorted(p['batches'].items(),key=lambda kv:int(kv[0])):
-              print(f"Batch {batch}: correctness `{row['correctness_pass']}`; baseline/candidate median `{row['baseline_median_ms']}` / `{row['candidate_median_ms']}` ms; latency improvement `{row['latency_improvement_fraction']}`; latency gate `{row['latency_gate_pass']}`; cudaStreamSynchronize reduction `{row['cudaStreamSynchronize_reduction']}`; sync gate `{row['sync_gate_pass']}`.")
-          print()
-          print('A PASS authorizes only a separately preregistered fresh full frozen Transformer-relative E2E systems gate. It does not itself earn systems PASS or higher-stage authority.')
+          print(f"Frozen source lineage: `{p['source_main']}`; bound execution: `{p['bound_main']}`.")
+          print(f"Decision: `{p.get('decision')}`; overall pass: `{p.get('overall_pass')}`; fresh full E2E gate authorized: `{p.get('fresh_full_e2e_systems_gate_authorized')}`.")
+          print(f"Batches: `{json.dumps(p.get('batches',{}), sort_keys=True)}`")
+          print('This microbenchmark does not itself earn systems PASS or higher-stage authority.')
           PY
           gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue724-summary.md)"

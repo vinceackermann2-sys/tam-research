@@ -7,15 +7,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LAUNCHER = ROOT / "modal_aera_v26_10_issue724_source_bound_provenance_repair1.py"
 WORKFLOW = ROOT / ".github/workflows/aera-v26-10-issue724-source-bound-provenance-repair1.yml"
+SELF = ROOT / "tests/test_aera_v26_10_issue724_source_bound_provenance_repair1_cpu.py"
 
 LAUNCHER_BLOB = "c58b9988d28c1a3a4c9bb9d1ec8f704dfd377285"
-WORKFLOW_BLOB = "c0955686c86611c465b680079c0bf4e582020590"
+WORKFLOW_BLOB = "58ff1e03dc1f0e21d21452288fbe739e51ccd0a4"
+PREVIOUS_WORKFLOW_BLOB = "c0955686c86611c465b680079c0bf4e582020590"
+PREVIOUS_CPU_TEST_BLOB = "9227b776736ae63344c38d51e1197b31ab1b1447"
 INHERITED = {
     "modal_aera_v26_10_issue710_memory_safe_harness.py": "b885250753ea169cd89dd7a978bb3647fd261fe8",
     "tam_research/aera_hardware_core_v26_10_latent_depth_sync_coalescing.py": "d8f691c198eed1fa96bcbb78a4e76cad82d18779",
     "modal_aera_v26_10_issue716_l4_auth_guard_repair1.py": "84cd58e1f3eed3a51efaff2d7cce2e674c29405f",
-    ".github/workflows/aera-v26-10-issue716-l4-auth-guard-repair1.yml": "4dbdb80245b6767fc07931c45190663d8c9197af",
-    "tests/test_aera_v26_10_issue716_l4_auth_guard_repair1_cpu.py": "13f72d319bf685e33978e15b6d88344bc5e7d565",
 }
 
 
@@ -24,136 +25,106 @@ def _git_blob(path: Path) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
 
 
-def test_issue724_files_parse_and_inherited_blobs_are_exact():
-    assert LAUNCHER.exists() and WORKFLOW.exists()
+def test_issue727_changes_only_workflow_contract_while_wrapper_and_science_stay_exact():
     assert _git_blob(LAUNCHER) == LAUNCHER_BLOB
     assert _git_blob(WORKFLOW) == WORKFLOW_BLOB
     ast.parse(LAUNCHER.read_text())
     for rel, expected in INHERITED.items():
-        path = ROOT / rel
-        assert path.exists(), rel
-        assert _git_blob(path) == expected, rel
+        assert _git_blob(ROOT / rel) == expected, rel
 
 
-def test_issue724_wrapper_separates_frozen_source_from_execution_binding():
-    text = LAUNCHER.read_text()
-    for required in (
-        'SOURCE_MAIN = "8371d9ab3988df33c7b92b529016618ebf60f9ee"',
-        'SOURCE_TREE = "fd171423b5878c9082e689d7d83da9f8c7c81569"',
-        'ORCHESTRATION_BASE_MAIN = "67344b9535dd305f1478ea6ea692fe45a64c86d8"',
-        'ORCHESTRATION_BASE_TREE = "a208565bdad203e2cfb2354f53c07d022b977d85"',
-        'RESULT_PATH = "/vol/aera-v26/issue724-v26-10-source-bound-provenance-repair1/result.json"',
-        'RESEARCH_ISSUE = 724',
-        'CONSUMED_TRIGGER = 723',
-        'CONSUMED_FAILURE_COMMENT = 5574302025',
-        'CONSUMED_RUN = 34150467379',
-        'CONSUMED_JOB = 101831501185',
-        'CONSUMED_ATTEMPT = 1',
-        'AUTHORIZATION_HEADING = "## #724 sole L4 source-bound provenance repair1 authorization"',
-        'BOUND_MAIN_ENV = "AERA_ISSUE724_BOUND_MAIN"',
-        'out["source_main"] = SOURCE_MAIN',
-        'out["bound_main"] = bound_main',
-        'def preflight(bound_main: str)',
-        'def run_microbenchmark(bound_main: str)',
-        'evidence = preflight.remote(bound_main)',
-        'summary = run_microbenchmark.remote(bound_main)',
-    ):
-        assert required in text
-    assert 'out["source_main"] = bound_main' not in text
-    assert 'SOURCE_MAIN = ORCHESTRATION_BASE_MAIN' not in text
-
-
-def test_issue724_wrapper_preserves_scientific_and_performance_boundary():
-    text = LAUNCHER.read_text()
-    for required in (
-        'ISSUE710_LAUNCHER_BLOB = "b885250753ea169cd89dd7a978bb3647fd261fe8"',
-        'V26_10_IMPL_BLOB = "d8f691c198eed1fa96bcbb78a4e76cad82d18779"',
-        'LOGIT_COMPARE_BATCH_CHUNK = frozen710.LOGIT_COMPARE_BATCH_CHUNK',
-        'BATCHES = tuple(frozen710.BATCHES)',
-        'WARMUP_CALLS = frozen710.WARMUP_CALLS',
-        'TIMED_CALLS_PER_CONDITION = frozen710.TIMED_CALLS_PER_CONDITION',
-        'PROFILE_CALLS_PER_CONDITION = frozen710.PROFILE_CALLS_PER_CONDITION',
-        'MIN_LATENCY_IMPROVEMENT = frozen710.MIN_LATENCY_IMPROVEMENT',
-        'MIN_STREAM_SYNCHRONIZE_REDUCTION = frozen710.MIN_STREAM_SYNCHRONIZE_REDUCTION',
-        'INTEGRATED_ATOL = frozen710.INTEGRATED_ATOL',
-        'INTEGRATED_RTOL = frozen710.INTEGRATED_RTOL',
-        'with _successor_identity():\n        inherited = frozen710.preflight.local()',
-        'with _successor_identity():\n        summary = frozen710.run_microbenchmark.local()',
-    ):
-        assert required in text
-    forbidden = (
-        '.backward(', 'torch.optim.', '.step(', '.zero_grad(',
-        'MIN_LATENCY_IMPROVEMENT = 0.', 'MIN_STREAM_SYNCHRONIZE_REDUCTION = 0',
-    )
-    for token in forbidden:
-        assert token not in text
-
-
-def test_issue724_patches_identity_and_result_only_then_restores():
-    tree = ast.parse(LAUNCHER.read_text())
-    assign = next(
-        node for node in tree.body
-        if isinstance(node, ast.Assign)
-        and any(isinstance(t, ast.Name) and t.id == '_PATCH_FIELDS' for t in node.targets)
-    )
-    assert isinstance(assign.value, ast.Dict)
-    keys = {k.value for k in assign.value.keys if isinstance(k, ast.Constant)}
-    assert keys == {
-        'RESULT_PATH','SOURCE_MAIN','SOURCE_TREE','RESEARCH_ISSUE',
-        'CONSUMED_TRIGGER','CONSUMED_FAILURE_COMMENT','CONSUMED_RUN','CONSUMED_JOB',
-        'CONSUMED_ATTEMPT','PREAUTH_MARKER','L4_START_MARKER','RESULT_MARKER','SUMMARY_MARKER',
-    }
-    text = LAUNCHER.read_text()
-    assert 'finally:' in text
-    assert 'setattr(frozen710, name, value)' in text
-
-
-def test_issue724_workflow_is_owner_only_fresh_namespace_and_one_attempt():
+def test_issue727_workflow_uses_three_distinct_freeze_layers():
     text = WORKFLOW.read_text()
-    assert 'issues:\n    types: [opened]' in text
-    assert 'github.event.issue.user.login == github.repository_owner' in text
-    assert 'workflow_dispatch:' not in text
-    assert 'pull_request:' not in text
-    assert 'push:' not in text
-    assert 'test "${GITHUB_RUN_ATTEMPT}" = "1"' in text
+    assert '## #724 pre-implementation source-bound provenance repair1 freeze' in text
+    assert '## #724 correction1 CPU static-contract freeze after consumed #725' in text
+    assert '## #727 pre-implementation stale immutable-guard pointer repair1 freeze' in text
+    assert 'ORIGINAL_FREEZE_COMMENT=5574367353' in text
+    assert 'CORRECTION1_FREEZE_COMMENT=5574467360' in text
+    assert 'CORRECTION1_CPU_TEST_BLOB=9227b776736ae63344c38d51e1197b31ab1b1447' in text
+    assert 'CORRECTION1_TREE=8876c7f62082626b3ba260b341709dd3bdabca67' in text
+    assert 'CORRECTION1_COMMIT=907089eba01315dd7908fd01c949eb62c31179bc' in text
+    assert 'PREVIOUS_WORKFLOW_BLOB=c0955686c86611c465b680079c0bf4e582020590' in text
+    assert 'PREVIOUS_CPU_TEST_BLOB=9227b776736ae63344c38d51e1197b31ab1b1447' in text
+    assert 'workflow_blob="$(printf' in text
+    assert 'cpu_test_blob="$(printf' in text
+    assert 'repair_commit="$(printf' in text
+    assert 'git merge-base --is-ancestor "${repair_commit}" "${bound_main}"' in text
+
+
+def test_issue727_does_not_revert_to_consumed_original_current_lineage():
+    text = WORKFLOW.read_text()
+    # Original #724 freeze remains evidence for science/provenance constants only.
+    # Current-file/tree/commit checks come from correction1 + #727 repair freeze.
+    assert 'CORRECTION1_CPU_TEST_BLOB=9227b776736ae63344c38d51e1197b31ab1b1447' in text
+    assert 'FROZEN_TREE=8876c7f62082626b3ba260b341709dd3bdabca67' in text
+    assert 'FROZEN_COMMIT=907089eba01315dd7908fd01c949eb62c31179bc' in text
+    assert 'd32131108418097ee1e8dd652d10f1e60da14888' not in text
+    assert '821ac66b355f4702bdb9be710fb37f90968cf93d' not in text
+    assert '008d207dea7b21194b5e622a6c6004012f03ba73' not in text
+
+
+def test_issue727_keeps_unused_issue724_trigger_and_result_namespaces_exact():
+    text = WORKFLOW.read_text()
     assert '[aera-v26-10-issue724-source-bound-provenance-repair1-preauth]' in text
     assert '[aera-v26-10-issue724-source-bound-provenance-repair1-l4]' in text
+    assert '/vol/aera-v26/issue724-v26-10-source-bound-provenance-repair1/result.json' in text
     assert '## #724 sole L4 source-bound provenance repair1 authorization' in text
-    assert 'AERA_ISSUE724_BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}' in text
+    assert '🔎 **AERA-v26.10 #724 source-bound preauthorization evidence**' in text
+    assert '⚙️ **AERA-v26.10 #724 optimization microbenchmark evidence**' in text
 
 
-def test_issue724_workflow_explicitly_rejects_issue723_provenance_bug():
+def test_issue727_preserves_source_vs_bound_provenance_semantics():
     text = WORKFLOW.read_text()
     assert "'source_main':'8371d9ab3988df33c7b92b529016618ebf60f9ee'" in text
+    assert "'source_tree':'fd171423b5878c9082e689d7d83da9f8c7c81569'" in text
     assert "'bound_main':os.environ['BOUND_MAIN']" in text
     assert "'source_main':os.environ['BOUND_MAIN']" not in text
-    assert "#716 preauth drift source_main: '8371d9ab3988df33c7b92b529016618ebf60f9ee'" in text
-    assert 'CONSUMED_FAILURE_COMMENT=5574302025' in text
-    assert 'CONSUMED_RUN=34150467379' in text
-    assert 'CONSUMED_JOB=101831501185' in text
+    assert 'AERA_ISSUE724_BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}' in text
+    launcher = LAUNCHER.read_text()
+    assert 'out["source_main"] = SOURCE_MAIN' in launcher
+    assert 'out["bound_main"] = bound_main' in launcher
+    assert 'out["source_main"] = bound_main' not in launcher
 
 
-def test_issue724_workflow_freezes_all_inherited_thresholds():
+def test_issue727_preserves_all_scientific_and_performance_thresholds():
     text = WORKFLOW.read_text()
     for required in (
         'ISSUE710_LAUNCHER_BLOB=b885250753ea169cd89dd7a978bb3647fd261fe8',
         'V26_10_IMPL_BLOB=d8f691c198eed1fa96bcbb78a4e76cad82d18779',
-        'LOGIT_COMPARE_BATCH_CHUNK=1', 'BATCHES=8,64', 'WARMUP_CALLS=3',
-        'TIMED_CALLS_PER_CONDITION=20', 'PROFILE_CALLS_PER_CONDITION=1',
-        'MIN_LATENCY_IMPROVEMENT=0.05', 'MIN_STREAM_SYNCHRONIZE_REDUCTION=20',
-        'INTEGRATED_ATOL=0.01', 'INTEGRATED_RTOL=0.01',
+        'LOGIT_COMPARE_BATCH_CHUNK=1',
+        'BATCHES=8,64',
+        'WARMUP_CALLS=3',
+        'TIMED_CALLS_PER_CONDITION=20',
+        'PROFILE_CALLS_PER_CONDITION=1',
+        'MIN_LATENCY_IMPROVEMENT=0.05',
+        'MIN_STREAM_SYNCHRONIZE_REDUCTION=20',
+        'INTEGRATED_ATOL=0.01',
+        'INTEGRATED_RTOL=0.01',
     ):
-        assert required in text or required in LAUNCHER.read_text()
-
-
-def test_issue724_evidence_never_auto_earns_systems_pass():
+        assert required in text
     launcher = LAUNCHER.read_text()
-    workflow = WORKFLOW.read_text()
-    for flag in (
-        'systems_pass_earned','architecture_freeze_authorized','s2_authorized',
-        'fresh_scientific_seed_authorized','independent_replication_credit',
-        '100m_authorized','breakthrough_proven',
-    ):
-        assert flag in launcher
-    assert 'A PASS authorizes only a separately preregistered fresh full frozen Transformer-relative E2E systems gate.' in workflow
-    assert 'It does not itself earn systems PASS or higher-stage authority.' in workflow
+    assert 'LOGIT_COMPARE_BATCH_CHUNK = frozen710.LOGIT_COMPARE_BATCH_CHUNK' in launcher
+    assert 'MIN_LATENCY_IMPROVEMENT = frozen710.MIN_LATENCY_IMPROVEMENT' in launcher
+    assert 'MIN_STREAM_SYNCHRONIZE_REDUCTION = frozen710.MIN_STREAM_SYNCHRONIZE_REDUCTION' in launcher
+
+
+def test_issue727_workflow_is_owner_only_attempt1_and_has_no_manual_retry_surface():
+    text = WORKFLOW.read_text()
+    assert 'issues:\n    types: [opened]' in text
+    assert 'github.event.issue.user.login == github.repository_owner' in text
+    assert 'test "${GITHUB_RUN_ATTEMPT}" = "1"' in text
+    assert 'workflow_dispatch:' not in text
+    assert 'pull_request:' not in text
+    assert 'push:' not in text
+    assert 'modal deploy' not in text
+
+
+def test_issue727_is_static_orchestration_only_and_wrapper_unchanged():
+    text = WORKFLOW.read_text()
+    launcher = LAUNCHER.read_text()
+    assert 'python -m py_compile modal_aera_v26_10_issue724_source_bound_provenance_repair1.py' in text
+    for forbidden in ('.backward(', 'torch.optim.', '.zero_grad('):
+        assert forbidden not in text
+    assert 'frozen710.run_microbenchmark.local()' in launcher
+    assert '_chunked_logit_equivalence' not in launcher
+    assert SELF.exists()
