@@ -1,0 +1,169 @@
+name: AERA v26.10 issue732 differential kernel-time attribution
+on:
+  issues:
+    types: [opened]
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+concurrency:
+  group: aera-v26-10-issue732-differential-${{ github.event.issue.number }}
+  cancel-in-progress: false
+jobs:
+  issue732-differential-kernel-time:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      (startsWith(github.event.issue.title, '[aera-v26-10-issue732-differential-kernel-preauth]') ||
+       startsWith(github.event.issue.title, '[aera-v26-10-issue732-differential-kernel-l4]'))
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Syntax-check issue732 diagnostic and frozen dependencies
+        run: |
+          python -m py_compile modal_aera_v26_10_issue732_differential_kernel_time_attribution.py
+          python -m py_compile modal_aera_v26_10_issue710_memory_safe_harness.py
+          python -m py_compile tam_research/aera_hardware_core_v26_10_latent_depth_sync_coalescing.py
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+      - name: Verify issue732 immutable boundary and select mode
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/732" --jq '.title')" = "[research] AERA-v26.10 post-#731 differential kernel-time attribution"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/732" --jq '.state')" = "open"
+          parent="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/5574730812" --jq '.body')"
+          printf '%s\n' "$parent" | grep -F 'FAIL_V26_10_LATENT_DEPTH_SYNC_COALESCING_MICROBENCH' >/dev/null
+          printf '%s\n' "$parent" | grep -F '33.98348808288574' >/dev/null
+          printf '%s\n' "$parent" | grep -F '76.74127960205078' >/dev/null
+          printf '%s\n' "$parent" | grep -F 'overall pass: `False`' >/dev/null
+          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/732/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #732 pre-implementation differential kernel-time attribution freeze")) | .id' | wc -l | tr -d ' ')"
+          test "$freeze_count" = "1"
+          freeze="$(gh api "repos/${GITHUB_REPOSITORY}/issues/732/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #732 pre-implementation differential kernel-time attribution freeze")) | .body')"
+          for required in \
+            'SOURCE_MAIN=267f6d6018a0d355436869919ed73c7723315eab' \
+            'SOURCE_TREE=1739ccd80ad48636a4439cbc9d39ba1ab34df807' \
+            'BRANCH=research/aera-v26-10-issue732-differential-kernel-time-attribution' \
+            'PREAUTH_PREFIX=[aera-v26-10-issue732-differential-kernel-preauth]' \
+            'L4_PREFIX=[aera-v26-10-issue732-differential-kernel-l4]' \
+            'RESULT_PATH=/vol/aera-v26/issue732-post731-differential-kernel-time-attribution/result.json' \
+            'PARENT_TRIGGER=731' 'PARENT_EVIDENCE_COMMENT=5574730812' 'PARENT_RUN=34154255434' 'PARENT_JOB=101842659688' 'PARENT_ATTEMPT=1' \
+            'ISSUE710_LAUNCHER_BLOB=b885250753ea169cd89dd7a978bb3647fd261fe8' \
+            'V26_10_IMPL_BLOB=d8f691c198eed1fa96bcbb78a4e76cad82d18779' \
+            'BATCHES=8,64' 'WARMUP_CALLS=3' 'UNPROFILED_CALLS=3' 'PROFILE_CALLS=1' \
+            'REPEATED_MIN_CALLS=100' 'REPEATED_MIN_MS=1.0' 'REPEATED_MIN_SHARE=0.10' \
+            'WHOLE_STAGE_MIN_SMALL_CALLS=500' 'WHOLE_STAGE_MIN_SMALL_ACTIVE_SHARE=0.20' 'WHOLE_STAGE_MIN_IDLE_MS=1.0'; do
+            printf '%s\n' "$freeze" | grep -F "$required" >/dev/null
+          done
+          launcher_blob="$(printf '%s\n' "$freeze" | sed -n 's/^LAUNCHER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "$freeze" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "$freeze" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "$freeze" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "$freeze" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "$launcher_blob" && test -n "$workflow_blob" && test -n "$cpu_test_blob" && test -n "$frozen_tree" && test -n "$frozen_commit"
+          body="$(jq -r '.issue.body // ""' "$GITHUB_EVENT_PATH")"
+          bound_main="$(printf '%s\n' "$body" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "$bound_main" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "$bound_main"
+          test "$(git rev-parse HEAD)" = "$bound_main"
+          git merge-base --is-ancestor 267f6d6018a0d355436869919ed73c7723315eab "$bound_main"
+          test "$(git rev-parse 267f6d6018a0d355436869919ed73c7723315eab^{tree})" = "1739ccd80ad48636a4439cbc9d39ba1ab34df807"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "$frozen_tree"
+          git merge-base --is-ancestor "$frozen_commit" "$bound_main"
+          test "$(git hash-object modal_aera_v26_10_issue732_differential_kernel_time_attribution.py)" = "$launcher_blob"
+          test "$(git hash-object .github/workflows/aera-v26-10-issue732-differential-kernel-time-attribution.yml)" = "$workflow_blob"
+          test "$(git hash-object tests/test_aera_v26_10_issue732_differential_kernel_time_attribution_cpu.py)" = "$cpu_test_blob"
+          test "$(git hash-object modal_aera_v26_10_issue710_memory_safe_harness.py)" = "b885250753ea169cd89dd7a978bb3647fd261fe8"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_10_latent_depth_sync_coalescing.py)" = "d8f691c198eed1fa96bcbb78a4e76cad82d18779"
+          title="$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")"
+          if [[ "$title" == '[aera-v26-10-issue732-differential-kernel-preauth]'* ]]; then
+            mode=preauth; prefix='[aera-v26-10-issue732-differential-kernel-preauth]'
+            evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA-v26.10 #732 differential-kernel preauthorization evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "$evidence_count" = "0"
+          else
+            mode=l4; prefix='[aera-v26-10-issue732-differential-kernel-l4]'
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "$bound_main" '.[] | select((.body // "") | startswith("🔎 **AERA-v26.10 #732 differential-kernel preauthorization evidence**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "$preauth_count" = "1"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/732/comments?per_page=100" | jq -r --arg bound "$bound_main" '.[] | select((.body // "") | startswith("## #732 sole L4 differential kernel-time attribution authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "$auth_count" = "1"
+            result_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.10 #732 differential kernel-time attribution evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "$result_count" = "0"
+          fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1" && test "$TRIGGER_ISSUE" = "${matches[0]}"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"; echo "bound_main=$bound_main" >> "$GITHUB_OUTPUT"; echo "allowed=true" >> "$GITHUB_OUTPUT"
+      - name: Re-verify trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env: {GH_TOKEN: '${{ github.token }}', TRIGGER_ISSUE: '${{ github.event.issue.number }}', MODE: '${{ steps.guard.outputs.mode }}', BOUND_MAIN: '${{ steps.guard.outputs.bound_main }}'}
+        run: |
+          set -euo pipefail; test "$(git rev-parse HEAD)" = "$BOUND_MAIN"
+          if [[ "$MODE" == preauth ]]; then prefix='[aera-v26-10-issue732-differential-kernel-preauth]'; else prefix='[aera-v26-10-issue732-differential-kernel-l4]'; fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1" && test "$TRIGGER_ISSUE" = "${matches[0]}"
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env: {MODAL_TOKEN_ID: '${{ secrets.MODAL_TOKEN_ID }}', MODAL_TOKEN_SECRET: '${{ secrets.MODAL_TOKEN_SECRET }}'}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+      - name: Run zero-GPU preauthorization audit
+        if: steps.guard.outputs.mode == 'preauth'
+        env: {MODAL_TOKEN_ID: '${{ secrets.MODAL_TOKEN_ID }}', MODAL_TOKEN_SECRET: '${{ secrets.MODAL_TOKEN_SECRET }}'}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_10_issue732_differential_kernel_time_attribution.py::preauth_main 2>&1 | tee /tmp/issue732-preauth.log
+          test "$(grep -c '^AERA_V26_10_ISSUE732_PREAUTH_JSON=' /tmp/issue732-preauth.log)" = "1"
+      - name: Record preauthorization evidence
+        if: steps.guard.outputs.mode == 'preauth' && success()
+        env: {GH_TOKEN: '${{ github.token }}', TRIGGER_ISSUE: '${{ github.event.issue.number }}', BOUND_MAIN: '${{ steps.guard.outputs.bound_main }}'}
+        run: |
+          python - <<'PY' >/tmp/evidence.md
+          import json,os
+          from pathlib import Path
+          m='AERA_V26_10_ISSUE732_PREAUTH_JSON='; ps=[json.loads(x[len(m):]) for x in Path('/tmp/issue732-preauth.log').read_text().splitlines() if x.startswith(m)]
+          if len(ps)!=1: raise SystemExit('expected one payload')
+          p=ps[0]
+          if p.get('research_issue')!=732 or p.get('source_main')!='267f6d6018a0d355436869919ed73c7723315eab' or p.get('result_absent') is not True: raise SystemExit('preauth drift')
+          if p.get('gpu_used') is not False or p.get('model_constructed') is not False or p.get('new_measurement_performed') is not False: raise SystemExit('preauth authority drift')
+          print('🔎 **AERA-v26.10 #732 differential-kernel preauthorization evidence**\n')
+          print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
+          print('Zero-GPU preflight passed: result absent; frozen #731 result, checkpoints, #710 launcher and v26.10 implementation revalidated. No L4 or optimization authority.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/evidence.md)"
+      - name: Run sole L4 differential kernel-time diagnostic
+        if: steps.guard.outputs.mode == 'l4'
+        env: {MODAL_TOKEN_ID: '${{ secrets.MODAL_TOKEN_ID }}', MODAL_TOKEN_SECRET: '${{ secrets.MODAL_TOKEN_SECRET }}'}
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_10_issue732_differential_kernel_time_attribution.py::l4_main 2>&1 | tee /tmp/issue732-l4.log
+          test "$(grep -c '^AERA_V26_10_ISSUE732_PREAUTH_JSON=' /tmp/issue732-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_10_ISSUE732_L4_START_JSON=' /tmp/issue732-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_10_ISSUE732_RESULT_JSON=' /tmp/issue732-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_10_ISSUE732_SUMMARY_JSON=' /tmp/issue732-l4.log)" = "1"
+      - name: Record differential kernel-time evidence
+        if: steps.guard.outputs.mode == 'l4' && success()
+        env: {GH_TOKEN: '${{ github.token }}', TRIGGER_ISSUE: '${{ github.event.issue.number }}'}
+        run: |
+          python - <<'PY' >/tmp/result.md
+          import json
+          from pathlib import Path
+          m='AERA_V26_10_ISSUE732_SUMMARY_JSON='; ps=[json.loads(x[len(m):]) for x in Path('/tmp/issue732-l4.log').read_text().splitlines() if x.startswith(m)]
+          if len(ps)!=1: raise SystemExit('expected one summary')
+          p=ps[0]
+          if p.get('research_issue')!=732 or p.get('next_target') not in (None,'whole_stage_launch_coalescing') and not str(p.get('next_target')).startswith(('repeated_small_kernel_fusion::','explicit_device_kernel_optimization::')): raise SystemExit('invalid result')
+          for k in ('optimization_authorized','full_e2e_systems_gate_authorized','systems_pass_earned','architecture_freeze_authorized','s2_authorized','fresh_scientific_seed_authorized','independent_replication_credit','100m_authorized','breakthrough_proven'):
+              if p.get(k) is not False: raise SystemExit('forbidden authority')
+          print('🔬 **AERA-v26.10 #732 differential kernel-time attribution evidence**\n')
+          print(f"Device: `{p['device']}`; next target: `{p.get('next_target')}`.")
+          print(f"Batches: `{json.dumps(p['batches'],sort_keys=True)}`")
+          print('Diagnostic only. No optimization, E2E systems rerun, systems PASS, or higher-stage authority is created automatically.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/result.md)"
