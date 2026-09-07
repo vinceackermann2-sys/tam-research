@@ -1,0 +1,285 @@
+name: AERA v26.9 issue702 CUDA timeline dispatch-gap attribution
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-9-issue702-cuda-timeline-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  issue702-cuda-timeline-attribution:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      (startsWith(github.event.issue.title, '[aera-v26-9-issue702-cuda-timeline-preauth]') ||
+       startsWith(github.event.issue.title, '[aera-v26-9-issue702-cuda-timeline-l4]'))
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue702 diagnostic and frozen root dependencies
+        run: |
+          python -m py_compile modal_aera_v26_9_issue702_cuda_timeline_dispatch_gap_attribution.py
+          python -m py_compile modal_aera_v26_9_issue697_micro_op_attribution.py
+          python -m py_compile modal_aera_v26_9_issue687_stage_internal_throughput_attribution.py
+          python -m py_compile modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue702 immutable boundary and select mode
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/702" --jq '.title')" = "[research] AERA-v26.9 CUDA timeline dispatch-gap attribution successor after #701 ref-order incident"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/702" --jq '.state')" = "open"
+
+          incident="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/5571988281" --jq '.body')"
+          printf '%s\n' "${incident}" | grep -F '## #701 governance incident before freeze' >/dev/null
+          printf '%s\n' "${incident}" | grep -F '`__noop_probe_do_not_create`' >/dev/null
+          printf '%s\n' "${incident}" | grep -F 'fresh implementation-governance successor' >/dev/null
+          printf '%s\n' "${incident}" | grep -F 'Scientific state remains unchanged' >/dev/null
+
+          parent_evidence="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/5571118103" --jq '.body')"
+          printf '%s\n' "${parent_evidence}" | grep -F '🔬 **AERA-v26.9 #697 micro-op attribution evidence**' >/dev/null
+          printf '%s\n' "${parent_evidence}" | grep -F 'Common next target: `dispatch_or_unattributed_gap`.' >/dev/null
+          printf '%s\n' "${parent_evidence}" | grep -F 'Batch 8: parent glue `6.067023945972323` ms; parent experts `3.601471960544586` ms.' >/dev/null
+          printf '%s\n' "${parent_evidence}" | grep -F 'Batch 64: parent glue `6.752576315775514` ms; parent experts `13.073423981666565` ms.' >/dev/null
+
+          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/702/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #702 pre-implementation CUDA timeline attribution freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${freeze_count}" = "1"
+          freeze_comment="$(gh api "repos/${GITHUB_REPOSITORY}/issues/702/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #702 pre-implementation CUDA timeline attribution freeze")) | .body')"
+
+          for required in \
+            'SOURCE_MAIN=6fad37d0e4c611fcaff480899b25dc190e9e9127' \
+            'SOURCE_TREE=87a22d981caf77263574503749757ba77290cc9a' \
+            'GOVERNANCE_PREDECESSOR_ISSUE=701' \
+            'GOVERNANCE_INCIDENT_COMMENT=5571988281' \
+            'EXCLUDED_INERT_REF=__noop_probe_do_not_create' \
+            'BRANCH=research/aera-v26-9-issue702-cuda-timeline-dispatch-gap-attribution' \
+            'PREAUTH_PREFIX=[aera-v26-9-issue702-cuda-timeline-preauth]' \
+            'L4_PREFIX=[aera-v26-9-issue702-cuda-timeline-l4]' \
+            'RESULT_PATH=/vol/aera-v26/issue702-cuda-timeline-dispatch-gap-attribution/result.json' \
+            'PARENT_RESULT_PATH=/vol/aera-v26/issue697-micro-op-attribution/result.json' \
+            'PARENT_TRIGGER=700' \
+            'PARENT_EVIDENCE_COMMENT=5571118103' \
+            'PARENT_RUN=34125640230' \
+            'PARENT_JOB=101753558368' \
+            'PARENT_ATTEMPT=1' \
+            'ISSUE697_LAUNCHER_BLOB=c82affc01d1ecb096371e8865dbd7b18e739f5e1' \
+            'ISSUE687_LAUNCHER_BLOB=b9950c032686a496c6d944c30c441428499cb367' \
+            'ISSUE665_LAUNCHER_BLOB=72f27391ff2f0a7bff8d4532f307ddc4869cf494' \
+            'SCIENTIFIC_ADAPTER_BLOB=512572340cc09e2e7ad6729712258c12cb377ef2' \
+            'BASE_SYSTEMS_BLOB=c9731cae7e386f09b2a190b045532591c4fa00be' \
+            'RUNTIME_INTERFACE_BLOB=268644ac4edee15a4cc4e29d3fed7f61eeb3caa7' \
+            'STAGE_V25_1_BLOB=1c3456d8040455b4cd1194db4c8586f77d0f3e43' \
+            'COMPACT_V25_1_BLOB=4e336b6e1a6238dac782fa320751d68281493ee1' \
+            'TOKENWISE_V19_BLOB=98008bceb8c68af3bc346e5dfcc7a8218875661e' \
+            'BASE_CORE_BLOB=ffe0341829fb905e40ef9ae3544f797471f1aa9c' \
+            'NOHOST_V25_1_BLOB=237e5615cf32f644e8675808a6b3e9adaf04fb23' \
+            'V26_9_BACKEND_BLOB=b81cc209f5d95abbe1fb8bd620c78e87c067bc19' \
+            'TRIAGE_BLOB=e5ce8cdda0777dce97816e2640f4492803a6b191' \
+            'LAUNCHER_BLOB=bf38814a976d929119d17b9e907f1b89461a14a2' \
+            'MATERIAL_SHARE_MIN=0.15' \
+            'MATERIAL_MS_MIN=1.0' \
+            'SMALL_KERNEL_MAX_US=50.0' \
+            'REPEATED_MIN_COUNT=2' \
+            'BASELINE_CALLS=3' \
+            'PROFILE_CALLS=1'; do
+            printf '%s\n' "${freeze_comment}" | grep -F "${required}" >/dev/null
+          done
+
+          launcher_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^LAUNCHER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${launcher_blob}" && test -n "${workflow_blob}" && test -n "${cpu_test_blob}" && test -n "${frozen_tree}" && test -n "${frozen_commit}"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor 6fad37d0e4c611fcaff480899b25dc190e9e9127 "${bound_main}"
+          test "$(git rev-parse 6fad37d0e4c611fcaff480899b25dc190e9e9127^{tree})" = "87a22d981caf77263574503749757ba77290cc9a"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
+          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
+
+          test "$(git hash-object modal_aera_v26_9_issue702_cuda_timeline_dispatch_gap_attribution.py)" = "${launcher_blob}"
+          test "$(git hash-object .github/workflows/aera-v26-9-issue702-cuda-timeline-dispatch-gap-attribution.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_9_issue702_cuda_timeline_dispatch_gap_attribution_cpu.py)" = "${cpu_test_blob}"
+          test "$(git hash-object modal_aera_v26_9_issue697_micro_op_attribution.py)" = "c82affc01d1ecb096371e8865dbd7b18e739f5e1"
+          test "$(git hash-object modal_aera_v26_9_issue687_stage_internal_throughput_attribution.py)" = "b9950c032686a496c6d944c30c441428499cb367"
+          test "$(git hash-object modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py)" = "72f27391ff2f0a7bff8d4532f307ddc4869cf494"
+          test "$(git hash-object tam_research/aera_v26_9_issue643_bounded_memory_end_to_end_systems.py)" = "512572340cc09e2e7ad6729712258c12cb377ef2"
+          test "$(git hash-object tam_research/aera_v26_5_end_to_end_systems.py)" = "c9731cae7e386f09b2a190b045532591c4fa00be"
+          test "$(git hash-object tam_research/aera_hardware_core_v26.py)" = "268644ac4edee15a4cc4e29d3fed7f61eeb3caa7"
+          test "$(git hash-object tam_research/aera_hardware_core_v25_1.py)" = "1c3456d8040455b4cd1194db4c8586f77d0f3e43"
+          test "$(git hash-object tam_research/aera_hardware_core_v25_1_compact.py)" = "4e336b6e1a6238dac782fa320751d68281493ee1"
+          test "$(git hash-object tam_research/aera_hardware_core_v19.py)" = "98008bceb8c68af3bc346e5dfcc7a8218875661e"
+          test "$(git hash-object tam_research/aera_hardware_core.py)" = "ffe0341829fb905e40ef9ae3544f797471f1aa9c"
+          test "$(git hash-object tam_research/aera_hardware_core_v25_1_nohost.py)" = "237e5615cf32f644e8675808a6b3e9adaf04fb23"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_9_ficem_read_identity_weight_visibility.py)" = "b81cc209f5d95abbe1fb8bd620c78e87c067bc19"
+          test "$(git hash-object tam_research/aera_v25_post8471_triage.py)" = "e5ce8cdda0777dce97816e2640f4492803a6b191"
+
+          title="$(jq -r '.issue.title' "${GITHUB_EVENT_PATH}")"
+          if [[ "${title}" == '[aera-v26-9-issue702-cuda-timeline-preauth]'* ]]; then
+            mode=preauth
+            prefix='[aera-v26-9-issue702-cuda-timeline-preauth]'
+            evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA-v26.9 #702 CUDA timeline preauthorization evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "${evidence_count}" = "0"
+          else
+            mode=l4
+            prefix='[aera-v26-9-issue702-cuda-timeline-l4]'
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("🔎 **AERA-v26.9 #702 CUDA timeline preauthorization evidence**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${preauth_count}" = "1"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/702/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #702 sole L4 CUDA timeline attribution authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+            result_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA-v26.9 #702 CUDA timeline attribution evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "${result_count}" = "0"
+          fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+          echo "bound_main=${bound_main}" >> "${GITHUB_OUTPUT}"
+          echo "allowed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Re-verify issue702 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          MODE: ${{ steps.guard.outputs.mode }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${BOUND_MAIN}"
+          if [[ "${MODE}" == "preauth" ]]; then
+            prefix='[aera-v26-9-issue702-cuda-timeline-preauth]'
+          else
+            prefix='[aera-v26-9-issue702-cuda-timeline-l4]'
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/702/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("## #702 sole L4 CUDA timeline attribution authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+          fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run issue702 zero-GPU preauthorization audit
+        if: steps.guard.outputs.mode == 'preauth'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue702_cuda_timeline_dispatch_gap_attribution.py::preauth_main 2>&1 | tee /tmp/issue702-preauth.log
+          test "$(grep -c '^AERA_V26_9_ISSUE702_CUDA_TIMELINE_PREAUTH_JSON=' /tmp/issue702-preauth.log)" = "1"
+
+      - name: Record issue702 preauthorization evidence
+        if: steps.guard.outputs.mode == 'preauth' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        run: |
+          python - <<'PY' >/tmp/issue702-preauth.md
+          import json, os
+          from pathlib import Path
+          marker="AERA_V26_9_ISSUE702_CUDA_TIMELINE_PREAUTH_JSON="
+          ps=[json.loads(x[len(marker):]) for x in Path('/tmp/issue702-preauth.log').read_text().splitlines() if x.startswith(marker)]
+          if len(ps)!=1: raise SystemExit('expected one #702 preauth payload')
+          p=ps[0]
+          required={'research_issue':702,'governance_predecessor_issue':701,'governance_incident_comment':5571988281,'excluded_inert_ref':'__noop_probe_do_not_create','parent_trigger':700,'parent_evidence_comment':5571118103,'parent_run':34125640230,'parent_job':101753558368,'parent_attempt':1,'source_decision':'FAIL_FROZEN_E2E_SYSTEMS_GATE','parent_next_target':'dispatch_or_unattributed_gap','result_absent':True,'gpu_used':False,'model_constructed':False,'new_measurement_performed':False}
+          for k,v in required.items():
+              if p.get(k)!=v: raise SystemExit(f'#702 preauth drift {k}: {p.get(k)!r}')
+          for k in ('optimization_authorized','systems_pass_earned','architecture_freeze_authorized','s2_authorized','fresh_scientific_seed_authorized','independent_replication_credit','100m_authorized','breakthrough_proven'):
+              if p.get(k) is not False: raise SystemExit(f'forbidden #702 preauth flag {k}')
+          print('🔎 **AERA-v26.9 #702 CUDA timeline preauthorization evidence**')
+          print()
+          print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
+          print('Zero-GPU preflight passed: `result_absent=true`, `gpu_used=false`, `model_constructed=false`, `new_measurement_performed=false`.')
+          print('Parent #700 evidence, #701 governance exclusion, exact checkpoint and frozen source blobs were revalidated. No L4 or optimization authority is created by this evidence.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue702-preauth.md)"
+
+      - name: Run issue702 sole L4 CUDA timeline diagnostic
+        if: steps.guard.outputs.mode == 'l4'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_9_issue702_cuda_timeline_dispatch_gap_attribution.py::l4_main 2>&1 | tee /tmp/issue702-l4.log
+          test "$(grep -c '^AERA_V26_9_ISSUE702_CUDA_TIMELINE_PREAUTH_JSON=' /tmp/issue702-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_9_ISSUE702_CUDA_TIMELINE_L4_START_JSON=' /tmp/issue702-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_9_ISSUE702_CUDA_TIMELINE_RESULT_JSON=' /tmp/issue702-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_9_ISSUE702_CUDA_TIMELINE_SUMMARY_JSON=' /tmp/issue702-l4.log)" = "1"
+
+      - name: Record issue702 CUDA timeline attribution evidence
+        if: steps.guard.outputs.mode == 'l4' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue702-summary.md
+          import json
+          from pathlib import Path
+          marker="AERA_V26_9_ISSUE702_CUDA_TIMELINE_SUMMARY_JSON="
+          ps=[json.loads(x[len(marker):]) for x in Path('/tmp/issue702-l4.log').read_text().splitlines() if x.startswith(marker)]
+          if len(ps)!=1: raise SystemExit('expected one #702 summary')
+          p=ps[0]
+          if p.get('research_issue')!=702 or p.get('source_decision')!='FAIL_FROZEN_E2E_SYSTEMS_GATE': raise SystemExit('#702 summary authority drift')
+          if p.get('next_target') not in (None,'launch_or_idle_reduction','repeated_small_kernel_fusion','explicit_device_kernel_optimization'): raise SystemExit('#702 invalid target')
+          for k in ('optimization_authorized','systems_pass_earned','architecture_freeze_authorized','s2_authorized','fresh_scientific_seed_authorized','independent_replication_credit','100m_authorized','breakthrough_proven'):
+              if p.get(k) is not False: raise SystemExit(f'forbidden #702 result flag {k}')
+          print('🔬 **AERA-v26.9 #702 CUDA timeline attribution evidence**')
+          print()
+          print(f"Device: `{p['device']}`; source systems decision remains `{p['source_decision']}`.")
+          print(f"Preregistered diagnostic target: `{p['next_target']}`.")
+          for batch,row in sorted(p['batches'].items(),key=lambda kv:int(kv[0])):
+              print()
+              print(f"Batch {batch}: parent unresolved gap `{row['parent_gap_ms']}` ms; unprofiled/profiled full `{row['baseline_full_median_ms']}` / `{row['profiled_full_ms']}` ms; distortion `{row['profiler_distortion_ratio']}`x.")
+              print(f"Route rows: `{json.dumps(row['route_rows'],sort_keys=True)}`.")
+              print(f"Device activities `{row['device_activity_count']}`; active union `{row['device_active_union_us']}` us; idle-gap summary `{json.dumps(row['idle_gaps_us'],sort_keys=True)}`.")
+              print(f"Baseline-equivalent candidate components: `{json.dumps(row['baseline_equivalent_ms'],sort_keys=True)}`.")
+              print(f"Unavailable/unattributed residual: `{row['unavailable_or_unattributed_residual_ms']}` ms; unavailable fields: `{json.dumps(row['unavailable_fields'],sort_keys=True)}`.")
+              print(f"Top device activities: `{json.dumps(row['top_device_activity_names'],sort_keys=True)}`.")
+              print(f"CUDA runtime families: `{json.dumps(row['cuda_runtime_families'],sort_keys=True)}`.")
+          print()
+          print('Diagnostic attribution only. No optimization, systems PASS, architecture freeze, S2, scaling, or breakthrough authority is created automatically.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue702-summary.md)"
