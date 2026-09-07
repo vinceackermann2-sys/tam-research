@@ -1,0 +1,241 @@
+name: AERA v26.10 issue710 memory-safe harness repair1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-10-issue710-memory-safe-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  issue710-memory-safe-harness:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      (startsWith(github.event.issue.title, '[aera-v26-10-issue710-memory-safe-harness-preauth]') ||
+       startsWith(github.event.issue.title, '[aera-v26-10-issue710-memory-safe-harness-l4]'))
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax-check issue710 launcher and frozen dependencies
+        run: |
+          python -m py_compile modal_aera_v26_10_issue710_memory_safe_harness.py
+          python -m py_compile modal_aera_v26_10_issue706_latent_depth_sync_coalescing.py
+          python -m py_compile tam_research/aera_hardware_core_v26_10_latent_depth_sync_coalescing.py
+          python -m py_compile modal_aera_v26_9_issue665_frozen_throughput_component_attribution.py
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+      - name: Verify issue710 immutable boundary and select mode
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/710" --jq '.title')" = "[infra] AERA-v26.10 #709 batch64 logit-equivalence OOM harness repair1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/710" --jq '.state')" = "open"
+
+          incident="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/5573348027" --jq '.body')"
+          correction="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/5573367269" --jq '.body')"
+          printf '%s\n' "${incident}" | grep -F 'workflow run `34141205064`' >/dev/null
+          printf '%s\n' "${incident}" | grep -F 'job `101803372290`' >/dev/null
+          printf '%s\n' "${incident}" | grep -F 'torch.OutOfMemoryError' >/dev/null
+          printf '%s\n' "${correction}" | grep -F 'batch-64 correctness comparison' >/dev/null
+          printf '%s\n' "${correction}" | grep -F '6.1348876953125 GiB' >/dev/null
+
+          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/710/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #710 pre-implementation memory-safe harness repair1 freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${freeze_count}" = "1"
+          freeze="$(gh api "repos/${GITHUB_REPOSITORY}/issues/710/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #710 pre-implementation memory-safe harness repair1 freeze")) | .body')"
+          for required in \
+            'SOURCE_MAIN=c2e9c17d7bb34d7652fc6759c80193f2d951f2ce' \
+            'SOURCE_TREE=ff3913de8e605aba10f87839676c9b582304233c' \
+            'BRANCH=infra/aera-v26-10-issue710-memory-safe-harness-repair1' \
+            'PREAUTH_PREFIX=[aera-v26-10-issue710-memory-safe-harness-preauth]' \
+            'L4_PREFIX=[aera-v26-10-issue710-memory-safe-harness-l4]' \
+            'RESULT_PATH=/vol/aera-v26/issue710-v26-10-memory-safe-harness/result.json' \
+            'CONSUMED_TRIGGER=709' \
+            'CONSUMED_RUN=34141205064' \
+            'CONSUMED_JOB=101803372290' \
+            'CONSUMED_ATTEMPT=1' \
+            'CONSUMED_FAILURE_COMMENT=5573348027' \
+            'CONSUMED_PRECISION_COMMENT=5573367269' \
+            'ISSUE706_LAUNCHER_BLOB=e23072aa83b0bc20ccd72e7567f234e9f4a931f6' \
+            'V26_10_IMPL_BLOB=d8f691c198eed1fa96bcbb78a4e76cad82d18779' \
+            'LOGIT_COMPARE_BATCH_CHUNK=1' \
+            'BATCHES=8,64' \
+            'WARMUP_CALLS=3' \
+            'TIMED_CALLS_PER_CONDITION=20' \
+            'PROFILE_CALLS_PER_CONDITION=1' \
+            'MIN_LATENCY_IMPROVEMENT=0.05' \
+            'MIN_STREAM_SYNCHRONIZE_REDUCTION=20' \
+            'INTEGRATED_ATOL=0.01' \
+            'INTEGRATED_RTOL=0.01'; do
+            printf '%s\n' "${freeze}" | grep -F "${required}" >/dev/null
+          done
+          launcher_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^LAUNCHER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          workflow_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "${freeze}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "${freeze}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${launcher_blob}" && test -n "${workflow_blob}" && test -n "${cpu_test_blob}" && test -n "${frozen_tree}" && test -n "${frozen_commit}"
+
+          body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor c2e9c17d7bb34d7652fc6759c80193f2d951f2ce "${bound_main}"
+          test "$(git rev-parse c2e9c17d7bb34d7652fc6759c80193f2d951f2ce^{tree})" = "ff3913de8e605aba10f87839676c9b582304233c"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
+          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
+          test "$(git hash-object modal_aera_v26_10_issue710_memory_safe_harness.py)" = "${launcher_blob}"
+          test "$(git hash-object .github/workflows/aera-v26-10-issue710-memory-safe-harness.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_10_issue710_memory_safe_harness_cpu.py)" = "${cpu_test_blob}"
+          test "$(git hash-object modal_aera_v26_10_issue706_latent_depth_sync_coalescing.py)" = "e23072aa83b0bc20ccd72e7567f234e9f4a931f6"
+          test "$(git hash-object tam_research/aera_hardware_core_v26_10_latent_depth_sync_coalescing.py)" = "d8f691c198eed1fa96bcbb78a4e76cad82d18779"
+
+          title="$(jq -r '.issue.title' "${GITHUB_EVENT_PATH}")"
+          if [[ "${title}" == '[aera-v26-10-issue710-memory-safe-harness-preauth]'* ]]; then
+            mode=preauth
+            prefix='[aera-v26-10-issue710-memory-safe-harness-preauth]'
+            evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA-v26.10 #710 memory-safe preauthorization evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "${evidence_count}" = "0"
+          else
+            mode=l4
+            prefix='[aera-v26-10-issue710-memory-safe-harness-l4]'
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("🔎 **AERA-v26.10 #710 memory-safe preauthorization evidence**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${preauth_count}" = "1"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/710/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #710 sole L4 memory-safe harness authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+            result_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("⚙️ **AERA-v26.10 #710 memory-safe microbenchmark evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "${result_count}" = "0"
+          fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+          echo "bound_main=${bound_main}" >> "${GITHUB_OUTPUT}"
+          echo "allowed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Re-verify issue710 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          MODE: ${{ steps.guard.outputs.mode }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${BOUND_MAIN}"
+          if [[ "${MODE}" == "preauth" ]]; then
+            prefix='[aera-v26-10-issue710-memory-safe-harness-preauth]'
+          else
+            prefix='[aera-v26-10-issue710-memory-safe-harness-l4]'
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/710/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("## #710 sole L4 memory-safe harness authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+          fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run issue710 zero-GPU preauthorization audit
+        if: steps.guard.outputs.mode == 'preauth'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_10_issue710_memory_safe_harness.py::preauth_main 2>&1 | tee /tmp/issue710-preauth.log
+          test "$(grep -c '^AERA_V26_10_ISSUE710_PREAUTH_JSON=' /tmp/issue710-preauth.log)" = "1"
+
+      - name: Record issue710 preauthorization evidence
+        if: steps.guard.outputs.mode == 'preauth' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        run: |
+          python - <<'PY' >/tmp/issue710-preauth.md
+          import json, os
+          from pathlib import Path
+          marker='AERA_V26_10_ISSUE710_PREAUTH_JSON='
+          rows=[json.loads(x[len(marker):]) for x in Path('/tmp/issue710-preauth.log').read_text().splitlines() if x.startswith(marker)]
+          if len(rows)!=1: raise SystemExit('expected one #710 preauth payload')
+          p=rows[0]
+          required={'research_issue':710,'consumed_trigger':709,'consumed_run':34141205064,'consumed_job':101803372290,'consumed_attempt':1,'logit_compare_batch_chunk':1,'result_absent':True,'gpu_used':False,'model_constructed':False,'new_measurement_performed':False}
+          for k,v in required.items():
+              if p.get(k)!=v: raise SystemExit(f'#710 preauth drift {k}: {p.get(k)!r}')
+          for k in ('optimization_microbenchmark_authorized','full_e2e_systems_gate_authorized','systems_pass_earned','architecture_freeze_authorized','s2_authorized','fresh_scientific_seed_authorized','independent_replication_credit','100m_authorized','breakthrough_proven'):
+              if p.get(k) is not False: raise SystemExit(f'forbidden #710 preauth flag {k}')
+          print('🔎 **AERA-v26.10 #710 memory-safe preauthorization evidence**')
+          print()
+          print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
+          print('Zero-GPU preflight passed: `result_absent=true`, `gpu_used=false`, `model_constructed=false`, `new_measurement_performed=false`.')
+          print('Frozen v26.10 implementation/#706 harness dependencies, #709 incident lineage and seed8471 checkpoints were revalidated. No L4 or systems authority is created.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue710-preauth.md)"
+
+      - name: Run issue710 sole L4 memory-safe optimization microbenchmark
+        if: steps.guard.outputs.mode == 'l4'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_10_issue710_memory_safe_harness.py::l4_main 2>&1 | tee /tmp/issue710-l4.log
+          test "$(grep -c '^AERA_V26_10_ISSUE710_PREAUTH_JSON=' /tmp/issue710-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_10_ISSUE710_L4_START_JSON=' /tmp/issue710-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_10_ISSUE710_RESULT_JSON=' /tmp/issue710-l4.log)" = "1"
+          test "$(grep -c '^AERA_V26_10_ISSUE710_SUMMARY_JSON=' /tmp/issue710-l4.log)" = "1"
+
+      - name: Record issue710 optimization evidence
+        if: steps.guard.outputs.mode == 'l4' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' >/tmp/issue710-result.md
+          import json
+          from pathlib import Path
+          marker='AERA_V26_10_ISSUE710_SUMMARY_JSON='
+          rows=[json.loads(x[len(marker):]) for x in Path('/tmp/issue710-l4.log').read_text().splitlines() if x.startswith(marker)]
+          if len(rows)!=1: raise SystemExit('expected one #710 summary')
+          p=rows[0]
+          if p.get('research_issue')!=710 or p.get('decision') not in ('PASS_V26_10_LATENT_DEPTH_SYNC_COALESCING_MICROBENCH','FAIL_V26_10_LATENT_DEPTH_SYNC_COALESCING_MICROBENCH'): raise SystemExit('#710 result drift')
+          if p.get('logit_compare_batch_chunk')!=1: raise SystemExit('#710 chunk drift')
+          for k in ('systems_pass_earned','architecture_freeze_authorized','s2_authorized','fresh_scientific_seed_authorized','independent_replication_credit','100m_authorized','breakthrough_proven'):
+              if p.get(k) is not False: raise SystemExit(f'forbidden #710 result flag {k}')
+          print('⚙️ **AERA-v26.10 #710 memory-safe microbenchmark evidence**')
+          print()
+          print(f"Decision: `{p['decision']}`; overall pass: `{str(p['overall_pass']).lower()}`; device: `{p['device']}`; logit chunk: `1`.")
+          for batch,row in sorted(p['batches'].items(),key=lambda kv:int(kv[0])):
+              print(f"Batch {batch}: correctness `{row['correctness_pass']}`; baseline/candidate `{row['baseline_median_ms']}` / `{row['candidate_median_ms']}` ms; improvement `{row['latency_improvement_fraction']}`; latency gate `{row['latency_gate_pass']}`; stream-sync baseline/candidate `{row['baseline_cudaStreamSynchronize']}` / `{row['candidate_cudaStreamSynchronize']}`; reduction `{row['cudaStreamSynchronize_reduction']}`; sync gate `{row['sync_gate_pass']}`; batch pass `{row['pass']}`.")
+          print()
+          print(f"Fresh full frozen E2E systems gate authorized: `{str(p['fresh_full_e2e_systems_gate_authorized']).lower()}`. Systems PASS remains false until that separate gate executes and passes.")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue710-result.md)"
