@@ -15,6 +15,9 @@ PAIRED_SEED = 8_100
 BASELINE_ISSUE = 140
 BASELINE_TRANSFORMER = {
     "parameters": 101_803_520,
+    # Keep the legacy key for compatibility with earlier report/tests. Both names
+    # mean the trainer's nominal budget, not literal full-batch exposures.
+    "pretrain_tokens": 2_000_000_000,
     "pretrain_token_budget": 2_000_000_000,
     "full_batch_token_exposures": 2_000_027_648,
     "optimizer_steps": 30_518,
