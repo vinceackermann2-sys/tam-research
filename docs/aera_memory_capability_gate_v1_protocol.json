@@ -1,0 +1,93 @@
+{
+  "authority": {
+    "architecture_freeze_authorized": false,
+    "breakthrough_proven": false,
+    "fresh_scientific_seed_authorized": false,
+    "gpu_authorized": false,
+    "scaling_authorized": false,
+    "scientific_training_authorized": false
+  },
+  "decision_tree": {
+    "confirmation": "only after seed1 clears gates, consume seeds2/3; require pooled primary gate plus positive B-A long-distance gain on each seed",
+    "costly_positive": "scientifically positive but not systems-preservation positive if B/A inference latency >2.0 or equal-token training time >1.5",
+    "memory_specificity_fail": "stop if B-C long-distance accuracy margin <0.05 after capability screen passes",
+    "preserve_for_systems": "requires confirmed memory utility, no reset failure, no simpler-control dominance, and cost multipliers within frozen limits",
+    "safety_fail": "stop if B session-reset leakage exceeds 0.01",
+    "screen_fail": "after seed1 stop if B-A long-distance accuracy gain <0.10 or paired 95% CI lower bound <=0.05",
+    "simpler_control_dominates": "learned memory not justified if E exceeds B by >=0.05 on both long-distance and correction accuracy while E latency <= B"
+  },
+  "metrics": {
+    "answer_token_nll": true,
+    "concurrent_fact_curve": true,
+    "correction_accuracy": true,
+    "distractor_interference_error_rate": true,
+    "inference_latency": true,
+    "paired_bootstrap_ci": true,
+    "parameter_count": true,
+    "peak_memory": true,
+    "primary": "answer-token exact-match at eval distances 8 and 32 pooled equally by distance",
+    "retention_curve": true,
+    "session_reset_leakage_rate": true,
+    "stale_value_error_rate": true,
+    "training_gpu_time": true
+  },
+  "primary_thresholds": {
+    "B_minus_C_long_accuracy_margin_min": 0.05,
+    "bootstrap_resamples": 10000,
+    "correction_accuracy_gain_B_minus_A_min": 0.1,
+    "long_distance_accuracy_gain_B_minus_A_min": 0.1,
+    "memory_inference_latency_multiplier_max": 2.0,
+    "memory_train_time_multiplier_max": 1.5,
+    "paired_95ci_lower_accuracy_gain_min": 0.05,
+    "session_reset_leakage_max": 0.01,
+    "simple_retrieval_dominance_margin": 0.05,
+    "stale_value_error_reduction_A_minus_B_min": 0.1
+  },
+  "research_issue": 746,
+  "seeds": {
+    "bootstrap_seed": 746301,
+    "cpu_test_seed": 746999,
+    "heldout_data_seed": 746201,
+    "scientific_model_seeds": [17641, 27641, 37641],
+    "scientific_model_seeds_consumed": false,
+    "train_data_seed": 746101
+  },
+  "source_main": "7c6d3dd187ccb80bb93eade170dfb717549b8eeb",
+  "source_tree": "91979a36c56d36e61d5a4e7bcc798f56ef4b61b4",
+  "task": {
+    "chunk_size": 256,
+    "correction_cases_required": true,
+    "eval_concurrent_facts": [1, 4, 8],
+    "eval_distractor_records": [0, 16, 32],
+    "eval_retention_distances": [2, 8, 32],
+    "heldout_compositional_pairs_required": true,
+    "pair_split": "(key_index + value_index) % 5 == 4 => eval",
+    "session_reset_negative_control_required": true,
+    "train_concurrent_facts": [1, 2, 4],
+    "train_distractor_records": [0, 4, 16],
+    "train_retention_distances": [1, 2, 4, 8],
+    "vocab_size": 50257
+  },
+  "training_budget": {
+    "checkpoint_interval_tokens": 2097152,
+    "equal_gpu_time_checkpoint_rule": "latest checkpoint not exceeding minimum cumulative GPU time shared by A-D",
+    "equal_gpu_time_comparison_required": true,
+    "equal_token_comparison_required": true,
+    "max_gpu_seconds_per_variant_seed": 3600,
+    "max_total_trained_variant_seed_runs": 12,
+    "parameter_delta_fraction_max": 0.05,
+    "seed1_fail_fast_screen": true,
+    "seeds_2_and_3_only_after_seed1_primary_gate": true,
+    "tokens_per_trained_variant_seed": 16777216,
+    "trained_variants": ["A_backbone", "B_backbone_plus_memory", "C_backbone_plus_routing", "D_combined"]
+  },
+  "variants": [
+    {"adaptive_routing": false, "block_generation": false, "fixed_depth": true, "latent_reasoning": false, "multimodality": false, "name": "A_backbone", "persistent_learned_memory": false, "recurrent_state": false, "replay": false, "simple_retrieval_cache": false},
+    {"adaptive_routing": false, "block_generation": false, "fixed_depth": true, "latent_reasoning": false, "multimodality": false, "name": "B_backbone_plus_memory", "persistent_learned_memory": true, "recurrent_state": false, "replay": false, "simple_retrieval_cache": false},
+    {"adaptive_routing": true, "block_generation": false, "fixed_depth": false, "latent_reasoning": false, "multimodality": false, "name": "C_backbone_plus_routing", "persistent_learned_memory": false, "recurrent_state": false, "replay": false, "simple_retrieval_cache": false},
+    {"adaptive_routing": true, "block_generation": false, "fixed_depth": false, "latent_reasoning": false, "multimodality": false, "name": "D_combined", "persistent_learned_memory": true, "recurrent_state": false, "replay": false, "simple_retrieval_cache": false},
+    {"adaptive_routing": false, "block_generation": false, "fixed_depth": true, "latent_reasoning": false, "multimodality": false, "name": "E_simple_retrieval", "persistent_learned_memory": false, "recurrent_state": false, "replay": false, "simple_retrieval_cache": true},
+    {"adaptive_routing": false, "block_generation": false, "fixed_depth": true, "latent_reasoning": false, "multimodality": false, "name": "F_backbone_plus_recurrent_state", "persistent_learned_memory": false, "recurrent_state": true, "replay": false, "simple_retrieval_cache": false}
+  ],
+  "version": "aera-memory-capability-v1"
+}
