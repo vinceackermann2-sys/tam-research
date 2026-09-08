@@ -7,15 +7,17 @@ from typing import Any
 from architectures.cortex_s.language_model import CortexSLMConfig
 
 
-EXPERIMENT_ID = "cortex-s-v0-100m-2b-paired8100"
-PROJECT_NAMESPACE = "cortex-s-v0/100m-2b"
+EXPERIMENT_ID = "cortex-s-v0-100m-2b-paired8100-v2"
+PROJECT_NAMESPACE = "cortex-s-v0/100m-2b-v2"
 
 # Historical matched Transformer control already completed in repo issue #140.
 PAIRED_SEED = 8_100
 BASELINE_ISSUE = 140
 BASELINE_TRANSFORMER = {
     "parameters": 101_803_520,
-    "pretrain_tokens": 2_000_000_000,
+    "pretrain_token_budget": 2_000_000_000,
+    "full_batch_token_exposures": 2_000_027_648,
+    "optimizer_steps": 30_518,
     "seq_len": 512,
     "micro_batch_size": 64,
     "grad_accum_steps": 2,
@@ -36,17 +38,25 @@ SEQ_LEN = 512
 MICRO_BATCH_SIZE = 64
 GRAD_ACCUM_STEPS = 2
 GLOBAL_BATCH = MICRO_BATCH_SIZE * GRAD_ACCUM_STEPS
+TOKENS_PER_OPTIMIZER_STEP = MICRO_BATCH_SIZE * SEQ_LEN * GRAD_ACCUM_STEPS
+TOTAL_OPTIMIZER_STEPS = math.ceil(TRAIN_TOKENS / TOKENS_PER_OPTIMIZER_STEP)
+FULL_BATCH_TOKEN_EXPOSURES = TOTAL_OPTIMIZER_STEPS * TOKENS_PER_OPTIMIZER_STEP
 EVAL_EVERY_TOKENS = 200_000_000
 CHECKPOINT_EVERY_TOKENS = 200_000_000
 LEARNING_RATE = 3e-4
 WEIGHT_DECAY = 0.1
 WARMUP_RATIO = 0.02
 
-# The prepared files are also checked by metadata and byte length before any GPU
-# is allocated. These hashes are the frozen corpus fingerprints established by
-# the 100M/2B protocol. Hashing is deliberately CPU-only because train.bin is 4GB.
-TRAIN_SHA256 = "5e99c98d049378552099d8a8a21dc84ee81dc5b4249403f1770c675ba54215da"
-VAL_SHA256 = "4a49ba90d79719f1d05b3a83dfb54bb55ff777cb28b1609a4384eab11655af7f"
+# These fingerprints were OBSERVED by the new CPU-only fingerprint-v2 diagnostic,
+# issue #767 / workflow run 34271912952, after consumed preflight #761 exposed that
+# the original preregistration had frozen unestablished/incorrect SHA values. The
+# observed corpus also matched the historical builder metadata contract and exact
+# 2B/5M uint16 byte sizes. No GPU was allocated while establishing these values.
+TRAIN_SHA256 = "93e9cb0b7076a4ddd855fc696f657ea62592b8a03a05220be99c402f9043265b"
+VAL_SHA256 = "ae0bc5adf36d0aa8e55e5e3903401d3f114b93037f43221944b4e88c5d1a5760"
+META_SHA256 = "14bbbcf0ab0b8cba374074ef8ccb80a04ecead06c74780f35a1becd5aef1b8f3"
+FINGERPRINT_EVIDENCE_ISSUE = 767
+FINGERPRINT_EVIDENCE_RUN = 34_271_912_952
 
 # This seed is engineering-only and may be consumed by H100 calibration. It must
 # never be interpreted as fresh scientific evidence.
@@ -92,12 +102,7 @@ RESERVED_FRESH_SEEDS = (48_131, 48_132, 48_133)
 
 
 def projected_full_cost_usd(seconds: float) -> dict[str, float]:
-    """Conservative Starter-plan compute estimate from the frozen pricing snapshot.
-
-    Modal bills actual resources, and live prices can change. Enforcement is based
-    on seconds as well as this estimate, so a stale price cannot disable the wall
-    clock safety ceiling.
-    """
+    """Conservative Starter-plan compute estimate from the frozen pricing snapshot."""
 
     gpu = seconds * H100_USD_PER_SECOND_SNAPSHOT
     cpu = seconds * FULL_CPU_CORES * STARTER_CPU_USD_PER_CORE_SECOND_SNAPSHOT
@@ -142,8 +147,12 @@ def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, A
         raise RuntimeError(f"parameter gap {parameter_gap:.6%} exceeds 0.5%")
     if GLOBAL_BATCH != 128 or MICRO_BATCH_SIZE * GRAD_ACCUM_STEPS != GLOBAL_BATCH:
         raise RuntimeError("global batch protocol drift")
-    if TRAIN_TOKENS != BASELINE_TRANSFORMER["pretrain_tokens"]:
+    if TRAIN_TOKENS != BASELINE_TRANSFORMER["pretrain_token_budget"]:
         raise RuntimeError("token budget no longer matches historical Transformer")
+    if TOTAL_OPTIMIZER_STEPS != BASELINE_TRANSFORMER["optimizer_steps"]:
+        raise RuntimeError("optimizer-step count no longer matches historical Transformer")
+    if FULL_BATCH_TOKEN_EXPOSURES != BASELINE_TRANSFORMER["full_batch_token_exposures"]:
+        raise RuntimeError("full-batch token exposures no longer match historical Transformer")
     if SEQ_LEN != BASELINE_TRANSFORMER["seq_len"]:
         raise RuntimeError("context length no longer matches historical Transformer")
     if CORTEX_100M_CONFIG.top_k / CORTEX_100M_CONFIG.num_experts > 0.5:
@@ -161,6 +170,10 @@ def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, A
         "parameter_gap_percent": 100.0 * parameter_gap,
         "executed_expert_fraction": CORTEX_100M_CONFIG.top_k / CORTEX_100M_CONFIG.num_experts,
         "attention_layers": CORTEX_100M_CONFIG.n_layers // CORTEX_100M_CONFIG.attention_every,
+        "token_budget": TRAIN_TOKENS,
+        "optimizer_steps": TOTAL_OPTIMIZER_STEPS,
+        "full_batch_token_exposures": FULL_BATCH_TOKEN_EXPOSURES,
+        "full_batch_overshoot_tokens": FULL_BATCH_TOKEN_EXPOSURES - TRAIN_TOKENS,
         "projected_cost_at_gate": projected_full_cost_usd(MAX_PROJECTED_FULL_SECONDS),
         "hard_timeout_cost_ceiling": projected_full_cost_usd(HARD_FULL_TIMEOUT_SECONDS),
     }
@@ -177,7 +190,10 @@ def protocol_snapshot() -> dict[str, Any]:
         "data_dir": DATA_DIR,
         "train_sha256": TRAIN_SHA256,
         "val_sha256": VAL_SHA256,
-        "train_tokens": TRAIN_TOKENS,
+        "meta_sha256": META_SHA256,
+        "fingerprint_evidence_issue": FINGERPRINT_EVIDENCE_ISSUE,
+        "fingerprint_evidence_run": FINGERPRINT_EVIDENCE_RUN,
+        "train_token_budget": TRAIN_TOKENS,
         "val_tokens": VAL_TOKENS,
         "seq_len": SEQ_LEN,
         "micro_batch_size": MICRO_BATCH_SIZE,
