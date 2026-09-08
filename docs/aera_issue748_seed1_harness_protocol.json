@@ -1,0 +1,102 @@
+{
+  "authority": {
+    "architecture_freeze_authorized": false,
+    "breakthrough_proven": false,
+    "fresh_scientific_seed_authorized": false,
+    "gpu_authorized": false,
+    "scaling_authorized": false,
+    "scientific_training_authorized": false,
+    "seeds_2_3_authorized": false,
+    "systems_optimization_authorized": false
+  },
+  "branch": "research/aera-issue748-memory-capability-seed1-harness",
+  "decision": {
+    "B_minus_C_long_min": 0.05,
+    "correction_B_minus_A_min": 0.1,
+    "long_distance_B_minus_A_min": 0.1,
+    "memory_inference_latency_multiplier_max": 2.0,
+    "memory_train_time_multiplier_max": 1.5,
+    "must_pass_equal_token_and_equal_gpu_time": true,
+    "paired_ci95_lower_min_strict": 0.05,
+    "session_reset_leakage_max": 0.01,
+    "simple_retrieval_dominance_margin": 0.05,
+    "stale_error_A_minus_B_min": 0.1
+  },
+  "evaluation": {
+    "batch_size": 8,
+    "bootstrap_resamples": 10000,
+    "latency_batch_size": 8,
+    "latency_timed_calls": 10,
+    "latency_warmup_calls": 3,
+    "nonreset_cases_per_distance": 108,
+    "primary_distances": [8, 32],
+    "reset_cases_per_long_distance": 54
+  },
+  "future_execution": {
+    "checkpoint_dir": "/vol/aera-capability/issue748-memory-capability-seed1/checkpoints",
+    "gpu_prefix": "[aera-issue748-memory-capability-seed1-l4]",
+    "preauth_prefix": "[aera-issue748-memory-capability-seed1-preauth]",
+    "result_path": "/vol/aera-capability/issue748-memory-capability-seed1/result.json",
+    "seed1_model_seed": 17641
+  },
+  "model_config": {
+    "block_size": 4,
+    "chunk_size": 256,
+    "d_model": 128,
+    "expert_mult": 4,
+    "fast_memory_decay": 0.999,
+    "fast_memory_lr": 0.2,
+    "max_active_experts": 2,
+    "max_reason_steps": 4,
+    "memory_dim": 32,
+    "n_experts": 8,
+    "n_heads": 4,
+    "n_stages": 4,
+    "vocab_size": 50257
+  },
+  "parent_blobs": {
+    "cpu_test": "2e9072176ee79d2442fe12151b1856ec7582c873",
+    "fixture": "981602432b684989f7a5011ff953e6965368c5e5",
+    "protocol": "d2e184c9dc1469b172bbda8e96ed65c129931af6"
+  },
+  "parent_research_issue": 746,
+  "research_issue": 748,
+  "source_main": "9c17fc802e10383bb6abf0f3eb5098516970bb00",
+  "source_tree": "92662708edc844f9d04067631ae2639f0a69ddfb",
+  "training": {
+    "betas": [0.9, 0.95],
+    "checkpoint_every_steps": 128,
+    "checkpoint_interval_tokens": 2097152,
+    "chunk_size": 256,
+    "eps": 1e-08,
+    "grad_accum_steps": 2,
+    "grad_clip_norm": 1.0,
+    "lr": 0.0003,
+    "lr_min": 3e-05,
+    "lr_warmup_steps": 64,
+    "max_gpu_seconds_per_variant_seed": 3600,
+    "microbatch_size": 2,
+    "optimizer": "AdamW",
+    "optimizer_steps": 1024,
+    "router_calibration_every": 8,
+    "routing_budget_weight": 0.05,
+    "routing_polarization_weight": 0.01,
+    "routing_rank_weight": 0.1,
+    "schedule": "linear-warmup-cosine-decay",
+    "sequence_chunks": 16,
+    "tokens_per_optimizer_step": 16384,
+    "tokens_per_variant_seed": 16777216,
+    "weight_decay": 0.1
+  },
+  "variants": {
+    "A_B_C_D_recurrent_carry_executed": false,
+    "B_D_v18_pretrainable_delta_memory": true,
+    "C_D_v17_optional_stage_supervision": true,
+    "F_scientific_training_in_seed1": false,
+    "common_stored_modules": true,
+    "intrinsic_expert_schedule_identical_across_A_B_C_D": true,
+    "latent_reasoning_executed": false,
+    "reference": ["E_simple_retrieval", "F_backbone_plus_recurrent_state"],
+    "trained": ["A_backbone", "B_backbone_plus_memory", "C_backbone_plus_routing", "D_combined"]
+  }
+}
