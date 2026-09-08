@@ -88,6 +88,7 @@ def affine_scan(
     if initial is not None:
         if initial.shape != (a.size(0), a.size(2)):
             raise ValueError("initial state has wrong shape")
+        initial = initial.to(device=a.device, dtype=a.dtype)
         pb = pb + pa * initial[:, None, :]
     return pb
 
@@ -113,9 +114,11 @@ class PersistentWorldState(nn.Module):
             state = torch.zeros(
                 x.size(0),
                 self.state_size,
-                device=x.device,
-                dtype=x.dtype,
+                device=candidate.device,
+                dtype=candidate.dtype,
             )
+        else:
+            state = state.to(device=candidate.device, dtype=candidate.dtype)
         states = affine_scan(keep, (1.0 - keep) * candidate, state)
         return self.out(states), states[:, -1], states
 
