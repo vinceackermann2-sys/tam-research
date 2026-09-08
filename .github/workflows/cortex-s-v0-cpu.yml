@@ -22,9 +22,9 @@ jobs:
           cache: pip
       - name: Install CPU research dependencies
         run: python -m pip install -e '.[test]'
-      - name: Run CORTEX-S primitive tests
+      - name: Run all CORTEX-S CPU tests
         working-directory: architectures/cortex_s
-        run: PYTHONPATH=. pytest -q tests/test_cpu_primitives.py
+        run: PYTHONPATH=. pytest -q tests
       - name: Reproduce exploratory engineering gate
         working-directory: architectures/cortex_s
         run: PYTHONPATH=. python state_machine.py --seed 123 --steps 600 --output /tmp/cortex-s-v0-exploratory.json
