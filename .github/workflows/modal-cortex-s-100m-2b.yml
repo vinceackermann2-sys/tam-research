@@ -1,12 +1,12 @@
-name: Modal CORTEX-S 100M 2B guarded run
+name: Modal CORTEX-S 100M 2B guarded run v2
 
 on:
   workflow_dispatch:
     inputs:
       phase:
-        description: "preflight or full"
+        description: "preflight-v2 or full-v2"
         required: true
-        default: "preflight"
+        default: "preflight-v2"
       source_sha:
         description: "Exact frozen commit SHA to execute"
         required: true
@@ -23,15 +23,15 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issues' &&
        github.event.issue.user.login == github.repository_owner &&
-       (github.event.issue.title == '[modal-cortex-s-100m-2b-preflight]' ||
-        github.event.issue.title == '[modal-cortex-s-100m-2b-full]'))
+       (github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v2]' ||
+        github.event.issue.title == '[modal-cortex-s-100m-2b-full-v2]'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
     steps:
-      - name: Resolve immutable phase and source
+      - name: Resolve immutable v2 phase and source
         id: cfg
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -44,14 +44,14 @@ jobs:
           import json, os, re
           if os.environ['EVENT_NAME'] == 'issues':
               cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
-              expected_phase = 'preflight' if os.environ['ISSUE_TITLE'].endswith('preflight]') else 'full'
+              expected_phase = 'preflight-v2' if os.environ['ISSUE_TITLE'].endswith('preflight-v2]') else 'full-v2'
               phase = str(cfg.get('phase', expected_phase)).strip().lower()
               source_sha = str(cfg.get('source_sha', '')).strip().lower()
               assert phase == expected_phase
           else:
               phase = os.environ['INPUT_PHASE'].strip().lower()
               source_sha = os.environ['INPUT_SOURCE_SHA'].strip().lower()
-          assert phase in {'preflight', 'full'}
+          assert phase in {'preflight-v2', 'full-v2'}
           assert re.fullmatch(r'[0-9a-f]{40}', source_sha), 'source_sha must be a full 40-char SHA'
           print(f'phase={phase}')
           print(f'source_sha={source_sha}')
@@ -75,16 +75,16 @@ jobs:
       - name: Verify Modal authentication before any function launch
         run: modal token info
 
-      - name: Record launcher handoff
+      - name: Record v2 launcher handoff
         if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟨 **CORTEX-S guarded launcher authenticated** — phase=${{ steps.cfg.outputs.phase }}, source=${{ steps.cfg.outputs.source_sha }}. Modal app still enforces its own zero-GPU/preflight/budget gates."
+            -f body="🟨 **CORTEX-S guarded v2 launcher authenticated** — phase=${{ steps.cfg.outputs.phase }}, source=${{ steps.cfg.outputs.source_sha }}. Consumed preflight #761 is not being reused. Modal still enforces exact hashes, single-use namespaces and budget gates."
 
-      - name: Launch exact frozen phase detached
+      - name: Launch exact frozen v2 phase detached
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
         run: |
@@ -94,11 +94,11 @@ jobs:
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER"
 
-      - name: Record GitHub to Modal handoff
+      - name: Record GitHub to Modal v2 handoff
         if: success() && github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟪 **GitHub → Modal handoff complete.** Detached execution is now governed by the frozen app; full 2B cannot run unless the exact-source H100 preflight artifact is PASS."
+            -f body="🟪 **GitHub → Modal v2 handoff complete.** Detached execution is governed by the frozen v2 app; full training cannot run unless the exact-source v2 H100 preflight artifact is PASS."
