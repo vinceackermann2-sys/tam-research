@@ -1,0 +1,33 @@
+{
+  "engineering_gate": {
+    "cortex_length32_final_ge_0_95": true,
+    "cortex_train_loss_lt_0_10": true,
+    "length32_margin_ge_0_20": true,
+    "parameter_gap_le_2pct": true
+  },
+  "evaluation": {
+    "cortex_s": {
+      "16": {"final_accuracy": 0.996875, "per_step_accuracy": 0.9968505859375},
+      "32": {"final_accuracy": 0.994140625, "per_step_accuracy": 0.99617919921875},
+      "4": {"final_accuracy": 0.998046875, "per_step_accuracy": 0.99951171875},
+      "8": {"final_accuracy": 0.995703125, "per_step_accuracy": 0.998388671875}
+    },
+    "transformer": {
+      "16": {"final_accuracy": 0.376953125, "per_step_accuracy": 0.4405029296875},
+      "32": {"final_accuracy": 0.332421875, "per_step_accuracy": 0.39608154296875},
+      "4": {"final_accuracy": 0.455859375, "per_step_accuracy": 0.61162109375},
+      "8": {"final_accuracy": 0.42265625, "per_step_accuracy": 0.528076171875}
+    }
+  },
+  "parameter_counts": {"cortex_s": 58437, "transformer": 58368},
+  "parameter_gap_fraction": 0.0011821546052631579,
+  "scientific_status": "EXPLORATORY_ENGINEERING_ONLY",
+  "seed": 123,
+  "status": "PASS",
+  "steps_per_model": 600,
+  "train": {
+    "cortex_s": {"elapsed_seconds": 9.900305962000004, "final_loss": 0.0015202858485281467},
+    "transformer": {"elapsed_seconds": 9.838233145000004, "final_loss": 1.2006734609603882}
+  },
+  "warning": "This is a synthetic mechanism check on a task structurally suited to recurrence. It is not evidence of general intelligence, SSI, safety, or a language-model breakthrough."
+}
