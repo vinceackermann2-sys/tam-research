@@ -1,0 +1,38 @@
+name: CORTEX-S 100M 2B zero-credit gate
+
+on:
+  pull_request:
+    paths:
+      - "architectures/cortex_s/**"
+      - "architectures/__init__.py"
+      - "modal_cortex_s_100m_2b_app.py"
+      - ".github/workflows/cortex-s-100m-2b-cpu.yml"
+      - ".github/workflows/modal-cortex-s-100m-2b.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zero-credit-100m-2b:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install CPU research dependencies
+        run: python -m pip install -e '.[test]'
+      - name: Syntax-check paid launcher without running it
+        run: python -m py_compile modal_cortex_s_100m_2b_app.py architectures/cortex_s/experiments/scale100m_2b/protocol.py architectures/cortex_s/experiments/scale100m_2b/train.py
+      - name: Run CORTEX-S 100M/2B no-credit protocol tests
+        run: pytest -q architectures/cortex_s/tests/test_100m_2b_protocol.py
+      - name: Print frozen protocol
+        run: |
+          python - <<'PY'
+          import json
+          from architectures.cortex_s.experiments.scale100m_2b.protocol import protocol_snapshot
+          print(json.dumps(protocol_snapshot(), indent=2, sort_keys=True))
+          PY
