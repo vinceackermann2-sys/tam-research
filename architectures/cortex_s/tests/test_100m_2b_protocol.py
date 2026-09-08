@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import torch
 import torch.nn.functional as F
@@ -87,3 +88,22 @@ def test_real_100m_forward_is_finite_on_cpu() -> None:
         logits = model(tokens)
     assert logits.shape == (1, 4, CORTEX_100M_CONFIG.vocab_size)
     assert torch.isfinite(logits).all()
+
+
+def test_fingerprint_v2_diagnostic_is_cpu_only_and_non_authorizing() -> None:
+    source = Path("modal_cortex_s_100m_2b_fingerprint_v2_app.py").read_text(encoding="utf-8")
+    assert "gpu=" not in source
+    assert '"authorizes_h100": False' in source
+    assert '"authorizes_full_2b": False' in source
+    assert '"gpu_allocated": False' in source
+    assert "fingerprint-v2" in source
+
+
+def test_fingerprint_v2_workflow_has_unique_single_purpose_trigger() -> None:
+    workflow = Path(".github/workflows/modal-cortex-s-100m-2b-fingerprint-v2.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "[modal-cortex-s-100m-2b-fingerprint-v2]" in workflow
+    assert "phase == 'fingerprint-v2'" in workflow
+    assert "--detach" not in workflow
+    assert "modal_cortex_s_100m_2b_fingerprint_v2_app.py" in workflow
