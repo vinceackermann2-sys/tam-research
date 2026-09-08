@@ -1,0 +1,72 @@
+{
+  "protocol_version": "aera-issue770-integrated-event-memory-cpu-v1",
+  "research_issue": 770,
+  "parent_repair_issue": 763,
+  "failed_research_issue": 748,
+  "source_main": "6cb1882aa5b02e4f8917a7cae44e6d1925b9e290",
+  "source_tree": "4892636545a54887ebe3079bc68597dba425a8e7",
+  "cpu_test_seed": 770999,
+  "consumed_scientific_seed": 17641,
+  "future_scientific_seeds_locked": [27641, 37641],
+  "candidate_paths": [
+    "tam_research/aera_issue770_integrated_event_memory_cpu.py",
+    "tests/test_aera_issue770_integrated_event_memory_cpu.py",
+    "docs/aera_issue770_integrated_event_memory_protocol.json"
+  ],
+  "frozen_source_blobs": {
+    "tam_research/aera_issue763_key_conditioned_memory_repair_cpu.py": "62ac12a9f7ecf5e50313853c79ca4c25bc8a3730",
+    "tests/test_aera_issue763_key_conditioned_memory_repair_cpu.py": "8adf009295183590723c6630816706a8d9dc9796",
+    "tam_research/aera_issue748_memory_capability_seed1_harness.py": "afc939a69633f68ded05eb585c95a599a8f5c981",
+    "tam_research/aera_issue748_memory_capability_seed1_harness_base.py": "40003b68987d026265b1d53fcb637f18277f9cac",
+    "tam_research/aera_memory_capability_gate_v1.py": "981602432b684989f7a5011ff953e6965368c5e5",
+    "tam_research/aera_hardware_core_v18.py": "97861a2407876f62665b13140c2135b4a11d4597",
+    "tam_research/aera_delta_memory.py": "ec0b5d29b3d4ac27bd60fd9c152480b9f177c3e9"
+  },
+  "mechanical_change": {
+    "memory_family_changed": false,
+    "delta_equation_changed": false,
+    "stored_parameterization_changed": false,
+    "routing_family_changed": false,
+    "event_addressing_changed": true,
+    "read_source": "explicit QUERY key representation, available before recall injection",
+    "write_key_source": "explicit WRITE/UPDATE key representation",
+    "write_value_source": "explicit WRITE/UPDATE value representation",
+    "write_strength_source": "existing production controller evaluated at causal value event plus prior stream",
+    "reset_semantics": "explicit RESET zeroes row memory in event order; frozen reset_after_chunks remains applied"
+  },
+  "cpu_probe_config": {
+    "vocab_size": 8192,
+    "d_model": 16,
+    "n_stages": 2,
+    "n_heads": 2,
+    "chunk_size": 16,
+    "n_experts": 2,
+    "max_active_experts": 1,
+    "expert_mult": 2,
+    "memory_dim": 8,
+    "max_reason_steps": 2,
+    "block_size": 2,
+    "fast_memory_lr": 0.2,
+    "fast_memory_decay": 0.999,
+    "purpose": "CPU mechanics only; not scientific capability evidence"
+  },
+  "falsifiers": ["FT1", "FT2", "FT3", "FT4", "FT5", "FT6", "FT7", "FT8", "FT9"],
+  "authority": {
+    "modal": false,
+    "gpu": false,
+    "scientific_training": false,
+    "scientific_evaluation": false,
+    "scientific_seed": false,
+    "seeds_2_3": false,
+    "scientific_result": false,
+    "scientific_checkpoint": false,
+    "systems_optimization": false,
+    "architecture_freeze": false,
+    "s2_replication": false,
+    "scaling_100m_or_full_pretraining": false,
+    "breakthrough_claim": false,
+    "merge": false
+  },
+  "pass_meaning": "Only that the diagnosed event-addressing repair is mechanically coherent through the actual AERA/#748/v18 forward and memory interface on CPU.",
+  "next_boundary": "One immutable branch/PR and exactly one original full-repository CPU CI attempt after detached identity freeze; CPU-green permits only a separate later merge decision."
+}
