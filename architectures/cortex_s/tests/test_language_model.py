@@ -63,7 +63,16 @@ def test_language_model_is_causal():
     with torch.no_grad():
         original_logits = model(tokens)
         changed_logits = model(changed)
-    assert torch.equal(original_logits[:, :7], changed_logits[:, :7])
+    # Sparse gather/scatter kernels are allowed last-bit floating-point variation
+    # from work partitioning. Causality means no material dependence on future
+    # tokens, not bit-identical reduction order.
+    torch.testing.assert_close(
+        original_logits[:, :7],
+        changed_logits[:, :7],
+        atol=2e-6,
+        rtol=2e-6,
+    )
+    assert not torch.allclose(original_logits[:, 7:], changed_logits[:, 7:])
 
 
 def test_persistent_state_changes_next_chunk_without_changing_tokens():
