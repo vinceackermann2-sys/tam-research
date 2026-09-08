@@ -11,11 +11,16 @@ from architectures.cortex_s.experiments.scale100m_2b.protocol import (
     CORTEX_100M_CONFIG,
     EXPECTED_CORTEX_PARAMS,
     EXPECTED_TRANSFORMER_PARAMS,
+    FULL_BATCH_TOKEN_EXPOSURES,
     HARD_FULL_TIMEOUT_SECONDS,
     MAX_PROJECTED_FULL_SECONDS,
+    META_SHA256,
     RESERVED_FRESH_SEEDS,
+    TOTAL_OPTIMIZER_STEPS,
+    TRAIN_SHA256,
     TRAIN_TOKENS,
     USER_CREDIT_ENVELOPE_USD,
+    VAL_SHA256,
     projected_full_cost_usd,
     validate_protocol,
 )
@@ -35,12 +40,20 @@ def test_100m_parameter_match_is_actual_not_analytical_only() -> None:
     assert result["attention_layers"] == 4
 
 
+def test_matched_full_batch_step_semantics_are_explicit() -> None:
+    assert TRAIN_TOKENS == 2_000_000_000
+    assert TOTAL_OPTIMIZER_STEPS == 30_518
+    assert FULL_BATCH_TOKEN_EXPOSURES == 2_000_027_648
+    assert BASELINE_TRANSFORMER["optimizer_steps"] == TOTAL_OPTIMIZER_STEPS
+    assert BASELINE_TRANSFORMER["full_batch_token_exposures"] == FULL_BATCH_TOKEN_EXPOSURES
+    assert BASELINE_TRANSFORMER["pretrain_tokens"] == TRAIN_TOKENS
+
+
 def test_full_credit_ceiling_fails_closed_below_user_envelope() -> None:
     projected = projected_full_cost_usd(MAX_PROJECTED_FULL_SECONDS)
     hard = projected_full_cost_usd(HARD_FULL_TIMEOUT_SECONDS)
     assert projected["total_usd_conservative"] < hard["total_usd_conservative"]
     assert hard["total_usd_conservative"] < USER_CREDIT_ENVELOPE_USD
-    assert TRAIN_TOKENS == 2_000_000_000
 
 
 def test_fresh_replication_seeds_are_not_paired_or_calibration_seeds() -> None:
@@ -55,8 +68,6 @@ def test_fresh_replication_seeds_are_not_paired_or_calibration_seeds() -> None:
 
 
 def test_small_same_mechanism_forward_backward_is_finite() -> None:
-    # Same mechanisms, reduced widths. This catches autograd/routing/state failures
-    # cheaply while the separate 100M test above locks the real parameterization.
     cfg = CortexSLMConfig(
         vocab_size=257,
         d_model=64,
@@ -111,3 +122,27 @@ def test_fingerprint_v2_workflow_has_unique_single_purpose_trigger() -> None:
     assert "phase == 'fingerprint-v2'" in workflow
     assert "--detach" not in workflow
     assert "modal_cortex_s_100m_2b_fingerprint_v2_app.py" in workflow
+
+
+def test_v2_paid_launcher_freezes_observed_hashes_and_new_namespaces() -> None:
+    source = (REPO_ROOT / "modal_cortex_s_100m_2b_app.py").read_text(encoding="utf-8")
+    assert TRAIN_SHA256 in source
+    assert VAL_SHA256 in source
+    assert META_SHA256 in source
+    assert 'PREFLIGHT_ROOT = "/vol/cortex-s-v0/100m-2b/preflight-v2"' in source
+    assert 'RUN_ROOT = "/vol/cortex-s-v0/100m-2b/paired-seed8100-v2"' in source
+    assert 'phase == "preflight-v2"' in source
+    assert 'phase == "full-v2"' in source
+    assert "volume.commit()" in source
+    assert '"automatic_resume_authorized": False' in source
+
+
+def test_v2_paid_workflow_cannot_accept_consumed_v1_issue_titles() -> None:
+    workflow = (REPO_ROOT / ".github/workflows/modal-cortex-s-100m-2b.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "[modal-cortex-s-100m-2b-preflight-v2]" in workflow
+    assert "[modal-cortex-s-100m-2b-full-v2]" in workflow
+    assert "{'preflight-v2', 'full-v2'}" in workflow
+    assert "'[modal-cortex-s-100m-2b-preflight]'" not in workflow
+    assert "'[modal-cortex-s-100m-2b-full]'" not in workflow
