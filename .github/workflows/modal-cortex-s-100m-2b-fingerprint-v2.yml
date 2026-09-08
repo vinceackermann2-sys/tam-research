@@ -1,0 +1,105 @@
+name: Modal CORTEX-S 100M 2B fingerprint v2
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  fingerprint:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-2b-fingerprint-v2]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable diagnostic source
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          assert phase == 'fingerprint-v2', 'phase must be fingerprint-v2'
+          assert re.fullmatch(r'[0-9a-f]{40}', source_sha), 'source_sha must be a full 40-char SHA'
+          print(f'source_sha={source_sha}')
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify checkout is exactly frozen diagnostic source
+        run: test "$(git rev-parse HEAD)" = "${{ steps.cfg.outputs.source_sha }}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Modal only
+        run: pip install "modal>=1.1,<2"
+
+      - name: Verify Modal authentication before CPU diagnostic
+        run: modal token info
+
+      - name: Record zero-GPU diagnostic handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S fingerprint-v2 started** — source=${{ steps.cfg.outputs.source_sha }}. This is CPU-only and cannot allocate H100 or authorize the 2B run. Preflight #761 remains consumed."
+
+      - name: Observe exact historical corpus fingerprints on Modal CPU
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+        run: |
+          set -o pipefail
+          modal run --timestamps modal_cortex_s_100m_2b_fingerprint_v2_app.py \
+            --source-sha "$SOURCE_SHA" | tee /tmp/fingerprint-v2.log
+
+      - name: Publish observed fingerprints
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > /tmp/fingerprint-comment.md
+          import json
+          from pathlib import Path
+          marker = 'FINGERPRINT_V2_JSON='
+          payload = None
+          for line in reversed(Path('/tmp/fingerprint-v2.log').read_text(encoding='utf-8', errors='replace').splitlines()):
+              pos = line.find(marker)
+              if pos >= 0:
+                  payload = json.loads(line[pos + len(marker):])
+                  break
+          if payload is None:
+              raise RuntimeError('fingerprint-v2 result marker not found in Modal output')
+          observed = payload['observed']
+          print('🟩 **CORTEX-S fingerprint-v2 CPU diagnostic PASS**')
+          print('')
+          print(f"- source SHA: `{payload['source_sha']}`")
+          print(f"- train SHA-256: `{observed['train_sha256_observed']}`")
+          print(f"- validation SHA-256: `{observed['val_sha256_observed']}`")
+          print(f"- meta SHA-256: `{observed['meta_sha256_observed']}`")
+          print(f"- train bytes: `{observed['train_bytes']}`")
+          print(f"- validation bytes: `{observed['val_bytes']}`")
+          print('- metadata contract: PASS')
+          print('- exact byte-size contract: PASS')
+          print('- GPU allocated: **no**')
+          print('- authorizes H100/full 2B: **no**')
+          print('')
+          print('These are observed fingerprints only. They must be frozen in a separate reviewed source commit before any new H100 preflight.')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="$(cat /tmp/fingerprint-comment.md)"
