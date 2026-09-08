@@ -7,16 +7,16 @@ import time
 
 import modal
 
-from architectures.cortex_s.experiments.scale100m_2b.protocol import (
-    DATA_DIR,
-    HARD_FULL_TIMEOUT_SECONDS,
-    MAX_PROJECTED_FULL_SECONDS,
-    TRAIN_SHA256,
-    TRAIN_TOKENS,
-    VAL_SHA256,
-    VAL_TOKENS,
-    protocol_snapshot,
-)
+# Keep the launcher import-light: GitHub installs only Modal before `modal run`.
+# The authoritative copies live in protocol.py and are imported inside the remote
+# image, where PyTorch is installed. Dedicated static tests keep these in sync.
+DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
+TRAIN_TOKENS = 2_000_000_000
+VAL_TOKENS = 5_000_000
+TRAIN_SHA256 = "5e99c98d049378552099d8a8a21dc84ee81dc5b4249403f1770c675ba54215da"
+VAL_SHA256 = "4a49ba90d79719f1d05b3a83dfb54bb55ff777cb28b1609a4384eab11655af7f"
+MAX_PROJECTED_FULL_SECONDS = 8_500
+HARD_FULL_TIMEOUT_SECONDS = 10_000
 
 APP_NAME = "cortex-s-v0-100m-2b"
 VOLUME_NAME = "tam-research-data"
@@ -122,6 +122,8 @@ def verify_data_zero_gpu(
     issue_number: int = 0,
 ) -> dict:
     """Hash all 4GB+ of frozen training bytes before any GPU allocation."""
+
+    from architectures.cortex_s.experiments.scale100m_2b.protocol import protocol_snapshot
 
     volume.reload()
     target = Path(PREFLIGHT_ROOT) / "data.json"
@@ -274,7 +276,6 @@ def full_2b(
         )
         volume.commit()
     except Exception:
-        # Persist the consumed marker and any checkpoints that were durably written.
         volume.commit()
         raise
 
