@@ -21,6 +21,8 @@ from architectures.cortex_s.experiments.scale100m_2b.protocol import (
 )
 from architectures.cortex_s.language_model import CortexSLM, CortexSLMConfig, parameter_count
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
 
 def test_100m_parameter_match_is_actual_not_analytical_only() -> None:
     model = CortexSLM(CORTEX_100M_CONFIG)
@@ -91,7 +93,9 @@ def test_real_100m_forward_is_finite_on_cpu() -> None:
 
 
 def test_fingerprint_v2_diagnostic_is_cpu_only_and_non_authorizing() -> None:
-    source = Path("modal_cortex_s_100m_2b_fingerprint_v2_app.py").read_text(encoding="utf-8")
+    source = (REPO_ROOT / "modal_cortex_s_100m_2b_fingerprint_v2_app.py").read_text(
+        encoding="utf-8"
+    )
     assert "gpu=" not in source
     assert '"authorizes_h100": False' in source
     assert '"authorizes_full_2b": False' in source
@@ -100,9 +104,9 @@ def test_fingerprint_v2_diagnostic_is_cpu_only_and_non_authorizing() -> None:
 
 
 def test_fingerprint_v2_workflow_has_unique_single_purpose_trigger() -> None:
-    workflow = Path(".github/workflows/modal-cortex-s-100m-2b-fingerprint-v2.yml").read_text(
-        encoding="utf-8"
-    )
+    workflow = (
+        REPO_ROOT / ".github/workflows/modal-cortex-s-100m-2b-fingerprint-v2.yml"
+    ).read_text(encoding="utf-8")
     assert "[modal-cortex-s-100m-2b-fingerprint-v2]" in workflow
     assert "phase == 'fingerprint-v2'" in workflow
     assert "--detach" not in workflow
