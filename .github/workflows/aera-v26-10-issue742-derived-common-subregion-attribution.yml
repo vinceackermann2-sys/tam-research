@@ -1,0 +1,203 @@
+name: AERA v26.10 issue742 CPU-derived common-subregion attribution
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-v26-10-issue742-derived-subregion-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  issue742-derived-subregion-cpu:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[aera-v26-10-issue742-derived-subregion-cpu]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check issue742 CPU-derived launcher
+        run: python -m py_compile modal_aera_v26_10_issue742_derived_common_subregion_attribution.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify issue742 immutable CPU-only boundary
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/742" --jq '.title')" = "[research] AERA-v26.10 CPU-derived #736 common-subregion attribution after #741"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/742" --jq '.state')" = "open"
+
+          parent="$(gh api "repos/${GITHUB_REPOSITORY}/issues/comments/5581226071" --jq '.body')"
+          printf '%s\n' "${parent}" | grep -F 'next target region: `None`.' >/dev/null
+          printf '%s\n' "${parent}" | grep -F '50.930686950683594' >/dev/null
+          printf '%s\n' "${parent}" | grep -F '94.81072235107422' >/dev/null
+          printf '%s\n' "${parent}" | grep -F '8.766532585351221' >/dev/null
+          printf '%s\n' "${parent}" | grep -F '12.809936465918812' >/dev/null
+
+          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/742/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #742 pre-implementation CPU-derived common-subregion attribution freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${freeze_count}" = "1"
+          freeze="$(gh api "repos/${GITHUB_REPOSITORY}/issues/742/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #742 pre-implementation CPU-derived common-subregion attribution freeze")) | .body')"
+
+          for required in \
+            'SOURCE_MAIN=24ae68c393e098ec7535276e58776ea8ef11e238' \
+            'SOURCE_TREE=94b7f64fc4c98f459d6fd45ec2b31f9ac3b9218d' \
+            'BRANCH=research/aera-v26-10-issue742-derived-common-subregion-attribution' \
+            'TRIGGER_PREFIX=[aera-v26-10-issue742-derived-subregion-cpu]' \
+            'PARENT_RESULT_PATH=/vol/aera-v26/issue736-stage-control-idle-attribution/result.json' \
+            'RESULT_PATH=/vol/aera-v26/issue742-derived-common-subregion-attribution/result.json' \
+            'PARENT_ISSUE=736' \
+            'PARENT_TRIGGER=741' \
+            'PARENT_EVIDENCE_COMMENT=5581226071' \
+            'PARENT_RUN=34200593238' \
+            'PARENT_JOB=101978242814' \
+            'PARENT_ATTEMPT=1' \
+            'PARENT_LAUNCHER_BLOB=2a004bb09eed8f644a61353f762f3ce1bd7d14f2' \
+            'MIN_SUBREGION_MS=1.0' \
+            'MIN_SUBREGION_SHARE=0.10' \
+            'LAUNCHER_BLOB=f48a0cc353391b6b32a49d682f42656bb30ab62a'; do
+            printf '%s\n' "${freeze}" | grep -F "${required}" >/dev/null
+          done
+
+          workflow_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          cpu_test_blob="$(printf '%s\n' "${freeze}" | sed -n 's/^CPU_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_tree="$(printf '%s\n' "${freeze}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
+          frozen_commit="$(printf '%s\n' "${freeze}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${workflow_blob}" && test -n "${cpu_test_blob}" && test -n "${frozen_tree}" && test -n "${frozen_commit}"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git cat-file -e "${frozen_commit}^{commit}"
+          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
+          git merge-base --is-ancestor "${frozen_commit}" "${bound_main}"
+          test "$(git rev-parse 24ae68c393e098ec7535276e58776ea8ef11e238^{tree})" = "94b7f64fc4c98f459d6fd45ec2b31f9ac3b9218d"
+
+          test "$(git hash-object modal_aera_v26_10_issue742_derived_common_subregion_attribution.py)" = "f48a0cc353391b6b32a49d682f42656bb30ab62a"
+          test "$(git hash-object .github/workflows/aera-v26-10-issue742-derived-common-subregion-attribution.yml)" = "${workflow_blob}"
+          test "$(git hash-object tests/test_aera_v26_10_issue742_derived_common_subregion_attribution_cpu.py)" = "${cpu_test_blob}"
+          test "$(git hash-object modal_aera_v26_10_issue736_stage_control_idle_attribution.py)" = "2a004bb09eed8f644a61353f762f3ce1bd7d14f2"
+
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-10-issue742-derived-subregion-cpu]")) | .number' | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+
+          evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🧮 **AERA-v26.10 #742 CPU-derived common-subregion attribution evidence**")) | .id' | wc -l | tr -d ' ')"
+          test "${evidence_count}" = "0"
+
+          echo "bound_main=${bound_main}" >> "${GITHUB_OUTPUT}"
+          echo "allowed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Re-verify sole issue742 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${BOUND_MAIN}"
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq '.[] | select(has("pull_request") | not) | select(.title | startswith("[aera-v26-10-issue742-derived-subregion-cpu]")) | .number' | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run sole issue742 CPU-derived inspector
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash
+        run: |
+          set -o pipefail
+          modal run modal_aera_v26_10_issue742_derived_common_subregion_attribution.py::main 2>&1 | tee /tmp/issue742-derived.log
+          test "$(grep -c '^AERA_V26_10_ISSUE742_DERIVED_RESULT_JSON=' /tmp/issue742-derived.log)" = "1"
+          test "$(grep -c '^AERA_V26_10_ISSUE742_DERIVED_SUMMARY_JSON=' /tmp/issue742-derived.log)" = "1"
+
+      - name: Record issue742 CPU-derived evidence
+        if: steps.guard.outputs.allowed == 'true' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        shell: bash
+        run: |
+          python - <<'PY' >/tmp/issue742-evidence.md
+          import json
+          import os
+          from pathlib import Path
+          marker="AERA_V26_10_ISSUE742_DERIVED_SUMMARY_JSON="
+          payloads=[json.loads(line[len(marker):]) for line in Path('/tmp/issue742-derived.log').read_text().splitlines() if line.startswith(marker)]
+          if len(payloads)!=1: raise SystemExit('expected exactly one issue742 derived summary')
+          p=payloads[0]
+          required={
+              'research_issue':742,
+              'derived_only':True,
+              'cpu_only':True,
+              'gpu_used':False,
+              'model_constructed':False,
+              'checkpoint_loaded':False,
+              'new_measurement_performed':False,
+              'profiler_run':False,
+              'timing_loop_run':False,
+              'scientific_seed_consumed':False,
+              'optimization_authorized':False,
+              'full_e2e_systems_gate_authorized':False,
+              'systems_pass_earned':False,
+              'architecture_freeze_authorized':False,
+              's2_authorized':False,
+              'fresh_scientific_seed_authorized':False,
+              'independent_replication_credit':False,
+              '100m_authorized':False,
+              'breakthrough_proven':False,
+          }
+          for k,v in required.items():
+              if p.get(k)!=v: raise SystemExit(f'issue742 authority/derived drift {k}: {p.get(k)!r}')
+          print('🧮 **AERA-v26.10 #742 CPU-derived common-subregion attribution evidence**')
+          print()
+          print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
+          print(f"Parent #736 result SHA256: `{p['parent_result_sha256']}`")
+          print(f"Derived next target subregion: `{p.get('next_target_subregion')}`")
+          for batch in ('8','64'):
+              row=p['rows'][batch]
+              print()
+              print(f"Batch {batch} ranking: `{json.dumps(row['ranking'],sort_keys=True)}`")
+              print(f"Batch {batch} qualifying: `{json.dumps(row['qualifying'],sort_keys=True)}`")
+              print(f"Batch {batch} unavailable: `{json.dumps(row['unavailable'],sort_keys=True)}`")
+          print()
+          print(f"Decision evidence: `{json.dumps(p['decision_evidence'],sort_keys=True)}`")
+          print('CPU-derived read-only evidence only. No GPU, optimization, E2E systems gate, systems PASS, architecture freeze, S2, new seed, scaling, or breakthrough authority is created.')
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue742-evidence.md)"
