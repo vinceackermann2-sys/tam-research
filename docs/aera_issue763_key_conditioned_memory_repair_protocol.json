@@ -1,0 +1,45 @@
+{
+  "protocol_version": "aera-issue763-key-conditioned-memory-repair-cpu-v1",
+  "research_issue": 763,
+  "parent_diagnosis_issue": 762,
+  "failed_scientific_issue": 754,
+  "failed_research_issue": 748,
+  "source_main": "d8c832c336338f194a93a302eb87525352e4c59e",
+  "failed_scientific_main": "9fbd9c523bbcf938cc3751209320f9bb89aa3b3d",
+  "consumed_scientific_seed": 17641,
+  "cpu_test_seed": 763999,
+  "frozen_blobs": {
+    "wrapper": "afc939a69633f68ded05eb585c95a599a8f5c981",
+    "base": "40003b68987d026265b1d53fcb637f18277f9cac",
+    "fixture": "981602432b684989f7a5011ff953e6965368c5e5"
+  },
+  "repair": {
+    "write": "event-aligned key/value representations at WRITE or UPDATE",
+    "read": "query-key-conditioned read only after key representation is causally available",
+    "future_leakage": false,
+    "routing_changed": false,
+    "frozen_scientific_harness_modified": false
+  },
+  "falsification_gates": [
+    "legacy read invariant to later query-key change",
+    "repaired read changes with observed query key",
+    "repaired read invariant to tokens after query key",
+    "event-aligned write invariant to trailing noise",
+    "RESET clears memory",
+    "two stored keys produce distinguishable key-conditioned recalls",
+    "frozen scientific blobs remain byte-identical"
+  ],
+  "authority": {
+    "cpu_only": true,
+    "gpu": false,
+    "scientific_training": false,
+    "scientific_seed": false,
+    "seeds_2_3": false,
+    "systems_optimization": false,
+    "architecture_freeze": false,
+    "scaling": false,
+    "breakthrough": false,
+    "merge": false
+  },
+  "evidence_classification": "MECHANICAL_CAUSAL_REPAIR_ONLY"
+}
