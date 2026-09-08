@@ -1,0 +1,203 @@
+from __future__ import annotations
+
+from dataclasses import asdict
+import math
+from typing import Any
+
+from architectures.cortex_s.language_model import CortexSLMConfig
+
+
+EXPERIMENT_ID = "cortex-s-v0-100m-2b-paired8100"
+PROJECT_NAMESPACE = "cortex-s-v0/100m-2b"
+
+# Historical matched Transformer control already completed in repo issue #140.
+PAIRED_SEED = 8_100
+BASELINE_ISSUE = 140
+BASELINE_TRANSFORMER = {
+    "parameters": 101_803_520,
+    "pretrain_tokens": 2_000_000_000,
+    "seq_len": 512,
+    "micro_batch_size": 64,
+    "grad_accum_steps": 2,
+    "global_batch": 128,
+    "final_nll": 2.7115590302149455,
+    "final_perplexity": 15.053722884190283,
+    "training_seconds": 6_227.609573988244,
+    "total_compute_seconds": 6_478.327432424761,
+    "training_tokens_per_second": 321_151.5755348581,
+    "peak_vram_gb": 11.896,
+}
+
+# Exact immutable pretraining source consumed by the historical Transformer.
+DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
+TRAIN_TOKENS = 2_000_000_000
+VAL_TOKENS = 5_000_000
+SEQ_LEN = 512
+MICRO_BATCH_SIZE = 64
+GRAD_ACCUM_STEPS = 2
+GLOBAL_BATCH = MICRO_BATCH_SIZE * GRAD_ACCUM_STEPS
+EVAL_EVERY_TOKENS = 200_000_000
+CHECKPOINT_EVERY_TOKENS = 200_000_000
+LEARNING_RATE = 3e-4
+WEIGHT_DECAY = 0.1
+WARMUP_RATIO = 0.02
+
+# The prepared files are also checked by metadata and byte length before any GPU
+# is allocated. These hashes are the frozen corpus fingerprints established by
+# the 100M/2B protocol. Hashing is deliberately CPU-only because train.bin is 4GB.
+TRAIN_SHA256 = "5e99c98d049378552099d8a8a21dc84ee81dc5b4249403f1770c675ba54215da"
+VAL_SHA256 = "4a49ba90d79719f1d05b3a83dfb54bb55ff777cb28b1609a4384eab11655af7f"
+
+# This seed is engineering-only and may be consumed by H100 calibration. It must
+# never be interpreted as fresh scientific evidence.
+CALIBRATION_SEED = 910_001
+CALIBRATION_STEPS = 40
+CALIBRATION_WARMUP_STEPS = 5
+
+# Budget lock. Full training may not start unless the measured H100 calibration
+# projects below this wall-clock envelope. A second hard Modal timeout provides a
+# fail-closed ceiling even if the estimate is optimistic.
+H100_USD_PER_SECOND_SNAPSHOT = 0.001097
+STARTER_CPU_USD_PER_CORE_SECOND_SNAPSHOT = 0.00003942
+STARTER_MEMORY_USD_PER_GIB_SECOND_SNAPSHOT = 0.00000667
+FULL_CPU_CORES = 8
+FULL_MEMORY_GIB = 32
+MAX_PROJECTED_FULL_SECONDS = 8_500
+HARD_FULL_TIMEOUT_SECONDS = 10_000
+USER_CREDIT_ENVELOPE_USD = 29.0
+
+# 100M CORTEX-S is matched to the repository Transformer at total parameter count,
+# not at active FLOPs. Sparse experts and only four full-attention layers are the
+# architectural hypothesis being tested.
+CORTEX_100M_CONFIG = CortexSLMConfig(
+    vocab_size=50_257,
+    d_model=512,
+    n_layers=24,
+    n_heads=16,
+    max_seq_len=1024,
+    state_size=128,
+    num_experts=8,
+    top_k=2,
+    expert_hidden=338,
+    attention_every=6,
+)
+EXPECTED_CORTEX_PARAMS = 101_778_112
+EXPECTED_TRANSFORMER_PARAMS = 101_803_520
+MAX_PARAMETER_GAP_FRACTION = 0.005
+
+# Reserved fresh seeds from the original preregistration remain untouched. This
+# paired run intentionally reuses the historical Transformer's seed so the random
+# window stream is paired; it is an adaptive/historical-control experiment.
+RESERVED_FRESH_SEEDS = (48_131, 48_132, 48_133)
+
+
+def projected_full_cost_usd(seconds: float) -> dict[str, float]:
+    """Conservative Starter-plan compute estimate from the frozen pricing snapshot.
+
+    Modal bills actual resources, and live prices can change. Enforcement is based
+    on seconds as well as this estimate, so a stale price cannot disable the wall
+    clock safety ceiling.
+    """
+
+    gpu = seconds * H100_USD_PER_SECOND_SNAPSHOT
+    cpu = seconds * FULL_CPU_CORES * STARTER_CPU_USD_PER_CORE_SECOND_SNAPSHOT
+    memory = seconds * FULL_MEMORY_GIB * STARTER_MEMORY_USD_PER_GIB_SECOND_SNAPSHOT
+    return {
+        "gpu_usd": gpu,
+        "cpu_usd_conservative": cpu,
+        "memory_usd_conservative": memory,
+        "total_usd_conservative": gpu + cpu + memory,
+    }
+
+
+def _transformer_100m_parameter_count() -> int:
+    # ResearchLM uses tied token/output embeddings, learned positional embeddings,
+    # LayerNorm with weight+bias, full d_model attention and ff_mult=4.
+    vocab = 50_257
+    d_model = 512
+    layers = 24
+    max_seq_len = 1024
+    token = vocab * d_model
+    position = max_seq_len * d_model
+    per_block = 4 * d_model * d_model + 8 * d_model * d_model + 4 * d_model
+    final_norm = 2 * d_model
+    return token + position + layers * per_block + final_norm
+
+
+def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, Any]:
+    CORTEX_100M_CONFIG.validate()
+    baseline_params = _transformer_100m_parameter_count()
+    if baseline_params != EXPECTED_TRANSFORMER_PARAMS:
+        raise RuntimeError(
+            f"Transformer parameter formula drifted: {baseline_params:,} != "
+            f"{EXPECTED_TRANSFORMER_PARAMS:,}"
+        )
+    cortex_params = EXPECTED_CORTEX_PARAMS if actual_cortex_params is None else actual_cortex_params
+    if cortex_params != EXPECTED_CORTEX_PARAMS:
+        raise RuntimeError(
+            f"CORTEX-S parameter count drifted: {cortex_params:,} != {EXPECTED_CORTEX_PARAMS:,}"
+        )
+    parameter_gap = abs(cortex_params - baseline_params) / baseline_params
+    if parameter_gap > MAX_PARAMETER_GAP_FRACTION:
+        raise RuntimeError(f"parameter gap {parameter_gap:.6%} exceeds 0.5%")
+    if GLOBAL_BATCH != 128 or MICRO_BATCH_SIZE * GRAD_ACCUM_STEPS != GLOBAL_BATCH:
+        raise RuntimeError("global batch protocol drift")
+    if TRAIN_TOKENS != BASELINE_TRANSFORMER["pretrain_tokens"]:
+        raise RuntimeError("token budget no longer matches historical Transformer")
+    if SEQ_LEN != BASELINE_TRANSFORMER["seq_len"]:
+        raise RuntimeError("context length no longer matches historical Transformer")
+    if CORTEX_100M_CONFIG.top_k / CORTEX_100M_CONFIG.num_experts > 0.5:
+        raise RuntimeError("sparse execution fraction exceeds preregistered ceiling")
+    hard_cost = projected_full_cost_usd(HARD_FULL_TIMEOUT_SECONDS)["total_usd_conservative"]
+    if hard_cost >= USER_CREDIT_ENVELOPE_USD:
+        raise RuntimeError(
+            f"hard timeout could consume ${hard_cost:.2f}, exceeding the user credit envelope"
+        )
+    return {
+        "experiment_id": EXPERIMENT_ID,
+        "cortex_parameters": cortex_params,
+        "transformer_parameters": baseline_params,
+        "parameter_gap_fraction": parameter_gap,
+        "parameter_gap_percent": 100.0 * parameter_gap,
+        "executed_expert_fraction": CORTEX_100M_CONFIG.top_k / CORTEX_100M_CONFIG.num_experts,
+        "attention_layers": CORTEX_100M_CONFIG.n_layers // CORTEX_100M_CONFIG.attention_every,
+        "projected_cost_at_gate": projected_full_cost_usd(MAX_PROJECTED_FULL_SECONDS),
+        "hard_timeout_cost_ceiling": projected_full_cost_usd(HARD_FULL_TIMEOUT_SECONDS),
+    }
+
+
+def protocol_snapshot() -> dict[str, Any]:
+    validated = validate_protocol()
+    return {
+        **validated,
+        "project_namespace": PROJECT_NAMESPACE,
+        "paired_seed": PAIRED_SEED,
+        "calibration_seed": CALIBRATION_SEED,
+        "reserved_fresh_seeds": list(RESERVED_FRESH_SEEDS),
+        "data_dir": DATA_DIR,
+        "train_sha256": TRAIN_SHA256,
+        "val_sha256": VAL_SHA256,
+        "train_tokens": TRAIN_TOKENS,
+        "val_tokens": VAL_TOKENS,
+        "seq_len": SEQ_LEN,
+        "micro_batch_size": MICRO_BATCH_SIZE,
+        "grad_accum_steps": GRAD_ACCUM_STEPS,
+        "global_batch": GLOBAL_BATCH,
+        "eval_every_tokens": EVAL_EVERY_TOKENS,
+        "checkpoint_every_tokens": CHECKPOINT_EVERY_TOKENS,
+        "learning_rate": LEARNING_RATE,
+        "weight_decay": WEIGHT_DECAY,
+        "warmup_ratio": WARMUP_RATIO,
+        "max_projected_full_seconds": MAX_PROJECTED_FULL_SECONDS,
+        "hard_full_timeout_seconds": HARD_FULL_TIMEOUT_SECONDS,
+        "pricing_snapshot": {
+            "h100_usd_per_second": H100_USD_PER_SECOND_SNAPSHOT,
+            "starter_cpu_usd_per_core_second": STARTER_CPU_USD_PER_CORE_SECOND_SNAPSHOT,
+            "starter_memory_usd_per_gib_second": STARTER_MEMORY_USD_PER_GIB_SECOND_SNAPSHOT,
+        },
+        "cortex_config": asdict(CORTEX_100M_CONFIG),
+        "historical_transformer": dict(BASELINE_TRANSFORMER),
+        "classification": "PAIRED_HISTORICAL_CONTROL_ADAPTIVE_EXPERIMENT",
+        "breakthrough_claim_allowed": False,
+        "continual_learning_claim_allowed": False,
+    }
