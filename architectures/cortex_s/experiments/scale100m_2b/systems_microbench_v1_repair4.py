@@ -60,16 +60,14 @@ def _padded_hidden(hidden: int) -> int:
 
 
 class PhysicalPaddedBF16GroupedSparseMoE(nn.Module):
-    """Grouped-MoE candidate whose *actual* hidden dimension is BF16-aligned at runtime.
+    """Grouped-MoE candidate with a real aligned runtime hidden dimension.
 
-    Repair2/3 attempted to preserve logical hidden=338 through a padded-storage slice.
-    Under torch.compile/Inductor, that view was canonicalized back to a dense 338-wide
-    activation before the second grouped_mm, and H100 rejected its 338-element row
-    stride. Repair4 instead pads the runtime matrices to hidden=344 and carries the
-    six zero channels through GELU. The trainable parameters remain exactly the same
-    logical 338-wide tensors; runtime padding adds no parameters. Since the padded W1
-    columns and padded W2 rows are zeros and GELU(0)=0, the added channels contribute
-    identically zero while grouped_mm sees physically aligned contiguous tensors.
+    Repair2/3 used padded backing storage followed by a logical 338-wide view.
+    Inductor canonicalized that view and grouped-mm backward still saw row stride
+    338. Repair4 carries six zero channels physically through W1 -> GELU -> W2:
+    trainable parameters remain logical width 338, runtime width is 344, and the
+    padded channels contribute exactly zero because W1/W2 padding is zero and
+    GELU(0)=0.
     """
 
     def __init__(self, d_model: int, num_experts: int, top_k: int, hidden: int):
@@ -82,7 +80,6 @@ class PhysicalPaddedBF16GroupedSparseMoE(nn.Module):
         self.hidden = hidden
         self.physical_hidden = _padded_hidden(hidden)
         self.router = nn.Linear(d_model, num_experts, bias=True)
-        # Same trainable shapes as repair2 and the production experts.
         self.expert_w1 = nn.Parameter(torch.empty(num_experts, hidden, d_model))
         self.expert_w2 = nn.Parameter(torch.empty(num_experts, hidden, d_model))
         self.reset_parameters()
@@ -121,12 +118,8 @@ class PhysicalPaddedBF16GroupedSparseMoE(nn.Module):
 
     def _physical_matrices(self) -> tuple[torch.Tensor, torch.Tensor]:
         pad = self.physical_hidden - self.hidden
-        # W1 logical multiplication orientation: [E, d_model, hidden].
         w1 = self.expert_w1.transpose(-2, -1)
-        # Materialize a real [E, d_model, physical_hidden] tensor. A slice/view is
-        # intentionally forbidden here because Inductor collapsed that strategy.
         w1_physical = F.pad(w1, (0, pad)).contiguous() if pad else w1.contiguous()
-        # W2 logical multiplication orientation: [E, hidden, d_model].
         w2_physical = (
             F.pad(self.expert_w2, (0, 0, 0, pad)).contiguous()
             if pad
@@ -160,6 +153,8 @@ class PhysicalPaddedBF16GroupedSparseMoE(nn.Module):
         matrices_bf16 = matrices if matrices.dtype == torch.bfloat16 else matrices.to(dtype=torch.bfloat16)
         _require_grouped_mm_layout(packed_bf16, "repair4 grouped_mm lhs")
         _require_grouped_mm_layout(matrices_bf16, "repair4 grouped_mm rhs")
+        if offsets.dtype != torch.int32:
+            raise RuntimeError(f"repair4 grouped_mm offsets must be int32, got {offsets.dtype}")
         return F.grouped_mm(packed_bf16, matrices_bf16, offs=offsets)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -318,8 +313,12 @@ def _semantic_probe(device: torch.device) -> dict[str, Any]:
     with _autocast(device):
         legacy_logits = legacy(tokens)
         candidate_logits = candidate(tokens)
-        legacy_loss = F.cross_entropy(legacy_logits.float().reshape(-1, legacy_logits.size(-1)), targets.reshape(-1))
-        candidate_loss = F.cross_entropy(candidate_logits.float().reshape(-1, candidate_logits.size(-1)), targets.reshape(-1))
+        legacy_loss = F.cross_entropy(
+            legacy_logits.float().reshape(-1, legacy_logits.size(-1)), targets.reshape(-1)
+        )
+        candidate_loss = F.cross_entropy(
+            candidate_logits.float().reshape(-1, candidate_logits.size(-1)), targets.reshape(-1)
+        )
     loss_delta = abs(float(legacy_loss) - float(candidate_loss))
     max_logit_delta = float((legacy_logits.float() - candidate_logits.float()).abs().max())
     mean_logit_delta = float((legacy_logits.float() - candidate_logits.float()).abs().mean())
@@ -340,30 +339,48 @@ def _semantic_probe(device: torch.device) -> dict[str, Any]:
 
 
 def _compiled_grouped_operator_probe(device: torch.device) -> dict[str, Any]:
-    """Compile forward+backward of the exact physical hidden widths before full-model work."""
+    """Compile forward+backward at physical hidden=344 before full-model work."""
 
     experts = CORTEX_100M_CONFIG.num_experts
     d_model = CORTEX_100M_CONFIG.d_model
     hidden = _padded_hidden(CORTEX_100M_CONFIG.expert_hidden)
     n = experts * OPERATOR_PROBE_ASSIGNMENTS_PER_EXPERT
     gen = torch.Generator(device="cpu").manual_seed(ENGINEERING_SEED + 9_000)
-    packed = torch.randn(n, d_model, generator=gen, dtype=torch.float32).to(device=device, dtype=torch.bfloat16).requires_grad_(True)
-    w1 = torch.randn(experts, d_model, hidden, generator=gen, dtype=torch.float32).to(device=device, dtype=torch.bfloat16).requires_grad_(True)
-    w2 = torch.randn(experts, hidden, d_model, generator=gen, dtype=torch.float32).to(device=device, dtype=torch.bfloat16).requires_grad_(True)
+    packed = (
+        torch.randn(n, d_model, generator=gen, dtype=torch.float32)
+        .to(device=device, dtype=torch.bfloat16)
+        .requires_grad_(True)
+    )
+    w1 = (
+        torch.randn(experts, d_model, hidden, generator=gen, dtype=torch.float32)
+        .to(device=device, dtype=torch.bfloat16)
+        .requires_grad_(True)
+    )
+    w2 = (
+        torch.randn(experts, hidden, d_model, generator=gen, dtype=torch.float32)
+        .to(device=device, dtype=torch.bfloat16)
+        .requires_grad_(True)
+    )
+    # Match production pack_topk_assignments exactly: grouped_mm requires int32 offs.
     offsets = torch.arange(
         OPERATOR_PROBE_ASSIGNMENTS_PER_EXPERT,
         n + 1,
         OPERATOR_PROBE_ASSIGNMENTS_PER_EXPERT,
         device=device,
-        dtype=torch.int64,
+        dtype=torch.int32,
     )
     for label, tensor in (("packed", packed), ("w1", w1), ("w2", w2)):
         _require_grouped_mm_layout(tensor, f"repair4 operator probe {label}")
 
-    def objective(a: torch.Tensor, first: torch.Tensor, second: torch.Tensor) -> torch.Tensor:
-        h = F.grouped_mm(a, first, offs=offsets)
+    def objective(
+        a: torch.Tensor,
+        first: torch.Tensor,
+        second: torch.Tensor,
+        offs: torch.Tensor,
+    ) -> torch.Tensor:
+        h = F.grouped_mm(a, first, offs=offs)
         h = F.gelu(h)
-        out = F.grouped_mm(h, second, offs=offsets)
+        out = F.grouped_mm(h, second, offs=offs)
         return out.float().square().mean()
 
     from torch import _dynamo as dynamo
@@ -372,11 +389,11 @@ def _compiled_grouped_operator_probe(device: torch.device) -> dict[str, Any]:
     started = time.perf_counter()
     try:
         compiled = torch.compile(objective)
-        loss = compiled(packed, w1, w2)
+        loss = compiled(packed, w1, w2, offsets)
         loss.backward()
         torch.cuda.synchronize(device)
     except Exception as exc:
-        del packed, w1, w2
+        del packed, w1, w2, offsets
         gc.collect()
         torch.cuda.empty_cache()
         return {
@@ -384,6 +401,7 @@ def _compiled_grouped_operator_probe(device: torch.device) -> dict[str, Any]:
             "error": f"{type(exc).__name__}: {exc}",
             "logical_hidden": CORTEX_100M_CONFIG.expert_hidden,
             "physical_hidden": hidden,
+            "offsets_dtype": "int32",
         }
 
     elapsed = time.perf_counter() - started
@@ -400,17 +418,24 @@ def _compiled_grouped_operator_probe(device: torch.device) -> dict[str, Any]:
         "finite_gradients": grad_finite,
         "logical_hidden": CORTEX_100M_CONFIG.expert_hidden,
         "physical_hidden": hidden,
+        "offsets_dtype": "int32",
         "packed_stride": list(packed.stride()),
         "w1_stride": list(w1.stride()),
         "w2_stride": list(w2.stride()),
     }
-    del packed, w1, w2
+    del packed, w1, w2, offsets
     gc.collect()
     torch.cuda.empty_cache()
     return result
 
 
-def _benchmark_full_model_variant(*, label: str, train_data: TokenBin, device: torch.device, grouped: bool) -> dict[str, Any]:
+def _benchmark_full_model_variant(
+    *,
+    label: str,
+    train_data: TokenBin,
+    device: torch.device,
+    grouped: bool,
+) -> dict[str, Any]:
     seed_all(ENGINEERING_SEED)
     model = build_cortex_100m().to(device)
     if grouped:
@@ -556,7 +581,9 @@ def run_h100_systems_microbenchmark(*, source_sha: str, data_dir: str = DATA_DIR
         }
 
     semantic = _semantic_probe(device)
-    legacy = _benchmark_full_model_variant(label="legacy", train_data=train_data, device=device, grouped=False)
+    legacy = _benchmark_full_model_variant(
+        label="legacy", train_data=train_data, device=device, grouped=False
+    )
     grouped = _benchmark_full_model_variant(
         label="grouped_bf16_repair4", train_data=train_data, device=device, grouped=True
     )
