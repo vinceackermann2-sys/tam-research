@@ -1,0 +1,123 @@
+{
+  "authority": {
+    "architecture_freeze": false,
+    "breakthrough_claim": false,
+    "checkpoint_write": false,
+    "gpu": false,
+    "modal_scientific_execution": false,
+    "result_write": false,
+    "s2_replication": false,
+    "scaling": false,
+    "scientific_evaluation": false,
+    "scientific_seed_37641": false,
+    "scientific_training": false,
+    "systems_optimization": false
+  },
+  "candidate_model_seed": 37641,
+  "checkpoint_dir": "/vol/aera-capability/event-memory-repair-v2-seed37641/checkpoints",
+  "consumed_model_seeds": [
+    17641,
+    27641
+  ],
+  "evaluation": {
+    "batch_size": 8,
+    "bootstrap_resamples": 10000,
+    "cases": 432,
+    "equal_gpu_time_required": true,
+    "equal_token_required": true,
+    "latency_batch_size": 8,
+    "latency_timed_calls": 10,
+    "latency_warmup_calls": 3,
+    "nonreset_per_distance": {
+      "2": 108,
+      "8": 108,
+      "32": 108
+    },
+    "reset_per_distance": {
+      "8": 54,
+      "32": 54
+    },
+    "unique_case_ids": 432
+  },
+  "implementation_base_main": "1c0ecd321a530daee32a4603a9cd6fb201be2d8a",
+  "implementation_base_tree": "00dd4e489f5ad70fc68b5d195a9ba820ac299a54",
+  "l4_prefix": "[aera-event-memory-repair-seed37641-l4-v1]",
+  "materialization": {
+    "bridge_function": "evaluation_cases",
+    "bridge_issue": 785,
+    "cases": 432,
+    "corrected_harness_issue": 750,
+    "nonreset_per_distance": {
+      "2": 108,
+      "8": 108,
+      "32": 108
+    },
+    "raw_base_materializer_used": false,
+    "reset_per_distance": {
+      "8": 54,
+      "32": 54
+    },
+    "unique_case_ids": 432
+  },
+  "parent_bridge_issue": 785,
+  "parent_runner_issue": 776,
+  "preauth_prefix": "[aera-event-memory-repair-seed37641-preauth-v1]",
+  "protocol_version": "aera-event-memory-repair-seed37641-scientific-v1",
+  "research_issue": 790,
+  "result_path": "/vol/aera-capability/event-memory-repair-v2-seed37641/result.json",
+  "scientific_model_config": {
+    "block_size": 4,
+    "chunk_size": 256,
+    "d_model": 128,
+    "expert_mult": 4,
+    "fast_memory_decay": 0.999,
+    "fast_memory_lr": 0.2,
+    "max_active_experts": 2,
+    "max_reason_steps": 4,
+    "memory_dim": 32,
+    "n_experts": 8,
+    "n_heads": 4,
+    "n_stages": 4,
+    "vocab_size": 50257
+  },
+  "source_main": "5e5d746c70380eb4819534eb5a061a2d142fa26f",
+  "source_tree": "2348be0e21c107d254146a7426b432f6f808687f",
+  "thresholds": {
+    "correction_accuracy_gain_min": 0.1,
+    "long_distance_accuracy_gain_min": 0.1,
+    "memory_inference_latency_multiplier_max": 2.0,
+    "memory_train_time_multiplier_max": 1.5,
+    "paired_ci_lower_accuracy_gain_min": 0.05,
+    "parameter_delta_fraction_max": 0.05,
+    "routing_control_accuracy_margin_min": 0.05,
+    "session_reset_leakage_max": 0.01,
+    "simple_retrieval_dominance_margin": 0.05,
+    "stale_value_error_reduction_min": 0.1
+  },
+  "training": {
+    "adamw_lr": 0.0003,
+    "adamw_min_lr": 3e-05,
+    "betas": [
+      0.9,
+      0.95
+    ],
+    "checkpoint_every_steps": 128,
+    "checkpoint_interval_tokens": 2097152,
+    "grad_accum_steps": 2,
+    "grad_clip": 1.0,
+    "max_gpu_seconds_per_variant": 3600,
+    "microbatch_size": 2,
+    "optimizer_steps": 1024,
+    "sequence_chunks": 16,
+    "token_budget_per_variant": 16777216,
+    "tokens_per_optimizer_step": 16384,
+    "trained_variants": [
+      "A_backbone",
+      "B_backbone_plus_memory",
+      "C_backbone_plus_routing",
+      "D_combined"
+    ],
+    "warmup_steps": 64,
+    "weight_decay": 0.1
+  }
+}
