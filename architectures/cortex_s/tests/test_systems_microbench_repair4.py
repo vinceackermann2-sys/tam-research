@@ -94,4 +94,4 @@ def test_repair4_workflow_has_single_use_trigger_and_exact_source_binding() -> N
     assert "Verify checkout and live main are exactly the frozen source" in workflow
     assert "modal_cortex_s_100m_systems_microbench_v1_repair4.py" in workflow
     assert "2026090904" in workflow
-    assert "full_2b" not in workflow
+    assert "[modal-cortex-s-100m-systems-microbench-v1-repair3]" not in workflow
