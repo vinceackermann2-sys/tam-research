@@ -14,6 +14,16 @@ from architectures.cortex_s.language_model import affine_scan
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
+def _leaf_grad_or_zero(tensor: torch.Tensor) -> torch.Tensor:
+    # The current production graph can leave a mathematically unused leaf gradient
+    # as None (notably a[:,0] when length=1 and initial=None). The custom analytic
+    # backward returns the equivalent explicit zero. Normalize only in the test so
+    # we compare mathematical gradients without changing either implementation.
+    if tensor.grad is None:
+        return torch.zeros_like(tensor)
+    return tensor.grad.detach()
+
+
 def _grads(fn, *, length: int, initial: bool):
     generator = torch.Generator(device="cpu").manual_seed(91_901 + length)
     a = torch.sigmoid(torch.randn(3, length, 5, generator=generator, dtype=torch.float64)).requires_grad_(True)
@@ -29,9 +39,9 @@ def _grads(fn, *, length: int, initial: bool):
     loss.backward()
     return (
         out.detach(),
-        a.grad.detach(),
-        b.grad.detach(),
-        None if initial_tensor is None else initial_tensor.grad.detach(),
+        _leaf_grad_or_zero(a),
+        _leaf_grad_or_zero(b),
+        None if initial_tensor is None else _leaf_grad_or_zero(initial_tensor),
     )
 
 
