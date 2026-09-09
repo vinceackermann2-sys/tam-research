@@ -58,11 +58,11 @@ SCAN_MEASURED_ITERS = 10
 class PackedBF16GroupedSparseMoE(nn.Module):
     """H100 microbenchmark candidate with grouped-GEMM-friendly weight layout.
 
-    This is deliberately separate from the production model.  It preserves the
+    This is deliberately separate from the production model. It preserves the
     exact router/top-k semantics and expert values, but stores each expert matrix
     in multiplication orientation so grouped_mm does not transpose/copy weights on
-    every call.  CUDA grouped GEMMs are explicitly BF16 because grouped_mm is not
-    autocast-enabled in the PyTorch path being evaluated.  Casts remain inside the
+    every call. CUDA grouped GEMMs are explicitly BF16 because grouped_mm is not
+    autocast-enabled in the PyTorch path being evaluated. Casts remain inside the
     autograd graph so FP32 master parameters receive gradients.
     """
 
@@ -136,10 +136,15 @@ class PackedBF16GroupedSparseMoE(nn.Module):
     ) -> torch.Tensor:
         if not self.grouped_cuda_available(packed):
             return self._reference_grouped_mm(packed, matrices, offsets)
+        # Match the legacy autocast execution more closely: the first Linear emits
+        # BF16, GELU stays BF16, and the second Linear consumes/emits BF16. Do not
+        # promote the first grouped result back to the LayerNorm/packed FP32 dtype
+        # between expert projections; that adds bandwidth and changes the measured
+        # candidate for no semantic benefit. The final route weighting below can
+        # still promote to FP32 when assignment weights are FP32, as in legacy.
         packed_bf16 = packed.to(dtype=torch.bfloat16)
         matrices_bf16 = matrices.to(dtype=torch.bfloat16)
-        out = F.grouped_mm(packed_bf16, matrices_bf16, offs=offsets)
-        return out.to(dtype=packed.dtype)
+        return F.grouped_mm(packed_bf16, matrices_bf16, offs=offsets)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         original_shape = x.shape
@@ -293,6 +298,7 @@ def _benchmark_full_model_variant(
         raise RuntimeError(f"{label} parameter count drift")
     optimizer = _make_optimizer(model)
     generator = torch.Generator(device="cpu").manual_seed(ENGINEERING_SEED + 10_000)
+    runner: torch.nn.Module | None = None
 
     try:
         import torch._dynamo
@@ -311,27 +317,31 @@ def _benchmark_full_model_variant(
         torch.cuda.synchronize(device)
         compile_seconds = time.perf_counter() - compile_start
     except Exception as exc:
-        return {
+        result = {
             "label": label,
             "status": "COMPILE_OR_FIRST_STEP_FAIL",
             "error": f"{type(exc).__name__}: {exc}",
             "parameter_count": parameter_count(model),
         }
+        del runner, optimizer, model
+        gc.collect()
+        torch.cuda.empty_cache()
+        return result
 
-    for _ in range(ADDITIONAL_WARMUP_STEPS):
-        last_loss = _one_optimizer_step(
-            model=model,
-            runner=runner,
-            optimizer=optimizer,
-            train_data=train_data,
-            generator=generator,
-            device=device,
-            lr=LEARNING_RATE,
-        )
-    torch.cuda.synchronize(device)
-    torch.cuda.reset_peak_memory_stats(device)
-    started = time.perf_counter()
     try:
+        for _ in range(ADDITIONAL_WARMUP_STEPS):
+            last_loss = _one_optimizer_step(
+                model=model,
+                runner=runner,
+                optimizer=optimizer,
+                train_data=train_data,
+                generator=generator,
+                device=device,
+                lr=LEARNING_RATE,
+            )
+        torch.cuda.synchronize(device)
+        torch.cuda.reset_peak_memory_stats(device)
+        started = time.perf_counter()
         for _ in range(MEASURED_STEPS):
             last_loss = _one_optimizer_step(
                 model=model,
@@ -344,13 +354,18 @@ def _benchmark_full_model_variant(
             )
         torch.cuda.synchronize(device)
     except Exception as exc:
-        return {
+        result = {
             "label": label,
-            "status": "MEASURED_STEP_FAIL",
+            "status": "WARMUP_OR_MEASURED_STEP_FAIL",
             "error": f"{type(exc).__name__}: {exc}",
             "compile_seconds": compile_seconds,
             "parameter_count": parameter_count(model),
         }
+        del runner, optimizer, model
+        gc.collect()
+        torch.cuda.empty_cache()
+        return result
+
     measured_seconds = max(time.perf_counter() - started, 1e-9)
     measured_tokens = MEASURED_STEPS * TOKENS_PER_OPTIMIZER_STEP
     tps = measured_tokens / measured_seconds
