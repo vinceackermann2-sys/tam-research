@@ -7,9 +7,10 @@ from typing import Any
 from architectures.cortex_s.language_model import CortexSLMConfig
 
 
-EXPERIMENT_ID = "cortex-s-v0-100m-2b-paired8100-v3-grouped"
-PROJECT_NAMESPACE = "cortex-s-v0/100m-2b-v3-grouped"
+EXPERIMENT_ID = "cortex-s-v0-100m-2b-paired8100-v4-memory-lean"
+PROJECT_NAMESPACE = "cortex-s-v0/100m-2b-v4-memory-lean"
 PRODUCTION_MOE_BACKEND = "physical_padded_grouped_bf16"
+PRODUCTION_SYSTEMS_VARIANT = "memory_lean_cast_before_gather_pad_v4"
 LOGICAL_EXPERT_HIDDEN = 338
 PHYSICAL_EXPERT_HIDDEN = 344
 
@@ -18,8 +19,6 @@ PAIRED_SEED = 8_100
 BASELINE_ISSUE = 140
 BASELINE_TRANSFORMER = {
     "parameters": 101_803_520,
-    # The trainer's nominal budget is 2B, but the final optimizer step is a full
-    # batch. Literal exposures are therefore the separately frozen value below.
     "pretrain_tokens": 2_000_000_000,
     "pretrain_token_budget": 2_000_000_000,
     "full_batch_token_exposures": 2_000_027_648,
@@ -36,7 +35,6 @@ BASELINE_TRANSFORMER = {
     "peak_vram_gb": 11.896,
 }
 
-# Exact immutable pretraining source consumed by the historical Transformer.
 DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
 TRAIN_TOKENS = 2_000_000_000
 VAL_TOKENS = 5_000_000
@@ -60,11 +58,12 @@ META_SHA256 = "14bbbcf0ab0b8cba374074ef8ccb80a04ecead06c74780f35a1becd5aef1b8f3"
 FINGERPRINT_EVIDENCE_ISSUE = 767
 FINGERPRINT_EVIDENCE_RUN = 34_271_912_952
 
-# Systems history. The original/v2 calibration path was too slow and is consumed.
+# Consumed systems history.
 V2_PREFLIGHT_ISSUE = 769
 V2_PREFLIGHT_SOURCE_SHA = "6cb1882aa5b02e4f8917a7cae44e6d1925b9e290"
 V2_CALIBRATION_TPS = 133_384.4585
 V2_PROJECTED_FULL_SECONDS = 16_676.53
+
 REPAIR4_EVIDENCE_ISSUE = 799
 REPAIR4_EVIDENCE_RUN = 34_339_214_619
 REPAIR4_EVIDENCE_JOB = 102_425_759_653
@@ -74,15 +73,35 @@ REPAIR4_GROUPED_TPS = 182_118.51594019053
 REPAIR4_GROUPED_PEAK_VRAM_GIB = 45.2682785987854
 REPAIR4_SEMANTIC_LOSS_DELTA = 0.004322052001953125
 
-# All prior engineering seeds are consumed and may never be reused. The v3 grouped
-# production preflight gets one fresh engineering seed; it is not scientific data.
-CONSUMED_ENGINEERING_SEEDS = (910_001, 2_026_090_901, 2_026_090_902, 2_026_090_903, 2_026_090_904)
-CALIBRATION_SEED = 2_026_090_905
+# v3 grouped production preflight #802 is consumed and failed only the frozen
+# systems/budget projection gate. It launched no paired seed-8100 training.
+V3_PREFLIGHT_ISSUE = 802
+V3_PREFLIGHT_RUN = 34_345_899_535
+V3_PREFLIGHT_JOB = 102_447_296_828
+V3_PREFLIGHT_SOURCE_SHA = "3a9538228d100a40818030a64b5b9eaf7311f94a"
+V3_CALIBRATION_TPS = 241_834.8588
+V3_COMPILE_SECONDS = 366.727893589
+V3_PROJECTED_TRAINING_SECONDS = 8_270.1063
+V3_PROJECTED_FULL_SECONDS = 9_463.8449
+V3_PROJECTED_COST_USD = 15.3863
+V3_PEAK_VRAM_GIB = 45.4400
+V3_FULL_RUN_AUTHORIZED = False
+
+# All prior engineering seeds are consumed and may never be reused. v4 gets one
+# fresh engineering calibration seed. Scientific/control seeds remain untouched.
+CONSUMED_ENGINEERING_SEEDS = (
+    910_001,
+    2_026_090_901,
+    2_026_090_902,
+    2_026_090_903,
+    2_026_090_904,
+    2_026_090_905,
+)
+CALIBRATION_SEED = 2_026_090_906
 CALIBRATION_STEPS = 40
 CALIBRATION_WARMUP_STEPS = 5
 
-# Budget lock. A separately triggered full run may not start unless this exact
-# production grouped graph projects below the frozen wall-clock envelope.
+# Frozen budget lock. The v4 optimization is not allowed to relax these gates.
 H100_USD_PER_SECOND_SNAPSHOT = 0.001097
 STARTER_CPU_USD_PER_CORE_SECOND_SNAPSHOT = 0.00003942
 STARTER_MEMORY_USD_PER_GIB_SECOND_SNAPSHOT = 0.00000667
@@ -92,7 +111,6 @@ MAX_PROJECTED_FULL_SECONDS = 8_500
 HARD_FULL_TIMEOUT_SECONDS = 10_000
 USER_CREDIT_ENVELOPE_USD = 29.0
 
-# 100M CORTEX-S remains matched on total trainable parameters, not active FLOPs.
 CORTEX_100M_CONFIG = CortexSLMConfig(
     vocab_size=50_257,
     d_model=512,
@@ -108,14 +126,10 @@ CORTEX_100M_CONFIG = CortexSLMConfig(
 EXPECTED_CORTEX_PARAMS = 101_778_112
 EXPECTED_TRANSFORMER_PARAMS = 101_803_520
 MAX_PARAMETER_GAP_FRACTION = 0.005
-
-# Reserved independent scientific replication seeds remain untouched.
 RESERVED_FRESH_SEEDS = (48_131, 48_132, 48_133)
 
 
 def projected_full_cost_usd(seconds: float) -> dict[str, float]:
-    """Conservative Starter-plan compute estimate from the frozen pricing snapshot."""
-
     gpu = seconds * H100_USD_PER_SECOND_SNAPSHOT
     cpu = seconds * FULL_CPU_CORES * STARTER_CPU_USD_PER_CORE_SECOND_SNAPSHOT
     memory = seconds * FULL_MEMORY_GIB * STARTER_MEMORY_USD_PER_GIB_SECOND_SNAPSHOT
@@ -170,9 +184,11 @@ def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, A
         raise RuntimeError("logical expert width drift")
     if PHYSICAL_EXPERT_HIDDEN != 344:
         raise RuntimeError("grouped physical expert width drift")
+    if V3_FULL_RUN_AUTHORIZED:
+        raise RuntimeError("consumed v3 preflight must remain non-authorizing")
     forbidden = set(CONSUMED_ENGINEERING_SEEDS) | {PAIRED_SEED, *RESERVED_FRESH_SEEDS}
     if CALIBRATION_SEED in forbidden:
-        raise RuntimeError("v3 calibration seed is consumed or scientifically reserved")
+        raise RuntimeError("v4 calibration seed is consumed or scientifically reserved")
     hard_cost = projected_full_cost_usd(HARD_FULL_TIMEOUT_SECONDS)["total_usd_conservative"]
     if hard_cost >= USER_CREDIT_ENVELOPE_USD:
         raise RuntimeError(
@@ -191,6 +207,7 @@ def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, A
         "full_batch_token_exposures": FULL_BATCH_TOKEN_EXPOSURES,
         "full_batch_overshoot_tokens": FULL_BATCH_TOKEN_EXPOSURES - TRAIN_TOKENS,
         "production_moe_backend": PRODUCTION_MOE_BACKEND,
+        "production_systems_variant": PRODUCTION_SYSTEMS_VARIANT,
         "logical_expert_hidden": LOGICAL_EXPERT_HIDDEN,
         "physical_expert_hidden": PHYSICAL_EXPERT_HIDDEN,
         "projected_cost_at_gate": projected_full_cost_usd(MAX_PROJECTED_FULL_SECONDS),
@@ -229,6 +246,20 @@ def protocol_snapshot() -> dict[str, Any]:
             "grouped_tps": REPAIR4_GROUPED_TPS,
             "grouped_peak_vram_gib": REPAIR4_GROUPED_PEAK_VRAM_GIB,
             "semantic_loss_delta": REPAIR4_SEMANTIC_LOSS_DELTA,
+            "scientific_evidence": False,
+        },
+        "v3_grouped_preflight": {
+            "issue": V3_PREFLIGHT_ISSUE,
+            "run": V3_PREFLIGHT_RUN,
+            "job": V3_PREFLIGHT_JOB,
+            "source_sha": V3_PREFLIGHT_SOURCE_SHA,
+            "measured_tps": V3_CALIBRATION_TPS,
+            "compile_seconds": V3_COMPILE_SECONDS,
+            "projected_training_seconds": V3_PROJECTED_TRAINING_SECONDS,
+            "projected_full_seconds": V3_PROJECTED_FULL_SECONDS,
+            "projected_cost_usd": V3_PROJECTED_COST_USD,
+            "peak_vram_gib": V3_PEAK_VRAM_GIB,
+            "full_run_authorized": False,
             "scientific_evidence": False,
         },
         "train_token_budget": TRAIN_TOKENS,
