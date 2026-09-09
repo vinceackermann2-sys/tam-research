@@ -39,11 +39,11 @@ The microbenchmark is not language-quality evidence. Corpus use is only to repro
 Two full 100M training graphs are initialized from exactly the same engineering seed and consume the same engineering batch stream:
 
 1. `legacy`: current production `TrulySparseMoE` path under the existing BF16 autocast and compile settings.
-2. `grouped_bf16`: systems-only candidate with identical router and expert values but expert matrices stored in grouped-GEMM-friendly orientation. Selected expert rows and expert weights are explicitly cast to BF16 for `torch.nn.functional.grouped_mm`, and the grouped result is cast back to the residual dtype. The casts stay in autograd so FP32 master parameters receive gradients.
+2. `grouped_bf16`: systems-only candidate with identical router and expert values but expert matrices stored in grouped-GEMM-friendly orientation. Selected expert rows and expert weights are explicitly cast to BF16 for `torch.nn.functional.grouped_mm`. The first grouped result remains BF16 through GELU and the second grouped GEMM, matching the legacy autocast expert path more closely and avoiding an unnecessary FP32 intermediate. Route weighting/scatter may promote back to the residual dtype exactly where ordinary PyTorch promotion requires it. The casts stay in autograd so FP32 master parameters receive gradients.
 
 The candidate must continue to execute exactly top-2 of 8 expert assignments per token. Dense execution is prohibited.
 
-Each full-model variant gets one compile-trigger step, three additional warmup optimizer steps, then 20 measured optimizer steps. Compile time, measured train tokens/s, finite loss/gradients, and peak allocated VRAM are recorded separately. There is no eager fallback for the primary grouped result: a grouped compile/runtime failure is a systems failure for this candidate, not permission to change the protocol in-place.
+Each full-model variant gets one compile-trigger step, three additional warmup optimizer steps, then 20 measured optimizer steps. Compile time, measured train tokens/s, finite loss/gradients, and peak allocated VRAM are recorded separately. There is no eager fallback for the primary grouped result: a grouped compile/runtime failure is a systems failure for this candidate, not permission to change the protocol in-place. Compile, warmup, or measured-step failure explicitly releases model/optimizer/compiler references and clears the CUDA allocator cache before any later diagnostic in the same bounded allocation.
 
 ## Secondary diagnostics
 
