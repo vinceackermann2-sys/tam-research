@@ -64,11 +64,11 @@ jobs:
           assert 'CALIBRATION_SEED = 2_026_090_905' in launcher
           assert 'CALIBRATION_SEED = 2_026_090_905' in protocol
           assert 'preflight-v3-grouped' in launcher
+          assert 'full-v3-grouped' in launcher
           assert 'paired-seed8100-v3-grouped' in launcher
+          assert 'PRODUCTION_MOE_BACKEND = "physical_padded_grouped_bf16"' in protocol
           assert 'PhysicalPaddedGroupedSparseMoE' in grouped
           assert 'train_full_grouped_2b' in grouped
-          assert '[modal-cortex-s-100m-2b-preflight-v2]' not in Path('.github/workflows/modal-cortex-s-100m-2b.yml').read_text(encoding='utf-8')
-          assert '[modal-cortex-s-100m-2b-full-v2]' not in Path('.github/workflows/modal-cortex-s-100m-2b.yml').read_text(encoding='utf-8')
           print('grouped v3 paid protocol guard PASS')
           PY
 
