@@ -1,0 +1,111 @@
+name: Modal CORTEX-S 100M systems microbench v1 repair4
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-systems-microbench-v1-repair4]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable repair4 phase and source
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          assert phase == 'microbench-v1-repair4'
+          assert re.fullmatch(r'[0-9a-f]{40}', source_sha)
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify checkout and live main are exactly frozen source
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ steps.cfg.outputs.source_sha }}"
+          git fetch --no-tags --depth=1 origin main
+          test "$(git rev-parse origin/main)" = "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Fail closed with stdlib-only repair4 protocol guard
+        run: |
+          test -f architectures/cortex_s/SYSTEMS_MICROBENCH_100M_V1_REPAIR4.md
+          test -f architectures/cortex_s/experiments/scale100m_2b/systems_microbench_v1_repair4.py
+          test -f modal_cortex_s_100m_systems_microbench_v1_repair4.py
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          core_path = Path('architectures/cortex_s/experiments/scale100m_2b/systems_microbench_v1_repair4.py')
+          core = core_path.read_text(encoding='utf-8')
+          launcher = Path('modal_cortex_s_100m_systems_microbench_v1_repair4.py').read_text(encoding='utf-8')
+          doc = Path('architectures/cortex_s/SYSTEMS_MICROBENCH_100M_V1_REPAIR4.md').read_text(encoding='utf-8')
+          ast.parse(core)
+          ast.parse(launcher)
+
+          assert 'ENGINEERING_SEED = 2_026_090_904' in core
+          assert '2_026_090_903' in core
+          assert 'compute_hidden' in core
+          assert 'F.pad(logical, (0, pad))' in core
+          assert 'F.pad(self.expert_w2, (0, 0, 0, pad))' in core
+          assert 'ENGINEERING_RUNTIME_FAIL' in core
+          assert 'return payload' in launcher
+          assert 'H100_TIMEOUT_SECONDS = 15 * 60' in launcher
+          assert 'def full_2b(' not in launcher
+          assert 'train_full_2b' not in launcher
+          assert '[modal-cortex-s-100m-systems-microbench-v1-repair4]' in doc
+          assert '34335827718' in doc
+          print('stdlib-only repair4 protocol guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Modal only
+        run: pip install "modal>=1.1,<2"
+
+      - name: Verify Modal authentication before remote launch
+        run: modal token info
+
+      - name: Record guarded repair4 H100 handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S repair4 launcher authenticated** — source=${{ steps.cfg.outputs.source_sha }}, engineering seed=2026090904. Zero-GPU data/logical-padding contract runs first; at most one bounded H100 dispatch may follow. No scientific seed or 2B training is authorized."
+
+      - name: Launch exact frozen repair4 systems microbenchmark detached
+        run: |
+          modal run --detach --timestamps modal_cortex_s_100m_systems_microbench_v1_repair4.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Record successful repair4 handoff completion
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🧪 **CORTEX-S repair4 Modal run returned successfully.** Authoritative evidence is persisted in the single-use repair4 Volume namespace. This engineering run cannot directly authorize 2B training."
