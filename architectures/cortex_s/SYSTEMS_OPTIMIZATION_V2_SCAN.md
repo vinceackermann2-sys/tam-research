@@ -16,11 +16,11 @@ Every one of the 24 CORTEX-S blocks contains a persistent-state recurrence
 
 with state width 128. At training sequence length 512 the production implementation performs nine Hillis-Steele-style whole-tensor stages and materializes shifted tensors repeatedly. The previously tested slice/clone alternative was slower and is rejected as a production candidate.
 
-The next credible systems direction is a genuinely fused training kernel: parallelize over independent `(batch,state)` lanes, execute the length-512 recurrence inside one device program, and use an explicitly derived fused reverse recurrence for backward. This would replace multiple global scan stages with one forward kernel and one backward kernel per recurrent layer if it proves performant.
+The next credible systems direction is a genuinely fused training kernel: parallelize over independent `(batch,state)` lanes, execute the length-512 recurrence inside one device program, and use an explicitly derived fused reverse recurrence for backward. If performant, this can replace the repeated global scan-stage traffic with one forward and one backward device program per recurrent layer.
 
 ## Frozen semantics
 
-The new zero-credit module freezes the exact forward and reverse equations before any CUDA implementation:
+The zero-credit semantic module freezes the exact forward and reverse equations:
 
 - forward: `s_t = a_t*s_(t-1)+b_t`;
 - reverse adjoint: `lambda_t = grad_t + a_(t+1)*lambda_(t+1)`;
@@ -31,16 +31,35 @@ The new zero-credit module freezes the exact forward and reverse equations befor
 - no parameters are added or removed;
 - architecture, routing, attention schedule, optimizer, corpus and scientific protocol remain unchanged.
 
-CPU tests compare the semantic oracle and the explicit analytic backward against the current production parallel scan in float64 across multiple lengths, and verify chunk-carry equivalence.
+The first exact-head contract head `d481e88d06daed86f7d0ac91bb5b67df9394dddf` passed fresh CI `34365940565`, CORTEX-S CPU gate `34365940614`, and 100M/2B zero-credit gate `34365940538` before the guarded kernel implementation was added.
 
-## What this stage does not claim
+## Guarded Triton candidate
 
-There is intentionally no CUDA/Triton dispatch in this PR. An unmeasured kernel is not a speedup. This stage proves only that the forward/backward contract for a future fused implementation is explicit and mechanically testable.
+The successor implementation now contains a custom-autograd candidate behind the frozen contract:
 
-No GPU spend, new engineering seed, paid namespace, paired seed-8100 training, scientific seed use, architecture freeze or breakthrough claim is authorized here.
+- CUDA/Triton path: one forward kernel loops left-to-right along sequence while parallelizing across `batch * state` lanes;
+- CUDA/Triton backward: one reverse kernel implements the frozen analytic adjoint directly;
+- intended production scan shape is `[64, 512, 128]`;
+- CPU/unsupported-device execution uses the independent sequential semantic oracle plus analytic backward, allowing zero-credit custom-autograd validation;
+- no call site in `language_model.py` or `PersistentWorldState` has been changed;
+- parameter count delta is exactly zero;
+- `production_wired=false` and `gpu_benchmark_authorized=false` remain hard-coded.
 
-## Next boundary
+CPU tests compare the candidate forward and gradients against the current production `affine_scan` in float64 across multiple lengths, verify chunk-carry equivalence, validate failure on shape/dtype drift, and statically verify that the production model does not reference the Triton candidate.
 
-After fresh exact-head CPU/full-repository CI, a later zero-credit successor may implement a guarded CUDA/Triton kernel behind this contract. That implementation must pass the same forward/backward/chunk-carry tests and static fail-closed checks before any separately preregistered H100 microbenchmark is considered.
+This implementation is **not GPU correctness or performance evidence**. A Triton source file existing in the repository does not establish that it compiles efficiently on H100, that its numerical error is acceptable in BF16, or that it improves end-to-end model throughput.
 
-A future H100 benchmark requires a new engineering seed, unique result namespace, exact immutable source SHA and explicit spend authorization. The consumed #807/v4 namespace and seed `2026090906` must never be reused.
+## Authority ceiling
+
+No GPU spend, new engineering seed, paid namespace, production scan replacement, paired seed-8100 training, scientific seed use, architecture freeze or breakthrough claim is authorized here.
+
+A future H100 systems microbenchmark requires all of the following separately:
+
+1. fresh full-repository CI, CORTEX-S CPU gate and 100M/2B zero-credit gate on one exact final candidate head;
+2. explicit merge authorization for that exact head if merge is desired;
+3. a fresh post-merge live-main audit;
+4. a new engineering seed and unique single-use benchmark namespace;
+5. an isolated GPU correctness gate comparing Triton forward/backward against production/reference before timing;
+6. explicit paid-spend authorization.
+
+The consumed #807/v4 namespace and seed `2026090906` must never be reused. Paired seed `8100` and reserved scientific seeds `48131`, `48132`, `48133` remain untouched.
