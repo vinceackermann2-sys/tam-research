@@ -1,4 +1,4 @@
-name: Modal CORTEX-S 100M 2B grouped guarded run v3
+name: Modal CORTEX-S 100M 2B memory-lean guarded run v4
 
 on:
   issues:
@@ -12,15 +12,15 @@ jobs:
   launch:
     if: >-
       github.event.issue.user.login == github.repository_owner &&
-      (github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v3-grouped]' ||
-       github.event.issue.title == '[modal-cortex-s-100m-2b-full-v3-grouped]')
+      (github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v4-memory-lean]' ||
+       github.event.issue.title == '[modal-cortex-s-100m-2b-full-v4-memory-lean]')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
     steps:
-      - name: Resolve immutable grouped v3 phase and source
+      - name: Resolve immutable memory-lean v4 phase and source
         id: cfg
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -31,9 +31,9 @@ jobs:
           cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
           title = os.environ['ISSUE_TITLE']
           expected_phase = (
-              'preflight-v3-grouped'
-              if title == '[modal-cortex-s-100m-2b-preflight-v3-grouped]'
-              else 'full-v3-grouped'
+              'preflight-v4-memory-lean'
+              if title == '[modal-cortex-s-100m-2b-preflight-v4-memory-lean]'
+              else 'full-v4-memory-lean'
           )
           phase = str(cfg.get('phase', '')).strip().lower()
           source_sha = str(cfg.get('source_sha', '')).strip().lower()
@@ -54,22 +54,24 @@ jobs:
           git fetch --no-tags --depth=1 origin main
           test "$(git rev-parse origin/main)" = "${{ steps.cfg.outputs.source_sha }}"
 
-      - name: Fail closed with grouped v3 static protocol guard
+      - name: Fail closed with memory-lean v4 static protocol guard
         run: |
           python - <<'PY'
           from pathlib import Path
-          launcher = Path('modal_cortex_s_100m_2b_app.py').read_text(encoding='utf-8')
+          launcher = Path('modal_cortex_s_100m_2b_v4_app.py').read_text(encoding='utf-8')
           protocol = Path('architectures/cortex_s/experiments/scale100m_2b/protocol.py').read_text(encoding='utf-8')
-          grouped = Path('architectures/cortex_s/grouped_moe.py').read_text(encoding='utf-8')
-          assert 'CALIBRATION_SEED = 2_026_090_905' in launcher
-          assert 'CALIBRATION_SEED = 2_026_090_905' in protocol
-          assert 'preflight-v3-grouped' in launcher
-          assert 'full-v3-grouped' in launcher
-          assert 'paired-seed8100-v3-grouped' in launcher
-          assert 'PRODUCTION_MOE_BACKEND = "physical_padded_grouped_bf16"' in protocol
-          assert 'PhysicalPaddedGroupedSparseMoE' in grouped
-          assert 'train_full_grouped_2b' in grouped
-          print('grouped v3 paid protocol guard PASS')
+          grouped = Path('architectures/cortex_s/grouped_moe_v4.py').read_text(encoding='utf-8')
+          assert 'CALIBRATION_SEED = 2_026_090_906' in launcher
+          assert 'CALIBRATION_SEED = 2_026_090_906' in protocol
+          assert 'preflight-v4-memory-lean' in launcher
+          assert 'full-v4-memory-lean' in launcher
+          assert 'paired-seed8100-v4-memory-lean' in launcher
+          assert 'PRODUCTION_SYSTEMS_VARIANT = "memory_lean_cast_before_gather_pad_v4"' in protocol
+          assert 'MemoryLeanPhysicalPaddedGroupedSparseMoE' in grouped
+          assert 'train_full_memory_lean_grouped_2b' in grouped
+          assert 'flat.to(CUDA_COMPUTE_DTYPE)' in grouped
+          assert 'self.expert_w2.to(dtype=CUDA_COMPUTE_DTYPE)' in grouped
+          print('memory-lean v4 paid protocol guard PASS')
           PY
 
       - uses: actions/setup-python@v5
@@ -82,29 +84,29 @@ jobs:
       - name: Verify Modal authentication before any function launch
         run: modal token info
 
-      - name: Record grouped v3 launcher handoff
+      - name: Record memory-lean v4 launcher handoff
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟨 **CORTEX-S grouped v3 launcher authenticated** — phase=${{ steps.cfg.outputs.phase }}, source=${{ steps.cfg.outputs.source_sha }}. v1 #761, v2 #769, and engineering repair namespaces are not reused. Exact hashes, source binding, grouped backend, single-use roots and budget gates remain enforced."
+            -f body="🟨 **CORTEX-S memory-lean v4 launcher authenticated** — phase=${{ steps.cfg.outputs.phase }}, source=${{ steps.cfg.outputs.source_sha }}. Consumed v1/v2/v3 and repair namespaces are not reusable. Exact hashes, source binding, fresh seed, single-use roots and frozen budget gates remain enforced."
 
-      - name: Launch exact frozen grouped v3 phase detached
+      - name: Launch exact frozen memory-lean v4 phase detached
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          modal run --detach --timestamps modal_cortex_s_100m_2b_app.py \
+          modal run --detach --timestamps modal_cortex_s_100m_2b_v4_app.py \
             --phase "${{ steps.cfg.outputs.phase }}" \
             --source-sha "${{ steps.cfg.outputs.source_sha }}" \
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER"
 
-      - name: Record GitHub to Modal grouped v3 handoff
+      - name: Record GitHub to Modal memory-lean v4 handoff
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟪 **GitHub → Modal grouped v3 handoff complete.** The detached app is source-bound and single-use. Preflight cannot launch full training; full-v3-grouped requires a separately opened issue and exact-source PASS artifact."
+            -f body="🟪 **GitHub → Modal memory-lean v4 handoff complete.** Preflight cannot launch paired training. Full-v4 requires a separately opened issue and exact-source PASS artifact."
