@@ -1,0 +1,116 @@
+name: Modal CORTEX-S 100M systems profile v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-systems-profile-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable profile-v1 source
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          assert phase == 'systems-profile-v1', "issue phase must be exactly systems-profile-v1"
+          assert re.fullmatch(r'[0-9a-f]{40}', source_sha), "source_sha must be a full commit SHA"
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify checkout and live main exactly match frozen source
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ steps.cfg.outputs.source_sha }}"
+          git fetch --no-tags --depth=1 origin main
+          test "$(git rev-parse origin/main)" = "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Fail closed with stdlib-only profile-v1 protocol guard
+        run: |
+          test -f architectures/cortex_s/SYSTEMS_PROFILE_100M_V1.md
+          test -f architectures/cortex_s/experiments/scale100m_2b/systems_profile_v1.py
+          test -f modal_cortex_s_100m_systems_profile_v1.py
+          python - <<'PY'
+          from pathlib import Path
+
+          core = Path('architectures/cortex_s/experiments/scale100m_2b/systems_profile_v1.py').read_text(encoding='utf-8')
+          launcher = Path('modal_cortex_s_100m_systems_profile_v1.py').read_text(encoding='utf-8')
+          doc = Path('architectures/cortex_s/SYSTEMS_PROFILE_100M_V1.md').read_text(encoding='utf-8')
+
+          assert 'ENGINEERING_SEED = 2_026_090_906' in core
+          assert '2_026_090_905' in core
+          assert 'PARENT_V3_ISSUE = 802' in core
+          assert 'PARENT_V3_RUN_ID = 34_345_899_535' in core
+          assert 'PARENT_V3_JOB_ID = 102_447_296_828' in core
+          assert 'MEASURED_STEPS = 10' in core
+          assert 'PROFILE_STEPS = 2' in core
+          assert 'WEIGHT_MATERIALIZATION_REPEATS = 20' in core
+          assert 'profile(' in core
+          assert '_measure_weight_materialization' in core
+          assert 'APP_NAME = "cortex-s-v0-100m-systems-profile-v1"' in launcher
+          assert 'RESULT_ROOT = "/vol/cortex-s-v0/100m-systems-profile-v1"' in launcher
+          assert 'H100_TIMEOUT_SECONDS = 15 * 60' in launcher
+          assert 'phase: str = "systems-profile-v1"' in launcher
+          assert 'def full_2b(' not in launcher
+          assert 'train_full_2b' not in launcher
+          assert 'full-v3-grouped' not in launcher
+          assert '[modal-cortex-s-100m-systems-profile-v1]' in doc
+          assert '2026090906' in doc
+          assert 'full_training_authorized": False' in launcher
+          assert 'next_stage_authorized": False' in launcher
+          print('stdlib-only systems profile-v1 protocol guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Modal only
+        run: pip install "modal>=1.1,<2"
+
+      - name: Verify Modal authentication before remote launch
+        run: modal token info
+
+      - name: Record guarded profile-v1 H100 handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S systems profile-v1 launcher authenticated** — source=${{ steps.cfg.outputs.source_sha }}, engineering seed=2026090906. This is one fresh bounded diagnostic of the exact grouped production graph. It cannot launch 2B training or authorize a next stage."
+
+      - name: Launch exact frozen systems profile-v1 detached
+        run: |
+          modal run --detach --timestamps modal_cortex_s_100m_systems_profile_v1.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Record successful profile handoff
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🧪 **CORTEX-S profile-v1 Modal handoff returned successfully.** Authoritative profile evidence is persisted in the single-use Volume namespace. This workflow does not authorize any full or follow-on run."
