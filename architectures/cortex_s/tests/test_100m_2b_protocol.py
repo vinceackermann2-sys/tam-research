@@ -20,6 +20,7 @@ from architectures.cortex_s.experiments.scale100m_2b.protocol import (
     META_SHA256,
     PHYSICAL_EXPERT_HIDDEN,
     PRODUCTION_MOE_BACKEND,
+    PRODUCTION_SYSTEMS_VARIANT,
     REPAIR4_EVIDENCE_ISSUE,
     REPAIR4_EVIDENCE_RUN,
     REPAIR4_MEASURED_SPEEDUP,
@@ -30,13 +31,21 @@ from architectures.cortex_s.experiments.scale100m_2b.protocol import (
     USER_CREDIT_ENVELOPE_USD,
     VAL_SHA256,
     V2_PREFLIGHT_ISSUE,
+    V3_COMPILE_SECONDS,
+    V3_FULL_RUN_AUTHORIZED,
+    V3_PEAK_VRAM_GIB,
+    V3_PREFLIGHT_ISSUE,
+    V3_PREFLIGHT_JOB,
+    V3_PREFLIGHT_RUN,
+    V3_PROJECTED_FULL_SECONDS,
+    V3_CALIBRATION_TPS,
     projected_full_cost_usd,
     validate_protocol,
 )
-from architectures.cortex_s.grouped_moe import (
-    PhysicalPaddedGroupedSparseMoE,
-    build_production_grouped_cortex_100m,
-    padded_hidden,
+from architectures.cortex_s.grouped_moe import padded_hidden
+from architectures.cortex_s.grouped_moe_v4 import (
+    MemoryLeanPhysicalPaddedGroupedSparseMoE,
+    build_memory_lean_grouped_cortex_100m,
 )
 from architectures.cortex_s.language_model import CortexSLM, CortexSLMConfig, parameter_count
 
@@ -53,14 +62,15 @@ def test_100m_parameter_match_is_actual_not_analytical_only() -> None:
     assert result["executed_expert_fraction"] == 0.25
     assert result["attention_layers"] == 4
     assert result["production_moe_backend"] == PRODUCTION_MOE_BACKEND
+    assert result["production_systems_variant"] == PRODUCTION_SYSTEMS_VARIANT
     assert result["physical_expert_hidden"] == 344
 
 
-def test_grouped_production_builder_is_exact_100m_backend() -> None:
-    model = build_production_grouped_cortex_100m()
+def test_memory_lean_v4_builder_is_exact_100m_backend() -> None:
+    model = build_memory_lean_grouped_cortex_100m()
     assert parameter_count(model) == EXPECTED_CORTEX_PARAMS
     assert len(model.blocks) == 24
-    assert all(isinstance(block.moe, PhysicalPaddedGroupedSparseMoE) for block in model.blocks)
+    assert all(type(block.moe) is MemoryLeanPhysicalPaddedGroupedSparseMoE for block in model.blocks)
     assert all(block.moe.hidden == 338 for block in model.blocks)
     assert all(block.moe.physical_hidden == 344 for block in model.blocks)
     assert padded_hidden(CORTEX_100M_CONFIG.expert_hidden) == PHYSICAL_EXPERT_HIDDEN
@@ -82,16 +92,17 @@ def test_full_credit_ceiling_fails_closed_below_user_envelope() -> None:
     assert hard["total_usd_conservative"] < USER_CREDIT_ENVELOPE_USD
 
 
-def test_grouped_v3_engineering_seed_is_fresh_and_scientific_seeds_untouched() -> None:
+def test_v4_engineering_seed_is_fresh_and_consumed_seeds_are_locked() -> None:
     from architectures.cortex_s.experiments.scale100m_2b.protocol import PAIRED_SEED
 
-    assert CALIBRATION_SEED == 2026090905
+    assert CALIBRATION_SEED == 2026090906
     assert CALIBRATION_SEED not in CONSUMED_ENGINEERING_SEEDS
     assert PAIRED_SEED not in RESERVED_FRESH_SEEDS
     assert CALIBRATION_SEED not in RESERVED_FRESH_SEEDS
     assert PAIRED_SEED != CALIBRATION_SEED
     assert 910001 in CONSUMED_ENGINEERING_SEEDS
     assert 2026090904 in CONSUMED_ENGINEERING_SEEDS
+    assert 2026090905 in CONSUMED_ENGINEERING_SEEDS
 
 
 def test_repair4_is_recorded_as_engineering_evidence_not_direct_authority() -> None:
@@ -99,6 +110,18 @@ def test_repair4_is_recorded_as_engineering_evidence_not_direct_authority() -> N
     assert REPAIR4_EVIDENCE_ISSUE == 799
     assert REPAIR4_EVIDENCE_RUN == 34339214619
     assert REPAIR4_MEASURED_SPEEDUP > 1.20
+
+
+def test_v3_preflight_abort_is_frozen_and_non_authorizing() -> None:
+    assert V3_PREFLIGHT_ISSUE == 802
+    assert V3_PREFLIGHT_RUN == 34345899535
+    assert V3_PREFLIGHT_JOB == 102447296828
+    assert V3_CALIBRATION_TPS == 241_834.8588
+    assert V3_COMPILE_SECONDS == 366.727893589
+    assert V3_PROJECTED_FULL_SECONDS == 9_463.8449
+    assert V3_PROJECTED_FULL_SECONDS > MAX_PROJECTED_FULL_SECONDS
+    assert V3_PEAK_VRAM_GIB < 70.0
+    assert V3_FULL_RUN_AUTHORIZED is False
 
 
 def test_small_same_mechanism_forward_backward_is_finite() -> None:
@@ -127,15 +150,14 @@ def test_small_same_mechanism_forward_backward_is_finite() -> None:
     assert all(torch.isfinite(grad).all() for grad in grads)
 
 
-def test_real_100m_forward_is_finite_on_cpu() -> None:
+def test_real_100m_v4_forward_is_finite_on_cpu() -> None:
     torch.manual_seed(20260908)
-    model = build_production_grouped_cortex_100m().eval()
+    model = build_memory_lean_grouped_cortex_100m().eval()
     tokens = torch.randint(0, CORTEX_100M_CONFIG.vocab_size, (1, 4))
     with torch.no_grad():
         logits = model(tokens)
     assert logits.shape == (1, 4, CORTEX_100M_CONFIG.vocab_size)
     assert torch.isfinite(logits).all()
-    # Grouped counts stay tensors in the hot path but final reporting must be JSON-safe.
     json.dumps(model.router_stats())
 
 
@@ -160,31 +182,34 @@ def test_fingerprint_v2_workflow_has_unique_single_purpose_trigger() -> None:
     assert "modal_cortex_s_100m_2b_fingerprint_v2_app.py" in workflow
 
 
-def test_v3_grouped_paid_launcher_uses_fresh_single_use_namespaces() -> None:
-    source = (REPO_ROOT / "modal_cortex_s_100m_2b_app.py").read_text(encoding="utf-8")
+def test_v4_paid_launcher_uses_fresh_single_use_namespaces() -> None:
+    source = (REPO_ROOT / "modal_cortex_s_100m_2b_v4_app.py").read_text(encoding="utf-8")
     assert TRAIN_SHA256 in source
     assert VAL_SHA256 in source
     assert META_SHA256 in source
-    assert 'APP_NAME = "cortex-s-v0-100m-2b-v3-grouped"' in source
-    assert 'PREFLIGHT_ROOT = "/vol/cortex-s-v0/100m-2b/preflight-v3-grouped"' in source
-    assert 'RUN_ROOT = "/vol/cortex-s-v0/100m-2b/paired-seed8100-v3-grouped"' in source
-    assert 'phase == "preflight-v3-grouped"' in source
-    assert 'phase == "full-v3-grouped"' in source
-    assert "run_h100_grouped_calibration" in source
-    assert "train_full_grouped_2b" in source
+    assert 'APP_NAME = "cortex-s-v0-100m-2b-v4-memory-lean"' in source
+    assert 'PREFLIGHT_ROOT = "/vol/cortex-s-v0/100m-2b/preflight-v4-memory-lean"' in source
+    assert 'RUN_ROOT = "/vol/cortex-s-v0/100m-2b/paired-seed8100-v4-memory-lean"' in source
+    assert 'phase == "preflight-v4-memory-lean"' in source
+    assert 'phase == "full-v4-memory-lean"' in source
+    assert "run_h100_memory_lean_grouped_calibration" in source
+    assert "train_full_memory_lean_grouped_2b" in source
     assert "volume.commit()" in source
     assert '"automatic_resume_authorized": False' in source
+    assert 'CALIBRATION_SEED = 2_026_090_906' in source
 
 
-def test_v3_grouped_workflow_cannot_accept_consumed_v1_or_v2_triggers() -> None:
+def test_v4_workflow_cannot_accept_consumed_v1_v2_or_v3_triggers() -> None:
     workflow = (REPO_ROOT / ".github/workflows/modal-cortex-s-100m-2b.yml").read_text(
         encoding="utf-8"
     )
-    assert "[modal-cortex-s-100m-2b-preflight-v3-grouped]" in workflow
-    assert "[modal-cortex-s-100m-2b-full-v3-grouped]" in workflow
-    assert "preflight-v3-grouped" in workflow
-    assert "full-v3-grouped" in workflow
+    assert "[modal-cortex-s-100m-2b-preflight-v4-memory-lean]" in workflow
+    assert "[modal-cortex-s-100m-2b-full-v4-memory-lean]" in workflow
+    assert "preflight-v4-memory-lean" in workflow
+    assert "full-v4-memory-lean" in workflow
     assert "workflow_dispatch" not in workflow
+    assert "[modal-cortex-s-100m-2b-preflight-v3-grouped]" not in workflow
+    assert "[modal-cortex-s-100m-2b-full-v3-grouped]" not in workflow
     assert "[modal-cortex-s-100m-2b-preflight-v2]" not in workflow
     assert "[modal-cortex-s-100m-2b-full-v2]" not in workflow
     assert "'[modal-cortex-s-100m-2b-preflight]'" not in workflow
