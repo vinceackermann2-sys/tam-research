@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from pathlib import Path
 
 import torch
-import torch.nn.functional as F
 
 from architectures.cortex_s.language_model import CortexSLM, CortexSLMConfig, TrulySparseMoE, parameter_count
 from architectures.cortex_s.experiments.scale100m_2b.systems_microbench_v1 import (
@@ -144,3 +144,27 @@ def test_candidate_parameter_layout_is_grouped_mm_friendly():
     assert candidate.expert_w2.shape == (8, 16, 24)
     assert candidate.expert_w1.is_contiguous()
     assert candidate.expert_w2.is_contiguous()
+
+
+def test_modal_app_has_only_single_bounded_engineering_h100_entrypoint():
+    repo = Path(__file__).resolve().parents[3]
+    app = (repo / "modal_cortex_s_100m_systems_microbench_v1.py").read_text(encoding="utf-8")
+    assert "H100_TIMEOUT_SECONDS = 15 * 60" in app
+    assert "def h100_microbenchmark(" in app
+    assert "def full_2b(" not in app
+    assert "train_full_2b" not in app
+    assert "full-v2" not in app
+    assert "ENGINEERING_SEED = 2_026_090_901" in app
+    assert "H100_DISPATCH_CONSUMED.json" in app
+
+
+def test_workflow_has_no_manual_dispatch_and_only_exact_owner_issue_trigger():
+    repo = Path(__file__).resolve().parents[3]
+    workflow = (repo / ".github/workflows/modal-cortex-s-100m-systems-microbench-v1.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "workflow_dispatch" not in workflow
+    assert "github.event.issue.user.login == github.repository_owner" in workflow
+    assert "github.event.issue.title == '[modal-cortex-s-100m-systems-microbench-v1]'" in workflow
+    assert "git rev-parse origin/main" in workflow
+    assert "modal_cortex_s_100m_systems_microbench_v1.py" in workflow
