@@ -1,0 +1,103 @@
+name: Modal CORTEX-S affine scan Triton GPU microbench v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-affine-scan-triton-gpu-microbench-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable phase and source
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          assert phase == 'gpu-microbench-v1', "phase must be exactly gpu-microbench-v1"
+          assert re.fullmatch(r'[0-9a-f]{40}', source_sha), "source_sha must be a full commit SHA"
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify exact source and live main
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ steps.cfg.outputs.source_sha }}"
+          git fetch --no-tags --depth=1 origin main
+          test "$(git rev-parse origin/main)" = "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Fail closed with stdlib-only protocol guard
+        run: |
+          test -f architectures/cortex_s/affine_scan_triton_candidate.py
+          test -f architectures/cortex_s/experiments/affine_scan_triton_gpu_microbench_v1.py
+          test -f modal_cortex_s_affine_scan_triton_gpu_microbench_v1.py
+          python - <<'PY'
+          from pathlib import Path
+          core = Path('architectures/cortex_s/experiments/affine_scan_triton_gpu_microbench_v1.py').read_text(encoding='utf-8')
+          launcher = Path('modal_cortex_s_affine_scan_triton_gpu_microbench_v1.py').read_text(encoding='utf-8')
+          production = Path('architectures/cortex_s/language_model.py').read_text(encoding='utf-8')
+          assert 'ENGINEERING_SEED = 2_026_090_907' in core
+          assert 'PRODUCTION_SHAPE = (64, 512, 128)' in core
+          assert 'GPU_CORRECTNESS_FAIL' in core
+          assert 'PROMISING_SPEEDUP = 1.50' in core
+          assert 'RESULT_ROOT = "/vol/cortex-s-v0/affine-scan-triton-gpu-microbench-v1"' in launcher
+          assert 'H100_TIMEOUT_SECONDS = 10 * 60' in launcher
+          assert 'gpu="H100!"' in launcher
+          assert 'train_full_2b' not in launcher
+          assert 'full_2b' not in launcher
+          assert 'affine_scan_triton_candidate' not in production
+          print('scan GPU microbench static guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record authorized handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S Triton scan GPU microbench launcher authenticated** — source=${{ steps.cfg.outputs.source_sha }}, engineering seed=2026090907. Zero-GPU single-use gate runs before at most one bounded H100 dispatch. GPU correctness must pass before timing is valid. No production integration, scientific seed or 2B training is authorized."
+
+      - name: Launch exact frozen scan microbenchmark detached
+        run: |
+          modal run --detach --timestamps modal_cortex_s_affine_scan_triton_gpu_microbench_v1.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Record successful Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🧪 **CORTEX-S Triton scan GPU microbench returned.** Authoritative dispatch/result evidence is persisted in the single-use Volume namespace. This remains engineering evidence only and cannot authorize production integration or 2B training."
