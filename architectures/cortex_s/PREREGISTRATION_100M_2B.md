@@ -1,158 +1,176 @@
-# CORTEX-S v0 — 100M / 2B paired historical-control preregistration v2
+# CORTEX-S v0 — 100M / 2B paired historical-control preregistration v3-grouped
 
-Status: **frozen after CPU fingerprint recovery and before any H100 calibration**.
+Status: **frozen before the grouped production H100 preflight**.
 
-The original paid preflight trigger `#761` is consumed and will never be rerun. It stopped in the CPU-only corpus gate because the original protocol had frozen SHA-256 values that had not actually been established by the historical Transformer run. No H100 calibration and no CORTEX-S training step occurred in `#761`.
+This document supersedes the paid execution mechanics of v2 while preserving the same scientific comparison. It does not retroactively turn any engineering run into scientific evidence.
 
-Issue `#767` then ran a new single-use CPU-only fingerprint diagnostic. It verified the existing historical corpus metadata and exact byte sizes and observed the real train/validation/meta SHA-256 values. That diagnostic explicitly did not authorize H100 or full training. This v2 document freezes those observed values before the first H100 calibration.
+## Why v3 exists
 
-No reserved fresh CORTEX-S scientific seed has been consumed.
+The original preflight `#761` is consumed and stopped in the CPU corpus gate. The repaired v2 preflight `#769` is also consumed. Its zero-GPU corpus gate passed, but engineering calibration seed `910001` measured only `133,384.4585 tok/s`, projecting a conservative full envelope of `16,676.53 s` against the frozen `8,500 s` gate. Therefore no v2 full run was launched.
+
+Subsequent systems work used engineering-only seeds and single-use namespaces. Seeds `2026090901`, `2026090902`, `2026090903`, and `2026090904` are consumed. None are scientific seeds.
+
+Repair4 issue `#799`, workflow `34339214619`, job `102425759653`, exact source `9f4196b10674c6eb0454dc2d3459a7c283f16637`, established a promising systems candidate on one H100:
+
+- physical zero-padding from logical expert width `338` to runtime width `344`;
+- exact trainable parameter count preserved at `101,778,112`;
+- compiled grouped forward/backward operator probe: PASS;
+- exact routing probe: PASS;
+- semantic loss delta: `0.004322052001953125` against frozen `0.02` gate;
+- legacy production-shape throughput: `139,895.4161 tok/s`;
+- grouped production-shape throughput: `182,118.5159 tok/s`;
+- measured speedup: `1.3018190376x`, above the preregistered `1.20x` promising gate;
+- grouped peak VRAM: `45.2683 GiB`, below the `70 GiB` gate.
+
+Repair4 explicitly returned `full_training_authorized=false` and `next_stage_authorized=false`. It is **engineering systems evidence only**. This v3 integration is a separately preregistered production stage.
 
 ## Classification
 
-This is an **adaptive paired historical-control experiment**, not a blind fresh-seed trial.
+The eventual seed-8100 comparison remains an **adaptive paired historical-control experiment**. The historical Transformer result was known before CORTEX-S development. Even a win cannot by itself be called a breakthrough.
 
-The repository's matched 100M Transformer was completed earlier and its outcome was available before CORTEX-S was scaled. Therefore even a strong CORTEX-S result cannot by itself be called a breakthrough. The purpose of this run is to decide whether the architecture warrants an independent replication.
+Reserved independent scientific seeds `48131`, `48132`, and `48133` remain untouched.
 
-## Frozen comparison
+## Frozen historical control
 
-Historical control: repository issue `#140`, Transformer 100M, seed `8100`.
+Repository issue `#140`, Transformer 100M, seed `8100`:
 
-CORTEX-S paired run:
+- parameters: `101,803,520`;
+- final NLL: `2.7115590302149455`;
+- final perplexity: `15.053722884190283`;
+- training seconds: `6227.609573988244`;
+- total compute seconds including compile: `6478.327432424761`;
+- reported training throughput: `321151.5755348581 tok/s`;
+- peak VRAM: about `11.896 GiB`.
 
-- seed: `8100`, pairing the random-window generator convention with the historical control;
+No second Transformer will be trained.
+
+## Frozen paired CORTEX-S scientific run
+
+If and only if the new grouped production preflight passes, a separately triggered full stage may use:
+
+- paired seed: `8100`;
 - nominal training-token budget: `2,000,000,000`;
 - validation tokens: `5,000,000`;
 - context: `512`;
 - microbatch: `64`;
 - gradient accumulation: `2`;
 - global batch: `128`;
-- optimizer: AdamW, betas `(0.9, 0.95)`;
-- peak LR: `3e-4`;
-- weight decay: `0.1`;
-- warmup fraction: `0.02`;
-- precision: CUDA bf16 autocast;
-- same immutable pretraining directory and exact corpus bytes as the Transformer;
-- same final validation seed/batch convention as the repository trainer.
+- AdamW betas `(0.9, 0.95)`;
+- peak LR `3e-4`;
+- weight decay `0.1`;
+- warmup fraction `0.02`;
+- CUDA bf16 autocast;
+- same immutable corpus bytes as the historical control.
 
-No second Transformer will be trained. Reusing the completed control is materially cheaper and avoids introducing a second control implementation.
+### Token accounting
 
-### Important token-accounting correction
+The historical trainer and CORTEX-S use full optimizer batches:
 
-The repository trainer implements the 2B budget with full optimizer batches:
+- tokens per step = `64 × 512 × 2 = 65,536`;
+- steps = `ceil(2,000,000,000 / 65,536) = 30,518`;
+- literal full-batch exposures = `2,000,027,648`;
+- nominal overshoot = `27,648` tokens (`~0.00138%`).
 
-- tokens per optimizer step = `64 × 512 × 2 = 65,536`;
-- optimizer steps = `ceil(2,000,000,000 / 65,536) = 30,518`;
-- literal full-batch token exposures = `30,518 × 65,536 = 2,000,027,648`.
+The full run must therefore execute the same `30,518` optimizer steps. We will report both the nominal 2B budget and literal exposures.
 
-The historical Transformer reports a capped `tokens_seen = 2,000,000,000`, but its final optimizer step was a normal full batch. Therefore the fairest comparison is to run CORTEX-S for the same `30,518` full optimizer steps. Both models have a nominal 2B budget and `2,000,027,648` literal full-batch exposures; the overshoot is only `27,648` tokens (`~0.00138%`). We will not falsely describe the run as literally exactly 2,000,000,000 exposures.
+## Frozen corpus
 
-## Frozen corpus fingerprints
+CPU fingerprint evidence remains issue `#767`, workflow `34271912952`:
 
-CPU-only fingerprint-v2 evidence: issue `#767`, workflow run `34271912952`.
+- train SHA-256 `93e9cb0b7076a4ddd855fc696f657ea62592b8a03a05220be99c402f9043265b`;
+- validation SHA-256 `ae0bc5adf36d0aa8e55e5e3903401d3f114b93037f43221944b4e88c5d1a5760`;
+- metadata SHA-256 `14bbbcf0ab0b8cba374074ef8ccb80a04ecead06c74780f35a1becd5aef1b8f3`;
+- train bytes `4,000,000,000`;
+- validation bytes `10,000,000`;
+- metadata assembly v3, seed 8100, GPT-2 tokenizer, uint16.
 
-- train SHA-256: `93e9cb0b7076a4ddd855fc696f657ea62592b8a03a05220be99c402f9043265b`;
-- validation SHA-256: `ae0bc5adf36d0aa8e55e5e3903401d3f114b93037f43221944b4e88c5d1a5760`;
-- metadata SHA-256: `14bbbcf0ab0b8cba374074ef8ccb80a04ecead06c74780f35a1becd5aef1b8f3`;
-- train bytes: `4,000,000,000`;
-- validation bytes: `10,000,000`;
-- metadata contract: assembly v3, seed 8100, GPT-2 tokenizer, uint16, 2B train tokens and 5M validation tokens.
+The grouped v3 zero-GPU stage must re-hash these exact existing bytes before any H100 allocation.
 
-These values were observed from the already-existing corpus; the corpus was not rebuilt or changed.
+## Frozen CORTEX-S architecture
 
-## Frozen 100M CORTEX-S architecture
+Scientific architecture semantics are unchanged from v2:
 
-- vocabulary: `50,257`;
-- width: `512`;
-- layers: `24`;
-- heads: `16`;
-- recurrent state: `128` per layer;
-- experts: `8`;
-- top-k: `2`;
-- expert hidden width: `338`;
-- full attention every `6` layers, therefore `4/24` attention layers;
-- total trainable parameters: `101,778,112`;
-- historical Transformer parameters: `101,803,520`;
-- absolute mismatch: `25,408` parameters, about `0.025%`;
-- theoretical selected expert-token assignments: `25%` of dense expert assignments.
+- vocabulary `50,257`;
+- width `512`;
+- layers `24`;
+- heads `16`;
+- recurrent state `128` per layer;
+- experts `8`;
+- top-k `2`;
+- logical expert hidden width `338`;
+- full attention every `6` layers = `4/24` attention layers;
+- trainable parameters `101,778,112`;
+- selected expert-token assignments `25%` of dense expert assignments.
 
-The models are matched on **total trainable parameters**, not active FLOPs. Any speed/efficiency advantage must be measured; it is not assumed from sparsity.
+The production systems backend is now frozen as `physical_padded_grouped_bf16`. It materializes six zero runtime channels, giving physical expert width `344`, but those channels add **zero trainable parameters** and are not a new learned architecture component. On CPU/unsupported devices the code uses an equivalent grouped reference path.
 
-## State policy limitation
+The models are matched on total trainable parameters, not active FLOPs.
 
-Training uses random 512-token windows. Recurrent state is reset at each independently sampled training sequence. This run tests the CORTEX-S architecture inside a normal language-model training regime; it does **not** establish continual learning across batches and cannot support a continual-learning claim.
+## Grouped production integration gate
 
-## Zero-credit gates before H100
+Before the next H100 allocation, repository CI must prove on the exact branch head that:
 
-Before any H100 function is permitted:
+1. the grouped production 100M builder has exactly `101,778,112` trainable parameters;
+2. all 24 MoE blocks use the production grouped backend;
+3. logical width remains `338` and physical runtime width remains `344`;
+4. a real 100M CPU forward is finite;
+5. grouped router statistics remain JSON-serializable without synchronizing counts in the hot training path;
+6. existing CORTEX-S correctness tests still pass;
+7. paid launcher syntax and unique v3 namespaces/triggers are locked;
+8. normal full-repository CI, the CORTEX-S CPU gate, and the 100M/2B zero-credit gate all pass on the exact head.
 
-1. instantiate the real 100M CORTEX-S on CPU and measure actual parameter count;
-2. require parameter mismatch <= `0.5%`;
-3. run a real 100M forward pass on CPU and require finite logits;
-4. run same-mechanism forward/backward on a reduced CPU model and require finite gradients;
-5. syntax-check the paid launcher and trainer;
-6. require normal repository CI and both dedicated CORTEX-S CPU workflows to pass;
-7. re-hash the exact existing corpus against the issue `#767` observed fingerprints before allocating H100.
+Only after those checks may the branch be merged.
 
-## H100 calibration gate v2
+## H100 production preflight v3-grouped
 
-Calibration seed `910001` is engineering-only and becomes consumed by the first H100 preflight-v2. It is not scientific evidence.
+Fresh engineering calibration seed: `2026090905`. It becomes consumed at the first H100 dispatch and may never be reused. It is not scientific evidence.
 
-The preflight uses the exact production 100M graph, context, microbatch, gradient accumulation and optimizer. It may try the historical Transformer's compile mode; if compilation fails it may make one eager fallback measurement. It may never start the full paired run itself.
+Unique namespaces and triggers:
 
-Full progression requires all of:
+- app: `cortex-s-v0-100m-2b-v3-grouped`;
+- preflight root: `/vol/cortex-s-v0/100m-2b/preflight-v3-grouped`;
+- paired full root: `/vol/cortex-s-v0/100m-2b/paired-seed8100-v3-grouped`;
+- preflight issue title: `[modal-cortex-s-100m-2b-preflight-v3-grouped]`;
+- full issue title: `[modal-cortex-s-100m-2b-full-v3-grouped]`.
 
-- finite loss and gradients;
-- exact expected parameter count;
-- positive measured throughput;
-- peak H100 allocation <= `70 GiB`;
-- conservative projected full compute <= `8,500 seconds`;
-- exact source SHA unchanged between preflight and full launch.
+The workflow is issue-triggered only; consumed v1/v2 issue titles are no longer accepted.
 
-The consumed v1 preflight namespace is not reused. v2 uses:
+The preflight uses the actual grouped production builder inside the normal 100M trainer, with the same context, microbatch, accumulation, optimizer and compile mode intended for the full run. It may not start full training itself.
 
-- preflight root: `/vol/cortex-s-v0/100m-2b/preflight-v2`;
-- paired run root: `/vol/cortex-s-v0/100m-2b/paired-seed8100-v2`;
-- preflight issue title: `[modal-cortex-s-100m-2b-preflight-v2]`;
-- full issue title: `[modal-cortex-s-100m-2b-full-v2]`.
+PASS requires all existing trainer gates:
+
+- finite training loss and gradients;
+- exact parameter count `101,778,112`;
+- positive throughput;
+- peak H100 allocation `<= 70 GiB`;
+- conservative projected full envelope `<= 8,500 s`;
+- exact source SHA unchanged;
+- production backend metadata exactly `physical_padded_grouped_bf16`.
+
+A PASS makes a **separate** `full-v3-grouped` issue eligible. It does not launch it automatically. A FAIL stops paid progression.
 
 ## Credit guard
 
-Pricing snapshot recorded in protocol code:
+Frozen pricing snapshot:
 
-- H100: `$0.001097/s`;
-- conservative Starter CPU assumption: `$0.00003942/core/s`;
-- conservative Starter memory assumption: `$0.00000667/GiB/s`.
+- H100 `$0.001097/s`;
+- CPU `$0.00003942/core/s`;
+- memory `$0.00000667/GiB/s`.
 
-The full function has a hard timeout of `10,000 seconds`. The protocol validates that this conservative hard-timeout compute estimate is below the stated `$29` credit envelope. Live billing can differ, so the primary fail-safe is the measured calibration plus wall-clock ceiling.
+The full function keeps the `10,000 s` hard timeout. Protocol validation requires the conservative hard-timeout estimate to remain below the stated `$29` credit envelope. Live billing may differ; the primary gate is measured wall time.
 
-## Checkpoint durability
+## Checkpoint durability and no automatic retry
 
-The full run writes an atomic `latest.pt` every nominal 200M tokens. The Modal wrapper now explicitly commits the mounted Volume after each completed checkpoint, because uncommitted Volume writes are not guaranteed durable outside the running container.
+The full grouped stage retains atomic `latest.pt` checkpoints every nominal 200M reported tokens and explicitly commits the Modal Volume after each checkpoint. A checkpoint is salvage/evidence only.
 
-A durable checkpoint is **salvage/evidence only**. It does not authorize an automatic retry, rerun, or cross-dispatch resume. If the single full attempt terminates before completion, the experiment stops under the existing governance until a separate recovery decision is explicitly authorized.
+`automatic_resume_authorized=false`: a failed full dispatch is consumed and will not be retried, rerun, or resumed without a separately governed recovery decision.
 
-## Primary result
+## Result interpretation
 
-Primary quality comparison is held-out language NLL after the same 30,518 full optimizer steps and matched training-byte/random-window protocol. Historical Transformer reference:
+Primary quality comparison remains held-out NLL after the same 30,518 full optimizer steps. Report NLL/PPL, training throughput, training/total compute time, peak VRAM, router utilization, parameter mismatch, nominal token budget, optimizer steps and literal exposures.
 
-- NLL: `2.7115590302149455`;
-- perplexity: `15.053722884190283`;
-- training throughput: `321151.5755348581 tok/s`;
-- training seconds: `6227.609573988244`;
-- total compute seconds including compile: `6478.327432424761`;
-- peak VRAM: about `11.896 GiB`.
+If CORTEX-S does not beat historical NLL `2.7115590302149455`, say so and stop paid scientific progression. If it does beat it, classify the result only as promising `PAIRED_HISTORICAL_CONTROL_ADAPTIVE_EXPERIMENT` evidence. `breakthrough_claim_allowed=false` remains frozen and independent fresh-seed replication is still required.
 
-Report CORTEX-S final NLL/PPL, training throughput, total compute time, peak VRAM, actual router utilization, parameter mismatch, nominal token budget, optimizer steps and literal full-batch exposures.
+## State-policy limitation
 
-## Interpretation gate
-
-A CORTEX-S result is interesting enough for independent replication if it is finite and its matched-step held-out NLL is strictly below the historical Transformer's `2.711559...` while measured systems cost remains practical.
-
-Even then, the paired adaptive run remains `PAIRED_HISTORICAL_CONTROL_ADAPTIVE_EXPERIMENT` with `breakthrough_claim_allowed = false`. It is at most promising candidate evidence that warrants a fresh independent protocol.
-
-If it loses on matched-step NLL or the preflight fails the budget/systems gate, stop paid progression. Do not spend reserved fresh seeds just to rescue the result.
-
-## Fresh replication remains untouched
-
-Reserved seeds `48131`, `48132`, `48133` remain unused. They may only be used after this development comparison justifies a separately frozen independent protocol, including a modern recurrent/state-space baseline and additional data/domain checks.
+Training samples random 512-token windows and resets recurrent state for each independently sampled sequence. This experiment does not establish continual learning across batches and cannot support a continual-learning claim.

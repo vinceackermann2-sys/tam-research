@@ -1,15 +1,6 @@
-name: Modal CORTEX-S 100M 2B guarded run v2
+name: Modal CORTEX-S 100M 2B grouped guarded run v3
 
 on:
-  workflow_dispatch:
-    inputs:
-      phase:
-        description: "preflight-v2 or full-v2"
-        required: true
-        default: "preflight-v2"
-      source_sha:
-        description: "Exact frozen commit SHA to execute"
-        required: true
   issues:
     types: [opened]
 
@@ -20,38 +11,33 @@ permissions:
 jobs:
   launch:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'issues' &&
-       github.event.issue.user.login == github.repository_owner &&
-       (github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v2]' ||
-        github.event.issue.title == '[modal-cortex-s-100m-2b-full-v2]'))
+      github.event.issue.user.login == github.repository_owner &&
+      (github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v3-grouped]' ||
+       github.event.issue.title == '[modal-cortex-s-100m-2b-full-v3-grouped]')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
     steps:
-      - name: Resolve immutable v2 phase and source
+      - name: Resolve immutable grouped v3 phase and source
         id: cfg
         env:
-          EVENT_NAME: ${{ github.event_name }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-          INPUT_PHASE: ${{ inputs.phase }}
-          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, re
-          if os.environ['EVENT_NAME'] == 'issues':
-              cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
-              expected_phase = 'preflight-v2' if os.environ['ISSUE_TITLE'].endswith('preflight-v2]') else 'full-v2'
-              phase = str(cfg.get('phase', expected_phase)).strip().lower()
-              source_sha = str(cfg.get('source_sha', '')).strip().lower()
-              assert phase == expected_phase
-          else:
-              phase = os.environ['INPUT_PHASE'].strip().lower()
-              source_sha = os.environ['INPUT_SOURCE_SHA'].strip().lower()
-          assert phase in {'preflight-v2', 'full-v2'}
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          title = os.environ['ISSUE_TITLE']
+          expected_phase = (
+              'preflight-v3-grouped'
+              if title == '[modal-cortex-s-100m-2b-preflight-v3-grouped]'
+              else 'full-v3-grouped'
+          )
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          assert phase == expected_phase, f'phase must be exactly {expected_phase}'
           assert re.fullmatch(r'[0-9a-f]{40}', source_sha), 'source_sha must be a full 40-char SHA'
           print(f'phase={phase}')
           print(f'source_sha={source_sha}')
@@ -62,8 +48,29 @@ jobs:
           ref: ${{ steps.cfg.outputs.source_sha }}
           fetch-depth: 1
 
-      - name: Verify checkout is exactly frozen source
-        run: test "$(git rev-parse HEAD)" = "${{ steps.cfg.outputs.source_sha }}"
+      - name: Verify checkout and live main are exactly the frozen source
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ steps.cfg.outputs.source_sha }}"
+          git fetch --no-tags --depth=1 origin main
+          test "$(git rev-parse origin/main)" = "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Fail closed with grouped v3 static protocol guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          launcher = Path('modal_cortex_s_100m_2b_app.py').read_text(encoding='utf-8')
+          protocol = Path('architectures/cortex_s/experiments/scale100m_2b/protocol.py').read_text(encoding='utf-8')
+          grouped = Path('architectures/cortex_s/grouped_moe.py').read_text(encoding='utf-8')
+          assert 'CALIBRATION_SEED = 2_026_090_905' in launcher
+          assert 'CALIBRATION_SEED = 2_026_090_905' in protocol
+          assert 'preflight-v3-grouped' in launcher
+          assert 'full-v3-grouped' in launcher
+          assert 'paired-seed8100-v3-grouped' in launcher
+          assert 'PRODUCTION_MOE_BACKEND = "physical_padded_grouped_bf16"' in protocol
+          assert 'PhysicalPaddedGroupedSparseMoE' in grouped
+          assert 'train_full_grouped_2b' in grouped
+          print('grouped v3 paid protocol guard PASS')
+          PY
 
       - uses: actions/setup-python@v5
         with:
@@ -75,18 +82,17 @@ jobs:
       - name: Verify Modal authentication before any function launch
         run: modal token info
 
-      - name: Record v2 launcher handoff
-        if: github.event_name == 'issues'
+      - name: Record grouped v3 launcher handoff
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟨 **CORTEX-S guarded v2 launcher authenticated** — phase=${{ steps.cfg.outputs.phase }}, source=${{ steps.cfg.outputs.source_sha }}. Consumed preflight #761 is not being reused. Modal still enforces exact hashes, single-use namespaces and budget gates."
+            -f body="🟨 **CORTEX-S grouped v3 launcher authenticated** — phase=${{ steps.cfg.outputs.phase }}, source=${{ steps.cfg.outputs.source_sha }}. v1 #761, v2 #769, and engineering repair namespaces are not reused. Exact hashes, source binding, grouped backend, single-use roots and budget gates remain enforced."
 
-      - name: Launch exact frozen v2 phase detached
+      - name: Launch exact frozen grouped v3 phase detached
         env:
-          ISSUE_NUMBER: ${{ github.event.issue.number || 0 }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           modal run --detach --timestamps modal_cortex_s_100m_2b_app.py \
             --phase "${{ steps.cfg.outputs.phase }}" \
@@ -94,11 +100,11 @@ jobs:
             --repo-full-name "$GITHUB_REPOSITORY" \
             --issue-number "$ISSUE_NUMBER"
 
-      - name: Record GitHub to Modal v2 handoff
-        if: success() && github.event_name == 'issues'
+      - name: Record GitHub to Modal grouped v3 handoff
+        if: success()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟪 **GitHub → Modal v2 handoff complete.** Detached execution is governed by the frozen v2 app; full training cannot run unless the exact-source v2 H100 preflight artifact is PASS."
+            -f body="🟪 **GitHub → Modal grouped v3 handoff complete.** The detached app is source-bound and single-use. Preflight cannot launch full training; full-v3-grouped requires a separately opened issue and exact-source PASS artifact."

@@ -7,16 +7,19 @@ from typing import Any
 from architectures.cortex_s.language_model import CortexSLMConfig
 
 
-EXPERIMENT_ID = "cortex-s-v0-100m-2b-paired8100-v2"
-PROJECT_NAMESPACE = "cortex-s-v0/100m-2b-v2"
+EXPERIMENT_ID = "cortex-s-v0-100m-2b-paired8100-v3-grouped"
+PROJECT_NAMESPACE = "cortex-s-v0/100m-2b-v3-grouped"
+PRODUCTION_MOE_BACKEND = "physical_padded_grouped_bf16"
+LOGICAL_EXPERT_HIDDEN = 338
+PHYSICAL_EXPERT_HIDDEN = 344
 
 # Historical matched Transformer control already completed in repo issue #140.
 PAIRED_SEED = 8_100
 BASELINE_ISSUE = 140
 BASELINE_TRANSFORMER = {
     "parameters": 101_803_520,
-    # Keep the legacy key for compatibility with earlier report/tests. Both names
-    # mean the trainer's nominal budget, not literal full-batch exposures.
+    # The trainer's nominal budget is 2B, but the final optimizer step is a full
+    # batch. Literal exposures are therefore the separately frozen value below.
     "pretrain_tokens": 2_000_000_000,
     "pretrain_token_budget": 2_000_000_000,
     "full_batch_token_exposures": 2_000_027_648,
@@ -50,26 +53,36 @@ LEARNING_RATE = 3e-4
 WEIGHT_DECAY = 0.1
 WARMUP_RATIO = 0.02
 
-# These fingerprints were OBSERVED by the new CPU-only fingerprint-v2 diagnostic,
-# issue #767 / workflow run 34271912952, after consumed preflight #761 exposed that
-# the original preregistration had frozen unestablished/incorrect SHA values. The
-# observed corpus also matched the historical builder metadata contract and exact
-# 2B/5M uint16 byte sizes. No GPU was allocated while establishing these values.
+# CPU-only fingerprint-v2 evidence: issue #767 / workflow 34271912952.
 TRAIN_SHA256 = "93e9cb0b7076a4ddd855fc696f657ea62592b8a03a05220be99c402f9043265b"
 VAL_SHA256 = "ae0bc5adf36d0aa8e55e5e3903401d3f114b93037f43221944b4e88c5d1a5760"
 META_SHA256 = "14bbbcf0ab0b8cba374074ef8ccb80a04ecead06c74780f35a1becd5aef1b8f3"
 FINGERPRINT_EVIDENCE_ISSUE = 767
 FINGERPRINT_EVIDENCE_RUN = 34_271_912_952
 
-# This seed is engineering-only and may be consumed by H100 calibration. It must
-# never be interpreted as fresh scientific evidence.
-CALIBRATION_SEED = 910_001
+# Systems history. The original/v2 calibration path was too slow and is consumed.
+V2_PREFLIGHT_ISSUE = 769
+V2_PREFLIGHT_SOURCE_SHA = "6cb1882aa5b02e4f8917a7cae44e6d1925b9e290"
+V2_CALIBRATION_TPS = 133_384.4585
+V2_PROJECTED_FULL_SECONDS = 16_676.53
+REPAIR4_EVIDENCE_ISSUE = 799
+REPAIR4_EVIDENCE_RUN = 34_339_214_619
+REPAIR4_EVIDENCE_JOB = 102_425_759_653
+REPAIR4_SOURCE_SHA = "9f4196b10674c6eb0454dc2d3459a7c283f16637"
+REPAIR4_MEASURED_SPEEDUP = 1.3018190376470742
+REPAIR4_GROUPED_TPS = 182_118.51594019053
+REPAIR4_GROUPED_PEAK_VRAM_GIB = 45.2682785987854
+REPAIR4_SEMANTIC_LOSS_DELTA = 0.004322052001953125
+
+# All prior engineering seeds are consumed and may never be reused. The v3 grouped
+# production preflight gets one fresh engineering seed; it is not scientific data.
+CONSUMED_ENGINEERING_SEEDS = (910_001, 2_026_090_901, 2_026_090_902, 2_026_090_903, 2_026_090_904)
+CALIBRATION_SEED = 2_026_090_905
 CALIBRATION_STEPS = 40
 CALIBRATION_WARMUP_STEPS = 5
 
-# Budget lock. Full training may not start unless the measured H100 calibration
-# projects below this wall-clock envelope. A second hard Modal timeout provides a
-# fail-closed ceiling even if the estimate is optimistic.
+# Budget lock. A separately triggered full run may not start unless this exact
+# production grouped graph projects below the frozen wall-clock envelope.
 H100_USD_PER_SECOND_SNAPSHOT = 0.001097
 STARTER_CPU_USD_PER_CORE_SECOND_SNAPSHOT = 0.00003942
 STARTER_MEMORY_USD_PER_GIB_SECOND_SNAPSHOT = 0.00000667
@@ -79,9 +92,7 @@ MAX_PROJECTED_FULL_SECONDS = 8_500
 HARD_FULL_TIMEOUT_SECONDS = 10_000
 USER_CREDIT_ENVELOPE_USD = 29.0
 
-# 100M CORTEX-S is matched to the repository Transformer at total parameter count,
-# not at active FLOPs. Sparse experts and only four full-attention layers are the
-# architectural hypothesis being tested.
+# 100M CORTEX-S remains matched on total trainable parameters, not active FLOPs.
 CORTEX_100M_CONFIG = CortexSLMConfig(
     vocab_size=50_257,
     d_model=512,
@@ -91,16 +102,14 @@ CORTEX_100M_CONFIG = CortexSLMConfig(
     state_size=128,
     num_experts=8,
     top_k=2,
-    expert_hidden=338,
+    expert_hidden=LOGICAL_EXPERT_HIDDEN,
     attention_every=6,
 )
 EXPECTED_CORTEX_PARAMS = 101_778_112
 EXPECTED_TRANSFORMER_PARAMS = 101_803_520
 MAX_PARAMETER_GAP_FRACTION = 0.005
 
-# Reserved fresh seeds from the original preregistration remain untouched. This
-# paired run intentionally reuses the historical Transformer's seed so the random
-# window stream is paired; it is an adaptive/historical-control experiment.
+# Reserved independent scientific replication seeds remain untouched.
 RESERVED_FRESH_SEEDS = (48_131, 48_132, 48_133)
 
 
@@ -119,8 +128,6 @@ def projected_full_cost_usd(seconds: float) -> dict[str, float]:
 
 
 def _transformer_100m_parameter_count() -> int:
-    # ResearchLM uses tied token/output embeddings, learned positional embeddings,
-    # LayerNorm with weight+bias, full d_model attention and ff_mult=4.
     vocab = 50_257
     d_model = 512
     layers = 24
@@ -137,8 +144,7 @@ def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, A
     baseline_params = _transformer_100m_parameter_count()
     if baseline_params != EXPECTED_TRANSFORMER_PARAMS:
         raise RuntimeError(
-            f"Transformer parameter formula drifted: {baseline_params:,} != "
-            f"{EXPECTED_TRANSFORMER_PARAMS:,}"
+            f"Transformer parameter formula drifted: {baseline_params:,} != {EXPECTED_TRANSFORMER_PARAMS:,}"
         )
     cortex_params = EXPECTED_CORTEX_PARAMS if actual_cortex_params is None else actual_cortex_params
     if cortex_params != EXPECTED_CORTEX_PARAMS:
@@ -160,6 +166,13 @@ def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, A
         raise RuntimeError("context length no longer matches historical Transformer")
     if CORTEX_100M_CONFIG.top_k / CORTEX_100M_CONFIG.num_experts > 0.5:
         raise RuntimeError("sparse execution fraction exceeds preregistered ceiling")
+    if CORTEX_100M_CONFIG.expert_hidden != LOGICAL_EXPERT_HIDDEN:
+        raise RuntimeError("logical expert width drift")
+    if PHYSICAL_EXPERT_HIDDEN != 344:
+        raise RuntimeError("grouped physical expert width drift")
+    forbidden = set(CONSUMED_ENGINEERING_SEEDS) | {PAIRED_SEED, *RESERVED_FRESH_SEEDS}
+    if CALIBRATION_SEED in forbidden:
+        raise RuntimeError("v3 calibration seed is consumed or scientifically reserved")
     hard_cost = projected_full_cost_usd(HARD_FULL_TIMEOUT_SECONDS)["total_usd_conservative"]
     if hard_cost >= USER_CREDIT_ENVELOPE_USD:
         raise RuntimeError(
@@ -177,6 +190,9 @@ def validate_protocol(*, actual_cortex_params: int | None = None) -> dict[str, A
         "optimizer_steps": TOTAL_OPTIMIZER_STEPS,
         "full_batch_token_exposures": FULL_BATCH_TOKEN_EXPOSURES,
         "full_batch_overshoot_tokens": FULL_BATCH_TOKEN_EXPOSURES - TRAIN_TOKENS,
+        "production_moe_backend": PRODUCTION_MOE_BACKEND,
+        "logical_expert_hidden": LOGICAL_EXPERT_HIDDEN,
+        "physical_expert_hidden": PHYSICAL_EXPERT_HIDDEN,
         "projected_cost_at_gate": projected_full_cost_usd(MAX_PROJECTED_FULL_SECONDS),
         "hard_timeout_cost_ceiling": projected_full_cost_usd(HARD_FULL_TIMEOUT_SECONDS),
     }
@@ -189,6 +205,7 @@ def protocol_snapshot() -> dict[str, Any]:
         "project_namespace": PROJECT_NAMESPACE,
         "paired_seed": PAIRED_SEED,
         "calibration_seed": CALIBRATION_SEED,
+        "consumed_engineering_seeds": list(CONSUMED_ENGINEERING_SEEDS),
         "reserved_fresh_seeds": list(RESERVED_FRESH_SEEDS),
         "data_dir": DATA_DIR,
         "train_sha256": TRAIN_SHA256,
@@ -196,6 +213,24 @@ def protocol_snapshot() -> dict[str, Any]:
         "meta_sha256": META_SHA256,
         "fingerprint_evidence_issue": FINGERPRINT_EVIDENCE_ISSUE,
         "fingerprint_evidence_run": FINGERPRINT_EVIDENCE_RUN,
+        "v2_preflight": {
+            "issue": V2_PREFLIGHT_ISSUE,
+            "source_sha": V2_PREFLIGHT_SOURCE_SHA,
+            "measured_tps": V2_CALIBRATION_TPS,
+            "projected_full_seconds": V2_PROJECTED_FULL_SECONDS,
+            "full_run_launched": False,
+        },
+        "repair4_engineering_evidence": {
+            "issue": REPAIR4_EVIDENCE_ISSUE,
+            "run": REPAIR4_EVIDENCE_RUN,
+            "job": REPAIR4_EVIDENCE_JOB,
+            "source_sha": REPAIR4_SOURCE_SHA,
+            "speedup": REPAIR4_MEASURED_SPEEDUP,
+            "grouped_tps": REPAIR4_GROUPED_TPS,
+            "grouped_peak_vram_gib": REPAIR4_GROUPED_PEAK_VRAM_GIB,
+            "semantic_loss_delta": REPAIR4_SEMANTIC_LOSS_DELTA,
+            "scientific_evidence": False,
+        },
         "train_token_budget": TRAIN_TOKENS,
         "val_tokens": VAL_TOKENS,
         "seq_len": SEQ_LEN,
