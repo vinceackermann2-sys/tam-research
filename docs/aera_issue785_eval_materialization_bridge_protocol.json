@@ -1,0 +1,68 @@
+{
+  "authority": {
+    "architecture_freeze": false,
+    "breakthrough_claim": false,
+    "checkpoint_write": false,
+    "gpu": false,
+    "modal_execution": false,
+    "result_write": false,
+    "s2_replication": false,
+    "scaling": false,
+    "scientific_evaluation": false,
+    "scientific_seed_37641": false,
+    "scientific_training": false,
+    "systems_optimization": false
+  },
+  "consumed_l4_issue": 783,
+  "evaluation": {
+    "heldout_pair_rule": "(key_index + value_index) % 5 == 4",
+    "nonreset_per_distance": {
+      "2": 108,
+      "32": 108,
+      "8": 108
+    },
+    "reset_per_distance": {
+      "32": 54,
+      "8": 54
+    },
+    "retention_distances": [
+      2,
+      8,
+      32
+    ],
+    "split": "eval",
+    "total_cases": 432,
+    "unique_sample_ids": 432
+  },
+  "implementation_base_main": "f2869318ac9668b8255ad548afa82ab513c0a024",
+  "implementation_base_tree": "2ea29d80157718f3358a2d2ba49fdefbec03f8ea",
+  "issue_creation_main": "a781647a0203c5023c5781a7718fa277947130b7",
+  "issue_creation_tree": "ed4e95fd120d3c634854d94c977a11d3a951696b",
+  "lineage_blobs": {
+    "corrected_harness": "afc939a69633f68ded05eb585c95a599a8f5c981",
+    "delta_memory": "ec0b5d29b3d4ac27bd60fd9c152480b9f177c3e9",
+    "frozen_base": "40003b68987d026265b1d53fcb637f18277f9cac",
+    "frozen_gate": "981602432b684989f7a5011ff953e6965368c5e5",
+    "integrated_repaired_model": "b695b1b7b7476be3a16433c96dff32870f2e1f49",
+    "repaired_adapter": "1489df753f2eee0f3acc5aba049c0eeb40fce10d",
+    "v18_core": "97861a2407876f62665b13140c2135b4a11d4597"
+  },
+  "parent_research_issue": 776,
+  "protocol_version": "aera-issue785-eval-materialization-bridge-cpu-v1",
+  "repair": {
+    "capacity_error": "records exceed chunk capacity",
+    "copies_retry_algorithm": false,
+    "materializer_function": "evaluation_cases",
+    "materializer_module": "tam_research.aera_issue748_memory_capability_seed1_harness",
+    "max_attempts": 4096,
+    "raw_base_materializer_used": false
+  },
+  "research_issue": 785,
+  "scientific_seeds": {
+    "consumed": [
+      17641,
+      27641
+    ],
+    "future_locked": 37641
+  }
+}
