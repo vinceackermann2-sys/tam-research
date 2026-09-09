@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from types import MethodType
 from typing import Iterator, Optional
 
 import torch
@@ -154,6 +155,8 @@ class PhysicalPaddedGroupedSparseMoE(nn.Module):
         weighted = expert_output * plan.assignment_weights[:, None]
         output = torch.zeros_like(flat)
         output.index_add_(0, plan.token_indices, weighted)
+        # Keep this on-device during the hot training path. The model-level
+        # router_stats override converts only once when the final report is built.
         self.last_counts = plan.counts.detach()
         return output.view(original_shape)
 
@@ -193,6 +196,25 @@ def convert_to_production_grouped(model: CortexSLM) -> CortexSLM:
     return model
 
 
+def _json_safe_router_stats(model: CortexSLM) -> dict[str, object]:
+    per_layer = []
+    for index, block in enumerate(model.blocks):
+        counts = block.moe.last_counts
+        if counts is None:
+            continue
+        if isinstance(counts, torch.Tensor):
+            values = [int(value) for value in counts.detach().cpu().tolist()]
+        else:
+            values = [int(value) for value in counts]
+        total = sum(values)
+        fractions = [count / total if total else 0.0 for count in values]
+        per_layer.append({"layer": index, "counts": values, "fractions": fractions})
+    return {
+        "theoretical_executed_fraction": model.cfg.top_k / model.cfg.num_experts,
+        "per_layer": per_layer,
+    }
+
+
 def build_production_grouped_cortex_100m() -> CortexSLM:
     """Build the exact 100M model used by grouped preflight/full training v3."""
 
@@ -204,6 +226,9 @@ def build_production_grouped_cortex_100m() -> CortexSLM:
 
     model = CortexSLM(CORTEX_100M_CONFIG)
     model = convert_to_production_grouped(model)
+    # The legacy model's router_stats assumes Python-list counts. The grouped hot
+    # path deliberately keeps counts on-device, so convert only at report time.
+    model.router_stats = MethodType(lambda self: _json_safe_router_stats(self), model)
     actual = parameter_count(model)
     if actual != EXPECTED_CORTEX_PARAMS:
         raise RuntimeError(f"grouped 100M parameter count drift: {actual} != {EXPECTED_CORTEX_PARAMS}")
