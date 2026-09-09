@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import torch
+import torch.nn.functional as F
 
 from architectures.cortex_s.language_model import CortexSLM, CortexSLMConfig, TrulySparseMoE, parameter_count
 from architectures.cortex_s.experiments.scale100m_2b.systems_microbench_v1 import (
@@ -136,6 +137,29 @@ def test_bf16_casts_are_differentiable_on_cpu_reference_graph():
     loss.backward()
     assert x.grad is not None and torch.isfinite(x.grad).all()
     assert weight.grad is not None and torch.isfinite(weight.grad).all()
+
+
+def test_grouped_cuda_execution_keeps_bf16_output_between_expert_gemms(monkeypatch):
+    candidate = PackedBF16GroupedSparseMoE(d_model=8, num_experts=2, top_k=1, hidden=4)
+    packed = torch.randn(7, 8, dtype=torch.float32, requires_grad=True)
+    matrices = torch.randn(2, 8, 4, dtype=torch.float32, requires_grad=True)
+    offsets = torch.tensor([3, 7], dtype=torch.int32)
+    seen: dict[str, torch.dtype] = {}
+
+    monkeypatch.setattr(candidate, "grouped_cuda_available", lambda _: True)
+
+    def fake_grouped_mm(left, right, *, offs):
+        seen["left"] = left.dtype
+        seen["right"] = right.dtype
+        assert torch.equal(offs, offsets)
+        # Shape-only stand-in for the CUDA kernel; the dtype contract is what this
+        # zero-credit test freezes before the H100 benchmark.
+        return torch.zeros(left.size(0), right.size(-1), dtype=torch.bfloat16)
+
+    monkeypatch.setattr(F, "grouped_mm", fake_grouped_mm, raising=False)
+    out = candidate._grouped_mm(packed, matrices, offsets)
+    assert seen == {"left": torch.bfloat16, "right": torch.bfloat16}
+    assert out.dtype == torch.bfloat16
 
 
 def test_candidate_parameter_layout_is_grouped_mm_friendly():
