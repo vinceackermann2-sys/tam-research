@@ -1,0 +1,101 @@
+name: Modal CORTEX-S 100M systems microbench v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-systems-microbench-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable engineering phase and source
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          assert phase == 'microbench-v1', "issue phase must be exactly microbench-v1"
+          assert re.fullmatch(r'[0-9a-f]{40}', source_sha), "source_sha must be a full commit SHA"
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify checkout and live main are exactly the frozen source
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ steps.cfg.outputs.source_sha }}"
+          git fetch --no-tags --depth=1 origin main
+          test "$(git rev-parse origin/main)" = "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Fail closed unless exact microbenchmark protocol is present
+        run: |
+          test -f architectures/cortex_s/SYSTEMS_MICROBENCH_100M_V1.md
+          test -f modal_cortex_s_100m_systems_microbench_v1.py
+          python - <<'PY'
+          from architectures.cortex_s.experiments.scale100m_2b.systems_microbench_v1 import (
+              ENGINEERING_SEED,
+              TRIGGER_TITLE,
+              validate_microbench_protocol,
+          )
+          assert ENGINEERING_SEED == 2_026_090_901
+          assert TRIGGER_TITLE == '[modal-cortex-s-100m-systems-microbench-v1]'
+          p = validate_microbench_protocol()
+          assert p['full_training_authorized'] is False
+          print(p)
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Modal only
+        run: pip install "modal>=1.1,<2"
+
+      - name: Verify Modal authentication before any remote function launch
+        run: modal token info
+
+      - name: Record guarded H100 handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S systems microbench v1 launcher authenticated** — source=${{ steps.cfg.outputs.source_sha }}, engineering seed=2026090901. This is one bounded engineering H100 dispatch only; paired/scientific training is not present in this app."
+
+      - name: Launch exact frozen systems microbenchmark detached
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          modal run --detach --timestamps modal_cortex_s_100m_systems_microbench_v1.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}" \
+            --repo-full-name "$GITHUB_REPOSITORY" \
+            --issue-number "$ISSUE_NUMBER"
+
+      - name: Record GitHub to Modal handoff
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟪 **GitHub → Modal systems microbench v1 handoff complete.** Modal must first pass the zero-GPU corpus gate, then may allocate one H100 under a 15-minute hard timeout. The result cannot authorize the 2B run."
