@@ -1,0 +1,63 @@
+{
+  "classification": "EXPLORATORY_CPU_FALSIFICATION_ONLY",
+  "candidate": "CHM-v0",
+  "seed": 59317,
+  "seed_status": "consumed_exploratory_never_scientific",
+  "training_horizon_events": 64,
+  "page_size": 16,
+  "directory_slots_per_page": 4,
+  "hard_route_top_pages": 2,
+  "task": "repeated-key latest-value retrieval with 2-4 forced overwrites",
+  "train": {
+    "chm_seconds": 7.33691143989563,
+    "flat_seconds": 5.534873008728027,
+    "chm_last_loss": 1.025261402130127,
+    "flat_last_loss": 0.234671950340271
+  },
+  "eval": {
+    "64": {
+      "chm": {
+        "accuracy": 0.7666015625,
+        "stale_error": 0.185546875,
+        "route_recall": 0.8017578125,
+        "comparisons_per_query": 48,
+        "fraction_flat_comparisons": 0.75
+      },
+      "flat": {
+        "accuracy": 0.96875,
+        "stale_error": 0.048828125,
+        "comparisons_per_query": 64
+      }
+    },
+    "256": {
+      "chm": {
+        "accuracy": 0.6337890625,
+        "stale_error": 0.23828125,
+        "route_recall": 0.6552734375,
+        "comparisons_per_query": 96,
+        "fraction_flat_comparisons": 0.375
+      },
+      "flat": {
+        "accuracy": 0.962890625,
+        "stale_error": 0.0458984375,
+        "comparisons_per_query": 256
+      }
+    },
+    "1024": {
+      "chm": {
+        "accuracy": 0.556640625,
+        "stale_error": 0.2529296875,
+        "route_recall": 0.5576171875,
+        "comparisons_per_query": 288,
+        "fraction_flat_comparisons": 0.28125
+      },
+      "flat": {
+        "accuracy": 0.953125,
+        "stale_error": 0.0556640625,
+        "comparisons_per_query": 1024
+      }
+    }
+  },
+  "decision": "FAIL_DO_NOT_SCALE",
+  "reason": "Learned lossy page summaries reduce candidate comparisons but fail to preserve exact episodic addressability as memory grows; simple flat retrieval remains decisively stronger."
+}
