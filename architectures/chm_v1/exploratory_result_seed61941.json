@@ -1,0 +1,29 @@
+{
+  "candidate": "CHM-v1 exact-backed adaptive multi-route retrieval",
+  "classification": "EXPLORATORY_CPU_FALSIFICATION_ONLY",
+  "decision": "PASS_CPU_MECHANISM_ONLY",
+  "eval": {
+    "overwrite": {
+      "1024": {"avg_candidate_reads": 221.97, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.216767578125, "route_bits": 8, "route_recall": 1.0},
+      "256": {"avg_candidate_reads": 141.38, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.552265625, "route_bits": 6, "route_recall": 1.0},
+      "4096": {"avg_candidate_reads": 299.2033333333333, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.07304768880208333, "route_bits": 10, "route_recall": 1.0},
+      "64": {"avg_candidate_reads": 60.53, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.94578125, "route_bits": 4, "route_recall": 1.0}
+    },
+    "rare_fact": {
+      "1024": {"avg_candidate_reads": 223.47333333333333, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.21823567708333333, "route_bits": 8, "route_recall": 1.0},
+      "256": {"avg_candidate_reads": 140.02333333333334, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.5469661458333334, "route_bits": 6, "route_recall": 1.0},
+      "4096": {"avg_candidate_reads": 302.5, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.0738525390625, "route_bits": 10, "route_recall": 1.0},
+      "64": {"avg_candidate_reads": 60.32333333333333, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.9425520833333333, "route_bits": 4, "route_recall": 1.0}
+    },
+    "two_hop": {
+      "1024": {"avg_candidate_reads_two_hops": 444.85333333333335, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.21721354166666668, "route_bits": 8},
+      "256": {"avg_candidate_reads_two_hops": 283.3666666666667, "chm_v1_accuracy": 1.0, "flat_accuracy": 1.0, "fraction_flat_reads": 0.5534505208333333, "route_bits": 6},
+      "4096": {"avg_candidate_reads_two_hops": 618.5533333333333, "chm_v1_accuracy": 0.9966666666666667, "flat_accuracy": 0.9966666666666667, "fraction_flat_reads": 0.07550699869791666, "route_bits": 10}
+    }
+  },
+  "interpretation_ceiling": "Mechanism progression only. No LM, equal-compute, scaling, novelty, or breakthrough claim.",
+  "mechanism": {"cluster_threshold": 0.8, "exact_episodic_substrate_preserved": true, "n_tables": 12, "noise_std": 0.05, "probes_per_table": 3, "routing_uses_event_or_key_ids": false},
+  "seed": 61941,
+  "seed_status": "consumed_exploratory_never_scientific",
+  "train": {"batch": 256, "final_contrastive_loss": 0.10793833434581757, "seconds": 1.213969063013792, "steps": 800}
+}
