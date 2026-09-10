@@ -1,0 +1,136 @@
+name: Modal CORTEX-S 100M/2B preflight v5 Triton scan
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v5-triton-scan]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable paid-boundary payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          source_tree = str(cfg.get('source_tree', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          assert phase == 'preflight-v5-triton-scan', 'phase must be exactly preflight-v5-triton-scan'
+          for name, value in (('source_sha', source_sha), ('source_tree', source_tree), ('harness_sha', harness_sha)):
+              assert re.fullmatch(r'[0-9a-f]{40}', value), f'{name} must be a full lowercase SHA'
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'source_tree={source_tree}')
+          print(f'harness_sha={harness_sha}')
+          PY
+
+      - name: Checkout exact paid-boundary source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on live source, ancestry, and frozen blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v5_triton_scan_preflight.py")" = "426f9ee9916ea293dedd89f4fecb26a31e0b78f3"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/grouped_moe_v4.py")" = "7c738e6349536dd45f1c631a9ad5524ade1d5021"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/protocol.py")" = "b44d2a8d8b757aae052c34d314fc89604b531f1d"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/train.py")" = "c593c2761c3ae868df96eae0978b2186ac6961d2"
+          test "$(sha256sum source/architectures/cortex_s/experiments/scale100m_2b/train.py | awk '{print $1}')" = "6ded33f5981ab2bad6aad75b6fc238a4608960fd9ac839f1f3fa71924ad58844"
+
+      - name: Fail closed with stdlib-only authority guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          runner = Path('source/modal_cortex_s_100m_2b_v5_triton_scan_preflight.py').read_text(encoding='utf-8')
+          assert 'ENGINEERING_SEED = 2_026_091_002' in runner
+          assert 'RESULT_ROOT = "/vol/cortex-s-v0/100m-2b/preflight-v5-triton-scan"' in runner
+          assert 'TOTAL_OPTIMIZER_STEPS = 30_518' in runner
+          assert 'FULL_BATCH_TOKEN_EXPOSURES = 2_000_027_648' in runner
+          assert 'MEASURED_STEPS = 80' in runner
+          assert 'STEADY_WINDOW_STEPS = (41, 80)' in runner
+          assert 'STARTUP_ALLOWANCE_SECONDS = 1_144.16' in runner
+          assert 'MIN_STEADY_TOKENS_PER_SECOND = 259_750.0' in runner
+          assert 'MAX_FULL_ENVELOPE_SECONDS = 8_500.0' in runner
+          assert 'MAX_ALLOCATED_VRAM_GIB = 80.0' in runner
+          assert 'EXPECTED_CORTEX_PARAMS = 101_778_112' in runner
+          assert runner.count('gpu="H100!"') == 1
+          assert 'SYSTEMS_PREFLIGHT_PASS' in runner and 'SYSTEMS_PREFLIGHT_FAIL' in runner
+          assert '"amp_enabled": False' in runner
+          assert 'projected_full_seconds = projected_training_seconds + STARTUP_ALLOWANCE_SECONDS' in runner
+          assert '"projected_full_envelope_le_8500_seconds": projected_full_seconds <= MAX_FULL_ENVELOPE_SECONDS' in runner
+          assert 'full_training_authorized": False' in runner
+          assert 'scientific_claim_authorized": False' in runner
+          assert 'train_full_2b(' not in runner
+          main = runner[runner.index('def main('):]
+          assert main.index('reserve_h100_dispatch.remote') < main.index('h100_preflight.remote')
+          h100 = runner[runner.index('def h100_preflight('):runner.index('@app.local_entrypoint()')]
+          assert '_atomic_write(marker_path' not in h100
+          reserve = runner[runner.index('def reserve_h100_dispatch('):runner.index('def _one_optimizer_step_no_amp(')]
+          assert '_atomic_write(marker_path, marker)' in reserve
+          print('v5 dormant harness authority guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record authorized handoff before any Modal invocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S v5 systems-preflight launcher authenticated** — source=${{ steps.cfg.outputs.source_sha }}, tree=${{ steps.cfg.outputs.source_tree }}, harness=${{ steps.cfg.outputs.harness_sha }}, reserved engineering seed=2026091002. The runner performs a zero-GPU gate, then durably consumes the single-use dispatch marker before requesting one H100. No scientific/control seed or full 2B run is authorized."
+
+      - name: Launch exact source-bound single-use systems preflight
+        run: |
+          cd source
+          modal run --detach --timestamps modal_cortex_s_100m_2b_v5_triton_scan_preflight.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}" \
+            --source-tree "${{ steps.cfg.outputs.source_tree }}" \
+            --harness-sha "${{ steps.cfg.outputs.harness_sha }}"
+
+      - name: Record successful Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🧪 **CORTEX-S v5 systems preflight returned.** Authoritative `RESULT.json` is durable in the single-use Volume namespace. `SYSTEMS_PREFLIGHT_PASS`, if present, reaches only a separate full-budget authorization boundary; it does not authorize a 2B run or support a scientific claim."
