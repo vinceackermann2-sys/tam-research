@@ -1,0 +1,277 @@
+name: AERA issue829 seed37641 v2 runner
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: aera-issue829-event-memory-repair-seed37641-v2
+  cancel-in-progress: false
+
+jobs:
+  issue829-seed37641-v2:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      (startsWith(github.event.issue.title, '[aera-event-memory-repair-seed37641-preauth-v2]') ||
+       startsWith(github.event.issue.title, '[aera-event-memory-repair-seed37641-l4-v2]'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check frozen scientific runner
+        run: python -m py_compile modal_aera_issue790_event_memory_seed37641_runner.py
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.2,<1.3'
+
+      - name: Verify #829 immutable boundary and select v2 mode
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_RUN_ATTEMPT}" = "1"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/790" --jq '.title')" = "[prereg/no-gpu] AERA repaired event-memory seed37641 runner after merged #786"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/790" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/829" --jq '.title')" = "[cpu/correction] AERA seed37641 preauth-v2 additive workflow recovery after failed #824"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/829" --jq '.state')" = "open"
+
+          freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/829/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #829 pre-ref additive v2 workflow freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${freeze_count}" = "1"
+          freeze_comment="$(gh api "repos/${GITHUB_REPOSITORY}/issues/829/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #829 pre-ref additive v2 workflow freeze")) | .body')"
+          source_main="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^SOURCE_MAIN=\([0-9a-f]\{40\}\)$/\1/p')"
+          v2_workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^V2_WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${source_main}" && test -n "${v2_workflow_blob}"
+
+          event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
+          bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
+          test "$(printf '%s\n' "${bound_lines}" | sed '/^$/d' | wc -l | tr -d ' ')" = "1"
+          bound_main="$(printf '%s\n' "${bound_lines}" | head -n 1)"
+          test -n "${bound_main}"
+
+          git cat-file -e "${bound_main}^{commit}"
+          git checkout --detach "${bound_main}"
+          test "$(git rev-parse HEAD)" = "${bound_main}"
+          git merge-base --is-ancestor "${source_main}" "${bound_main}"
+          git merge-base --is-ancestor 5e5d746c70380eb4819534eb5a061a2d142fa26f "${bound_main}"
+          test "$(git rev-parse 5e5d746c70380eb4819534eb5a061a2d142fa26f^{tree})" = "2348be0e21c107d254146a7426b432f6f808687f"
+          git merge-base --is-ancestor 1c0ecd321a530daee32a4603a9cd6fb201be2d8a "${bound_main}"
+          test "$(git rev-parse 1c0ecd321a530daee32a4603a9cd6fb201be2d8a^{tree})" = "00dd4e489f5ad70fc68b5d195a9ba820ac299a54"
+          git merge-base --is-ancestor 49be1185d38c0a38bcd5f38ded4430689c22b753 "${bound_main}"
+          test "$(git rev-parse 49be1185d38c0a38bcd5f38ded4430689c22b753^{tree})" = "a492b2cc9ece22a3ab8db94536e3923b4ebb34ff"
+          git merge-base --is-ancestor ad454169c1380ed303383e7911f5045c7c47084a "${bound_main}"
+          test "$(git rev-parse ad454169c1380ed303383e7911f5045c7c47084a^{tree})" = "a492b2cc9ece22a3ab8db94536e3923b4ebb34ff"
+          git merge-base --is-ancestor 39f7e55488fe4c3b03ae2664ef89365fed6d4ce7 "${bound_main}"
+          test "$(git rev-parse 39f7e55488fe4c3b03ae2664ef89365fed6d4ce7^{tree})" = "162126c2f04543ce9bfc2db0596573670c1ac123"
+
+          test "$(git hash-object tam_research/aera_issue790_event_memory_seed37641_scientific_adapter.py)" = "931ba460cae55ceb940b61d92288668f6e02ff53"
+          test "$(git hash-object docs/aera_issue790_event_memory_seed37641_protocol.json)" = "9f865dff148aa46ffd9957259aeb4c0591595cad"
+          test "$(git hash-object modal_aera_issue790_event_memory_seed37641_runner.py)" = "58bc3bbe16492fa8161456ea5103653dc320f6b6"
+          test "$(git hash-object tests/test_aera_issue790_event_memory_seed37641_runner_cpu.py)" = "94670f0f77f5ee86ce58ac9e5b3af29be22f2b7d"
+          test "$(git hash-object tam_research/aera_issue785_eval_materialization_bridge_cpu.py)" = "aa90b3ae3266786323b0517de8385135869c3653"
+          test "$(git hash-object tam_research/aera_issue748_memory_capability_seed1_harness.py)" = "afc939a69633f68ded05eb585c95a599a8f5c981"
+          test "$(git hash-object tam_research/aera_issue776_event_memory_scientific_adapter.py)" = "1489df753f2eee0f3acc5aba049c0eeb40fce10d"
+          test "$(git hash-object tam_research/aera_issue770_integrated_event_memory_cpu.py)" = "b695b1b7b7476be3a16433c96dff32870f2e1f49"
+          test "$(git hash-object tam_research/aera_issue748_memory_capability_seed1_harness_base.py)" = "40003b68987d026265b1d53fcb637f18277f9cac"
+          test "$(git hash-object tam_research/aera_memory_capability_gate_v1.py)" = "981602432b684989f7a5011ff953e6965368c5e5"
+          test "$(git hash-object tam_research/aera_hardware_core_v18.py)" = "97861a2407876f62665b13140c2135b4a11d4597"
+          test "$(git hash-object tam_research/aera_delta_memory.py)" = "ec0b5d29b3d4ac27bd60fd9c152480b9f177c3e9"
+          test "$(git hash-object .github/workflows/aera-issue790-event-memory-seed37641-runner.yml)" = "f4357904b4316b6e2bc2dfcc6ef390a5317d2da5"
+          test "$(git hash-object .github/workflows/aera-issue829-event-memory-seed37641-v2.yml)" = "${v2_workflow_blob}"
+
+          title="$(jq -r '.issue.title' "${GITHUB_EVENT_PATH}")"
+          if [[ "${title}" == '[aera-event-memory-repair-seed37641-preauth-v2]'* ]]; then
+            mode=preauth
+            prefix='[aera-event-memory-repair-seed37641-preauth-v2]'
+            evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence v2**")) | .id' | wc -l | tr -d ' ')"
+            test "${evidence_count}" = "0"
+          elif [[ "${title}" == '[aera-event-memory-repair-seed37641-l4-v2]'* ]]; then
+            mode=l4
+            prefix='[aera-event-memory-repair-seed37641-l4-v2]'
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence v2**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${preauth_count}" = "1"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #790 repaired seed 37641 L4 scientific authorization v2")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | select((.body // "") | contains("Authorize seed: `37641`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+            result_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA #790 seed37641 scientific evidence**")) | .id' | wc -l | tr -d ' ')"
+            test "${result_count}" = "0"
+          else
+            exit 1
+          fi
+
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+          echo "bound_main=${bound_main}" >> "${GITHUB_OUTPUT}"
+          echo "allowed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Re-verify v2 trigger immediately before Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          MODE: ${{ steps.guard.outputs.mode }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${BOUND_MAIN}"
+          if [[ "${MODE}" == "preauth" ]]; then
+            prefix='[aera-event-memory-repair-seed37641-preauth-v2]'
+          else
+            prefix='[aera-event-memory-repair-seed37641-l4-v2]'
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence v2**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            test "${preauth_count}" = "1"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("## #790 repaired seed 37641 L4 scientific authorization v2")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | select((.body // "") | contains("Authorize seed: `37641`")) | .id' | wc -l | tr -d ' ')"
+            test "${auth_count}" = "1"
+          fi
+          mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
+          test "${#matches[@]}" = "1"
+          test "${TRIGGER_ISSUE}" = "${matches[0]}"
+
+      - name: Authenticate Modal
+        if: steps.guard.outputs.allowed == 'true'
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: Run zero-GPU seed37641 preauthorization v2
+        if: steps.guard.outputs.mode == 'preauth'
+        id: preauth
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_issue790_event_memory_seed37641_runner.py::preauth_main 2>&1 | tee /tmp/issue790-preauth-v2.log
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_PREAUTH_JSON=' /tmp/issue790-preauth-v2.log)" = "1"
+
+      - name: Record seed37641 preauthorization evidence v2
+        if: steps.guard.outputs.mode == 'preauth' && steps.preauth.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          python - <<'PY' >/tmp/issue790-preauth-v2.md
+          import json, os
+          from pathlib import Path
+          prefix = "AERA_ISSUE790_SEED37641_PREAUTH_JSON="
+          payloads = [json.loads(x[len(prefix):]) for x in Path("/tmp/issue790-preauth-v2.log").read_text().splitlines() if x.startswith(prefix)]
+          if len(payloads) != 1:
+              raise SystemExit("expected one #790 preauth v2 payload")
+          p = payloads[0]
+          if p.get("runner_issue") != 790 or p.get("research_issue") != 790 or p.get("model_seed") != 37641:
+              raise SystemExit("#790 preauth v2 identity drift")
+          if p.get("result_absent") is not True or p.get("checkpoint_absent_or_empty") is not True:
+              raise SystemExit("#790 preauth v2 namespace not fresh")
+          if p.get("evaluation_case_count") != 432 or p.get("unique_case_ids") != 432:
+              raise SystemExit("#790 corrected materialization drift")
+          for key in (
+              "gpu_used", "model_constructed", "scientific_seed_consumed",
+              "training_performed", "evaluation_performed", "checkpoint_written",
+              "result_written", "systems_optimization_authorized",
+              "architecture_freeze_authorized", "s2_replication_authorized",
+              "scaling_authorized", "breakthrough_proven",
+          ):
+              if p.get(key) is not False:
+                  raise SystemExit(f"#790 preauth v2 authority drift: {key}")
+          print("🔎 **AERA #790 seed37641 preauthorization evidence v2**")
+          print()
+          print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
+          print("Model seed: `37641` — **not consumed**")
+          print(f"Result namespace fresh: `{p['result_path']}`")
+          print(f"Checkpoint namespace fresh: `{p['checkpoint_dir']}`")
+          print("Corrected held-out materialization: `432/432 unique`.")
+          print("GPU used: `false`; model constructed: `false`; training/evaluation: `false`; writes: `false`.")
+          print()
+          print("This evidence authorizes no L4/scientific run. Explicit repaired seed `37641` L4 authorization remains required.")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue790-preauth-v2.md)" >/dev/null
+
+      - name: Run sole repaired seed37641 L4 capability gate v2
+        if: steps.guard.outputs.mode == 'l4'
+        id: l4
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set -o pipefail
+          modal run modal_aera_issue790_event_memory_seed37641_runner.py::l4_main 2>&1 | tee /tmp/issue790-l4-v2.log
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_PREAUTH_JSON=' /tmp/issue790-l4-v2.log)" = "1"
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_L4_START_JSON=' /tmp/issue790-l4-v2.log)" = "1"
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_RESULT_JSON=' /tmp/issue790-l4-v2.log)" = "1"
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_SUMMARY_JSON=' /tmp/issue790-l4-v2.log)" = "1"
+
+      - name: Record seed37641 scientific evidence v2
+        if: always() && steps.guard.outputs.mode == 'l4'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
+          L4_OUTCOME: ${{ steps.l4.outcome }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          python - <<'PY' >/tmp/issue790-science-v2.md
+          import json, os
+          from pathlib import Path
+          path = Path("/tmp/issue790-l4-v2.log")
+          lines = path.read_text(errors="replace").splitlines() if path.exists() else []
+          def payloads(prefix):
+              out = []
+              for line in lines:
+                  if line.startswith(prefix):
+                      try:
+                          out.append(json.loads(line[len(prefix):]))
+                      except Exception:
+                          pass
+              return out
+          starts = payloads("AERA_ISSUE790_SEED37641_L4_START_JSON=")
+          results = payloads("AERA_ISSUE790_SEED37641_RESULT_JSON=")
+          summaries = payloads("AERA_ISSUE790_SEED37641_SUMMARY_JSON=")
+          progress = payloads("AERA_ISSUE790_SEED37641_PROGRESS_JSON=")
+          print("🔬 **AERA #790 seed37641 scientific evidence v2**")
+          print()
+          print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
+          print(f"Workflow L4 step outcome: `{os.environ.get('L4_OUTCOME', '')}`")
+          print(f"L4 start markers: `{len(starts)}`; result markers: `{len(results)}`; summary markers: `{len(summaries)}`; progress markers: `{len(progress)}`")
+          if starts:
+              print(f"Observed L4 start seed: `{starts[0].get('model_seed')}`; GPU request: `{starts[0].get('gpu')}`")
+              print("Seed `37641` is consumed once this start marker exists; never retry/rerun/redispatch.")
+          if results:
+              r = results[-1]
+              print(f"Status: `{r.get('status')}`")
+              d = r.get("decision") or {}
+              print(f"Recommendation: `{d.get('recommendation')}`")
+              checks = d.get("checks") or {}
+              et = checks.get("equal_token") or {}
+              eg = checks.get("equal_gpu_time") or {}
+              print(f"Equal-token B-A long: `{et.get('B_minus_A_long_accuracy')}`")
+              print(f"Equal-GPU-time B-A long: `{eg.get('B_minus_A_long_accuracy')}`")
+          else:
+              print("No completed result marker was observed. Do not classify an infrastructure/pre-result failure as scientific PASS/FAIL.")
+          print()
+          print("This evidence grants no systems optimization, architecture freeze, replication, scaling, or breakthrough authority.")
+          PY
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue790-science-v2.md)" >/dev/null
