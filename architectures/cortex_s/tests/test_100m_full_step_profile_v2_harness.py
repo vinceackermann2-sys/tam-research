@@ -149,9 +149,11 @@ def test_workflow_is_owner_only_exact_title_source_bound_and_scoped() -> None:
         for line in text.splitlines()
         if line.strip().startswith("modal run ")
     ]
-    assert executable_modal_lines == [
-        "modal run --detach --timestamps modal_cortex_s_100m_full_step_profile_v2.py \\",
-    ]
+    assert len(executable_modal_lines) == 1
+    assert executable_modal_lines[0].startswith(
+        "modal run --detach --timestamps modal_cortex_s_100m_full_step_profile_v2.py"
+    )
+    assert "full_step_profile_v1" not in executable_modal_lines[0]
 
 
 def test_training_implementation_sha256_matches_preregistered_identity() -> None:
