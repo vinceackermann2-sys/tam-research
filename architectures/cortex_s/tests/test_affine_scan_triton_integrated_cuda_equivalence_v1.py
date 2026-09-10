@@ -85,8 +85,11 @@ def test_issue_workflow_binds_frozen_harness_and_pr821_source() -> None:
     assert "2B training" in source
 
 
-def test_harness_does_not_modify_or_require_main_production_integration() -> None:
-    # The harness branch is intentionally based on current main while PR #821
-    # remains separate. The future issue workflow checks out #821 as source.
+def test_main_production_integration_is_present_after_pr821_merge() -> None:
+    # PR #821 is now merged on the authoritative base. This historical harness
+    # test must no longer assert that the production integration file is absent.
     integration_path = REPO_ROOT / "architectures/cortex_s/production_scan_integration_v1.py"
-    assert not integration_path.exists()
+    assert integration_path.exists()
+    source = integration_path.read_text(encoding="utf-8")
+    assert "ProductionScanPersistentWorldState" in source
+    assert "memory_lean_grouped_triton_scan_training_builder" in source
