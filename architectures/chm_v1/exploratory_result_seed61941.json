@@ -25,5 +25,11 @@
   "mechanism": {"cluster_threshold": 0.8, "exact_episodic_substrate_preserved": true, "n_tables": 12, "noise_std": 0.05, "probes_per_table": 3, "routing_uses_event_or_key_ids": false},
   "seed": 61941,
   "seed_status": "consumed_exploratory_never_scientific",
-  "train": {"batch": 256, "final_contrastive_loss": 0.10793833434581757, "seconds": 1.213969063013792, "steps": 800}
+  "train": {
+    "batch": 256,
+    "final_contrastive_loss": 0.0551304928958416,
+    "seconds_observed_local_recheck": 1.556858567000063,
+    "steps": 800,
+    "timing_note": "CPU wall-clock is environment dependent and is not a progression metric."
+  }
 }
