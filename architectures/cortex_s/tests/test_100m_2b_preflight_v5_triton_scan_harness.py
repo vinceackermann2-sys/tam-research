@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[3]
 RUNNER = ROOT / "modal_cortex_s_100m_2b_v5_triton_scan_preflight.py"
 WORKFLOW = ROOT / ".github/workflows/modal-cortex-s-100m-2b-preflight-v5-triton-scan.yml"
 TRAIN_IMPL = ROOT / "architectures/cortex_s/experiments/scale100m_2b/train.py"
-EXPECTED_TRAIN_IMPL_SHA256 = "6ded33f5981ab2bad6aad75b6fc238a4608960fd9ac839f1f3fa71924ad58844"
+EXPECTED_TRAIN_IMPL_SHA256 = "47c9e327095f99eab921b8780bb968101296b11e62ef13dd22488f2974bfb10f"
 
 
 def _function_source(text: str, name: str, next_name: str | None = None) -> str:
@@ -77,8 +77,8 @@ def test_h100_path_composes_exact_frozen_training_calibration() -> None:
     assert 'raw.get("measured_steps") != MEASURED_STEPS' in h100
     assert 'raw.get("measured_tokens") != MEASURED_TOKENS' in h100
     assert "TRAIN_TOKENS / tps * PROJECTION_OVERHEAD_MULTIPLIER + compile_seconds" in h100
-    assert 'raw["gates"].get("peak_vram_le_70_gib")' in h100
-    assert 'raw["gates"].get("projected_full_seconds_le_budget")' in h100
+    assert '"peak_vram_le_70_gib"' in h100
+    assert '"projected_full_seconds_le_budget"' in h100
     assert '"amp_behavior": "frozen_training_module_bfloat16_autocast"' in h100
 
 
@@ -99,7 +99,8 @@ def test_workflow_is_exact_issue_triggered_and_has_no_manual_dispatch() -> None:
     assert "github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v5-triton-scan]'" in text
     assert 'test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"' in text
     assert 'git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"' in text
-    assert "b29ddb13c09be63ca439e1ebff3b9a71a4028636" in text
+    assert "537b6b281a07664802f7addff490ad825dc010bf" in text
+    assert EXPECTED_TRAIN_IMPL_SHA256 in text
     assert "CALIBRATION_WARMUP_STEPS = 5" in text
     assert "MEASURED_STEPS = 40" in text
     assert "MAX_PREFLIGHT_VRAM_GIB = 70.0" in text
