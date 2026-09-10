@@ -58,13 +58,13 @@ jobs:
           git -C source fetch --no-tags origin main
           test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
           git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
-          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v5_triton_scan_preflight.py")" = "b29ddb13c09be63ca439e1ebff3b9a71a4028636"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v5_triton_scan_preflight.py")" = "537b6b281a07664802f7addff490ad825dc010bf"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/grouped_moe_v4.py")" = "7c738e6349536dd45f1c631a9ad5524ade1d5021"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/protocol.py")" = "b44d2a8d8b757aae052c34d314fc89604b531f1d"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/train.py")" = "c593c2761c3ae868df96eae0978b2186ac6961d2"
-          test "$(sha256sum source/architectures/cortex_s/experiments/scale100m_2b/train.py | awk '{print $1}')" = "6ded33f5981ab2bad6aad75b6fc238a4608960fd9ac839f1f3fa71924ad58844"
+          test "$(sha256sum source/architectures/cortex_s/experiments/scale100m_2b/train.py | awk '{print $1}')" = "47c9e327095f99eab921b8780bb968101296b11e62ef13dd22488f2974bfb10f"
 
       - name: Fail closed with stdlib-only authority guard
         run: |
