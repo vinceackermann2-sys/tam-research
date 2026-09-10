@@ -1,0 +1,137 @@
+name: Modal CORTEX-S integrated Triton scan CUDA equivalence v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-affine-scan-triton-integrated-cuda-equivalence-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable harness and source
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          assert phase == 'integrated-cuda-equivalence-v1', "phase must be exactly integrated-cuda-equivalence-v1"
+          assert source_sha == '46b29efb5cc0d975b4f4e6b3c397248723cacf3f', "source_sha must be frozen PR #821 head"
+          assert re.fullmatch(r'[0-9a-f]{40}', harness_sha), "harness_sha must be a full commit SHA"
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'harness_sha={harness_sha}')
+          PY
+
+      - name: Checkout exact harness
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.harness_sha }}
+          fetch-depth: 1
+          path: harness
+
+      - name: Verify harness is merged ancestry and runner blob is frozen
+        env:
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C harness rev-parse HEAD)" = "$HARNESS_SHA"
+          git -C harness fetch --no-tags origin main
+          git -C harness merge-base --is-ancestor "$HARNESS_SHA" origin/main
+          test "$(git -C harness rev-parse "$HARNESS_SHA:modal_cortex_s_affine_scan_triton_integrated_cuda_equivalence_v1.py")" = "16c299ecc409a1f9b97dcb396193596aca151922"
+
+      - name: Checkout frozen PR 821 source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 1
+          path: source
+
+      - name: Verify exact source tree and integration blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "dc485e134eba99b709fcfa302a69616928286d7e"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
+          test ! -e source/modal_cortex_s_affine_scan_triton_integrated_cuda_equivalence_v1.py
+
+      - name: Fail closed with stdlib-only authority guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          runner = Path('harness/modal_cortex_s_affine_scan_triton_integrated_cuda_equivalence_v1.py').read_text(encoding='utf-8')
+          integration = Path('source/architectures/cortex_s/production_scan_integration_v1.py').read_text(encoding='utf-8')
+          assert 'ENGINEERING_SEED = 2_026_091_001' in runner
+          assert 'FROZEN_SOURCE_SHA = "46b29efb5cc0d975b4f4e6b3c397248723cacf3f"' in runner
+          assert 'PRODUCTION_SHAPE = (64, 512, 512, 128)' in runner
+          assert 'FP32_PROBE_SHAPE = (4, 64, 64, 16)' in runner
+          assert 'EXPECTED_CORTEX_PARAMS = 101_778_112' in runner
+          assert 'RESULT_ROOT = "/vol/cortex-s-v0/affine-scan-triton-integrated-cuda-equivalence-v1"' in runner
+          assert runner.count('gpu="H100!"') == 1
+          assert 'INTEGRATED_CUDA_EQUIVALENCE_PASS' in runner
+          assert 'return json.dumps(result, sort_keys=True)' in runner
+          assert 'ProductionScanPersistentWorldState' in runner
+          assert '_should_use_triton' in runner
+          assert 'affine_scan_triton_candidate' in runner
+          assert 'build_memory_lean_grouped_triton_scan_cortex_100m' in runner
+          for forbidden in ('train_full_2b', 'run_h100_calibration', 'torch.optim', 'scientific_train'):
+              assert forbidden not in runner
+          assert 'gpu_dispatch_authorized": False' in runner
+          assert 'production_preflight_authorized": False' in runner
+          assert 'full_training_authorized": False' in runner
+          assert 'scientific_claim_authorized": False' in runner
+          assert 'class ProductionScanPersistentWorldState' in integration
+          assert 'return affine_scan_triton_candidate(a, b, initial)' in integration
+          print('integrated CUDA-equivalence authority guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record authorized handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S integrated Triton CUDA-equivalence launcher authenticated** — source=${{ steps.cfg.outputs.source_sha }}, harness=${{ steps.cfg.outputs.harness_sha }}, engineering seed=2026091001. Zero-GPU single-use gate runs before at most one bounded H100 integration-correctness dispatch. No timing, optimizer step, corpus access, production preflight, scientific seed, or 2B training is authorized."
+
+      - name: Launch exact frozen integration correctness check
+        run: |
+          cp harness/modal_cortex_s_affine_scan_triton_integrated_cuda_equivalence_v1.py source/
+          cd source
+          modal run --detach --timestamps modal_cortex_s_affine_scan_triton_integrated_cuda_equivalence_v1.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}"
+
+      - name: Record successful Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🧪 **CORTEX-S integrated Triton CUDA-equivalence returned.** Authoritative result is durably stored in the single-use Volume namespace. PASS, if present, establishes integration correctness only and reaches a separate PR #821 merge-authorization boundary; it does not establish whole-model speed or scientific advantage."
