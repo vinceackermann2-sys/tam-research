@@ -1,0 +1,91 @@
+{
+  "ablations": {
+    "untrained_address_encoder": {
+      "flat_accuracy": 0.0009765625
+    }
+  },
+  "candidate": "CHM-v1 / Exact Indexable Episodic Memory (EIEM)",
+  "classification": "EXPLORATORY_CPU_MECHANISM_SCREEN_ONLY",
+  "decision": "PASS_MECHANISM_ONLY_PREREGISTER_SMALL_LM_TEST",
+  "gpu_authorized": false,
+  "multihop": {
+    "1024": {
+      "flat_accuracy": 1.0,
+      "fraction_flat_vector_reads": 0.03736305236816406,
+      "hops_per_query": 2,
+      "indexed_accuracy": 1.0,
+      "indexed_matches_flat": 1.0,
+      "mean_estimated_vector_reads": 76.51953125,
+      "queries": 1024
+    },
+    "256": {
+      "flat_accuracy": 1.0,
+      "fraction_flat_vector_reads": 0.11646270751953125,
+      "hops_per_query": 2,
+      "indexed_accuracy": 1.0,
+      "indexed_matches_flat": 1.0,
+      "mean_estimated_vector_reads": 59.62890625,
+      "queries": 1024
+    }
+  },
+  "overwrite": {
+    "1024": {
+      "flat_accuracy": 1.0,
+      "fraction_flat_vector_reads": 0.03780937194824219,
+      "indexed_accuracy": 1.0,
+      "indexed_matches_flat": 1.0,
+      "indexed_stale_error": 0.0,
+      "mean_estimated_vector_reads": 38.716796875,
+      "queries": 1024
+    },
+    "256": {
+      "flat_accuracy": 1.0,
+      "fraction_flat_vector_reads": 0.1168670654296875,
+      "indexed_accuracy": 1.0,
+      "indexed_matches_flat": 1.0,
+      "indexed_stale_error": 0.0,
+      "mean_estimated_vector_reads": 29.91796875,
+      "queries": 1024
+    }
+  },
+  "rare_fact": {
+    "1024": {
+      "flat_accuracy": 1.0,
+      "fraction_flat_vector_reads": 0.03703498840332031,
+      "indexed_accuracy": 1.0,
+      "indexed_matches_flat": 1.0,
+      "mean_directory_nodes": 8.7275390625,
+      "mean_estimated_vector_reads": 37.923828125,
+      "mean_key_comparisons": 20.46875,
+      "queries": 1024
+    },
+    "256": {
+      "flat_accuracy": 1.0,
+      "fraction_flat_vector_reads": 0.1163330078125,
+      "indexed_accuracy": 1.0,
+      "indexed_matches_flat": 1.0,
+      "mean_directory_nodes": 5.640625,
+      "mean_estimated_vector_reads": 29.78125,
+      "mean_key_comparisons": 18.5,
+      "queries": 256
+    },
+    "64": {
+      "flat_accuracy": 1.0,
+      "fraction_flat_vector_reads": 0.3681640625,
+      "indexed_accuracy": 1.0,
+      "indexed_matches_flat": 1.0,
+      "mean_directory_nodes": 3.15625,
+      "mean_estimated_vector_reads": 23.5625,
+      "mean_key_comparisons": 17.25,
+      "queries": 64
+    }
+  },
+  "scientific_seed_authorized": false,
+  "seed": 60430,
+  "train": {
+    "last_batch_accuracy": 1.0,
+    "last_loss": 0.027808042243123055,
+    "seconds": 6.602268311999978
+  },
+  "train_horizon_events": 64
+}
