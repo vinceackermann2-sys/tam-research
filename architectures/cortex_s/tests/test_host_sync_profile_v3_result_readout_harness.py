@@ -79,7 +79,11 @@ def test_readout_workflow_is_owner_only_source_bound_and_gpu_free() -> None:
     assert "0e89d152aba053b45dcf2c07b878781048f8c23e" in text
     assert "13b3c3f8cc0f3d3cd60376099a945d6984cb320f" in text
 
-    forbidden = (
+    execution = text[
+        text.index("- name: Read immutable durable result"):
+        text.index("- name: Build exact attribution summary")
+    ]
+    forbidden_execution = (
         'H100',
         'gpu=',
         'gpu =',
@@ -88,5 +92,11 @@ def test_readout_workflow_is_owner_only_source_bound_and_gpu_free() -> None:
         'retry',
         'train_full_2b',
     )
-    for token in forbidden:
-        assert token not in text, f"readout workflow contains forbidden escalation token: {token}"
+    for token in forbidden_execution:
+        assert token not in execution, f"readout execution block contains forbidden escalation token: {token}"
+
+    # The workflow itself must retain the explicit deny-list guard. Do not scan
+    # that guard for its own literals; doing so creates a self-referential test.
+    assert "for forbidden in (" in text
+    assert "'gpu=', 'gpu =', 'volume.commit'" in text
+    assert "assert forbidden not in runner" in text
