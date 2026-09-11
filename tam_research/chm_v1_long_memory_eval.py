@@ -32,6 +32,9 @@ LOCAL_CONTROL_MAX_DISTANCE = 128
 # Endpoint separation >=640 plus a <=128-token second fact guarantees that the
 # second fact begins strictly after the first fact's 512-token local horizon.
 TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION = LOCAL_WINDOW + LOCAL_CONTROL_MAX_DISTANCE
+# The preregistered sparse-read gate is judged at the largest frozen slice:
+# exactly 1,024 prior episodic items before the final two-hop query chunk.
+SPARSE_READ_GATE_MEMORY_SIZE = 2 * LOCAL_WINDOW
 DEFAULT_CASES_PER_FAMILY = 24
 GENERATOR_VERSION = "chm-v1-heldout-natural-v2"
 
@@ -90,12 +93,32 @@ class EncodedProbe:
                 raise ValueError("local control evidence escaped the <=128-token region")
         elif self.evidence_distance < LONG_RANGE_MIN_DISTANCE:
             raise ValueError("long-range evidence must be strictly >512 tokens from query")
+
+        # Freeze exact episodic-state slices at the scored query. Rare-fact and
+        # overwrite are scored in chunk 2 with 512 prior items. Two-hop is scored
+        # in chunk 3 with 1,024 prior items.
+        if self.family in {"rare_fact", "overwrite"}:
+            if self.evidence_end_token >= LOCAL_WINDOW:
+                raise ValueError("single-hop long-range evidence escaped first local chunk")
+            if not (LOCAL_WINDOW <= self.query_token < 2 * LOCAL_WINDOW):
+                raise ValueError("single-hop long-range query must use 512-item memory slice")
+
         if self.family == "two_hop":
             if self.first_evidence_end_token is None:
                 raise ValueError("two-hop probe must record first evidence endpoint")
             separation = self.evidence_end_token - self.first_evidence_end_token
             if separation < TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION:
                 raise ValueError("two-hop facts are not in separated local horizons")
+            if self.first_evidence_end_token >= LOCAL_WINDOW:
+                raise ValueError("two-hop first relation must remain in chunk 1")
+            if not (LOCAL_WINDOW <= self.evidence_end_token < SPARSE_READ_GATE_MEMORY_SIZE):
+                raise ValueError("two-hop second record must remain in chunk 2")
+            if not (
+                SPARSE_READ_GATE_MEMORY_SIZE
+                <= self.query_token
+                < SPARSE_READ_GATE_MEMORY_SIZE + LOCAL_WINDOW
+            ):
+                raise ValueError("two-hop query must use exact 1024-item memory slice")
 
 
 def _encoded(encode: Encode, text: str) -> tuple[int, ...]:
@@ -306,14 +329,19 @@ def score_eiem_probe(
     probe: EncodedProbe,
     *,
     mode: Literal["flat", "indexed"],
-) -> tuple[int, torch.Tensor, dict[str, float]]:
+) -> tuple[int, torch.Tensor, dict[str, object]]:
     """Process the full prompt in causal <=512 chunks with one isolated state."""
     device = next(model.parameters()).device
     state = EpisodicState(f"probe-{probe.family}-{probe.case_id}-{mode}")
     final_logits: torch.Tensor | None = None
     calls = matches = reads = flat_reads = nodes = 0
+    build_seconds = search_seconds = verification_seconds = write_seconds = 0.0
+    max_state_payload_bytes = 0
+    by_memory_size: dict[int, dict[str, float]] = {}
     ids = probe.prompt_ids
+
     for start in range(0, len(ids), LOCAL_WINDOW):
+        memory_before = len(state)
         chunk = torch.tensor(
             ids[start : start + LOCAL_WINDOW], device=device, dtype=torch.long
         ).unsqueeze(0)
@@ -327,9 +355,36 @@ def score_eiem_probe(
         reads += stats.address_vector_reads
         flat_reads += stats.flat_address_vector_reads
         nodes += stats.directory_nodes_visited
+        build_seconds += stats.index_build_seconds
+        search_seconds += stats.search_seconds
+        verification_seconds += stats.verification_seconds
+        write_seconds += stats.write_seconds
+        max_state_payload_bytes = max(max_state_payload_bytes, stats.state_payload_bytes)
+
+        if stats.calls:
+            bucket = by_memory_size.setdefault(
+                memory_before,
+                {"calls": 0.0, "reads": 0.0, "flat_reads": 0.0, "nodes": 0.0},
+            )
+            bucket["calls"] += float(stats.calls)
+            bucket["reads"] += float(stats.address_vector_reads)
+            bucket["flat_reads"] += float(stats.flat_address_vector_reads)
+            bucket["nodes"] += float(stats.directory_nodes_visited)
+
     if final_logits is None:
         raise RuntimeError("probe had no tokens")
     pred = _candidate_prediction(final_logits, probe.candidate_token_ids)
+
+    memory_size_slices: dict[str, dict[str, float]] = {}
+    for size, bucket in sorted(by_memory_size.items()):
+        memory_size_slices[str(size)] = {
+            "retrieval_calls": bucket["calls"],
+            "address_vector_reads": bucket["reads"],
+            "flat_address_vector_reads": bucket["flat_reads"],
+            "address_read_fraction": bucket["reads"] / max(bucket["flat_reads"], 1.0),
+            "directory_nodes_per_retrieval": bucket["nodes"] / max(bucket["calls"], 1.0),
+        }
+
     return pred, final_logits, {
         "retrieval_calls": float(calls),
         "exact_matches": float(matches),
@@ -338,6 +393,13 @@ def score_eiem_probe(
         "flat_address_vector_reads": float(flat_reads),
         "address_read_fraction": reads / max(flat_reads, 1),
         "directory_nodes_visited": float(nodes),
+        "index_build_seconds": build_seconds,
+        "search_seconds": search_seconds,
+        "verification_seconds": verification_seconds,
+        "write_seconds": write_seconds,
+        "max_state_payload_bytes": float(max_state_payload_bytes),
+        "memory_size_slices": memory_size_slices,
+        "sparse_read_gate_memory_size": SPARSE_READ_GATE_MEMORY_SIZE,
     }
 
 
