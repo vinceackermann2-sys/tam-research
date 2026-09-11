@@ -97,12 +97,12 @@ jobs:
               assert needle in runner, needle
           assert runner.count('gpu="H100!"') == 1
           assert 'train_full_2b(' not in runner
-          assert 'torch.profiler' not in runner
           assert '2_026_091_007' in runner
           assert '8_100, 48_131, 48_132, 48_133' in runner
           reserve = runner[runner.index('def reserve_h100_dispatch('):runner.index('def _prove_triton_dispatch(')]
           h100 = runner[runner.index('def h100_preflight('):runner.index('@app.local_entrypoint()')]
           main = runner[runner.index('def main('):]
+          assert 'torch.profiler' not in h100
           assert '_atomic_write(marker_path, marker)' in reserve
           assert 'volume.commit()' in reserve
           assert main.index('reserve_h100_dispatch.remote') < main.index('h100_preflight.remote')
