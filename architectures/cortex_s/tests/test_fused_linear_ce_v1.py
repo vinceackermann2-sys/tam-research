@@ -7,9 +7,12 @@ import torch
 import torch.nn.functional as F
 
 from architectures.cortex_s.fused_linear_ce_v1 import (
+    COMPILE_BOUNDARY,
     FusedLinearCETrainingRunner,
     LIGER_KERNEL_VERSION,
     LIGER_KERNEL_WHEEL_SHA256,
+    _compile_fused_linear_ce_runner,
+    _normalize_fused_training_runner,
     _one_optimizer_step_fused_linear_ce,
     chunked_linear_cross_entropy_reference,
     forward_training_features,
@@ -151,8 +154,36 @@ def test_training_builder_is_scoped_and_restores_live_trainer() -> None:
     assert training_module._one_optimizer_step is original_step
 
 
+def test_liger_only_is_behind_explicit_dynamo_boundary() -> None:
+    candidate_source = CANDIDATE.read_text(encoding="utf-8")
+    boundary_source = inspect.getsource(FusedLinearCETrainingRunner._liger_loss_eager)
+    feature_source = inspect.getsource(forward_training_features)
+    compile_source = inspect.getsource(_compile_fused_linear_ce_runner)
+
+    assert '@torch.compiler.disable' in boundary_source
+    assert 'self._liger_loss(weight, flat_hidden, flat_targets)' in boundary_source
+    assert 'torch.compiler.disable' not in feature_source
+    assert 'forward_training_features(self.model, tokens)' in candidate_source
+    assert 'return self._liger_loss_eager(weight, flat_hidden, flat_targets)' in candidate_source
+    assert 'torch.compile(runner, mode=training_module.COMPILE_MODE, fullgraph=False)' in compile_source
+    assert COMPILE_BOUNDARY == "liger_loss_eager_dynamo_boundary"
+
+
+def test_eager_fallback_runner_normalizes_same_model_without_changing_ties() -> None:
+    model = _tiny_model()
+    normalized = _normalize_fused_training_runner(model, model)
+    assert isinstance(normalized, FusedLinearCETrainingRunner)
+    assert normalized.model is model
+    assert normalized.model.lm_head.weight is normalized.model.token_emb.weight
+    assert normalized._use_liger is False
+
+    existing = FusedLinearCETrainingRunner(model, force_torch_reference=True)
+    assert _normalize_fused_training_runner(model, existing) is existing
+
+
 def test_fused_optimizer_step_preserves_v6_single_host_readback_contract() -> None:
     source = inspect.getsource(_one_optimizer_step_fused_linear_ce)
+    assert "runner = _normalize_fused_training_runner(model, runner)" in source
     assert "runner(x, y) / training_module.GRAD_ACCUM_STEPS" in source
     assert "torch.nn.utils.clip_grad_norm_" in source
     assert "host_report = torch.stack(" in source
@@ -170,7 +201,9 @@ def test_cuda_candidate_is_pinned_fused_and_never_materializes_full_logits() -> 
     assert LIGER_KERNEL_WHEEL_SHA256 == "84c0a7bc9bf4d4cf8ea5ba89ff84d28686afc94215b220851d9f57dc87852741"
     assert "LigerFusedLinearCrossEntropyLoss" in source
     assert 'installed = importlib.metadata.version("liger-kernel")' in source
+    assert 'accum_dtype=torch.float32' in source
     assert "self._liger_loss(weight, flat_hidden, flat_targets)" in source
+    assert "self._liger_loss_eager(weight, flat_hidden, flat_targets)" in source
     cuda_path = source[source.index("if self._liger_loss is not None:"):source.index("return chunked_linear_cross_entropy_reference(")]
     assert "F.linear" not in cuda_path
     assert ".float()" not in cuda_path
@@ -189,6 +222,11 @@ def test_zero_credit_candidate_contains_no_paid_or_scientific_authority() -> Non
     assert "48_133" not in source
     status = integration_status()
     assert status["classification"] == "ZERO_CREDIT_SYSTEMS_OPTIMIZATION_ONLY"
+    assert status["systems_variant"] == "fused_linear_ce_liger_v2_compile_boundary"
+    assert status["compile_boundary"] == "liger_loss_eager_dynamo_boundary"
+    assert status["cortex_feature_trunk_compiled"] is True
+    assert status["liger_loss_executes_eager"] is True
+    assert status["fallback_runner_normalized"] is True
     assert status["default_model_forward_unchanged"] is True
     assert status["default_training_module_unchanged"] is True
     assert status["cuda_materializes_full_logits"] is False
