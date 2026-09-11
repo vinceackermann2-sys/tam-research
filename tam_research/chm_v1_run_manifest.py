@@ -9,6 +9,7 @@ not create or grant that authorization.
 """
 
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from typing import Any
 
 from .chm_v1_provenance_gate import evaluate_scientific_gate_with_provenance
@@ -71,8 +72,8 @@ def frozen_run_manifest(*, authorization_ref: str) -> dict[str, Any]:
         raise ValueError("authorization_ref must be a non-empty external reference")
     return {
         "research_issue": 854,
-        "evaluation_plan": dict(FROZEN_EVALUATION_PLAN),
-        "frozen_resource_plan": dict(FROZEN_RESOURCE_PLAN),
+        "evaluation_plan": deepcopy(FROZEN_EVALUATION_PLAN),
+        "frozen_resource_plan": deepcopy(FROZEN_RESOURCE_PLAN),
         "authorization_ref": authorization_ref.strip(),
     }
 
@@ -117,8 +118,8 @@ def validate_run_manifest(value: Any) -> dict[str, Any]:
 
     return {
         "research_issue": 854,
-        "evaluation_plan": dict(FROZEN_EVALUATION_PLAN),
-        "frozen_resource_plan": dict(FROZEN_RESOURCE_PLAN),
+        "evaluation_plan": deepcopy(FROZEN_EVALUATION_PLAN),
+        "frozen_resource_plan": deepcopy(FROZEN_RESOURCE_PLAN),
         "authorization_ref": authorization_ref.strip(),
     }
 
