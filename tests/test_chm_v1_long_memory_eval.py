@@ -6,10 +6,12 @@ from tam_research.chm_v1_long_memory_eval import (
     GENERATOR_VERSION,
     LOCAL_CONTROL_MAX_DISTANCE,
     LONG_RANGE_MIN_DISTANCE,
+    SPARSE_READ_GATE_MEMORY_SIZE,
     TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION,
     generate_probe_suite,
     summarize_probe_predictions,
 )
+from tam_research.chm_v1_small_lm import LOCAL_WINDOW
 
 
 class StableWordEncoder:
@@ -51,11 +53,21 @@ def test_probe_suite_is_deterministic_and_has_strict_distance_geometry() -> None
             assert probe.evidence_distance <= LOCAL_CONTROL_MAX_DISTANCE
         else:
             assert probe.evidence_distance >= LONG_RANGE_MIN_DISTANCE
+        if probe.family in {"rare_fact", "overwrite"}:
+            assert probe.evidence_end_token < LOCAL_WINDOW
+            assert LOCAL_WINDOW <= probe.query_token < 2 * LOCAL_WINDOW
         if probe.family == "two_hop":
             assert probe.first_evidence_end_token is not None
             assert (
                 probe.evidence_end_token - probe.first_evidence_end_token
                 >= TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION
+            )
+            assert probe.first_evidence_end_token < LOCAL_WINDOW
+            assert LOCAL_WINDOW <= probe.evidence_end_token < SPARSE_READ_GATE_MEMORY_SIZE
+            assert (
+                SPARSE_READ_GATE_MEMORY_SIZE
+                <= probe.query_token
+                < SPARSE_READ_GATE_MEMORY_SIZE + LOCAL_WINDOW
             )
 
 
@@ -63,6 +75,7 @@ def test_two_hop_relations_are_forced_into_different_local_horizons() -> None:
     suite = generate_probe_suite(StableWordEncoder(), seed=881_854, cases_per_family=4)
     two_hop = [probe for probe in suite if probe.family == "two_hop"]
     assert len(two_hop) == 4
+    assert SPARSE_READ_GATE_MEMORY_SIZE == 1024
     for probe in two_hop:
         assert probe.first_evidence_end_token is not None
         # Endpoint separation is >=640 and the second fact is capped at 128
@@ -71,6 +84,9 @@ def test_two_hop_relations_are_forced_into_different_local_horizons() -> None:
             probe.evidence_end_token - probe.first_evidence_end_token
             >= TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION
         )
+        assert probe.first_evidence_end_token < 512
+        assert 512 <= probe.evidence_end_token < 1024
+        assert 1024 <= probe.query_token < 1536
         assert probe.evidence_distance >= LONG_RANGE_MIN_DISTANCE
 
 
