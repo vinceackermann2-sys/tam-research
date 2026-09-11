@@ -73,13 +73,22 @@ The probe families are:
 
 For rare fact, overwrite, and two-hop, the **end of the latest evidence required to answer** must be at least 513 encoded tokens before the scored query position. This prevents a nominal long-memory win from being caused by evidence that merely fell across a 512-token chunk boundary while remaining within the intended local horizon.
 
-The current generator is evaluation-only and versioned `chm-v1-heldout-natural-v1`. Production evaluation supplies the already-frozen GPT-2 tokenizer; CPU CI uses a deterministic toy encoder only to validate generator geometry and metadata isolation.
+The exact memory-size slices are frozen before any scientific seed is allocated:
+
+- rare-fact and overwrite: evidence is in chunk 1 and the scored query is in chunk 2, so the scored query sees exactly **512 prior episodic items**;
+- two-hop: relation 1 is in chunk 1, the remote answer-bearing record is in chunk 2, and the query is in chunk 3, so the scored query sees exactly **1,024 prior episodic items**;
+- two-hop evidence endpoints are separated by at least 640 encoded tokens, and the second fact is capped at 128 tokens, preventing its raw stored hidden state from locally contextualizing relation 1;
+- the preregistered <=25% exact-address-read gate is judged at the frozen largest **1,024-item** slice.
+
+The current generator is evaluation-only and versioned `chm-v1-heldout-natural-v2`. Production evaluation supplies the already-frozen GPT-2 tokenizer; CPU CI uses a deterministic toy encoder only to validate generator geometry and metadata isolation.
 
 ## Current systems boundary
 
-`tam_research/chm_v1_exact_index.py` is a deterministic NumPy correctness/reference implementation. It measures exact address vectors distance-scored and directory nodes visited separately. It is deliberately not presented as a production GPU speedup. Before any practical efficiency claim, the preregistered gate must measure build/update/search wall-clock and show that indexing overhead does not erase the read reduction.
+`tam_research/chm_v1_exact_index.py` is a deterministic NumPy correctness/reference implementation. It measures exact address vectors distance-scored and directory nodes visited separately. It is deliberately not presented as a production GPU speedup.
 
-The reference indexed path currently crosses GPU/CPU boundaries when used with a GPU model. Therefore an indexed wall-clock speedup is **not assumed**; if that overhead erases the practical benefit, #854's stop condition must fire even if algorithmic vector-read reduction passes.
+The evaluator also reports index-build time, requested search time, flat verification time, write time, exact episodic payload bytes, and read/traversal metrics split by memory size. Flat verification used to prove indexed exactness is reported separately and is not counted as indexed search time.
+
+The reference indexed path currently crosses GPU/CPU boundaries when used with a GPU model. Therefore an indexed wall-clock speedup is **not assumed**; if build/update/search or transfer overhead erases the practical benefit, #854's stop condition must fire even if algorithmic vector-read reduction passes.
 
 ## Files
 
