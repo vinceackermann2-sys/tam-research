@@ -48,6 +48,7 @@ WEIGHT_DECAY = 0.1
 BETAS = (0.9, 0.95)
 GRAD_CLIP = 1.0
 FLAT_TRAIN_TEMPERATURE = 0.10
+COMPILE_ENABLED = False
 
 Kind = Literal["local", "eiem"]
 
@@ -58,6 +59,20 @@ def _autocast(device: torch.device):
         if device.type == "cuda"
         else nullcontext()
     )
+
+
+def _synchronize(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+
+
+def _reset_peak_memory(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+
+
+def _peak_memory_bytes(device: torch.device) -> int:
+    return int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0
 
 
 def _seed_all(seed: int) -> None:
@@ -193,6 +208,7 @@ def protocol_preflight(data_dir: str | None = None) -> dict[str, Any]:
         "token_budget_per_model": TOKEN_BUDGET,
         "optimizer_steps": TOTAL_STEPS,
         "warmup_steps": WARMUP_STEPS,
+        "compile_enabled": COMPILE_ENABLED,
         "optimizer": {
             "name": "AdamW",
             "betas": list(BETAS),
@@ -237,8 +253,10 @@ def train_one(
     steps = TOTAL_STEPS if max_steps is None else min(int(max_steps), TOTAL_STEPS)
     losses: list[float] = []
     tokens_seen = 0
-    started = time.perf_counter()
 
+    _reset_peak_memory(device)
+    _synchronize(device)
+    started = time.perf_counter()
     for step in range(steps):
         model.train()
         optimizer.zero_grad(set_to_none=True)
@@ -263,8 +281,9 @@ def train_one(
             group["lr"] = lr
         optimizer.step()
         losses.append(sum(micro_losses) / len(micro_losses))
-
+    _synchronize(device)
     elapsed = time.perf_counter() - started
+
     return {
         "kind": kind,
         "seed": seed,
@@ -274,6 +293,9 @@ def train_one(
         "loss_trajectory": losses,
         "wall_seconds": elapsed,
         "tokens_per_second": tokens_seen / max(elapsed, 1e-9),
+        "peak_vram_bytes": _peak_memory_bytes(device),
+        "compiled": COMPILE_ENABLED,
+        "compile_seconds": 0.0,
     }
 
 
@@ -290,13 +312,27 @@ def evaluate_local_language(
     device = next(model.parameters()).device
     generator = torch.Generator(device="cpu").manual_seed(seed)
     losses: list[float] = []
+    tokens_evaluated = batches * batch_size * SESSION_LEN
+    _reset_peak_memory(device)
+    _synchronize(device)
+    started = time.perf_counter()
     for _ in range(batches):
         x, y = val.batch(batch_size, SESSION_LEN, generator, device)
         with _autocast(device):
             logits = local_session_logits(model, x)
         losses.append(float(F.cross_entropy(logits.float().reshape(-1, VOCAB_SIZE), y.reshape(-1))))
+    _synchronize(device)
+    elapsed = time.perf_counter() - started
     nll = sum(losses) / len(losses)
-    return {"nll": nll, "perplexity": math.exp(min(nll, 20.0))}
+    return {
+        "nll": nll,
+        "perplexity": math.exp(min(nll, 20.0)),
+        "batch_size": float(batch_size),
+        "tokens_evaluated": float(tokens_evaluated),
+        "wall_seconds": elapsed,
+        "tokens_per_second": tokens_evaluated / max(elapsed, 1e-9),
+        "peak_vram_bytes": float(_peak_memory_bytes(device)),
+    }
 
 
 @torch.no_grad()
@@ -318,6 +354,16 @@ def evaluate_eiem_language(
     reads = 0
     flat_reads = 0
     nodes = 0
+    index_build_seconds = 0.0
+    search_seconds = 0.0
+    verification_seconds = 0.0
+    write_seconds = 0.0
+    max_state_payload_bytes = 0
+    tokens_evaluated = batches * batch_size * SESSION_LEN
+
+    _reset_peak_memory(device)
+    _synchronize(device)
+    started = time.perf_counter()
     for batch_no in range(batches):
         x, y = val.batch(batch_size, SESSION_LEN, generator, device)
         states = [EpisodicState(f"eval-{batch_no}-{i}") for i in range(batch_size)]
@@ -338,14 +384,31 @@ def evaluate_eiem_language(
             reads += stats.address_vector_reads
             flat_reads += stats.flat_address_vector_reads
             nodes += stats.directory_nodes_visited
+            index_build_seconds += stats.index_build_seconds
+            search_seconds += stats.search_seconds
+            verification_seconds += stats.verification_seconds
+            write_seconds += stats.write_seconds
+            max_state_payload_bytes = max(max_state_payload_bytes, stats.state_payload_bytes)
         joined = torch.cat(logits, dim=1)
         losses.append(float(F.cross_entropy(joined.float().reshape(-1, VOCAB_SIZE), y.reshape(-1))))
+    _synchronize(device)
+    elapsed = time.perf_counter() - started
     nll = sum(losses) / len(losses)
     return {
         "nll": nll,
         "perplexity": math.exp(min(nll, 20.0)),
+        "batch_size": float(batch_size),
+        "tokens_evaluated": float(tokens_evaluated),
+        "wall_seconds": elapsed,
+        "tokens_per_second": tokens_evaluated / max(elapsed, 1e-9),
+        "peak_vram_bytes": float(_peak_memory_bytes(device)),
         "retrieval_calls": float(calls),
         "indexed_flat_exact_match_rate": exact_matches / max(calls, 1),
         "address_vector_read_fraction": reads / max(flat_reads, 1),
         "directory_nodes_per_retrieval": nodes / max(calls, 1),
+        "index_build_seconds": index_build_seconds,
+        "search_seconds": search_seconds,
+        "verification_seconds": verification_seconds,
+        "write_seconds": write_seconds,
+        "max_state_payload_bytes": float(max_state_payload_bytes),
     }
