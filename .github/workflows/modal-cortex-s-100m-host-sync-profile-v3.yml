@@ -1,0 +1,156 @@
+name: Modal CORTEX-S 100M host-sync attribution v3
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-host-sync-profile-v3]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable attribution payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          source_tree = str(cfg.get('source_tree', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          assert phase == 'host-sync-profile-v3', 'phase must be exactly host-sync-profile-v3'
+          for name, value in (('source_sha', source_sha), ('source_tree', source_tree), ('harness_sha', harness_sha)):
+              assert re.fullmatch(r'[0-9a-f]{40}', value), f'{name} must be a full lowercase SHA'
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'source_tree={source_tree}')
+          print(f'harness_sha={harness_sha}')
+          PY
+
+      - name: Checkout exact attribution source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on live source ancestry and frozen blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/host_sync_profile_v3.py")" = "a8863455e1b70580b16512c17a0c934c0054a9ae"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_host_sync_profile_v3.py")" = "11d221fe239a9e7fd47bf458978aa1264caa0ee1"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_100m_host_sync_profile_v3_harness.py")" = "692e737047a116710cd8bed413a71f50325c8e3f"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/grouped_moe_v4.py")" = "7c738e6349536dd45f1c631a9ad5524ade1d5021"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/grouped_moe.py")" = "a06db425f91b2cb23a731927815b4d44d5aa9b71"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/protocol.py")" = "b44d2a8d8b757aae052c34d314fc89604b531f1d"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/train.py")" = "c593c2761c3ae868df96eae0978b2186ac6961d2"
+          test "$(sha256sum source/architectures/cortex_s/experiments/scale100m_2b/train.py | awk '{print $1}')" = "47c9e327095f99eab921b8780bb968101296b11e62ef13dd22488f2974bfb10f"
+
+      - name: Fail closed with stdlib-only authority guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          runner = Path('source/modal_cortex_s_100m_host_sync_profile_v3.py').read_text(encoding='utf-8')
+          core = Path('source/architectures/cortex_s/host_sync_profile_v3.py').read_text(encoding='utf-8')
+          tests = Path('source/architectures/cortex_s/tests/test_100m_host_sync_profile_v3_harness.py').read_text(encoding='utf-8')
+          assert 'PHASE = "host-sync-profile-v3"' in runner
+          assert 'TRIGGER_TITLE = "[modal-cortex-s-100m-host-sync-profile-v3]"' in runner
+          assert 'ENGINEERING_SEED = 2_026_091_007' in runner
+          assert 'RESULT_ROOT = "/vol/cortex-s-v0/100m-2b/host-sync-profile-v3"' in runner
+          assert '2_026_091_006' in runner
+          assert 'EXPECTED_CORTEX_PARAMS = 101_778_112' in runner
+          assert 'EXPECTED_GROUPED_MM_CALLS_PER_OPTIMIZER_STEP = 96' in runner
+          assert 'EXPECTED_COMPILE_MODE = "max-autotune-no-cudagraphs"' in runner
+          assert 'FORBIDDEN_CONTROL_AND_SCIENTIFIC_SEEDS = (8_100, 48_131, 48_132, 48_133)' in runner
+          assert runner.count('gpu="H100!"') == 1
+          assert 'run_host_sync_profile(' in runner
+          assert 'training_module._compile_model(model)' in runner
+          assert 'training_module._one_optimizer_step(' in runner
+          assert 'train_full_2b(' not in runner
+          assert 'full_training_authorized": False' in runner
+          assert 'scientific_claim_authorized": False' in runner
+          assert 'STEADY_WARMUP_STEPS = 5' in core
+          assert 'STEADY_MEASURED_STEPS = 4' in core
+          assert 'PROFILED_STEPS = 2' in core
+          assert 'with_stack=True' in core
+          assert 'events = list(prof.events())' in core
+          assert 'cpu_parent' in core
+          assert 'GROUPED_MM_HOST_SYNC_DOMINANT' in core
+          assert 'train_full_2b(' not in core
+          assert 'REPO_ROOT = Path(__file__).resolve().parents[3]' in tests
+          assert 'assert int(training_module.GRAD_ACCUM_STEPS) == 2' in tests
+          assert '"GRAD_ACCUM_STEPS = 2" in train' not in tests
+          main = runner[runner.index('def main('):]
+          assert main.index('verify_zero_gpu.remote') < main.index('reserve_h100_dispatch.remote') < main.index('h100_profile.remote')
+          reserve = runner[runner.index('def reserve_h100_dispatch('):runner.index('def _prove_triton_dispatch(')]
+          proof = runner[runner.index('def _prove_triton_dispatch('):runner.index('def h100_profile(')]
+          h100 = runner[runner.index('def h100_profile('):runner.index('@app.local_entrypoint()')]
+          assert '_atomic_write(marker_path, marker)' in reserve
+          assert 'volume.commit()' in reserve
+          assert '"h100_allocation_started": False' in reserve
+          assert 'integration.affine_scan_triton_candidate = counted_candidate' in proof
+          assert 'integration.affine_scan = forbidden_fallback' in proof
+          assert 'calls["candidate"] != EXPECTED_LAYERS' in proof
+          assert 'calls["fallback"] != 0' in proof
+          assert 'marker["h100_allocation_started"] = True' in h100
+          print('host-sync attribution v3 authority guard PASS; seed 8100 and scientific seeds remain forbidden')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record authorized attribution handoff before Modal invocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S host-sync attribution v3 launcher authenticated** — source=${{ steps.cfg.outputs.source_sha }}, tree=${{ steps.cfg.outputs.source_tree }}, harness=${{ steps.cfg.outputs.harness_sha }}, fresh engineering seed=2026091007. Zero-GPU gate and durable single-use dispatch marker precede exactly one H100 attribution request. Seed 8100, scientific seeds, production changes, full 2B training, and scientific claims are forbidden."
+
+      - name: Launch exact source-bound single-use H100 attribution
+        run: |
+          cd source
+          modal run --detach --timestamps modal_cortex_s_100m_host_sync_profile_v3.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}" \
+            --source-tree "${{ steps.cfg.outputs.source_tree }}" \
+            --harness-sha "${{ steps.cfg.outputs.harness_sha }}"
+
+      - name: Record successful Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🧪 **CORTEX-S host-sync attribution v3 returned.** Authoritative \`RESULT.json\` is durable in the single-use Volume namespace. Any attribution classification is engineering evidence only and does not authorize a production optimization, 2B run, architecture claim, or scientific/breakthrough claim."
