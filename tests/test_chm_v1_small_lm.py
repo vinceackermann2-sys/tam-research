@@ -12,6 +12,7 @@ from tam_research.chm_v1_small_lm import (
     ADDRESS_DIM,
     LOCAL_WINDOW,
     NON_SCIENTIFIC_SMOKE_SEED,
+    RETRIEVAL_HOPS,
     SCIENTIFIC_SEEDS,
     CHMV1EIEMLM,
     EpisodicState,
@@ -22,7 +23,7 @@ from tam_research.chm_v1_small_lm import (
 
 
 def test_exact_index_matches_flat_including_duplicate_distance_ties() -> None:
-    # Duplicate vectors are an intentional tie case.  Stable insertion IDs, not
+    # Duplicate vectors are an intentional tie case. Stable insertion IDs, not
     # tree traversal order, must choose the same winner on both paths.
     points = np.asarray(
         [
@@ -48,6 +49,7 @@ def test_exact_index_matches_flat_including_duplicate_distance_ties() -> None:
         flat, indexed = index.assert_exact(query)
         assert indexed.item_id == flat.item_id
         assert indexed.position == flat.position
+        assert indexed.squared_distance == flat.squared_distance
 
 
 def test_preregistered_parameter_match_is_below_one_percent_without_dummy_params() -> None:
@@ -57,6 +59,7 @@ def test_preregistered_parameter_match_is_below_one_percent_without_dummy_params
     assert counts["within_preregistered_one_percent"] is True
     assert counts["delta_fraction"] < 0.01
     assert counts["local_window"] == 512
+    assert counts["retrieval_hops"] == RETRIEVAL_HOPS == 2
     del counts
     gc.collect()
 
@@ -95,7 +98,7 @@ def test_differentiable_flat_memory_is_causal_and_trains_address_path() -> None:
     gc.collect()
 
 
-def test_session_writes_are_post_query_resettable_isolated_and_parameter_safe() -> None:
+def test_session_writes_are_post_query_two_hop_isolated_and_parameter_safe() -> None:
     torch.manual_seed(NON_SCIENTIFIC_SMOKE_SEED)
     model = CHMV1EIEMLM().eval()
     state_a = EpisodicState("a")
@@ -110,7 +113,7 @@ def test_session_writes_are_post_query_resettable_isolated_and_parameter_safe() 
         update_memory=True,
     )
     assert torch.isfinite(logits1).all()
-    assert stats1.calls == 0  # current chunk cannot read itself
+    assert stats1.calls == 0  # current chunk cannot read itself on either hop
     assert len(state_a) == 6
     assert len(state_b) == 0
     assert parameter_digest(model) == before
@@ -124,7 +127,7 @@ def test_session_writes_are_post_query_resettable_isolated_and_parameter_safe() 
         verify_indexed_exactness=True,
     )
     assert torch.isfinite(logits2).all()
-    assert stats2.calls == 5
+    assert stats2.calls == 5 * RETRIEVAL_HOPS
     assert stats2.exact_match_rate == 1.0
     assert len(state_a) == 11
     assert len(state_b) == 0
