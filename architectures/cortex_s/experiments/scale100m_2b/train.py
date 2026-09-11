@@ -102,7 +102,8 @@ def _one_optimizer_step(
     model.train()
     runner.train()
     optimizer.zero_grad(set_to_none=True)
-    running = 0.0
+    running_loss: torch.Tensor | None = None
+    all_finite: torch.Tensor | None = None
     for _ in range(GRAD_ACCUM_STEPS):
         x, y = train_data.batch(MICRO_BATCH_SIZE, SEQ_LEN, generator, device)
         with _autocast(device):
@@ -111,17 +112,29 @@ def _one_optimizer_step(
                 logits.float().reshape(-1, logits.size(-1)),
                 y.reshape(-1),
             ) / GRAD_ACCUM_STEPS
-        if not torch.isfinite(loss):
-            raise FloatingPointError("non-finite CORTEX-S training loss")
+        detached_loss = loss.detach()
+        loss_finite = torch.isfinite(detached_loss)
+        running_loss = detached_loss if running_loss is None else running_loss + detached_loss
+        all_finite = loss_finite if all_finite is None else torch.logical_and(all_finite, loss_finite)
         loss.backward()
-        running += float(loss.detach())
     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-    if not torch.isfinite(grad_norm):
-        raise FloatingPointError("non-finite CORTEX-S gradient norm")
+    if running_loss is None or all_finite is None:
+        raise RuntimeError("gradient accumulation produced no CORTEX-S microbatches")
+    all_finite = torch.logical_and(all_finite, torch.isfinite(grad_norm))
+
+    # Materialize the training scalar and its safety bit together. On CUDA this is
+    # the single intentional host synchronization in the optimizer-step hot path.
+    host_report = torch.stack(
+        (running_loss, all_finite.to(dtype=running_loss.dtype))
+    ).to(device="cpu")
+    running_value, finite_value = host_report.tolist()
+    if not bool(finite_value):
+        raise FloatingPointError("non-finite CORTEX-S training loss or gradient norm")
+
     for group in optimizer.param_groups:
         group["lr"] = lr
     optimizer.step()
-    return running
+    return float(running_value)
 
 
 @torch.no_grad()
