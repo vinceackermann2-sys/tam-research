@@ -2,14 +2,16 @@ from __future__ import annotations
 
 """Deterministic held-out long-memory probes for CHM-v1 / EIEM issue #854.
 
-The generator emits ordinary text only.  Hidden case IDs, family labels,
+The generator emits ordinary text only. Hidden case IDs, family labels,
 expected answers, stale-answer sets, and candidate sets are evaluator metadata;
-none is appended to model input.  The three long-range families verify that the
+none is appended to model input. The three long-range families verify that the
 latest evidence required for the answer ends >512 encoded tokens before the
-query.  The local negative control deliberately places its evidence <=128 tokens
-before the query.
+query. The two-hop family additionally places its first relation and second
+remote record in different 512-token local windows so the second stored raw
+hidden state cannot locally contextualize both relations. The local negative
+control deliberately places its evidence <=128 tokens before the query.
 
-This module contains no tokenizer download and no GPU/run trigger.  A future
+This module contains no tokenizer download and no GPU/run trigger. A future
 authorized runner supplies the already-frozen GPT-2 encoder.
 """
 
@@ -27,8 +29,11 @@ Family = Literal["rare_fact", "overwrite", "two_hop", "local_negative"]
 
 LONG_RANGE_MIN_DISTANCE = LOCAL_WINDOW + 1
 LOCAL_CONTROL_MAX_DISTANCE = 128
+# Endpoint separation >=640 plus a <=128-token second fact guarantees that the
+# second fact begins strictly after the first fact's 512-token local horizon.
+TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION = LOCAL_WINDOW + LOCAL_CONTROL_MAX_DISTANCE
 DEFAULT_CASES_PER_FAMILY = 24
-GENERATOR_VERSION = "chm-v1-heldout-natural-v1"
+GENERATOR_VERSION = "chm-v1-heldout-natural-v2"
 
 _ENTITIES = (
     "Aurora Harbor", "Birch Observatory", "Cedar Junction", "Delta Museum",
@@ -69,6 +74,7 @@ class EncodedProbe:
     query_token: int
     evidence_distance: int
     stale_token_ids: tuple[int, ...] = ()
+    first_evidence_end_token: int | None = None
     generator_version: str = GENERATOR_VERSION
     used_for_training: bool = False
 
@@ -84,6 +90,12 @@ class EncodedProbe:
                 raise ValueError("local control evidence escaped the <=128-token region")
         elif self.evidence_distance < LONG_RANGE_MIN_DISTANCE:
             raise ValueError("long-range evidence must be strictly >512 tokens from query")
+        if self.family == "two_hop":
+            if self.first_evidence_end_token is None:
+                raise ValueError("two-hop probe must record first evidence endpoint")
+            separation = self.evidence_end_token - self.first_evidence_end_token
+            if separation < TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION:
+                raise ValueError("two-hop facts are not in separated local horizons")
 
 
 def _encoded(encode: Encode, text: str) -> tuple[int, ...]:
@@ -133,6 +145,27 @@ def _pad_until_distance(
         if distance >= minimum_distance:
             return prompt, ids, distance
     raise RuntimeError("could not create a long enough held-out probe")
+
+
+def _separate_two_hop_facts(
+    encode: Encode,
+    *,
+    first_fact: str,
+    second_fact: str,
+    rng: random.Random,
+) -> tuple[str, int, int]:
+    first_end = len(_encoded(encode, first_fact)) - 1
+    second_fact_len = len(_encoded(encode, second_fact))
+    if second_fact_len > LOCAL_CONTROL_MAX_DISTANCE:
+        raise ValueError("two-hop second fact exceeds 128 tokens; separation proof invalid")
+    filler_parts: list[str] = []
+    for _ in range(256):
+        filler_parts.append(_filler(rng, 2))
+        prefix = first_fact + " " + " ".join(filler_parts) + " " + second_fact
+        second_end = len(_encoded(encode, prefix)) - 1
+        if second_end - first_end >= TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION:
+            return prefix, first_end, second_end
+    raise RuntimeError("could not separate two-hop facts into different local horizons")
 
 
 def _rare_fact(case_id: int, encode: Encode, rng: random.Random, values: list[tuple[str, int]]) -> EncodedProbe:
@@ -191,21 +224,21 @@ def _two_hop(case_id: int, encode: Encode, rng: random.Random, values: list[tupl
     entity = _ENTITIES[(case_id * 5) % len(_ENTITIES)]
     link = _LINKS[case_id % len(_LINKS)]
     answer, answer_id = values[(case_id + 4) % 8]
-    facts = (
-        f"Routing note: the record associated with {entity} is {link}. "
-        f"Registry note: the access word stored in {link} is {answer}."
+    first_fact = f"Routing note: the record associated with {entity} is {link}."
+    second_fact = f"Registry note: the access word stored in {link} is {answer}."
+    prefix, first_end, second_end = _separate_two_hop_facts(
+        encode, first_fact=first_fact, second_fact=second_fact, rng=rng
     )
-    evidence_end = len(_encoded(encode, facts)) - 1
     query = f"Question: Follow the record associated with {entity}. What access word does that record store? Answer:"
     prompt, ids, distance = _pad_until_distance(
-        encode, prefix=facts, evidence_end=evidence_end, query=query, rng=rng,
+        encode, prefix=prefix, evidence_end=second_end, query=query, rng=rng,
         minimum_distance=LONG_RANGE_MIN_DISTANCE,
     )
     probe = EncodedProbe(
         family="two_hop", case_id=case_id, prompt_text=prompt, prompt_ids=ids,
         answer_token_id=answer_id, candidate_token_ids=_candidate_ids(values),
-        evidence_end_token=evidence_end, query_token=len(ids) - 1,
-        evidence_distance=distance,
+        first_evidence_end_token=first_end, evidence_end_token=second_end,
+        query_token=len(ids) - 1, evidence_distance=distance,
     )
     probe.validate()
     return probe
