@@ -50,7 +50,7 @@ def test_v6_runner_is_syntax_valid_and_single_use_authority_is_frozen() -> None:
         assert needle in text
     assert text.count('gpu="H100!"') == 1
     assert "train_full_2b(" not in text
-    assert "torch.profiler" not in text
+    assert 'if "torch.profiler" in step_source:' in text
     assert "ENGINEERING_SEED = 8_100" not in text
     assert "ENGINEERING_SEED = 48_131" not in text
     assert "ENGINEERING_SEED = 48_132" not in text
@@ -138,6 +138,7 @@ def test_workflow_is_owner_only_source_bound_and_pins_active_blobs() -> None:
     for needle in required:
         assert needle in text
     assert "workflow_dispatch" not in text
+    assert "assert 'torch.profiler' not in h100" in text
     executable_modal_lines = [
         line.strip() for line in text.splitlines() if line.strip().startswith("modal run ")
     ]
