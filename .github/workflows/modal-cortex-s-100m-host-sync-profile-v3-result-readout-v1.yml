@@ -1,0 +1,169 @@
+name: Modal CORTEX-S 100M host-sync v3 durable result readout
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  readout:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-host-sync-profile-v3-result-readout-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable readout payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          source_tree = str(cfg.get('source_tree', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          original_source_sha = str(cfg.get('original_source_sha', '')).strip().lower()
+          original_source_tree = str(cfg.get('original_source_tree', '')).strip().lower()
+          original_harness_sha = str(cfg.get('original_harness_sha', '')).strip().lower()
+          assert phase == 'host-sync-profile-v3-result-readout-v1'
+          for name, value in (
+              ('source_sha', source_sha),
+              ('source_tree', source_tree),
+              ('harness_sha', harness_sha),
+              ('original_source_sha', original_source_sha),
+              ('original_source_tree', original_source_tree),
+              ('original_harness_sha', original_harness_sha),
+          ):
+              assert re.fullmatch(r'[0-9a-f]{40}', value), f'{name} must be a full lowercase SHA'
+          assert original_source_sha == '22ef4aac4735128219c720c839e6978c424114dc'
+          assert original_source_tree == '0e89d152aba053b45dcf2c07b878781048f8c23e'
+          assert original_harness_sha == '13b3c3f8cc0f3d3cd60376099a945d6984cb320f'
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'source_tree={source_tree}')
+          print(f'harness_sha={harness_sha}')
+          print(f'original_source_sha={original_source_sha}')
+          print(f'original_source_tree={original_source_tree}')
+          print(f'original_harness_sha={original_harness_sha}')
+          PY
+
+      - name: Checkout exact readout source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on source and read-only authority
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          python - <<'PY'
+          from pathlib import Path
+          runner = Path('source/modal_cortex_s_100m_host_sync_profile_v3_result_readout.py').read_text(encoding='utf-8')
+          assert 'PHASE = "host-sync-profile-v3-result-readout-v1"' in runner
+          assert 'ORIGINAL_SOURCE_SHA = "22ef4aac4735128219c720c839e6978c424114dc"' in runner
+          assert 'ORIGINAL_SOURCE_TREE = "0e89d152aba053b45dcf2c07b878781048f8c23e"' in runner
+          assert 'ORIGINAL_HARNESS_SHA = "13b3c3f8cc0f3d3cd60376099a945d6984cb320f"' in runner
+          assert 'ORIGINAL_ENGINEERING_SEED = 2_026_091_007' in runner
+          assert 'RESULT_ROOT = "/vol/cortex-s-v0/100m-2b/host-sync-profile-v3"' in runner
+          assert 'volume.reload()' in runner
+          assert 'CORTEX_S_V3_RESULT_READOUT=' in runner
+          for forbidden in (
+              'gpu=', 'gpu =', 'volume.commit', '_atomic_write', '.write_text(', '.write_bytes(',
+              '.replace(', '.unlink(', '.mkdir(', 'torch', 'training_module', '_one_optimizer_step',
+              '_compile_model', 'train_full_2b', 'optimizer.step',
+          ):
+              assert forbidden not in runner, forbidden
+          assert runner.count('@app.function(') == 1
+          print('readout authority guard PASS: existing Volume records may only be read')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Read immutable durable result
+        run: |
+          cd source
+          set -o pipefail
+          modal run modal_cortex_s_100m_host_sync_profile_v3_result_readout.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --original-source-sha "${{ steps.cfg.outputs.original_source_sha }}" \
+            --original-source-tree "${{ steps.cfg.outputs.original_source_tree }}" \
+            --original-harness-sha "${{ steps.cfg.outputs.original_harness_sha }}" \
+            2>&1 | tee /tmp/cortex_v3_readout.log
+
+      - name: Build exact attribution summary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          marker = 'CORTEX_S_V3_RESULT_READOUT='
+          lines = Path('/tmp/cortex_v3_readout.log').read_text(encoding='utf-8').splitlines()
+          matches = [line for line in lines if marker in line]
+          if len(matches) != 1:
+              raise RuntimeError(f'expected exactly one readout marker, got {len(matches)}')
+          payload = json.loads(matches[0].split(marker, 1)[1])
+          if payload.get('status') != 'READOUT_COMPLETE' or payload.get('read_only') is not True:
+              raise RuntimeError('readout payload failed authority validation')
+          result = payload['result']
+          attribution = result['profile']['profiler']['attribution']
+          summary_attribution = {key: value for key, value in attribution.items() if key != 'raw_sync_records_top_cpu'}
+          summary = {
+              'durable_result_sha256': payload['sha256']['result'],
+              'result_status': result['status'],
+              'result_classification': result['classification'],
+              'engineering_seed': result['engineering_seed'],
+              'gpu_name': result.get('gpu_name'),
+              'compile_mode': result.get('compile_mode'),
+              'compile_seconds': result.get('compile_seconds'),
+              'dispatcher_proof': result.get('dispatcher_proof'),
+              'steady_state_sanity': result['profile'].get('steady_state_sanity'),
+              'attribution': summary_attribution,
+              'raw_sync_records_available_in_durable_result': len(attribution.get('raw_sync_records_top_cpu', [])),
+              'seed_8100_used': result.get('seed_8100_used'),
+              'reserved_scientific_seeds_used': result.get('reserved_scientific_seeds_used'),
+              'full_training_authorized': result.get('full_training_authorized'),
+              'scientific_claim_authorized': result.get('scientific_claim_authorized'),
+          }
+          Path('/tmp/cortex_v3_summary.json').write_text(json.dumps(summary, indent=2, sort_keys=True), encoding='utf-8')
+          comment = (
+              '📖 **CORTEX-S v3 durable result recovered read-only.** '
+              'The existing consumed namespace was read without mutation or new seed use.\n\n'
+              '```json\n' + json.dumps(summary, indent=2, sort_keys=True) + '\n```\n\n'
+              'This is engineering attribution evidence only. It does not authorize production changes, full training, or scientific claims.'
+          )
+          Path('/tmp/cortex_v3_comment.md').write_text(comment, encoding='utf-8')
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Post recovered attribution summary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="$(cat /tmp/cortex_v3_comment.md)"
