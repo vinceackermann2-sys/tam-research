@@ -62,9 +62,11 @@ Exactness applies independently to both sequential retrieval hops. Any indexed-v
 
 ## Held-out long-memory probes
 
-`tam_research/chm_v1_long_memory_eval.py` generates deterministic natural-language probes with a caller-supplied frozen GPT-2 encoder. Generator IDs, family labels, candidate sets, expected answers, and stale-answer sets are evaluator metadata only and never enter the model input.
+`tam_research/chm_v1_long_memory_eval.py` retains the shared `EncodedProbe`, distance/state-slice validation, scoring helpers, and historical v2 generator. A pre-execution zero-credit audit found query-visible lexical answer cues in v2, so issue #854 was amended before any scientific seed and v2 is **not valid for scientific execution**.
 
-The probe families are:
+The scientific gate must use `tam_research/chm_v1_long_memory_eval_v3.py`, versioned `chm-v1-heldout-natural-v3`. V3 preserves the frozen probe semantics and geometry while using neutral query-visible identifiers, a balanced eight-way answer schedule, and runtime lexical-cue rejection. At 24 cases/family each candidate answer slot appears exactly three times per family.
+
+The probe families remain:
 
 - rare fact: one target fact among distractors;
 - overwrite: multiple visible updates, answer the final authoritative value and score stale-value errors;
@@ -73,14 +75,14 @@ The probe families are:
 
 For rare fact, overwrite, and two-hop, the **end of the latest evidence required to answer** must be at least 513 encoded tokens before the scored query position. This prevents a nominal long-memory win from being caused by evidence that merely fell across a 512-token chunk boundary while remaining within the intended local horizon.
 
-The exact memory-size slices are frozen before any scientific seed is allocated:
+The exact memory-size slices remain frozen:
 
 - rare-fact and overwrite: evidence is in chunk 1 and the scored query is in chunk 2, so the scored query sees exactly **512 prior episodic items**;
 - two-hop: relation 1 is in chunk 1, the remote answer-bearing record is in chunk 2, and the query is in chunk 3, so the scored query sees exactly **1,024 prior episodic items**;
 - two-hop evidence endpoints are separated by at least 640 encoded tokens, and the second fact is capped at 128 tokens, preventing its raw stored hidden state from locally contextualizing relation 1;
 - the preregistered <=25% exact-address-read gate is judged at the frozen largest **1,024-item** slice.
 
-The current generator is evaluation-only and versioned `chm-v1-heldout-natural-v2`. Production evaluation supplies the already-frozen GPT-2 tokenizer; CPU CI uses a deterministic toy encoder only to validate generator geometry and metadata isolation.
+Production evaluation supplies the already-frozen GPT-2 tokenizer; CPU CI uses a deterministic toy encoder only to validate generator geometry, answer balance, lexical-cue exclusion, and metadata isolation. Hidden generator IDs, family labels, candidate sets, expected answers, and stale-answer sets remain evaluator metadata only and never enter model input.
 
 ## Current systems boundary
 
@@ -88,16 +90,18 @@ The current generator is evaluation-only and versioned `chm-v1-heldout-natural-v
 
 The evaluator also reports index-build time, requested search time, flat verification time, write time, exact episodic payload bytes, and read/traversal metrics split by memory size. Flat verification used to prove indexed exactness is reported separately and is not counted as indexed search time.
 
-The reference indexed path currently crosses GPU/CPU boundaries when used with a GPU model. Therefore an indexed wall-clock speedup is **not assumed**; if build/update/search or transfer overhead erases the practical benefit, #854's stop condition must fire even if algorithmic vector-read reduction passes.
+The reference indexed path currently crosses GPU/CPU boundaries when used with a GPU model. Therefore an indexed wall-clock speedup is **not assumed**; if build/update/search or transfer overhead erases the practical benefit, #854's stop condition must fire even if algorithmic read reduction passes.
 
 ## Files
 
 - `tam_research/chm_v1_exact_index.py`: exact flat + branch-and-bound search.
 - `tam_research/chm_v1_small_lm.py`: LOCAL/EIEM models, exact episodic state, two-hop differentiable flat path, exact stateful inference.
 - `tam_research/chm_v1_small_lm_protocol.py`: frozen data/optimizer/token geometry and reusable training/evaluation functions; no launcher.
-- `tam_research/chm_v1_long_memory_eval.py`: held-out >512-token rare-fact/overwrite/two-hop/local-control probes and scoring helpers.
+- `tam_research/chm_v1_long_memory_eval.py`: shared probe/scoring primitives plus historical v2 generator retained for provenance.
+- `tam_research/chm_v1_long_memory_eval_v3.py`: preregistered cue-free scientific held-out generator.
+- `tam_research/chm_v1_gate_metrics.py`: preregistered LOCAL-relative stale-state gate accounting.
 - `architectures/chm_v1/small_lm/smoke.py`: non-scientific seed-12345 CPU smoke.
-- `tests/test_chm_v1_small_lm*.py` and `tests/test_chm_v1_long_memory_eval.py`: zero-credit invariant coverage.
+- `tests/test_chm_v1_small_lm*.py`, `tests/test_chm_v1_long_memory_eval*.py`, and `tests/test_chm_v1_gate_metrics.py`: zero-credit invariant coverage.
 
 ## Spend boundary
 
