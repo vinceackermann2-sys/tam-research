@@ -294,13 +294,16 @@ class CHMV1EIEMLM(nn.Module):
             torch.ones(length, length, device=tokens.device, dtype=torch.bool),
             diagonal=-1,
         )
+        valid_query_rows = allowed.any(dim=-1).view(1, length, 1)
         query_state = hidden
         for _ in range(RETRIEVAL_HOPS):
             queries = self.query_for(query_state)
             score = torch.einsum("btd,bsd->bts", queries, keys) / temperature
             score = score.masked_fill(~allowed[None], torch.finfo(score.dtype).min)
             weights = torch.softmax(score.float(), dim=-1).to(hidden.dtype)
-            weights[:, 0, :] = 0
+            # Token zero has no causal predecessor. Mask functionally rather than
+            # mutating the softmax output in-place so autograd can reuse it safely.
+            weights = weights * valid_query_rows.to(weights.dtype)
             memory = torch.matmul(weights, hidden)
             query_state = self._integrate(query_state, memory)
         return self.backbone.lm_head(query_state)
