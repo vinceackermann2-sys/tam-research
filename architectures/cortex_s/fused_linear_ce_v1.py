@@ -11,10 +11,11 @@ import torch.nn.functional as F
 from architectures.cortex_s.language_model import CortexSLM
 
 
-SYSTEMS_VARIANT = "fused_linear_ce_liger_v1"
+SYSTEMS_VARIANT = "fused_linear_ce_liger_v2_compile_boundary"
 CLASSIFICATION = "ZERO_CREDIT_SYSTEMS_OPTIMIZATION_ONLY"
 LIGER_KERNEL_VERSION = "0.8.2"
 LIGER_KERNEL_WHEEL_SHA256 = "84c0a7bc9bf4d4cf8ea5ba89ff84d28686afc94215b220851d9f57dc87852741"
+COMPILE_BOUNDARY = "liger_loss_eager_dynamo_boundary"
 DEFAULT_REFERENCE_CHUNK_ROWS = 256
 
 
@@ -99,6 +100,11 @@ class FusedLinearCETrainingRunner(nn.Module):
     `forward(tokens)` remains a transparent logits path for evaluation. Supplying
     `targets` selects the systems-only loss path. CPU deliberately uses the local
     chunked Torch oracle; CUDA requires the exactly pinned Liger release.
+
+    The CORTEX feature trunk remains eligible for torch.compile. Only the Liger
+    FLCE call is a deliberate Dynamo boundary because Liger 0.8.2's FP32-accum
+    `aten.addmm.dtype_out` path is not FakeTensor/Inductor traceable on PyTorch
+    2.10. Eager Liger preserves the same fused loss and accumulation semantics.
     """
 
     def __init__(
@@ -130,6 +136,19 @@ class FusedLinearCETrainingRunner(nn.Module):
                 accum_dtype=torch.float32,
             )
 
+    @torch.compiler.disable
+    def _liger_loss_eager(
+        self,
+        weight: torch.Tensor,
+        flat_hidden: torch.Tensor,
+        flat_targets: torch.Tensor,
+    ) -> torch.Tensor:
+        """Execute only pinned Liger FLCE outside Dynamo/FakeTensor tracing."""
+
+        if self._liger_loss is None:
+            raise RuntimeError("Liger eager boundary selected without a Liger loss module")
+        return self._liger_loss(weight, flat_hidden, flat_targets)
+
     def _loss(self, hidden: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         flat_hidden = hidden.reshape(-1, hidden.size(-1))
         flat_targets = targets.reshape(-1)
@@ -138,7 +157,7 @@ class FusedLinearCETrainingRunner(nn.Module):
             # The CUDA production candidate never creates a complete [tokens, vocab]
             # logits tensor. Liger performs linear + CE chunk-by-chunk and returns a
             # scalar mean loss while producing gradients for hidden + tied weight.
-            return self._liger_loss(weight, flat_hidden, flat_targets)
+            return self._liger_loss_eager(weight, flat_hidden, flat_targets)
         return chunked_linear_cross_entropy_reference(
             flat_hidden,
             weight,
@@ -166,6 +185,23 @@ def _compile_fused_linear_ce_runner(model: CortexSLM) -> torch.nn.Module:
     return torch.compile(runner, mode=training_module.COMPILE_MODE, fullgraph=False)
 
 
+def _normalize_fused_training_runner(
+    model: CortexSLM,
+    runner: torch.nn.Module,
+) -> torch.nn.Module:
+    """Restore the fused runner when the generic calibration falls back to `model`.
+
+    The production calibration intentionally substitutes the bare model after a
+    compile failure. The fused optimizer step has a two-argument runner contract,
+    so normalize only that exact identity case back to the systems wrapper. This
+    changes no successful compiled path and keeps the same model/parameters/ties.
+    """
+
+    if runner is model:
+        return FusedLinearCETrainingRunner(model)
+    return runner
+
+
 def _one_optimizer_step_fused_linear_ce(
     *,
     model: CortexSLM,
@@ -180,6 +216,7 @@ def _one_optimizer_step_fused_linear_ce(
 
     import architectures.cortex_s.experiments.scale100m_2b.train as training_module
 
+    runner = _normalize_fused_training_runner(model, runner)
     model.train()
     runner.train()
     optimizer.zero_grad(set_to_none=True)
@@ -221,7 +258,7 @@ def _one_optimizer_step_fused_linear_ce(
 
 @contextmanager
 def fused_linear_ce_training_builder() -> Iterator[None]:
-    """Temporarily select the v7 training-only fused-loss systems candidate.
+    """Temporarily select the training-only fused-loss systems candidate.
 
     The default trainer remains untouched outside this context. The context itself
     allocates no GPU, invokes no Modal job, and consumes no experiment seed.
@@ -246,6 +283,10 @@ def integration_status() -> dict[str, object]:
         "classification": CLASSIFICATION,
         "liger_kernel_version": LIGER_KERNEL_VERSION,
         "liger_kernel_wheel_sha256": LIGER_KERNEL_WHEEL_SHA256,
+        "compile_boundary": COMPILE_BOUNDARY,
+        "cortex_feature_trunk_compiled": True,
+        "liger_loss_executes_eager": True,
+        "fallback_runner_normalized": True,
         "default_model_forward_unchanged": True,
         "default_training_module_unchanged": True,
         "cuda_materializes_full_logits": False,

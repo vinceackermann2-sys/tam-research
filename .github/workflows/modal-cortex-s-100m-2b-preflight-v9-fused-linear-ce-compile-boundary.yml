@@ -1,0 +1,179 @@
+name: Modal CORTEX-S 100M/2B preflight v9 fused linear CE compile boundary
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v9-fused-linear-ce-compile-boundary]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable paid-boundary payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          source_tree = str(cfg.get('source_tree', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          assert phase == 'preflight-v9-fused-linear-ce-compile-boundary'
+          for name, value in (('source_sha', source_sha), ('source_tree', source_tree), ('harness_sha', harness_sha)):
+              assert re.fullmatch(r'[0-9a-f]{40}', value), f'{name} must be a full lowercase SHA'
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'source_tree={source_tree}')
+          print(f'harness_sha={harness_sha}')
+          PY
+
+      - name: Checkout exact paid-boundary source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on live source ancestry and frozen blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v9_fused_linear_ce_compile_boundary_preflight.py")" = "211e4a2f40338bb454bbd223db6fc072da660d25"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/fused_linear_ce_v1.py")" = "24ec7090a680ed1d25096f95ac24a6730518826e"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_fused_linear_ce_v1.py")" = "487b5ce53f1a4691ad68b528571c003014050b86"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/train.py")" = "004b66b549d3d64f2dde7614ec84f22b9f37a7c6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/grouped_moe_v4.py")" = "7c738e6349536dd45f1c631a9ad5524ade1d5021"
+          test "$(sha256sum source/architectures/cortex_s/experiments/scale100m_2b/train.py | awk '{print $1}')" = "d0d91de09bba8b7631913b3e9c0407ab2bb0114f7bba133c123ee5598d490461"
+
+      - name: Fail closed with stdlib-only authority guard
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          runner = Path('source/modal_cortex_s_100m_2b_v9_fused_linear_ce_compile_boundary_preflight.py').read_text(encoding='utf-8')
+          tree = ast.parse(runner)
+          required = (
+              'PHASE = "preflight-v9-fused-linear-ce-compile-boundary"',
+              'TRIGGER_TITLE = "[modal-cortex-s-100m-2b-preflight-v9-fused-linear-ce-compile-boundary]"',
+              'ENGINEERING_SEED = 2_026_091_011',
+              'RESULT_ROOT = "/vol/cortex-s-v0/100m-2b/preflight-v9-fused-linear-ce-compile-boundary"',
+              'PACKAGING_VERSION = "26.3"',
+              'LIGER_KERNEL_VERSION = "0.8.2"',
+              'FUSED_SYSTEMS_VARIANT = "fused_linear_ce_liger_v2_compile_boundary"',
+              'COMPILE_BOUNDARY = "liger_loss_eager_dynamo_boundary"',
+              'EXPECTED_CORTEX_PARAMS = 101_778_112',
+              'CALIBRATION_WARMUP_STEPS = 5',
+              'MEASURED_STEPS = 40',
+              'MEASURED_TOKENS = MEASURED_STEPS * TOKENS_PER_STEP',
+              'PROJECTION_OVERHEAD_MULTIPLIER = 1.10',
+              'MAX_PROJECTED_FULL_SECONDS = 8_500.0',
+              'MAX_PREFLIGHT_VRAM_GIB = 70.0',
+              '"liger-kernel==0.8.2"',
+              '"packaging==26.3"',
+              'with memory_lean_grouped_triton_scan_training_builder():',
+              'with fused_linear_ce_training_builder():',
+              'training_module.run_h100_calibration(',
+              'raw.get("execution") != "compiled"',
+              'training_module.CALIBRATION_SEED = ENGINEERING_SEED',
+              '"profiling_inside_timed_calibration": False',
+              '"full_training_authorized": False',
+              '"scientific_claim_authorized": False',
+          )
+          for needle in required:
+              assert needle in runner, needle
+          gpu_sites = []
+          call_names = []
+          profiler_calls = []
+          for node in ast.walk(tree):
+              if not isinstance(node, ast.Call):
+                  continue
+              name = ast.unparse(node.func)
+              call_names.append(name)
+              if name.startswith('torch.profiler'):
+                  profiler_calls.append(name)
+              for kw in node.keywords:
+                  if kw.arg == 'gpu' and isinstance(kw.value, ast.Constant):
+                      gpu_sites.append(kw.value.value)
+          assert gpu_sites == ['H100!'], gpu_sites
+          assert not any(name.endswith('train_full_2b') for name in call_names), call_names
+          assert not profiler_calls, profiler_calls
+          assert '2_026_091_010' in runner
+          assert '8_100, 48_131, 48_132, 48_133' in runner
+          reserve = runner[runner.index('def reserve_h100_dispatch('):runner.index('def _prove_triton_dispatch(')]
+          h100 = runner[runner.index('def h100_preflight('):runner.index('@app.local_entrypoint()')]
+          main = runner[runner.index('def main('):]
+          assert '_atomic_write(marker_path, marker)' in reserve
+          assert 'volume.commit()' in reserve
+          assert main.index('reserve_h100_dispatch.remote') < main.index('h100_preflight.remote')
+          assert 'integration.affine_scan_triton_candidate = counted_candidate' in runner
+          assert 'integration.affine_scan = forbidden_fallback' in runner
+          assert h100.index('with memory_lean_grouped_triton_scan_training_builder():') < h100.index('with fused_linear_ce_training_builder():') < h100.index('training_module.run_h100_calibration(')
+          assert '_prove_fused_loss_cuda(proof_model)' in h100
+          print('v9 fused-linear-CE compile-boundary authority guard PASS')
+          PY
+
+      - name: Run actions/setup-python@v5
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record authorized handoff before any Modal invocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S v9 fused-linear-CE compile-boundary systems preflight authenticated** — source=$SOURCE_SHA, tree=$SOURCE_TREE, harness=$HARNESS_SHA, reserved engineering seed=2026091011. The zero-GPU gate proves packaging/Liger imports plus the candidate compile boundary, then durably consumes the one-shot dispatch marker before one H100. Frozen calibration remains exactly 5 warmup + 40 measured BF16 production optimizer steps / 2,621,440 tokens, <=70 GiB, with 2B/tps*1.10+compile <=8500 s. No full 2B or scientific/control seed is authorized."
+
+      - name: Launch exact source-bound single-use systems preflight
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          cd source
+          modal run --detach --timestamps modal_cortex_s_100m_2b_v9_fused_linear_ce_compile_boundary_preflight.py \
+            --phase "preflight-v9-fused-linear-ce-compile-boundary" \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA"
+
+      - name: Record successful Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟩 CORTEX-S v9 Modal call returned normally. Inspect the durable RESULT.json classification before making any scientific or full-training decision."
