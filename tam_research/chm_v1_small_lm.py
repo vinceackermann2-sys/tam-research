@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Preregistered CHM-v1 / EIEM small matched-LM implementation (#854).
 
-This file contains model and inference-memory plumbing only.  It does not launch
+This file contains model and inference-memory plumbing only. It does not launch
 training, consume scientific seeds, or authorize GPU work.
 
 LOCAL and EIEM share the repository's established ~25M GPT-style Transformer
@@ -19,6 +19,7 @@ leakage.
 
 from dataclasses import dataclass, field
 import hashlib
+import time
 from typing import Literal
 
 import numpy as np
@@ -74,13 +75,30 @@ class RetrievalStats:
     flat_address_vector_reads: int = 0
     directory_nodes_visited: int = 0
     exact_matches: int = 0
+    index_build_seconds: float = 0.0
+    search_seconds: float = 0.0
+    verification_seconds: float = 0.0
+    write_seconds: float = 0.0
+    state_payload_bytes: int = 0
 
-    def add(self, result: SearchResult, memory_size: int, *, exact_match: bool) -> None:
+    def add(
+        self,
+        result: SearchResult,
+        memory_size: int,
+        *,
+        exact_match: bool,
+        index_build_seconds: float = 0.0,
+        search_seconds: float = 0.0,
+        verification_seconds: float = 0.0,
+    ) -> None:
         self.calls += 1
         self.address_vector_reads += int(result.address_vector_reads)
         self.flat_address_vector_reads += int(memory_size)
         self.directory_nodes_visited += int(result.directory_nodes_visited)
         self.exact_matches += int(exact_match)
+        self.index_build_seconds += float(index_build_seconds)
+        self.search_seconds += float(search_seconds)
+        self.verification_seconds += float(verification_seconds)
 
     @property
     def exact_match_rate(self) -> float:
@@ -100,6 +118,12 @@ class EpisodicState:
     values: list[np.ndarray] = field(default_factory=list)
     item_ids: list[int] = field(default_factory=list)
     next_item_id: int = 0
+    index_build_seconds_total: float = 0.0
+    flat_search_seconds_total: float = 0.0
+    indexed_search_seconds_total: float = 0.0
+    verification_seconds_total: float = 0.0
+    write_seconds_total: float = 0.0
+    index_build_count: int = 0
     _cached_index: ExactEpisodicIndex | None = field(default=None, init=False, repr=False)
 
     def __len__(self) -> int:
@@ -110,21 +134,38 @@ class EpisodicState:
         self.values.clear()
         self.item_ids.clear()
         self.next_item_id = 0
+        self.index_build_seconds_total = 0.0
+        self.flat_search_seconds_total = 0.0
+        self.indexed_search_seconds_total = 0.0
+        self.verification_seconds_total = 0.0
+        self.write_seconds_total = 0.0
+        self.index_build_count = 0
         self._cached_index = None
 
+    def payload_bytes(self) -> int:
+        """Exact tensor/ID payload bytes, excluding Python container overhead."""
+        key_bytes = sum(int(key.nbytes) for key in self.keys)
+        value_bytes = sum(int(value.nbytes) for value in self.values)
+        id_bytes = len(self.item_ids) * np.dtype(np.int64).itemsize
+        return key_bytes + value_bytes + id_bytes
+
     def write(self, keys: torch.Tensor, values: torch.Tensor) -> None:
-        if keys.ndim != 2 or values.ndim != 2 or keys.shape[0] != values.shape[0]:
-            raise ValueError("keys/values must be aligned [items, dim] matrices")
-        k = keys.detach().float().cpu().numpy().astype(np.float32, copy=True)
-        v = values.detach().float().cpu().numpy().astype(np.float32, copy=True)
-        if not np.isfinite(k).all() or not np.isfinite(v).all():
-            raise ValueError("episodic writes must be finite")
-        for key, value in zip(k, v):
-            self.keys.append(key)
-            self.values.append(value)
-            self.item_ids.append(self.next_item_id)
-            self.next_item_id += 1
-        self._cached_index = None
+        started = time.perf_counter()
+        try:
+            if keys.ndim != 2 or values.ndim != 2 or keys.shape[0] != values.shape[0]:
+                raise ValueError("keys/values must be aligned [items, dim] matrices")
+            k = keys.detach().float().cpu().numpy().astype(np.float32, copy=True)
+            v = values.detach().float().cpu().numpy().astype(np.float32, copy=True)
+            if not np.isfinite(k).all() or not np.isfinite(v).all():
+                raise ValueError("episodic writes must be finite")
+            for key, value in zip(k, v):
+                self.keys.append(key)
+                self.values.append(value)
+                self.item_ids.append(self.next_item_id)
+                self.next_item_id += 1
+            self._cached_index = None
+        finally:
+            self.write_seconds_total += time.perf_counter() - started
 
     def _arrays(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         if not self.keys:
@@ -137,8 +178,11 @@ class EpisodicState:
 
     def index(self) -> ExactEpisodicIndex:
         if self._cached_index is None:
+            started = time.perf_counter()
             keys, _, item_ids = self._arrays()
             self._cached_index = ExactEpisodicIndex(keys, item_ids, leaf_size=LEAF_SIZE)
+            self.index_build_seconds_total += time.perf_counter() - started
+            self.index_build_count += 1
         return self._cached_index
 
     def retrieve(
@@ -147,19 +191,38 @@ class EpisodicState:
         *,
         mode: RetrievalMode,
         verify_indexed_exactness: bool = True,
-    ) -> tuple[torch.Tensor, SearchResult, bool]:
+    ) -> tuple[torch.Tensor, SearchResult, bool, float, float, float]:
+        """Return value/result/exactness plus build/search/verification seconds.
+
+        `search_seconds` measures the requested retrieval path only. For indexed
+        mode, the exhaustive flat call used solely to assert exactness is kept in
+        `verification_seconds` so correctness checking cannot masquerade as the
+        indexed algorithm's own wall-clock cost.
+        """
         if query.ndim != 1:
             raise ValueError("query must be one address vector")
         _, values, _ = self._arrays()
         q = query.detach().float().cpu().numpy().astype(np.float32, copy=False)
+        build_before = self.index_build_seconds_total
         index = self.index()
+        build_delta = self.index_build_seconds_total - build_before
+        verification_elapsed = 0.0
         if mode == "flat":
+            started = time.perf_counter()
             result = index.flat_search(q)
+            search_elapsed = time.perf_counter() - started
+            self.flat_search_seconds_total += search_elapsed
             exact_match = True
         elif mode == "indexed":
+            started = time.perf_counter()
             result = index.indexed_search(q)
+            search_elapsed = time.perf_counter() - started
+            self.indexed_search_seconds_total += search_elapsed
             if verify_indexed_exactness:
+                verify_started = time.perf_counter()
                 flat = index.flat_search(q)
+                verification_elapsed = time.perf_counter() - verify_started
+                self.verification_seconds_total += verification_elapsed
                 exact_match = result.item_id == flat.item_id and result.position == flat.position
                 if not exact_match:
                     raise AssertionError(
@@ -171,7 +234,14 @@ class EpisodicState:
         else:
             raise ValueError(f"unknown retrieval mode {mode!r}")
         value = torch.as_tensor(values[result.position], device=query.device, dtype=query.dtype)
-        return value, result, exact_match
+        return (
+            value,
+            result,
+            exact_match,
+            build_delta,
+            search_elapsed,
+            verification_elapsed,
+        )
 
 
 class CHMV1EIEMLM(nn.Module):
@@ -209,10 +279,11 @@ class CHMV1EIEMLM(nn.Module):
     def forward_flat_differentiable(self, tokens: torch.Tensor, *, temperature: float = 0.10) -> torch.Tensor:
         """Differentiable exhaustive reference with two causal retrieval hops.
 
-        Only strictly earlier positions can contribute. This O(T^2) path is the
-        training reference; #854 makes no sublinear-training claim. Each hop
-        uses the same exact causal value bank, while hop 1 changes the learned
-        query representation used by hop 2.
+        Only strictly earlier positions can contribute. This O(T^2) helper is
+        used by zero-credit gradient/invariant tests; the scientific matched
+        training session path lives in `chm_v1_small_lm_protocol.py` and only
+        exposes prior chunks as episodic state. Each hop uses the same exact
+        causal value bank, while hop 1 changes the learned query for hop 2.
         """
         if temperature <= 0:
             raise ValueError("temperature must be positive")
@@ -229,8 +300,6 @@ class CHMV1EIEMLM(nn.Module):
             score = torch.einsum("btd,bsd->bts", queries, keys) / temperature
             score = score.masked_fill(~allowed[None], torch.finfo(score.dtype).min)
             weights = torch.softmax(score.float(), dim=-1).to(hidden.dtype)
-            # Token zero has no causal predecessor. Avoid turning its all-masked
-            # row into a uniform memory read.
             weights[:, 0, :] = 0
             memory = torch.matmul(weights, hidden)
             query_state = self._integrate(query_state, memory)
@@ -265,32 +334,46 @@ class CHMV1EIEMLM(nn.Module):
             if len(state) == 0:
                 continue
             memory_size = len(state)
+            stats.state_payload_bytes = max(stats.state_payload_bytes, state.payload_bytes())
             for token_index in range(tokens.shape[1]):
                 query_state = hidden[batch_index, token_index]
                 for _ in range(RETRIEVAL_HOPS):
                     query = self.query_for(query_state)
-                    value, result, exact_match = state.retrieve(
+                    (
+                        value,
+                        result,
+                        exact_match,
+                        build_seconds,
+                        search_seconds,
+                        verification_seconds,
+                    ) = state.retrieve(
                         query,
                         mode=mode,
                         verify_indexed_exactness=verify_indexed_exactness,
                     )
-                    stats.add(result, memory_size, exact_match=exact_match)
+                    stats.add(
+                        result,
+                        memory_size,
+                        exact_match=exact_match,
+                        index_build_seconds=build_seconds,
+                        search_seconds=search_seconds,
+                        verification_seconds=verification_seconds,
+                    )
                     query_state = self._integrate(query_state, value)
                 fused[batch_index, token_index] = query_state
 
         logits = self.backbone.lm_head(fused)
         if update_memory:
-            # Writes occur after every query/logit in this chunk, so no token can
-            # retrieve itself or a future representation through episodic state.
             for batch_index, state in enumerate(states):
+                write_before = state.write_seconds_total
                 state.write(keys[batch_index], hidden[batch_index])
+                stats.write_seconds += state.write_seconds_total - write_before
+                stats.state_payload_bytes = max(stats.state_payload_bytes, state.payload_bytes())
         return logits, stats
 
 
 def build_matched_pair(seed: int, device: torch.device) -> tuple[CHMV1LocalLM, CHMV1EIEMLM]:
     if seed in SCIENTIFIC_SEEDS:
-        # Scientific seeds are allowed only in the separately authorized run
-        # harness, never as an accidental development/smoke default.
         raise RuntimeError("scientific seed refused by implementation-only builder")
     torch.manual_seed(seed)
     local = CHMV1LocalLM().to(device)
@@ -304,7 +387,6 @@ def build_matched_pair(seed: int, device: torch.device) -> tuple[CHMV1LocalLM, C
 
 
 def parameter_accounting() -> dict[str, float | int | bool]:
-    # CPU-only construction; no data or GPU is touched.
     torch.manual_seed(NON_SCIENTIFIC_SMOKE_SEED)
     local = CHMV1LocalLM()
     torch.manual_seed(NON_SCIENTIFIC_SMOKE_SEED)
