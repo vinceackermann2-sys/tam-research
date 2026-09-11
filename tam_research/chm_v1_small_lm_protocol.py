@@ -2,12 +2,14 @@ from __future__ import annotations
 
 """Training/evaluation protocol binding for preregistered CHM-v1 gate #854.
 
-No launcher or paid-compute trigger lives here.  The module fixes the matched
+No launcher or paid-compute trigger lives here. The module fixes the matched
 training geometry before any scientific seed is run: 1024-token contiguous
-sessions are processed as two independent 512-token local chunks.  LOCAL gets
+sessions are processed as two independent 512-token local chunks. LOCAL gets
 no cross-chunk state; EIEM may retrieve only exact causal representations from
-previous chunks.  MICRO_BATCH=4 keeps global tokens/optimizer-step identical to
-the repository's established 8x512x4 small real-language protocol.
+previous chunks. MICRO_BATCH=4 keeps global tokens/optimizer-step identical to
+the repository's established 8x512x4 small real-language protocol. EIEM uses
+the same frozen two sequential retrieval hops in differentiable training and
+exact inference.
 """
 
 from contextlib import nullcontext
@@ -24,6 +26,7 @@ import torch.nn.functional as F
 from .aera_real_language import TOKEN_BUDGET, VOCAB_SIZE
 from .chm_v1_small_lm import (
     LOCAL_WINDOW,
+    RETRIEVAL_HOPS,
     SCIENTIFIC_SEEDS,
     CHMV1EIEMLM,
     CHMV1LocalLM,
@@ -82,11 +85,13 @@ def eiem_flat_training_session_logits(
     *,
     temperature: float = FLAT_TRAIN_TEMPERATURE,
 ) -> torch.Tensor:
-    """Differentiable exhaustive memory scoring across prior 512-token chunks.
+    """Differentiable exhaustive two-hop memory over prior 512-token chunks.
 
-    The memory contains exact hidden values; only the retrieval weights are a
-    differentiable soft exhaustive surrogate during training.  Current-chunk
-    keys/values are appended after that chunk's logits are formed.
+    The memory contains exact hidden values; only retrieval weights are a soft
+    exhaustive training surrogate. Each hop addresses the same prior evidence
+    bank, and the first retrieved value changes the representation used by the
+    second learned query. Current-chunk keys/values are appended only after that
+    chunk's logits are formed.
     """
     if temperature <= 0:
         raise ValueError("temperature must be positive")
@@ -96,14 +101,17 @@ def eiem_flat_training_session_logits(
 
     for chunk in _chunked(tokens):
         hidden = _hidden(model.backbone, chunk)
-        queries, keys = model.addresses(hidden)
-        if memory_keys is None:
-            memory = torch.zeros_like(hidden)
-        else:
-            score = torch.einsum("btd,bsd->bts", queries, memory_keys) / temperature
-            weights = torch.softmax(score.float(), dim=-1).to(hidden.dtype)
-            memory = torch.matmul(weights, memory_values)
-        logits.append(model.backbone.lm_head(model._integrate(hidden, memory)))
+        keys = model.key_for(hidden)
+        query_state = hidden
+        if memory_keys is not None:
+            assert memory_values is not None
+            for _ in range(RETRIEVAL_HOPS):
+                queries = model.query_for(query_state)
+                score = torch.einsum("btd,bsd->bts", queries, memory_keys) / temperature
+                weights = torch.softmax(score.float(), dim=-1).to(hidden.dtype)
+                memory = torch.matmul(weights, memory_values)
+                query_state = model._integrate(query_state, memory)
+        logits.append(model.backbone.lm_head(query_state))
         # Appending after logits prevents self/future episodic access.
         memory_keys = keys if memory_keys is None else torch.cat((memory_keys, keys), dim=1)
         memory_values = hidden if memory_values is None else torch.cat((memory_values, hidden), dim=1)
@@ -116,10 +124,10 @@ def build_scientific_pair(
     *,
     paid_run_authorized: bool = False,
 ) -> tuple[CHMV1LocalLM, CHMV1EIEMLM]:
-    """Construct the paired models while refusing reserved seeds by default.
+    """Construct paired models while refusing reserved seeds by default.
 
-    A future separately authorized runner must opt in explicitly.  This is a
-    guardrail, not evidence of authorization by itself.
+    A future separately authorized runner must opt in explicitly. This flag is
+    only a programmatic guardrail; setting it is not itself authorization.
     """
     if seed in SCIENTIFIC_SEEDS and not paid_run_authorized:
         raise RuntimeError("reserved scientific seed requires separate paid-run authorization")
@@ -161,6 +169,8 @@ def validate_corpus(data_dir: str) -> dict[str, Any]:
 def protocol_preflight(data_dir: str | None = None) -> dict[str, Any]:
     if SESSION_LEN != 2 * LOCAL_WINDOW:
         raise RuntimeError("small-LM session must remain exactly two local windows")
+    if RETRIEVAL_HOPS != 2:
+        raise RuntimeError("two-hop gate requires exactly two sequential retrieval hops")
     if TOKEN_BUDGET % TOKENS_PER_STEP:
         raise RuntimeError("token budget must divide exactly by tokens/step")
     if TOKENS_PER_STEP != 8 * 512 * 4:
@@ -175,6 +185,7 @@ def protocol_preflight(data_dir: str | None = None) -> dict[str, Any]:
         "scientific_base": "91b02ec575440b42050377351a6e404139632e22",
         "scientific_seeds_reserved": list(SCIENTIFIC_SEEDS),
         "local_window": LOCAL_WINDOW,
+        "retrieval_hops": RETRIEVAL_HOPS,
         "session_len": SESSION_LEN,
         "micro_batch": MICRO_BATCH,
         "grad_accum": GRAD_ACCUM,
@@ -214,14 +225,13 @@ def train_one(
     device: torch.device,
     seed: int,
     max_steps: int | None = None,
+    paid_run_authorized: bool = False,
 ) -> dict[str, Any]:
-    """Matched training loop; callers own checkpointing and run authorization."""
+    """Matched loop; caller owns checkpointing and external run authorization."""
     if kind not in {"local", "eiem"}:
         raise ValueError(kind)
-    if seed in SCIENTIFIC_SEEDS and device.type == "cuda":
-        raise RuntimeError(
-            "scientific CUDA training must be called through a separately authorized runner, not train_one directly"
-        )
+    if seed in SCIENTIFIC_SEEDS and not paid_run_authorized:
+        raise RuntimeError("reserved scientific seed requires separate paid-run authorization")
     optimizer = _optimizer(model, device)
     generator = torch.Generator(device="cpu").manual_seed(seed + 10_000)
     steps = TOTAL_STEPS if max_steps is None else min(int(max_steps), TOTAL_STEPS)
