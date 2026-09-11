@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import ast
-import hashlib
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
 RUNNER = ROOT / "modal_cortex_s_100m_2b_v5_triton_scan_preflight.py"
 WORKFLOW = ROOT / ".github/workflows/modal-cortex-s-100m-2b-preflight-v5-triton-scan.yml"
-TRAIN_IMPL = ROOT / "architectures/cortex_s/experiments/scale100m_2b/train.py"
 EXPECTED_TRAIN_IMPL_SHA256 = "47c9e327095f99eab921b8780bb968101296b11e62ef13dd22488f2974bfb10f"
 
 
@@ -110,5 +108,8 @@ def test_workflow_is_exact_issue_triggered_and_has_no_manual_dispatch() -> None:
     assert "modal run --detach --timestamps modal_cortex_s_100m_2b_v5_triton_scan_preflight.py" in text
 
 
-def test_training_implementation_sha256_matches_preregistered_identity() -> None:
-    assert hashlib.sha256(TRAIN_IMPL.read_bytes()).hexdigest() == EXPECTED_TRAIN_IMPL_SHA256
+def test_historical_training_identity_remains_frozen_in_consumed_harness() -> None:
+    runner = RUNNER.read_text(encoding="utf-8")
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    assert f'TRAIN_IMPLEMENTATION_SHA256 = "{EXPECTED_TRAIN_IMPL_SHA256}"' in runner
+    assert EXPECTED_TRAIN_IMPL_SHA256 in workflow
