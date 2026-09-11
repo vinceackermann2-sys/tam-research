@@ -6,6 +6,7 @@ from tam_research.chm_v1_long_memory_eval import (
     GENERATOR_VERSION,
     LOCAL_CONTROL_MAX_DISTANCE,
     LONG_RANGE_MIN_DISTANCE,
+    TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION,
     generate_probe_suite,
     summarize_probe_predictions,
 )
@@ -50,6 +51,27 @@ def test_probe_suite_is_deterministic_and_has_strict_distance_geometry() -> None
             assert probe.evidence_distance <= LOCAL_CONTROL_MAX_DISTANCE
         else:
             assert probe.evidence_distance >= LONG_RANGE_MIN_DISTANCE
+        if probe.family == "two_hop":
+            assert probe.first_evidence_end_token is not None
+            assert (
+                probe.evidence_end_token - probe.first_evidence_end_token
+                >= TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION
+            )
+
+
+def test_two_hop_relations_are_forced_into_different_local_horizons() -> None:
+    suite = generate_probe_suite(StableWordEncoder(), seed=881_854, cases_per_family=4)
+    two_hop = [probe for probe in suite if probe.family == "two_hop"]
+    assert len(two_hop) == 4
+    for probe in two_hop:
+        assert probe.first_evidence_end_token is not None
+        # Endpoint separation is >=640 and the second fact is capped at 128
+        # encoded tokens, so it must start beyond the first 512-token horizon.
+        assert (
+            probe.evidence_end_token - probe.first_evidence_end_token
+            >= TWO_HOP_MIN_FACT_ENDPOINT_SEPARATION
+        )
+        assert probe.evidence_distance >= LONG_RANGE_MIN_DISTANCE
 
 
 def test_hidden_scoring_metadata_is_not_rendered_into_model_input() -> None:
