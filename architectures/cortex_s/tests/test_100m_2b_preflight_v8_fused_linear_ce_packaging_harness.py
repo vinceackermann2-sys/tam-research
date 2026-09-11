@@ -133,12 +133,18 @@ def test_workflow_is_owner_only_exact_title_source_bound_and_blob_pinned() -> No
     assert text.count("modal run --detach --timestamps") == 1
 
 
-def test_candidate_and_production_files_are_unchanged_by_v8_harness() -> None:
-    candidate = CANDIDATE.read_text(encoding="utf-8")
+def test_v8_harness_historically_pins_candidate_and_production_contract() -> None:
+    runner = RUNNER.read_text(encoding="utf-8")
+    workflow = WORKFLOW.read_text(encoding="utf-8")
     train = TRAIN.read_text(encoding="utf-8")
-    assert 'SYSTEMS_VARIANT = "fused_linear_ce_liger_v1"' in candidate
-    assert 'LIGER_KERNEL_VERSION = "0.8.2"' in candidate
-    assert "self._liger_loss(weight, flat_hidden, flat_targets)" in candidate
+
+    # v8's historical runner/workflow remain immutable and prove exactly which
+    # candidate it executed, while allowing later preregistered candidate versions
+    # to exist on current main.
+    assert 'FUSED_SYSTEMS_VARIANT = "fused_linear_ce_liger_v1"' in runner
+    assert EXPECTED_CANDIDATE_BLOB in workflow
+    assert 'architectures/cortex_s/fused_linear_ce_v1.py' in workflow
+    assert 'LIGER_KERNEL_VERSION = "0.8.2"' in runner
     assert "host_report = torch.stack(" in train
     assert train.count('.to(device="cpu")') >= 1
-    assert "train_full_2b(" not in RUNNER.read_text(encoding="utf-8")
+    assert "train_full_2b(" not in runner
