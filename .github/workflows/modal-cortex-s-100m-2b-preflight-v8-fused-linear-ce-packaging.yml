@@ -1,0 +1,153 @@
+name: Modal CORTEX-S 100M/2B preflight v8 fused linear CE packaging
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-2b-preflight-v8-fused-linear-ce-packaging]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable paid-boundary payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          source_tree = str(cfg.get('source_tree', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          assert phase == 'preflight-v8-fused-linear-ce-packaging'
+          for name, value in (('source_sha', source_sha), ('source_tree', source_tree), ('harness_sha', harness_sha)):
+              assert re.fullmatch(r'[0-9a-f]{40}', value), f'{name} must be a full lowercase SHA'
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'source_tree={source_tree}')
+          print(f'harness_sha={harness_sha}')
+          PY
+
+      - name: Checkout exact paid-boundary source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on source ancestry and frozen blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v8_fused_linear_ce_packaging_preflight.py")" = "70ee2cdc6bd26a7f818be2771e18de6daee7aaf2"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/fused_linear_ce_v1.py")" = "3b1697b45e73c1a0e860c5ecdd4f8bc1ec1ae179"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_fused_linear_ce_v1.py")" = "8ba75d3404b78a383322473df4f3b622f4762e64"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/train.py")" = "004b66b549d3d64f2dde7614ec84f22b9f37a7c6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/grouped_moe_v4.py")" = "7c738e6349536dd45f1c631a9ad5524ade1d5021"
+          test "$(sha256sum source/architectures/cortex_s/experiments/scale100m_2b/train.py | awk '{print $1}')" = "d0d91de09bba8b7631913b3e9c0407ab2bb0114f7bba133c123ee5598d490461"
+
+      - name: Fail closed with stdlib-only authority guard
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          runner = Path('source/modal_cortex_s_100m_2b_v8_fused_linear_ce_packaging_preflight.py').read_text(encoding='utf-8')
+          tree = ast.parse(runner)
+          required = (
+              'PHASE = "preflight-v8-fused-linear-ce-packaging"',
+              'TRIGGER_TITLE = "[modal-cortex-s-100m-2b-preflight-v8-fused-linear-ce-packaging]"',
+              'ENGINEERING_SEED = 2_026_091_010',
+              'RESULT_ROOT = "/vol/cortex-s-v0/100m-2b/preflight-v8-fused-linear-ce-packaging"',
+              'PACKAGING_VERSION = "26.3"',
+              '"packaging==26.3"',
+              'LIGER_KERNEL_VERSION = "0.8.2"',
+              'from packaging.version import Version',
+              'from liger_kernel.transformers import LigerFusedLinearCrossEntropyLoss',
+              'with memory_lean_grouped_triton_scan_training_builder():',
+              'with fused_linear_ce_training_builder():',
+              'training_module.run_h100_calibration(',
+              '"full_training_authorized": False',
+              '"scientific_claim_authorized": False',
+          )
+          for needle in required:
+              assert needle in runner, needle
+          gpu_sites, calls, profiler_calls = [], [], []
+          for node in ast.walk(tree):
+              if not isinstance(node, ast.Call):
+                  continue
+              name = ast.unparse(node.func)
+              calls.append(name)
+              if name.startswith('torch.profiler'):
+                  profiler_calls.append(name)
+              for kw in node.keywords:
+                  if kw.arg == 'gpu' and isinstance(kw.value, ast.Constant):
+                      gpu_sites.append(kw.value.value)
+          assert gpu_sites == ['H100!'], gpu_sites
+          assert not any(name.endswith('train_full_2b') for name in calls), calls
+          assert not profiler_calls, profiler_calls
+          main = runner[runner.index('def main('):]
+          assert main.index('verify_zero_gpu.remote') < main.index('reserve_h100_dispatch.remote') < main.index('h100_preflight.remote')
+          zero = runner[runner.index('def verify_zero_gpu('):runner.index('@app.function(image=base_image, cpu=1')]
+          reserve = runner[runner.index('def reserve_h100_dispatch('):runner.index('def _prove_triton_dispatch(')]
+          assert zero.index('_dependency_smoke()') < main.index('reserve_h100_dispatch.remote')
+          assert 'dependency_smoke' in zero
+          assert 'liger_fused_linear_ce_import_ok' in reserve
+          print('v8 dependency-repaired authority guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record authorized handoff before any Modal invocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S v8 dependency-repaired systems preflight authenticated** — source=${{ steps.cfg.outputs.source_sha }}, tree=${{ steps.cfg.outputs.source_tree }}, harness=${{ steps.cfg.outputs.harness_sha }}, reserved engineering seed=2026091010. Zero-GPU gate must first prove packaging==26.3 and import Liger fused-linear-CE before the durable dispatch marker. No full 2B or scientific/control seed is authorized."
+
+      - name: Launch exact source-bound single-use systems preflight
+        run: |
+          cd source
+          modal run --detach --timestamps modal_cortex_s_100m_2b_v8_fused_linear_ce_packaging_preflight.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --source-sha "${{ steps.cfg.outputs.source_sha }}" \
+            --source-tree "${{ steps.cfg.outputs.source_tree }}" \
+            --harness-sha "${{ steps.cfg.outputs.harness_sha }}"
+
+      - name: Record successful Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🧪 **CORTEX-S v8 dependency-repaired systems preflight returned.** Authoritative RESULT.json is durable in the single-use Volume namespace. Any PASS is engineering-only and authorizes neither a full 2B run nor a scientific claim."
