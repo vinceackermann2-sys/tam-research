@@ -6,11 +6,15 @@ This file contains model and inference-memory plumbing only.  It does not launch
 training, consume scientific seeds, or authorize GPU work.
 
 LOCAL and EIEM share the repository's established ~25M GPT-style Transformer
-backbone.  Calls are hard-limited to 512 local tokens.  EIEM adds only learned
+backbone. Calls are hard-limited to 512 local tokens. EIEM adds only learned
 normalized query/key address projections plus a channel-wise integration gate;
-full causal hidden states are stored as exact values.  At inference, a chunk
-retrieves only from evidence written by *earlier* chunks and current-chunk
-writes happen after all logits are formed, preventing self/future leakage.
+full causal hidden states are stored as exact values. Two sequential retrieval
+hops are frozen before scientific execution: the first retrieved value changes
+the representation used to form the second learned query, so the preregistered
+two-hop probe cannot be satisfied merely by a one-read output shortcut. At
+inference a chunk retrieves only from evidence written by earlier chunks and
+current-chunk writes happen after all logits are formed, preventing self/future
+leakage.
 """
 
 from dataclasses import dataclass, field
@@ -29,6 +33,7 @@ from .models import ResearchLM, parameter_count
 LOCAL_WINDOW = 512
 ADDRESS_DIM = 32
 LEAF_SIZE = 16
+RETRIEVAL_HOPS = 2
 NON_SCIENTIFIC_SMOKE_SEED = 12_345
 SCIENTIFIC_SEEDS = (8611, 8612, 8613)
 
@@ -183,10 +188,14 @@ class CHMV1EIEMLM(nn.Module):
         # large untrained residual; the gate remains fully trainable.
         self.memory_gate_logit = nn.Parameter(torch.full((cfg.d_model,), -4.0))
 
+    def query_for(self, representation: torch.Tensor) -> torch.Tensor:
+        return F.normalize(self.query_address(representation), dim=-1)
+
+    def key_for(self, hidden: torch.Tensor) -> torch.Tensor:
+        return F.normalize(self.key_address(hidden), dim=-1)
+
     def addresses(self, hidden: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        queries = F.normalize(self.query_address(hidden), dim=-1)
-        keys = F.normalize(self.key_address(hidden), dim=-1)
-        return queries, keys
+        return self.query_for(hidden), self.key_for(hidden)
 
     def _integrate(self, hidden: torch.Tensor, memory: torch.Tensor) -> torch.Tensor:
         gate = torch.sigmoid(self.memory_gate_logit).to(hidden.dtype)
@@ -198,29 +207,34 @@ class CHMV1EIEMLM(nn.Module):
         return self.backbone.lm_head(hidden)
 
     def forward_flat_differentiable(self, tokens: torch.Tensor, *, temperature: float = 0.10) -> torch.Tensor:
-        """Training path: exact stored values with differentiable exhaustive scoring.
+        """Differentiable exhaustive reference with two causal retrieval hops.
 
-        Only strictly earlier positions can contribute.  This O(T^2) path is
-        intentionally the training reference; #854 makes no sublinear-training claim.
+        Only strictly earlier positions can contribute. This O(T^2) path is the
+        training reference; #854 makes no sublinear-training claim. Each hop
+        uses the same exact causal value bank, while hop 1 changes the learned
+        query representation used by hop 2.
         """
         if temperature <= 0:
             raise ValueError("temperature must be positive")
         hidden = _hidden(self.backbone, tokens)
-        queries, keys = self.addresses(hidden)
-        score = torch.einsum("btd,bsd->bts", queries, keys) / temperature
+        keys = self.key_for(hidden)
         length = tokens.shape[1]
         allowed = torch.tril(
             torch.ones(length, length, device=tokens.device, dtype=torch.bool),
             diagonal=-1,
         )
-        score = score.masked_fill(~allowed[None], torch.finfo(score.dtype).min)
-        weights = torch.softmax(score.float(), dim=-1).to(hidden.dtype)
-        # Token zero has no causal predecessor.  Avoid turning its all-masked row
-        # into a uniform memory read.
-        weights[:, 0, :] = 0
-        memory = torch.matmul(weights, hidden)
-        fused = self._integrate(hidden, memory)
-        return self.backbone.lm_head(fused)
+        query_state = hidden
+        for _ in range(RETRIEVAL_HOPS):
+            queries = self.query_for(query_state)
+            score = torch.einsum("btd,bsd->bts", queries, keys) / temperature
+            score = score.masked_fill(~allowed[None], torch.finfo(score.dtype).min)
+            weights = torch.softmax(score.float(), dim=-1).to(hidden.dtype)
+            # Token zero has no causal predecessor. Avoid turning its all-masked
+            # row into a uniform memory read.
+            weights[:, 0, :] = 0
+            memory = torch.matmul(weights, hidden)
+            query_state = self._integrate(query_state, memory)
+        return self.backbone.lm_head(query_state)
 
     @torch.no_grad()
     def forward_session_chunk(
@@ -234,14 +248,17 @@ class CHMV1EIEMLM(nn.Module):
     ) -> tuple[torch.Tensor, RetrievalStats]:
         """Inference/eval path across <=512-token local chunks.
 
-        Retrieval sees only states that existed before this call.  Current hidden
-        states are appended only after logits are complete.
+        Retrieval sees only states that existed before this call. Each token can
+        make exactly two sequential reads from that same prior state: the first
+        retrieved value changes the representation used to form the second
+        query. Current hidden states are appended only after all logits are
+        complete, so neither hop can read self/future evidence.
         """
         if tokens.shape[0] != len(states):
             raise ValueError("one EpisodicState is required per batch element")
         hidden = _hidden(self.backbone, tokens)
-        queries, keys = self.addresses(hidden)
-        memory = torch.zeros_like(hidden)
+        keys = self.key_for(hidden)
+        fused = hidden.clone()
         stats = RetrievalStats()
 
         for batch_index, state in enumerate(states):
@@ -249,15 +266,19 @@ class CHMV1EIEMLM(nn.Module):
                 continue
             memory_size = len(state)
             for token_index in range(tokens.shape[1]):
-                value, result, exact_match = state.retrieve(
-                    queries[batch_index, token_index],
-                    mode=mode,
-                    verify_indexed_exactness=verify_indexed_exactness,
-                )
-                memory[batch_index, token_index] = value
-                stats.add(result, memory_size, exact_match=exact_match)
+                query_state = hidden[batch_index, token_index]
+                for _ in range(RETRIEVAL_HOPS):
+                    query = self.query_for(query_state)
+                    value, result, exact_match = state.retrieve(
+                        query,
+                        mode=mode,
+                        verify_indexed_exactness=verify_indexed_exactness,
+                    )
+                    stats.add(result, memory_size, exact_match=exact_match)
+                    query_state = self._integrate(query_state, value)
+                fused[batch_index, token_index] = query_state
 
-        logits = self.backbone.lm_head(self._integrate(hidden, memory))
+        logits = self.backbone.lm_head(fused)
         if update_memory:
             # Writes occur after every query/logit in this chunk, so no token can
             # retrieve itself or a future representation through episodic state.
@@ -299,6 +320,7 @@ def parameter_accounting() -> dict[str, float | int | bool]:
         "within_preregistered_one_percent": abs(delta) <= 0.01,
         "address_dim": ADDRESS_DIM,
         "local_window": LOCAL_WINDOW,
+        "retrieval_hops": RETRIEVAL_HOPS,
         "token_budget_per_model": TOKEN_BUDGET,
     }
 
