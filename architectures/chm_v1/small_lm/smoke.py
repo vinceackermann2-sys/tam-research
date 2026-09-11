@@ -34,7 +34,7 @@ def run() -> dict[str, object]:
     points = rng.normal(size=(257, 32)).astype(np.float32)
     # Force an exact duplicate in separate tree regions to exercise tie handling.
     points[256] = points[0]
-    ids = np.arange(257, dtype=np.int64)
+    ids = np.arange(1000, 1257, dtype=np.int64)
     ids[0], ids[256] = 2000, 3
     index = ExactEpisodicIndex(points, ids, leaf_size=8)
     queries = np.concatenate((points[[0]], rng.normal(size=(63, 32)).astype(np.float32)), axis=0)
