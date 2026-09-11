@@ -87,6 +87,15 @@ def test_frozen_manifest_matches_preregistered_evaluation_and_resource_plan() ->
     assert validated["authorization_ref"] == AUTH_REF
 
 
+def test_returned_manifest_cannot_mutate_module_frozen_seed_order() -> None:
+    manifest = frozen_run_manifest(authorization_ref=AUTH_REF)
+    manifest["frozen_resource_plan"]["scientific_seed_order"][0] = 9999
+    assert FROZEN_RESOURCE_PLAN["scientific_seed_order"] == list(SCIENTIFIC_SEEDS)
+
+    clean = frozen_run_manifest(authorization_ref=AUTH_REF)
+    assert clean["frozen_resource_plan"]["scientific_seed_order"] == list(SCIENTIFIC_SEEDS)
+
+
 def test_manifest_bound_gate_preserves_existing_full_pass_math() -> None:
     records = [_record(seed) for seed in SCIENTIFIC_SEEDS]
     result = evaluate_scientific_gate_with_manifest(
