@@ -10,7 +10,11 @@ or oracle generator identifiers.
 The flat and indexed paths deliberately share the exact ordering contract
 ``(squared_distance, item_id)``.  Branches whose lower bound equals the current
 best distance are still searched, so duplicate/equidistant keys cannot create
-an indexed-vs-flat mismatch merely through tie handling.
+an indexed-vs-flat mismatch merely through tie handling.  Stored learned
+addresses remain float32, while both flat candidate distances and branch bounds
+are evaluated from those exact float32 values in float64.  This gives both paths
+the same higher-precision comparison arithmetic and avoids unsafe float32
+rounding at the branch-pruning boundary.
 """
 
 from dataclasses import dataclass
@@ -71,8 +75,20 @@ def _build(points: np.ndarray, positions: np.ndarray, leaf_size: int) -> KDNode:
     )
 
 
+def _as_f64(vector: np.ndarray) -> np.ndarray:
+    return np.asarray(vector, dtype=np.float64)
+
+
+def _squared_distances(points: np.ndarray, query: np.ndarray) -> np.ndarray:
+    delta = points.astype(np.float64, copy=False) - _as_f64(query)
+    return np.einsum("nd,nd->n", delta, delta, dtype=np.float64)
+
+
 def _lower_bound_sq(query: np.ndarray, lo: np.ndarray, hi: np.ndarray) -> float:
-    delta = np.maximum(0.0, np.maximum(lo - query, query - hi))
+    q64 = _as_f64(query)
+    lo64 = _as_f64(lo)
+    hi64 = _as_f64(hi)
+    delta = np.maximum(0.0, np.maximum(lo64 - q64, q64 - hi64))
     return float(delta @ delta)
 
 
@@ -100,7 +116,7 @@ class ExactEpisodicIndex:
 
     def flat_search(self, query: np.ndarray) -> SearchResult:
         q = self._query(query)
-        distances = ((self.points - q) ** 2).sum(axis=1)
+        distances = _squared_distances(self.points, q)
         # np.lexsort uses the last key as primary: distance first, stable ID second.
         position = int(np.lexsort((self.item_ids, distances))[0])
         return SearchResult(
@@ -125,15 +141,14 @@ class ExactEpisodicIndex:
 
         while queue:
             lower_bound, _, node = heapq.heappop(queue)
-            # Strictly greater only.  Equality can contain a candidate with a
+            # Strictly greater only. Equality can contain a candidate with a
             # smaller item_id and must remain searchable under the shared tie rule.
             if lower_bound > best_distance:
                 break
             node_visits += 1
             if node.item_positions is not None:
                 positions = node.item_positions
-                block = self.points[positions]
-                distances = ((block - q) ** 2).sum(axis=1)
+                distances = _squared_distances(self.points[positions], q)
                 vector_reads += len(positions)
                 for position, distance in zip(positions.tolist(), distances.tolist()):
                     item_id = int(self.item_ids[position])
