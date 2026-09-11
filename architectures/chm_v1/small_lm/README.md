@@ -66,6 +66,8 @@ Exactness applies independently to both sequential retrieval hops. Any indexed-v
 
 The scientific gate must use `tam_research/chm_v1_long_memory_eval_v3.py`, versioned `chm-v1-heldout-natural-v3`. V3 preserves the frozen probe semantics and geometry while using neutral query-visible identifiers, a balanced eight-way answer schedule, and runtime lexical-cue rejection. At 24 cases/family each candidate answer slot appears exactly three times per family.
 
+`tam_research/chm_v1_scientific_gate.py` is the executable zero-credit interpretation boundary. It constructs the held-out suite only through v3 using evaluator seed `8,540,911`, requires exactly the reserved seed set `8611/8612/8613`, requires the mandatory measurements and ablations, and applies every frozen #854 FULL PASS threshold mechanically. Missing evidence raises instead of being treated as a pass. It still does not launch or authorize paid compute.
+
 The probe families remain:
 
 - rare fact: one target fact among distractors;
@@ -82,7 +84,7 @@ The exact memory-size slices remain frozen:
 - two-hop evidence endpoints are separated by at least 640 encoded tokens, and the second fact is capped at 128 tokens, preventing its raw stored hidden state from locally contextualizing relation 1;
 - the preregistered <=25% exact-address-read gate is judged at the frozen largest **1,024-item** slice.
 
-Production evaluation supplies the already-frozen GPT-2 tokenizer; CPU CI uses a deterministic toy encoder only to validate generator geometry, answer balance, lexical-cue exclusion, and metadata isolation. Hidden generator IDs, family labels, candidate sets, expected answers, and stale-answer sets remain evaluator metadata only and never enter model input.
+Production evaluation supplies the already-frozen GPT-2 tokenizer; CPU CI uses a deterministic toy encoder only to validate generator geometry, answer balance, lexical-cue exclusion, and metadata isolation. Hidden generator IDs, family labels, candidate sets, expected answers, stale-answer sets remain evaluator metadata only and never enter model input.
 
 ## Current systems boundary
 
@@ -100,8 +102,9 @@ The reference indexed path currently crosses GPU/CPU boundaries when used with a
 - `tam_research/chm_v1_long_memory_eval.py`: shared probe/scoring primitives plus historical v2 generator retained for provenance.
 - `tam_research/chm_v1_long_memory_eval_v3.py`: preregistered cue-free scientific held-out generator.
 - `tam_research/chm_v1_gate_metrics.py`: preregistered LOCAL-relative stale-state gate accounting.
+- `tam_research/chm_v1_scientific_gate.py`: v3-only three-seed gate aggregation and completeness enforcement; no launcher.
 - `architectures/chm_v1/small_lm/smoke.py`: non-scientific seed-12345 CPU smoke.
-- `tests/test_chm_v1_small_lm*.py`, `tests/test_chm_v1_long_memory_eval*.py`, and `tests/test_chm_v1_gate_metrics.py`: zero-credit invariant coverage.
+- `tests/test_chm_v1_small_lm*.py`, `tests/test_chm_v1_long_memory_eval*.py`, `tests/test_chm_v1_gate_metrics.py`, and `tests/test_chm_v1_scientific_gate.py`: zero-credit invariant coverage.
 
 ## Spend boundary
 
