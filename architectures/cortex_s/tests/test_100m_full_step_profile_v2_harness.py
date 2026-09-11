@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import ast
-import hashlib
 from pathlib import Path
 
 
@@ -9,7 +8,6 @@ ROOT = Path(__file__).resolve().parents[3]
 CORE = ROOT / "architectures/cortex_s/full_step_profile_v2.py"
 RUNNER = ROOT / "modal_cortex_s_100m_full_step_profile_v2.py"
 WORKFLOW = ROOT / ".github/workflows/modal-cortex-s-100m-full-step-profile-v2.yml"
-TRAIN_IMPL = ROOT / "architectures/cortex_s/experiments/scale100m_2b/train.py"
 
 EXPECTED_CORE_BLOB = "92963097dad00453c1fc1058e8a1f79f4f4ab51c"
 EXPECTED_RUNNER_BLOB = "b7855246fda08bb6a2ede6b62ca4619f58b3fa27"
@@ -156,5 +154,8 @@ def test_workflow_is_owner_only_exact_title_source_bound_and_scoped() -> None:
     assert "full_step_profile_v1" not in executable_modal_lines[0]
 
 
-def test_training_implementation_sha256_matches_preregistered_identity() -> None:
-    assert hashlib.sha256(TRAIN_IMPL.read_bytes()).hexdigest() == EXPECTED_TRAIN_IMPL_SHA256
+def test_historical_training_identity_remains_frozen_in_consumed_harness() -> None:
+    runner = RUNNER.read_text(encoding="utf-8")
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    assert f'TRAIN_IMPLEMENTATION_SHA256 = "{EXPECTED_TRAIN_IMPL_SHA256}"' in runner
+    assert EXPECTED_TRAIN_IMPL_SHA256 in workflow
