@@ -13,7 +13,7 @@ CANDIDATE_TEST = ROOT / "architectures/cortex_s/tests/test_compiled_explicit_fp3
 TRAINER = ROOT / "architectures/cortex_s/experiments/scale100m_2b/train.py"
 
 EXPECTED_TRAINER_SHA256 = "d0d91de09bba8b7631913b3e9c0407ab2bb0114f7bba133c123ee5598d490461"
-EXPECTED_RUNNER_BLOB = "5f1092767a237b3eab0955ac26853a3cc3dc1ddb"
+EXPECTED_RUNNER_BLOB = "10d2e8b071a89298f9bd71b9d34f1ece3b8fbc52"
 EXPECTED_CANDIDATE_BLOB = "970a0dcf130348662f4c9a3ed11d8e6ad250781a"
 EXPECTED_CANDIDATE_TEST_BLOB = "f61abfefbc1959502cdb3a9f9e3330774db2914d"
 EXPECTED_TRAINER_BLOB = "004b66b549d3d64f2dde7614ec84f22b9f37a7c6"
@@ -71,6 +71,10 @@ def test_v11_runner_freezes_single_use_paid_boundary_and_budget() -> None:
     assert not profiler_calls
     assert "2_026_091_012" in source
     assert "8_100, 48_131, 48_132, 48_133" in source
+    assert 'if "liger" in module_source.lower():' not in source
+    for marker in ("liger_kernel", "ligerfused", "from liger", "import liger"):
+        assert marker in source
+    assert '"liger_used": False' in source
 
 
 def test_dispatch_marker_is_committed_before_h100_and_result_is_durable() -> None:
