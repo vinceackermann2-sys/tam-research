@@ -1,0 +1,137 @@
+name: CORTEX-S v11 vs Transformer pretrain benchmark v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  benchmark:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-v11-vs-transformer-pretrain-benchmark-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 135
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Parse immutable trigger payload
+        id: payload
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          payload = json.loads(os.environ["ISSUE_BODY"])
+          required = ("source_sha", "source_tree", "harness_sha")
+          for key in required:
+              value = str(payload.get(key, "")).strip().lower()
+              if not re.fullmatch(r"[0-9a-f]{40}", value):
+                  raise SystemExit(f"{key} must be an exact 40-char lowercase SHA")
+              print(f"{key}={value}")
+          if set(payload) != set(required):
+              raise SystemExit(f"trigger payload keys must be exactly {required}")
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.payload.outputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Verify source tree and live-main authority
+        env:
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin main --no-tags
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          test "$(git rev-parse origin/main)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check evaluation-only runner
+        run: python -m py_compile modal_cortex_s_v11_vs_transformer_pretrain_benchmark_v1.py
+
+      - name: Preflight benchmark datasets without GPU
+        run: |
+          pip install "datasets>=4.0,<5" "huggingface-hub>=0.34,<1"
+          python - <<'PY'
+          from datasets import load_dataset
+
+          specs = [
+              ("arc_easy", "https://huggingface.co/datasets/allenai/ai2_arc/resolve/main/ARC-Easy/validation-00000-of-00001.parquet", "validation", 570, {"question", "choices", "answerKey"}),
+              ("arc_challenge", "https://huggingface.co/datasets/allenai/ai2_arc/resolve/main/ARC-Challenge/validation-00000-of-00001.parquet", "validation", 299, {"question", "choices", "answerKey"}),
+              ("piqa", "https://huggingface.co/datasets/ybisk/piqa/resolve/078a131412f46a38025a762322c174a8bae2610c/plain_text/piqa-validation.parquet", "validation", 1838, {"goal", "sol1", "sol2", "label"}),
+              ("hellaswag", "https://huggingface.co/datasets/Rowan/hellaswag/resolve/main/data/validation-00000-of-00001.parquet", "validation", 10042, {"ctx", "endings", "label"}),
+              ("openbookqa", "https://huggingface.co/datasets/allenai/openbookqa/resolve/main/main/validation-00000-of-00001.parquet", "validation", 500, {"question_stem", "choices", "answerKey"}),
+              ("gsm8k", "https://huggingface.co/datasets/openai/gsm8k/resolve/main/main/test-00000-of-00001.parquet", "test", 1319, {"question", "answer"}),
+          ]
+          for name, url, split, min_rows, required in specs:
+              ds = load_dataset("parquet", data_files={split: url}, split=split)
+              missing = required.difference(ds.column_names)
+              if len(ds) < min_rows:
+                  raise RuntimeError(f"{name}: rows={len(ds)} < expected minimum {min_rows}")
+              if missing:
+                  raise RuntimeError(f"{name}: missing columns {sorted(missing)}")
+              print(f"PREFLIGHT_OK {name}: rows={len(ds)}")
+          PY
+
+      - name: Install Modal
+        run: pip install 'modal>=1.2.3,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Materialize short-lived GitHub callback secret
+        run: modal secret create --force github-secret GITHUB_TOKEN="$GITHUB_TOKEN"
+
+      - name: Record evaluation guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🔒 **Evaluation-only guard** — CORTEX-S v11 and matched Transformer 100M/2B pretraining checkpoints; same six sampled tasks/scorer; no optimizer, backward, weight update, training, checkpoint mutation, or automatic retry. Durable RESULT.json governs."
+
+      - name: Run one-shot matched pretrain benchmark
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          modal run --timestamps modal_cortex_s_v11_vs_transformer_pretrain_benchmark_v1.py \
+            --repo-full-name "$GITHUB_REPOSITORY" \
+            --issue-number "$ISSUE_NUMBER" \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA"
+
+      - name: Record normal handoff
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟩 Evaluation Modal call returned normally. Interpret only the durably committed RESULT.json; this is descriptive checkpoint evaluation, not paired-seed scientific evidence."
+
+      - name: Record failure boundary
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="❌ Evaluation workflow failed. Do not rerun/retry this trigger if the durable dispatch marker was written; inspect durable RESULT.json / logs and preregister a fresh successor if needed."
