@@ -189,4 +189,4 @@ def test_prototype_source_has_no_cuda_modal_or_model_training_path() -> None:
     assert "modal." not in source
     assert "optimizer" not in source
     assert "backward(" not in source
-    assert "not scientific evidence" in prototype_module.benchmark_array_traversal_once.__doc__.lower() if prototype_module.benchmark_array_traversal_once.__doc__ else True
+    assert "not scientific evidence" in source
