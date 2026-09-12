@@ -58,10 +58,10 @@ jobs:
           git -C source fetch --no-tags origin main
           test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
           git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
-          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v11_compiled_explicit_fp32_ce_preflight.py")" = "5f1092767a237b3eab0955ac26853a3cc3dc1ddb"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v11_compiled_explicit_fp32_ce_preflight.py")" = "10d2e8b071a89298f9bd71b9d34f1ece3b8fbc52"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/compiled_explicit_fp32_ce_v1.py")" = "970a0dcf130348662f4c9a3ed11d8e6ad250781a"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_compiled_explicit_fp32_ce_v1.py")" = "f61abfefbc1959502cdb3a9f9e3330774db2914d"
-          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_100m_2b_preflight_v11_compiled_explicit_fp32_ce_harness.py")" = "b9e95fa385c23bf0bc74260c07b3486d261a89ce"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_100m_2b_preflight_v11_compiled_explicit_fp32_ce_harness.py")" = "b2a3a568ff7a01b8ef7082baf32f65b29705e6c2"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/train.py")" = "004b66b549d3d64f2dde7614ec84f22b9f37a7c6"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
           test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
