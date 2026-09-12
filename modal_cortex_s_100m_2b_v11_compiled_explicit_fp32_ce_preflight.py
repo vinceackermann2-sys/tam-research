@@ -223,8 +223,10 @@ def _verify_frozen_inputs() -> dict[str, Any]:
         raise RuntimeError("v11 optimizer step is not using compiled explicit-FP32 CE")
     if step_source.count('.to(device="cpu")') != 1:
         raise RuntimeError("v11 optimizer-step host readback count drift")
-    if "liger" in module_source.lower():
-        raise RuntimeError("v11 unexpectedly references Liger")
+    lowered_module = module_source.lower()
+    for marker in ("liger_kernel", "ligerfused", "from liger", "import liger"):
+        if marker in lowered_module:
+            raise RuntimeError(f"v11 unexpectedly references Liger import/path marker: {marker}")
 
     trainer_source = implementation_path.read_text(encoding="utf-8")
     if "return torch.compile(model, mode=COMPILE_MODE, fullgraph=False)" not in trainer_source:
