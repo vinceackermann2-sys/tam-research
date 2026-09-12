@@ -16,7 +16,9 @@ def _text(path: Path) -> str:
 def _function_source(source: str, name: str) -> str:
     tree = ast.parse(source)
     node = next(
-        item for item in tree.body if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == name
+        item
+        for item in tree.body
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == name
     )
     return ast.get_source_segment(source, node) or ""
 
@@ -162,11 +164,13 @@ def test_workflow_orders_preflight_reservation_and_single_scientific_dispatch() 
     run = workflow.index("--phase run")
     assert preflight < reserve < run
 
-    # There is only one paid scientific phase and it is seed 8611.  No subsequent
-    # seed can be chained from this workflow.
+    # The run-control title may mention the full frozen seed order, but this file
+    # may dispatch only the seed-8611 phase and cannot chain a later seed.
     assert workflow.count("--phase run") == 1
-    assert "8612" not in workflow
-    assert "8613" not in workflow
+    assert "--phase run-8612" not in workflow
+    assert "--phase run-8613" not in workflow
+    assert "run_seed_8612" not in workflow
+    assert "run_seed_8613" not in workflow
     assert "Do not retry or redispatch automatically" in workflow
     assert "SEED_CONSUMED.json" in workflow
     assert "ATTEMPT_FAILURE.json" in workflow
