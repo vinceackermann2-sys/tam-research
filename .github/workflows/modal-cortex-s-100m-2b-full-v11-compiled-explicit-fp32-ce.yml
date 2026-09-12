@@ -1,0 +1,172 @@
+name: CORTEX-S 100M 2B full v11 compiled explicit FP32 CE
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-100m-2b-full-v11-compiled-explicit-fp32-ce]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve exact source payload
+        id: payload
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          source_tree = str(cfg.get('source_tree', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          assert phase == 'full-v11-compiled-explicit-fp32-ce'
+          for name, value in (('source_sha', source_sha), ('source_tree', source_tree), ('harness_sha', harness_sha)):
+              assert re.fullmatch(r'[0-9a-f]{40}', value), f'{name} must be a full lowercase SHA'
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'source_tree={source_tree}')
+          print(f'harness_sha={harness_sha}')
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.payload.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on source or frozen blob drift
+        env:
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_cortex_s_100m_2b_v11_compiled_explicit_fp32_ce_full.py")" = "f7ff64368787401f97c6c0df7e553461c368bc8d"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_100m_2b_full_v11_compiled_explicit_fp32_ce_harness.py")" = "77531870e9a82b5e8b0b2491082af69e583ff017"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/compiled_explicit_fp32_ce_v1.py")" = "970a0dcf130348662f4c9a3ed11d8e6ad250781a"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/tests/test_compiled_explicit_fp32_ce_v1.py")" = "f61abfefbc1959502cdb3a9f9e3330774db2914d"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/train.py")" = "004b66b549d3d64f2dde7614ec84f22b9f37a7c6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/experiments/scale100m_2b/protocol.py")" = "b44d2a8d8b757aae052c34d314fc89604b531f1d"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/production_scan_integration_v1.py")" = "c3d05f8b4d1e3e8ea7bcbad5fdeca5d7091651c7"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/affine_scan_triton_candidate.py")" = "5c6bf7df95f49c306b4ffadd6a8a09b9f71344f9"
+          test "$(git -C source rev-parse "$SOURCE_SHA:architectures/cortex_s/grouped_moe_v4.py")" = "7c738e6349536dd45f1c631a9ad5524ade1d5021"
+          test "$(sha256sum source/architectures/cortex_s/experiments/scale100m_2b/train.py | awk '{print $1}')" = "d0d91de09bba8b7631913b3e9c0407ab2bb0114f7bba133c123ee5598d490461"
+
+      - name: Static full-run authority guard
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          runner = Path('source/modal_cortex_s_100m_2b_v11_compiled_explicit_fp32_ce_full.py').read_text(encoding='utf-8')
+          candidate = Path('source/architectures/cortex_s/compiled_explicit_fp32_ce_v1.py').read_text(encoding='utf-8')
+          trainer = Path('source/architectures/cortex_s/experiments/scale100m_2b/train.py').read_text(encoding='utf-8')
+          protocol = Path('source/architectures/cortex_s/experiments/scale100m_2b/protocol.py').read_text(encoding='utf-8')
+          tree = ast.parse(runner)
+          required = (
+              'PHASE = "full-v11-compiled-explicit-fp32-ce"',
+              'TRIGGER_TITLE = "[modal-cortex-s-100m-2b-full-v11-compiled-explicit-fp32-ce]"',
+              'FULL_TRAINING_SEED = 2_026_091_014',
+              'RESULT_ROOT = "/vol/cortex-s-v0/100m-2b/full-v11-compiled-explicit-fp32-ce"',
+              'V11_PREFLIGHT_SOURCE_SHA = "be5c0c19c7ebf3339e0c8be80158eb52b1a3dae2"',
+              'V11_PREFLIGHT_STATUS = "SYSTEMS_PREFLIGHT_PASS"',
+              'TRAIN_TOKENS = 2_000_000_000',
+              'TOTAL_OPTIMIZER_STEPS = 30_518',
+              'FULL_BATCH_TOKEN_EXPOSURES = 2_000_027_648',
+              'EVAL_EVERY_TOKENS = 200_000_000',
+              'CHECKPOINT_EVERY_TOKENS = 200_000_000',
+              'HARD_FULL_TIMEOUT_SECONDS = 10_000',
+              'with memory_lean_grouped_triton_scan_training_builder():',
+              'with compiled_explicit_fp32_ce_training_builder():',
+              '"resume_authorized": False',
+              '"scientific_claim_authorized": False',
+          )
+          for needle in required:
+              assert needle in runner, needle
+          assert 'train_full_2b(' not in runner
+          assert 'PAIRED_SEED' not in runner
+          assert 'seed_all(8_100)' not in runner
+          assert 'manual_seed(8_100' not in runner
+          assert 'Path(V11_PREFLIGHT_ROOT) / "RESULT.json"' in runner
+          assert '_atomic_write(Path(V11_PREFLIGHT_ROOT)' not in runner
+          assert 'logits.float().reshape(-1, logits.size(-1))' in candidate
+          assert 'compiled_explicit_fp32_cross_entropy = torch.compile(' in candidate
+          assert 'return torch.compile(model, mode=COMPILE_MODE, fullgraph=False)' in trainer
+          assert 'TOTAL_OPTIMIZER_STEPS = math.ceil(TRAIN_TOKENS / TOKENS_PER_OPTIMIZER_STEP)' in protocol
+          gpu_sites = []
+          profiler_calls = []
+          for node in ast.walk(tree):
+              if not isinstance(node, ast.Call):
+                  continue
+              name = ast.unparse(node.func)
+              if name.startswith('torch.profiler'):
+                  profiler_calls.append(name)
+              for kw in node.keywords:
+                  if kw.arg == 'gpu' and isinstance(kw.value, ast.Constant):
+                      gpu_sites.append(kw.value.value)
+          assert gpu_sites == ['H100!'], gpu_sites
+          assert not profiler_calls, profiler_calls
+          main = runner[runner.index('def main('):]
+          assert main.index('verify_zero_gpu.remote') < main.index('reserve_full_dispatch.remote') < main.index('h100_full_training.remote')
+          h100 = runner[runner.index('def h100_full_training('):runner.index('@app.local_entrypoint()')]
+          assert h100.index('_atomic_write(marker_path, marker)') < h100.index('_run_full_training(source)')
+          print('v11 full-2B source/authority guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Authenticate Modal
+        run: modal token info
+
+      - name: Record authenticated one-shot handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟨 **CORTEX-S v11 full-2B one-shot dispatch authenticated** — source=$SOURCE_SHA, tree=$SOURCE_TREE, harness=$HARNESS_SHA, reserved full-training seed=2026091014. The runner must verify the authoritative consumed v11 PASS read-only, re-hash frozen inputs, durably consume the full dispatch marker before H100 allocation, and then execute exactly one 30,518-step / 2B-token training attempt. No retry/resume or scientific claim is authorized."
+
+      - name: Launch exact one-shot v11 full training
+        env:
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          cd source
+          modal run --detach --timestamps modal_cortex_s_100m_2b_v11_compiled_explicit_fp32_ce_full.py \
+            --phase "full-v11-compiled-explicit-fp32-ce" \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA"
+
+      - name: Record normal Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="🟩 CORTEX-S v11 full-training Modal call returned normally. Inspect the durable RESULT.json classification before interpreting the run; GitHub workflow success is not scientific evidence."
