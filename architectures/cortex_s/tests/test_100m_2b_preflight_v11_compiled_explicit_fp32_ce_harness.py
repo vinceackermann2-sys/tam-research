@@ -182,9 +182,10 @@ def test_harness_has_no_full_training_or_scientific_authority() -> None:
 
     assert '"full_training_authorized": True' not in source
     assert '"scientific_claim_authorized": True' not in source
+    assert '"seed_8100_used": True' not in source
+    assert '"reserved_scientific_seeds_used": True' not in source
     assert "PAIRED_SEED" not in source
     assert "train_full_2b(" not in source
-    for seed in ("48_131", "48_132", "48_133"):
-        assert seed not in source
+    assert "FORBIDDEN_CONTROL_AND_SCIENTIFIC_SEEDS = (8_100, 48_131, 48_132, 48_133)" in source
     assert "workflow_dispatch" not in workflow
     assert CANDIDATE_TEST.exists()
