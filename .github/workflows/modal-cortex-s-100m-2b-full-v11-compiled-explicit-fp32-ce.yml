@@ -147,7 +147,7 @@ jobs:
           HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
-            -f body="🟨 **CORTEX-S v11 full-2B one-shot dispatch authenticated** — source=$SOURCE_SHA, tree=$SOURCE_TREE, harness=$HARNESS_SHA, reserved full-training seed=2026091014. The runner must verify the authoritative consumed v11 PASS read-only, re-hash frozen inputs, durably consume the full dispatch marker before H100 allocation, and then execute exactly one 30,518-step / 2B-token training attempt. No retry/resume or scientific claim is authorized."
+            -f body="🟨 **CORTEX-S v11 full-2B one-shot dispatch authenticated** — source=$SOURCE_SHA, tree=$SOURCE_TREE, harness=$HARNESS_SHA, reserved full-training seed=2026091014. The runner must verify the authoritative consumed v11 PASS read-only, re-hash frozen inputs, durably consume the full dispatch marker before H100 allocation, and then execute exactly one 30,518-step / 2B-token training attempt. No second dispatch or resume is authorized; no scientific claim is authorized."
 
       - name: Launch exact one-shot v11 full training
         env:
