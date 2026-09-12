@@ -1,0 +1,180 @@
+name: Modal CORTEX-S v10 durable result readout
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  readout:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-v10-durable-result-readout-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Resolve immutable readout payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get('ISSUE_BODY') or '{}')
+          phase = str(cfg.get('phase', '')).strip().lower()
+          source_sha = str(cfg.get('source_sha', '')).strip().lower()
+          source_tree = str(cfg.get('source_tree', '')).strip().lower()
+          harness_sha = str(cfg.get('harness_sha', '')).strip().lower()
+          original_source_sha = str(cfg.get('original_source_sha', '')).strip().lower()
+          original_source_tree = str(cfg.get('original_source_tree', '')).strip().lower()
+          original_harness_sha = str(cfg.get('original_harness_sha', '')).strip().lower()
+          assert phase == 'preflight-v10-durable-result-readout-v1'
+          for name, value in (
+              ('source_sha', source_sha),
+              ('source_tree', source_tree),
+              ('harness_sha', harness_sha),
+              ('original_source_sha', original_source_sha),
+              ('original_source_tree', original_source_tree),
+              ('original_harness_sha', original_harness_sha),
+          ):
+              assert re.fullmatch(r'[0-9a-f]{40}', value), f'{name} must be a full lowercase SHA'
+          assert original_source_sha == '6e2b535a2eb8fdea6579fc27849091ee5125b9ea'
+          assert original_source_tree == '2a019c7d5785e9c4b7e48eda15c9b6faec30e8f3'
+          assert original_harness_sha == '48c5d5a2ee7ff3688785f8e7943d537e5215358b'
+          print(f'phase={phase}')
+          print(f'source_sha={source_sha}')
+          print(f'source_tree={source_tree}')
+          print(f'harness_sha={harness_sha}')
+          print(f'original_source_sha={original_source_sha}')
+          print(f'original_source_tree={original_source_tree}')
+          print(f'original_harness_sha={original_harness_sha}')
+          PY
+
+      - name: Checkout exact readout source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on source and read-only authority
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          runner = Path('source/modal_cortex_s_v10_durable_result_readout.py').read_text(encoding='utf-8')
+          assert 'PHASE = "preflight-v10-durable-result-readout-v1"' in runner
+          assert 'TRIGGER_TITLE = "[modal-cortex-s-v10-durable-result-readout-v1]"' in runner
+          assert 'ORIGINAL_SOURCE_SHA = "6e2b535a2eb8fdea6579fc27849091ee5125b9ea"' in runner
+          assert 'ORIGINAL_SOURCE_TREE = "2a019c7d5785e9c4b7e48eda15c9b6faec30e8f3"' in runner
+          assert 'ORIGINAL_HARNESS_SHA = "48c5d5a2ee7ff3688785f8e7943d537e5215358b"' in runner
+          assert 'ORIGINAL_ENGINEERING_SEED = 2_026_091_012' in runner
+          assert 'RESULT_ROOT = "/vol/cortex-s-v0/100m-2b/preflight-v10-autocast-ce-no-explicit-fp32"' in runner
+          assert 'create_if_missing=False' in runner
+          assert 'volume.reload()' in runner
+          assert 'CORTEX_S_V10_DURABLE_READOUT=' in runner
+          for forbidden in (
+              'gpu=', 'gpu =', 'volume.commit', '_atomic_write', '.write_text(', '.write_bytes(',
+              '.replace(', '.unlink(', '.mkdir(', 'import torch', 'training_module',
+              '_one_optimizer_step', '_compile_model', 'train_full_2b', 'optimizer.step',
+          ):
+              assert forbidden not in runner, forbidden
+          tree = ast.parse(runner)
+          gpu_keywords = [
+              kw for node in ast.walk(tree) if isinstance(node, ast.Call)
+              for kw in node.keywords if kw.arg == 'gpu'
+          ]
+          assert gpu_keywords == []
+          assert runner.count('@app.function(') == 1
+          print('v10 durable readout authority guard PASS')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal only
+        run: pip install 'modal>=1.1,<2'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Read immutable v10 durable records
+        run: |
+          cd source
+          set -o pipefail
+          modal run modal_cortex_s_v10_durable_result_readout.py \
+            --phase "${{ steps.cfg.outputs.phase }}" \
+            --original-source-sha "${{ steps.cfg.outputs.original_source_sha }}" \
+            --original-source-tree "${{ steps.cfg.outputs.original_source_tree }}" \
+            --original-harness-sha "${{ steps.cfg.outputs.original_harness_sha }}" \
+            2>&1 | tee /tmp/cortex_v10_readout.log
+
+      - name: Build immutable readout summary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          marker = 'CORTEX_S_V10_DURABLE_READOUT='
+          lines = Path('/tmp/cortex_v10_readout.log').read_text(encoding='utf-8').splitlines()
+          matches = [line for line in lines if marker in line]
+          if len(matches) != 1:
+              raise RuntimeError(f'expected exactly one readout marker, got {len(matches)}')
+          payload = json.loads(matches[0].split(marker, 1)[1])
+          if payload.get('status') != 'READOUT_COMPLETE' or payload.get('read_only') is not True:
+              raise RuntimeError('readout payload failed authority validation')
+          if payload.get('gpu_allocated_by_readout') is not False or payload.get('new_seed_consumed') is not False:
+              raise RuntimeError('readout violated zero-GPU/no-seed contract')
+          result = payload.get('result')
+          summary = {
+              'status': payload['status'],
+              'classification': payload['classification'],
+              'result_root': payload['result_root'],
+              'result_present': payload['result_present'],
+              'zero_gpu_status': payload['zero_gpu_gate'].get('status'),
+              'zero_gpu_classification': payload['zero_gpu_gate'].get('classification'),
+              'dispatch_status': payload['dispatch_marker'].get('status'),
+              'dispatch_classification': payload['dispatch_marker'].get('classification'),
+              'engineering_seed': payload['dispatch_marker'].get('engineering_seed'),
+              'result_status': result.get('status') if isinstance(result, dict) else None,
+              'result_classification': result.get('classification') if isinstance(result, dict) else None,
+              'sha256': payload['sha256'],
+              'read_only': payload['read_only'],
+              'gpu_allocated_by_readout': payload['gpu_allocated_by_readout'],
+              'new_seed_consumed': payload['new_seed_consumed'],
+              'full_training_authorized': payload['full_training_authorized'],
+              'scientific_claim_authorized': payload['scientific_claim_authorized'],
+          }
+          Path('/tmp/cortex_v10_summary.json').write_text(json.dumps(summary, indent=2, sort_keys=True), encoding='utf-8')
+          comment = (
+              '📖 **CORTEX-S v10 consumed-attempt durable namespace recovered read-only.** '
+              'No GPU, new seed, or Volume mutation was used by this readout.\n\n'
+              '```json\n' + json.dumps(summary, indent=2, sort_keys=True) + '\n```\n\n'
+              'If `result_present` is false, that is the authoritative durable pre-result state; it does not authorize a retry of the consumed v10 attempt or full training.'
+          )
+          Path('/tmp/cortex_v10_comment.md').write_text(comment, encoding='utf-8')
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Post recovered durable-state summary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="$(cat /tmp/cortex_v10_comment.md)"
