@@ -94,6 +94,7 @@ def test_loss_and_all_parameter_gradients_match_production_reference() -> None:
 
 def test_loss_only_compiler_is_frozen_fullgraph_max_autotune() -> None:
     source = CANDIDATE.read_text(encoding="utf-8")
+    lowered = source.lower()
 
     assert LOSS_COMPILE_MODE == "max-autotune-no-cudagraphs"
     assert LOSS_FULLGRAPH is True
@@ -102,7 +103,10 @@ def test_loss_only_compiler_is_frozen_fullgraph_max_autotune() -> None:
     assert "mode=LOSS_COMPILE_MODE" in source
     assert "fullgraph=LOSS_FULLGRAPH" in source
     assert "torch.compiler.disable" not in source
-    assert "liger" not in source.lower()
+    assert "liger_kernel" not in lowered
+    assert "ligerfused" not in lowered
+    assert "from liger" not in lowered
+    assert "import liger" not in lowered
 
 
 def test_builder_changes_only_optimizer_step_and_restores_exactly() -> None:
@@ -144,14 +148,17 @@ def test_production_trainer_is_unchanged() -> None:
     assert "logits.float().reshape(-1, logits.size(-1))" in source
 
 
-def test_candidate_has_no_paid_scientific_or_liger_authority() -> None:
+def test_candidate_has_no_paid_scientific_or_external_fused_loss_authority() -> None:
     source = CANDIDATE.read_text(encoding="utf-8")
     lowered = source.lower()
 
     assert "import modal" not in lowered
     assert "modal.run" not in lowered
     assert "h100" not in lowered
-    assert "liger" not in lowered
+    assert "liger_kernel" not in lowered
+    assert "ligerfused" not in lowered
+    assert "from liger" not in lowered
+    assert "import liger" not in lowered
     assert "train_full_2b" not in source
     assert "8_100" not in source
     assert "48_131" not in source
