@@ -122,6 +122,7 @@ def validate_job(job: dict[str, Any], filename: str) -> dict[str, Any]:
         "job_id",
         "task",
         "seed",
+        "requires_job_id",
         "profile",
         "token_budget",
         "seq_len",
@@ -153,11 +154,18 @@ def validate_job(job: dict[str, Any], filename: str) -> dict[str, Any]:
         "seed": _bounded_int(job, "seed", 20260913, 0, 2_147_483_647),
     }
     if task == "train":
+        prerequisite = str(job.get("requires_job_id", ""))
+        if not _JOB_ID.fullmatch(prerequisite):
+            raise ValueError("train jobs require a valid requires_job_id")
+        if prerequisite == job_id:
+            raise ValueError("a job cannot depend on itself")
+
         profile = str(job.get("profile", "tiny")).lower()
         if profile != "tiny":
             raise ValueError("initial Colab bridge permits profile='tiny' only")
         normalized.update(
             {
+                "requires_job_id": prerequisite,
                 "profile": profile,
                 "token_budget": _bounded_int(
                     job, "token_budget", 65_536, 65_536, 500_000
@@ -180,6 +188,21 @@ def validate_job(job: dict[str, Any], filename: str) -> dict[str, Any]:
         if normalized["train_tokens"] < normalized["token_budget"] + 1024:
             raise ValueError("train_tokens must exceed token_budget by at least 1024")
     return normalized
+
+
+def prerequisite_passed(bridge: GitHubBridge, job: dict[str, Any]) -> bool:
+    prerequisite = job.get("requires_job_id")
+    if not prerequisite:
+        return True
+    result_path = f"{RESULTS_DIR}/{prerequisite}.json"
+    if not bridge.exists(result_path):
+        return False
+    result = bridge.read_json(result_path)
+    return (
+        result.get("status") == "complete"
+        and isinstance(result.get("output"), dict)
+        and result["output"].get("status") == "pass"
+    )
 
 
 def _cuda_available() -> bool:
@@ -234,6 +257,14 @@ def process_once(bridge: GitHubBridge) -> int:
             started = time.time()
             try:
                 job = validate_job(raw, filename)
+                if not prerequisite_passed(bridge, job):
+                    print(
+                        f"[bridge] {queue_id} waiting for PASS from "
+                        f"{job.get('requires_job_id')}",
+                        flush=True,
+                    )
+                    continue
+
                 payload = {
                     "schema": 1,
                     "job_id": job["job_id"],
