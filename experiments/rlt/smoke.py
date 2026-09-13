@@ -8,11 +8,13 @@ import torch.nn.functional as F
 from experiments.rlt.model import RLTConfig, RecurrentLoopedTransformer, parameter_count
 
 
-def run_smoke(device: str | torch.device | None = None) -> dict[str, object]:
+def run_smoke(
+    device: str | torch.device | None = None, seed: int = 20260914
+) -> dict[str, object]:
     resolved = torch.device(
         device if device is not None else ("cuda" if torch.cuda.is_available() else "cpu")
     )
-    torch.manual_seed(20260913)
+    torch.manual_seed(seed)
 
     cfg = RLTConfig(
         vocab_size=257,
@@ -102,6 +104,7 @@ def run_smoke(device: str | torch.device | None = None) -> dict[str, object]:
 
     return {
         "status": "pass",
+        "seed": seed,
         "device": str(resolved),
         "architecture": "causal encoder + token-recurrent decoder",
         "parameters_smoke_model": parameter_count(model),
