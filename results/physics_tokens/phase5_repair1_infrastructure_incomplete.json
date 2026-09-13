@@ -1,0 +1,13 @@
+{
+  "experiment": "physics-token-phase5-gray-scott-transfer-v1-repair1",
+  "status": "INFRASTRUCTURE_INCOMPLETE",
+  "cause": "The local execution ceiling terminated the single-process three-replicate run during replicate 3 before a durable aggregate result file was written.",
+  "scientific_gate_status": "UNRESOLVED",
+  "completed_replicates": [
+    {"replicate":1,"seeds":{"training":91101,"id":91102,"sharp":91103,"parameter":91104,"combined":91105},"ratios":{"id_h8":0.4646029744328946,"sharp_h3":0.08193141251283251,"parameter_h3":0.05525020026509966,"combined_h3":0.13915012244986819},"pass":true,"reconstruction_nmse":0.00016726776084396988,"pc8_explained_variance":0.9915158748626709},
+    {"replicate":2,"seeds":{"training":91111,"id":91112,"sharp":91113,"parameter":91114,"combined":91115},"ratios":{"id_h8":0.34963359314235953,"sharp_h3":0.08465351536678353,"parameter_h3":0.11774183251852642,"combined_h3":0.0829110278875946},"pass":true,"reconstruction_nmse":0.0001684484159341082,"pc8_explained_variance":0.9902567267417908}
+  ],
+  "replicate3": {"seeds":{"training":91121,"id":91122,"sharp":91123,"parameter":91124,"combined":91125},"status":"CONSUMED_BUT_NO_DURABLE_RESULT"},
+  "same_seeds_must_not_be_reused": true,
+  "interpretation": "The two completed replicates are supportive engineering evidence only. The preregistered 3/3 confirmation gate cannot be scored. This is neither a scientific PASS nor FAIL."
+}
