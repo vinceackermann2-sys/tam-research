@@ -1,0 +1,18 @@
+{
+  "experiment": "physics-token-phase5-gray-scott-transfer-v1",
+  "attempt": "confirmatory-attempt-1",
+  "classification": "INVALID_PROTOCOL_IMPLEMENTATION",
+  "reason": "The executed confirmatory script imported fit_rvq from the Phase-4 implementation, which hardcoded KMeans seeds 74193 and 74210. The preregistered Phase-5 protocol froze codec KMeans seeds 75193 and 75210.",
+  "consumed_replicate_seeds": [
+    [91001, 91002, 91003, 91004, 91005],
+    [91011, 91012, 91013, 91014, 91015],
+    [91021, 91022, 91023, 91024, 91025]
+  ],
+  "observed_status_from_invalid_run": "PASS",
+  "scientific_evidence": false,
+  "same_seeds_must_not_be_rerun": true,
+  "supersedes_interpretation_of": [
+    "results/physics_tokens/phase5_reaction_diffusion_summary.json",
+    "docs/PHYSICS_TOKENIZER_PHASE5_2026-09-13.md"
+  ]
+}
