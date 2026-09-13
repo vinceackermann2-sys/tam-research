@@ -1,0 +1,65 @@
+{
+  "experiment": "physics-token-phase10-tail-aware-companded-innovation-v1",
+  "status": "COMPLETE_GO",
+  "parent_phase9_head": "f66c27a9fbf81b1752d759cc058be801e077ebee",
+  "preregistration_commit": "5e8db2e7c7767735a8cfe951f0ccade81c74facb",
+  "final_validated_source_commit": "13f58b72d1e7430c46d0e4397f0ccbf85a6c34be",
+  "source_blob_sha": "1a61b8d0737b8c6beacfc2eabff3fae70140c0fb",
+  "test_commit": "1d06de2fd2e3444f258223e9397a15efe6a7e733",
+  "replicate_result_commits": {
+    "1": "02e8ca223c1a9fd8352a9a604a11715a6aa6fd81",
+    "2": "c9b6b641891f8a1e98b09c374b577950dfc37a68",
+    "3": "2704cfcc8c273e16081e3afacf09925b6427cf0c"
+  },
+  "execution": {
+    "backend": "local CPU",
+    "modal_or_gpu_used": false,
+    "registered_replicates": 3,
+    "reruns_or_replacement_seeds": false
+  },
+  "frozen_go_rule": {
+    "companded_lower_than_plain_all_3": true,
+    "companded_lower_than_state_all_3": true,
+    "median_companded_over_plain_le_0_80": true,
+    "companded_beats_persistence_all_3": true,
+    "companded_context_mse_lower_than_plain_all_3": true,
+    "median_companded_over_plain": 0.3720667775050531,
+    "decision": "GO"
+  },
+  "primary_combined_ood_h3": {
+    "state_ratio": {"values": [0.891728884330803, 1.41412614940345, 0.6878458211205448], "mean": 0.9979002849515993, "median": 0.891728884330803},
+    "plain_innovation_ratio": {"values": [1.0437141381045922, 0.9513281404362034, 0.7327564524171563], "mean": 0.9092662436526506, "median": 0.9513281404362034},
+    "companded_ratio": {"values": [0.3326108416971643, 0.3539575955619728, 0.33320529899283563], "mean": 0.33992457875065757, "median": 0.33320529899283563},
+    "companded_over_plain": {"values": [0.3186800193213756, 0.3720667775050531, 0.45472857713321474], "mean": 0.3818251246532145, "median": 0.3720667775050531},
+    "companded_over_state": {"values": [0.3729954782689043, 0.25030128727291406, 0.4844185844583935], "mean": 0.36923845000007055, "median": 0.3729954782689043},
+    "state_context_mse": {"values": [0.0030274614691734314, 0.003204639069736004, 0.0010680574923753738], "mean": 0.00243338601042827, "median": 0.0030274614691734314},
+    "plain_context_mse": {"values": [0.04563901945948601, 0.03093879483640194, 0.02390228398144245], "mean": 0.033493366092443466, "median": 0.03093879483640194},
+    "companded_context_mse": {"values": [0.007788511458784342, 0.005605593323707581, 0.003434286452829838], "mean": 0.005609463745107253, "median": 0.005605593323707581},
+    "companded_context_delta_mse": {"values": [0.00452462350949645, 0.0032705410849303007, 0.0020129329059273005], "mean": 0.0032693658334513507, "median": 0.0032705410849303007},
+    "companded_context_clip_fraction": {"values": [0.062215169270833336, 0.04290771484375, 0.036865234375], "mean": 0.04732937282986111, "median": 0.04290771484375},
+    "companded_rollout_clip_fraction": {"values": [0.04347059461805556, 0.03396267361111111, 0.024495442708333332], "mean": 0.033976236979166664, "median": 0.03396267361111111},
+    "state_target_oracle_ratio": {"values": [0.5510592139881912, 0.8136645641766092, 0.386669834874588], "mean": 0.5837978710131294, "median": 0.5510592139881912},
+    "plain_target_oracle_ratio": {"values": [0.8308235598387137, 0.752656888821339, 0.5551526815013343], "mean": 0.7128777100537956, "median": 0.752656888821339},
+    "companded_target_oracle_ratio": {"values": [0.024473191526371323, 0.029642974865111332, 0.011931029285672568], "mean": 0.022015731892385076, "median": 0.024473191526371323},
+    "raw_fit_companded_projection_ratio": {"values": [0.05174393144998107, 0.05629616612204575, 0.030726517474743118], "mean": 0.04625553834892331, "median": 0.05174393144998107}
+  },
+  "secondary_id_h8": {
+    "state_ratio": {"values": [0.2602334730285761, 0.3905176742301666, 0.5658079509198719], "mean": 0.4055196993928715, "median": 0.3905176742301666},
+    "plain_innovation_ratio": {"values": [0.0633295370120073, 0.17835144817385382, 0.21935531114132978], "mean": 0.15367876544239698, "median": 0.17835144817385382},
+    "companded_ratio": {"values": [0.058111759907914895, 1.0166510551607255, 0.3079274022419089], "mean": 0.4608967391035164, "median": 0.3079274022419089},
+    "companded_over_plain": {"values": [0.9176091070568997, 5.700268013353679, 1.4037836633165106], "mean": 2.6738869279090296, "median": 1.4037836633165106},
+    "companded_over_state": {"values": [0.22330624585536576, 2.6033419797576767, 0.5442260076785608], "mean": 1.1236247444305343, "median": 0.5442260076785608},
+    "companded_context_mse": {"values": [1.137793151428923e-05, 1.600415816938039e-05, 1.896034700621385e-05], "mean": 1.5447478896627825e-05, "median": 1.600415816938039e-05},
+    "companded_context_clip_fraction": {"values": [0.0, 0.0, 0.0], "mean": 0.0, "median": 0.0}
+  },
+  "secondary_spectral_h3": {
+    "state_ratio": {"values": [0.19834124286080201, 0.20463631278554817, 0.13286866140328044], "mean": 0.17861540568321022, "median": 0.19834124286080201},
+    "plain_innovation_ratio": {"values": [0.16543091631429183, 0.2251515418025015, 0.1051618996394472], "mean": 0.1652481192520802, "median": 0.16543091631429183},
+    "companded_ratio": {"values": [0.009697752894533512, 0.019425376977285042, 0.019861400233018658], "mean": 0.016328176701612403, "median": 0.019425376977285042},
+    "companded_over_plain": {"values": [0.0586211641124526, 0.08627689964621518, 0.1888649815295697], "mean": 0.1112543484294125, "median": 0.08627689964621518},
+    "companded_over_state": {"values": [0.04889428317911418, 0.09492634377967009, 0.14948145050348413], "mean": 0.09776735915408946, "median": 0.09492634377967009},
+    "companded_context_mse": {"values": [7.197749800980091e-05, 2.202388714067638e-05, 1.7198890418512747e-05], "mean": 3.706675852299668e-05, "median": 2.202388714067638e-05},
+    "companded_context_clip_fraction": {"values": [0.00140380859375, 0.002197265625, 0.0], "mean": 0.0012003580729166667, "median": 0.00140380859375}
+  },
+  "claim_limit": "GO only supports a separately preregistered follow-up on synthetic representation robustness; it is not novel physics, unrestricted law discovery, AGI, or SSI."
+}
