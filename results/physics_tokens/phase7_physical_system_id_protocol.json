@@ -1,0 +1,54 @@
+{
+  "experiment": "physics-token-phase7-physical-coordinate-system-id-v1",
+  "status": "PREREGISTERED_BEFORE_CONFIRMATORY_RUNS",
+  "parent_phase6_head": "070ce18d9b4cc4545f9ce142e844ea3dca2ce313",
+  "hypothesis": "A single shared hierarchical discrete representation can support robust context-only identification across wave and nonlinear reaction-diffusion laws when the generic local law is fitted in decoded physical coordinates with symmetry-aware spatial features.",
+  "training_mixture": {
+    "law_labels_given_to_model": false,
+    "wave_sequences": 64,
+    "gray_scott_sequences": 64,
+    "seq_len": 8,
+    "grid": 16,
+    "wave": {"c_range": [0.6, 1.0], "dt": 0.12, "initial_modes": "training generator default low-frequency modes"},
+    "gray_scott": {"F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "Du": 0.16, "Dv": 0.08, "dt": 1.0, "substeps_per_saved_frame": 4, "initialization": "smooth"}
+  },
+  "shared_representation": {
+    "normalization": "single mean/std fitted jointly across both law families only for tokenizer training and token lookup",
+    "two_stage_residual_vq": true,
+    "coarse_codebook_size": 2048,
+    "residual_codebook_size": 128,
+    "tokens_per_cell": 2,
+    "kmeans_iters": 20,
+    "kmeans_max_points": 60000,
+    "decoded_coordinate_system_for_dynamics": "physical units via inverse shared normalization"
+  },
+  "transition_identification": {
+    "context_frames": 3,
+    "law_identifier": false,
+    "family_router": false,
+    "governing_equations_supplied": false,
+    "hidden_parameter_labels_supplied": false,
+    "features": "16 generic physical-coordinate features: constant; for each of the two state channels center value, D4-symmetric axial radius-1 sum, diagonal radius-1 sum, axial radius-2 sum; plus center monomials u^2, uv, v^2, u^3, u^2v, uv^2, v^3",
+    "feature_scaling": "per-sequence RMS scaling fitted only from observed context samples; constant scale fixed to 1",
+    "fit": "for each test sequence independently, ridge least-squares 2x16 local map from the two observed decoded-token context transitions",
+    "ridge": 0.001,
+    "rollout": "recursive in physical coordinates; every predicted frame is transformed through shared normalization, requantized by the same shared two-stage RVQ, decoded back to physical units, then used for the next step"
+  },
+  "confirmatory_replicates": [
+    {"replicate":1,"wave_train_seed":94301,"gray_train_seed":94302,"coarse_kmeans_seed":77101,"residual_kmeans_seed":77102,"wave_id_seed":94311,"wave_spectral_seed":94312,"wave_combined_seed":94313,"gray_id_seed":94321,"gray_sharp_seed":94322,"gray_parameter_seed":94323,"gray_combined_seed":94324},
+    {"replicate":2,"wave_train_seed":94401,"gray_train_seed":94402,"coarse_kmeans_seed":77111,"residual_kmeans_seed":77112,"wave_id_seed":94411,"wave_spectral_seed":94412,"wave_combined_seed":94413,"gray_id_seed":94421,"gray_sharp_seed":94422,"gray_parameter_seed":94423,"gray_combined_seed":94424},
+    {"replicate":3,"wave_train_seed":94501,"gray_train_seed":94502,"coarse_kmeans_seed":77121,"residual_kmeans_seed":77122,"wave_id_seed":94511,"wave_spectral_seed":94512,"wave_combined_seed":94513,"gray_id_seed":94521,"gray_sharp_seed":94522,"gray_parameter_seed":94523,"gray_combined_seed":94524}
+  ],
+  "evaluation": {
+    "wave_id": {"num_sequences":48,"seq_len":16,"c_range":[0.6,1.0],"primary_horizon":8},
+    "wave_spectral_ood": {"num_sequences":48,"seq_len":8,"c_range":[0.6,1.0],"max_mode":6,"primary_horizon":3},
+    "wave_combined_ood": {"num_sequences":48,"seq_len":8,"c_range":[1.15,1.35],"max_mode":6,"primary_horizon":3},
+    "gray_id": {"num_sequences":48,"seq_len":16,"F_range":[0.025,0.045],"k_range":[0.055,0.065],"initialization":"smooth","primary_horizon":8},
+    "gray_sharp_ood": {"num_sequences":48,"seq_len":8,"F_range":[0.025,0.045],"k_range":[0.055,0.065],"initialization":"sharp","primary_horizon":3},
+    "gray_parameter_ood": {"num_sequences":48,"seq_len":8,"F_range":[0.050,0.060],"k_range":[0.045,0.055],"initialization":"smooth","primary_horizon":3},
+    "gray_combined_ood": {"num_sequences":48,"seq_len":8,"F_range":[0.050,0.060],"k_range":[0.045,0.055],"initialization":"sharp","primary_horizon":3}
+  },
+  "frozen_pass_rule": "PASS only if every one of the 3 fresh end-to-end replicates has requantized rollout MSE ratio < 1.0 versus raw-state persistence on all seven primary tests. No retry or replacement of a failed or consumed replicate.",
+  "execution_rule": "Run each replicate exactly once in an independent process and persist its result immediately before starting the next replicate.",
+  "claim_limit": "A pass would support cross-law context identification under one shared discrete representation without explicit law IDs, equations, or hidden parameter labels. It would not constitute unrestricted law discovery because locality, D4 symmetry, radius-2 shell structure, and a degree-3 polynomial center library are supplied priors."
+}
