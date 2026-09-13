@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "job_id": "rlt-publicspec-smoke-20260913-c",
+  "status": "abandoned_infrastructure",
+  "worker": "orchestrator",
+  "note": "Colab one-shot completed with no terminal result and no branch writeback. Execution state is unknown, so this attempt is retired and must never be rerun. No scientific conclusion may be drawn from it."
+}
