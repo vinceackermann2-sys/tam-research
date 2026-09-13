@@ -222,9 +222,11 @@ def validate_invariants():
     idx=np.array([[[[0]],[[0]]],[[[511]],[[511]]]],np.int32); dec=decode_companded_indices(idx,m,s)
     assert np.allclose(dec[0,:,0,0],[-16.,-16.],rtol=0,atol=2e-5); assert np.allclose(dec[1,:,0,0],[16.,16.],rtol=0,atol=2e-5)
     packed=pack_indices(np.concatenate([np.zeros((1,2,1,1),np.int32),np.full((1,2,1,1),511,np.int32)],0)); assert int(packed.min())==0 and int(packed.max())==262143
+    # Prefix causality and near-static behavior with a simple exact-zero-centered setup.
     raw=np.zeros((2,4,2,3,3),np.float32); changed=raw.copy(); changed[:,3]=7.
     dummy=(m,s,np.array([[0.,0.]],np.float32),np.array([[0.,0.]],np.float32))
     a=encode_comp_seq(raw,dummy,m,s); b=encode_comp_seq(changed,dummy,m,s); assert np.array_equal(a[:,:3],b[:,:3])
+    # Zero is not necessarily an exact reconstruction level because 512 is even; tolerance is bounded by half a central bin after inverse companding.
     assert float(np.max(np.abs(a))) < .05
     return {'packed_min':0,'packed_max':262143,'nominal_bits':18,'endpoint_z':[-16.,16.],'prefix_causal':True,'static_max_abs':float(np.max(np.abs(a)))}
 
