@@ -1,0 +1,31 @@
+{
+  "experiment": "physics-token-phase2-structured-system-identification-v1",
+  "status": "PASS",
+  "replicates": [
+    {
+      "replicate": 1,
+      "seeds": {"id": 74411, "spectrum": 74412, "combined": 74413},
+      "gates": {"id_h8": true, "spectrum_h3": true, "combined_h3": true, "pass": true},
+      "ratios": {"id_h8": 0.43574395487477235, "spectrum_h3": 0.3136107432355591, "combined_h3": 0.7802053491348382}
+    },
+    {
+      "replicate": 2,
+      "seeds": {"id": 74421, "spectrum": 74422, "combined": 74423},
+      "gates": {"id_h8": true, "spectrum_h3": true, "combined_h3": true, "pass": true},
+      "ratios": {"id_h8": 0.4178486933539535, "spectrum_h3": 0.29503220129460755, "combined_h3": 0.8860489203789403}
+    },
+    {
+      "replicate": 3,
+      "seeds": {"id": 74431, "spectrum": 74432, "combined": 74433},
+      "gates": {"id_h8": true, "spectrum_h3": true, "combined_h3": true, "pass": true},
+      "ratios": {"id_h8": 0.4220240740579369, "spectrum_h3": 0.34342774588410213, "combined_h3": 0.7956438633210677}
+    }
+  ],
+  "aggregate": {
+    "id_h8": {"mean": 0.42520557409555426, "min": 0.4178486933539535, "max": 0.43574395487477235},
+    "spectrum_h3": {"mean": 0.31735689680475626, "min": 0.29503220129460755, "max": 0.34342774588410213},
+    "combined_h3": {"mean": 0.8206327109449487, "min": 0.7802053491348382, "max": 0.8860489203789403}
+  },
+  "frozen_gate": "all three fresh confirmatory replicates must beat persistence on ID h8, spectrum-OOD h3, and combined-OOD h3",
+  "claim_limit": "Pass shows the frozen discrete token state supports OOD prediction when paired with a supplied wave-operator family and a latent propagation parameter inferred from quantized context. It does not demonstrate discovery of an unknown physical law."
+}
