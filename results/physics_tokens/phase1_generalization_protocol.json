@@ -1,0 +1,35 @@
+{
+  "protocol": "physics-token Phase-1 generalization v1",
+  "frozen_from": "experiment/physics-tokenizer-centroid-v1-20260913 @ add83ce2b70fb6cecda0ac3a050e7421a7dbb37c",
+  "purpose": "stress-test the replicated Phase-0 discrete dynamics without changing the passing architecture",
+  "training": {
+    "benchmark_seed": 74193,
+    "train_n": 128,
+    "train_seq_len": 8,
+    "grid": 16,
+    "dt": 0.12,
+    "speed_range": [0.6, 1.0],
+    "initial_spectrum_max_mode": 3,
+    "codebook": "same deterministic 256-centroid direct-state VQ recipe",
+    "context": 3,
+    "dynamics": "same centroid residual ConvNet, width 64, 30 epochs, lr 0.002",
+    "fresh_model_seeds": [9132611, 9132612, 9132613]
+  },
+  "evaluation_splits": {
+    "id_long": {"seed": 74301, "n": 48, "seq_len": 16, "speed_range": [0.6, 1.0], "max_mode": 3, "primary_horizon": 8},
+    "spectrum_ood": {"seed": 74302, "n": 48, "seq_len": 8, "speed_range": [0.6, 1.0], "max_mode": 6, "primary_horizon": 3},
+    "combined_ood": {"seed": 74303, "n": 48, "seq_len": 8, "speed_range": [1.15, 1.35], "max_mode": 6, "primary_horizon": 3}
+  },
+  "primary_per_seed_gates": [
+    "ID-long discrete h8 decoded MSE / raw persistence MSE < 1.0",
+    "spectrum-OOD discrete h3 decoded MSE / raw persistence MSE < 1.0",
+    "combined-OOD discrete h3 decoded MSE / raw persistence MSE < 1.0"
+  ],
+  "phase1_pass": "all three fresh model seeds pass all three primary gates; no retries or replacement seeds",
+  "secondary_controls": [
+    "matched raw-continuous residual ConvNet trained with the same width/context/epochs/lr and model seed; report but do not use to redefine pass",
+    "report all available horizons and direct-VQ oracle floor",
+    "known numerical simulator is a sanity/lower-bound reference, not a learned competitor"
+  ],
+  "failure_policy": "retain unfavorable results; infrastructure-incomplete attempts are not scientific evidence and consumed model seeds are not rerun"
+}
