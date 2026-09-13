@@ -1,0 +1,79 @@
+{
+  "experiment": "physics-token-phase9-causal-innovation-tokenizer-screen-v1",
+  "status": "COMPLETE_SCREEN_FAIL",
+  "parent_phase8_head": "fa24420b1fb0323109903d47bbded6546a7b1680",
+  "preregistration_commit": "5e0d1494ece81caebe4152dd02a9cd937eb6ad48",
+  "implementation_commit": "abf70b1303c116e53fb1db839540552909f35448",
+  "test_commit": "38702e0d53b6bb1f09ee5bebdd50eefcdbb7ba48",
+  "execution": {
+    "registered_replicates": 3,
+    "execution_backend": "local CPU",
+    "modal_or_gpu_used": false,
+    "reruns_or_replacement_seeds": false,
+    "replicate_result_commits": {
+      "1": "a8c7473a186f22b94d04bfa977e2bfd4d748c8a0",
+      "2": "bd819f229accb3857db6808d381e1a4509027e52",
+      "3": "6d29d1d7b896d583843f9f3e679cb7ecfba1f300"
+    }
+  },
+  "frozen_go_rule": {
+    "innovation_strictly_lower_than_state_all_3": false,
+    "per_replicate_innovation_lower_than_state": [true, false, false],
+    "median_innovation_over_state": 1.0233127608938686,
+    "median_innovation_over_state_le_0_80": false,
+    "innovation_beats_persistence_count": 2,
+    "innovation_beats_persistence_at_least_2_of_3": true,
+    "decision": "SCREEN_FAIL"
+  },
+  "primary_combined_ood_h3": {
+    "state_ratio": {"values": [1.281125395864557, 0.5406929273556803, 0.6780741872672765], "mean": 0.833297503495838, "median": 0.6780741872672765},
+    "innovation_ratio": {"values": [1.071555286325361, 0.5532979722881292, 0.7298633434446864], "mean": 0.7849055340193922, "median": 0.7298633434446864},
+    "innovation_over_state": {"values": [0.8364171764796144, 1.0233127608938686, 1.076376828892612], "mean": 0.9787022554220317, "median": 1.0233127608938686},
+    "raw_fit_state_projection_ratio": {"values": [0.5538389692861834, 0.3520663160590079, 0.4309068701892073], "mean": 0.4456040518447995, "median": 0.4309068701892073},
+    "raw_fit_innovation_projection_ratio": {"values": [0.9071189470651849, 0.4414022868037265, 0.6192880404216483], "mean": 0.6559364247635199, "median": 0.6192880404216483},
+    "state_target_oracle_ratio": {"values": [0.5041760908814263, 0.3029958792970461, 0.4098113553112335], "mean": 0.40566110849656867, "median": 0.4098113553112335},
+    "innovation_target_oracle_ratio": {"values": [0.8865708130139986, 0.4198873990365954, 0.5992242546382421], "mean": 0.6352274888962788, "median": 0.5992242546382421},
+    "state_context_mse": {"values": [0.007297893520444632, 0.0008708153618499637, 0.0044464776292443275], "mean": 0.004205062170512974, "median": 0.0044464776292443275},
+    "innovation_context_mse": {"values": [0.03774820268154144, 0.01926635392010212, 0.027991481125354767], "mean": 0.028335345908999443, "median": 0.027991481125354767},
+    "state_context_delta_mse": {"values": [0.008230485022068024, 0.0013096727197989821, 0.005222282838076353], "mean": 0.004920813526647787, "median": 0.005222282838076353},
+    "innovation_context_delta_mse": {"values": [0.022257661446928978, 0.011456921696662903, 0.016550147905945778], "mean": 0.016754910349845886, "median": 0.016550147905945778}
+  },
+  "secondary_id_h8": {
+    "state_ratio": {"values": [0.15723802747862844, 0.17934485971922381, 0.2230514401164273], "mean": 0.18654477577142653, "median": 0.17934485971922381},
+    "innovation_ratio": {"values": [0.15121042269472956, 0.27095206959021784, 0.1933302055829006], "mean": 0.205164232622616, "median": 0.1933302055829006},
+    "innovation_over_state": {"values": [0.9616657313720236, 1.5107880427373894, 0.8667516581914335], "mean": 1.1130684774336155, "median": 0.9616657313720236},
+    "raw_fit_state_projection_ratio": {"values": [0.02480854678446343, 0.013602145272048399, 0.041143430473034634], "mean": 0.026518040843182156, "median": 0.02480854678446343},
+    "raw_fit_innovation_projection_ratio": {"values": [0.00852242498860901, 0.0013627231440572127, 0.008331127073479357], "mean": 0.0060720917353818595, "median": 0.008331127073479357},
+    "state_target_oracle_ratio": {"values": [0.01700965617708841, 0.006366247431824636, 0.02813912767121004], "mean": 0.017171677093374364, "median": 0.01700965617708841},
+    "innovation_target_oracle_ratio": {"values": [0.004621269494627646, 0.00011605295779081044, 0.0004912903226491356], "mean": 0.0017428709250225307, "median": 0.0004912903226491356},
+    "state_context_mse": {"values": [3.175334131810814e-05, 3.9386348362313583e-05, 2.8127609766670503e-05], "mean": 3.308909981569741e-05, "median": 3.175334131810814e-05},
+    "innovation_context_mse": {"values": [4.049490962643176e-05, 2.252048216178082e-05, 1.2976081961824093e-05], "mean": 2.5330491250012226e-05, "median": 2.252048216178082e-05},
+    "state_context_delta_mse": {"values": [6.18137200945057e-05, 7.038561307126656e-05, 5.125757888890803e-05], "mean": 6.115230401822676e-05, "median": 6.18137200945057e-05},
+    "innovation_context_delta_mse": {"values": [3.257457501604222e-05, 2.2812755560153164e-05, 1.8033171727438457e-05], "mean": 2.4473500767877947e-05, "median": 2.2812755560153164e-05}
+  },
+  "secondary_spectral_h3": {
+    "state_ratio": {"values": [0.32886969763027785, 0.10995899297178015, 0.17149488013964695], "mean": 0.20344119024723498, "median": 0.17149488013964695},
+    "innovation_ratio": {"values": [0.20728753639719488, 0.09073407663634764, 0.1120216026302787], "mean": 0.1366810718879404, "median": 0.1120216026302787},
+    "innovation_over_state": {"values": [0.6303029372752726, 0.825162855571382, 0.6532066877976788], "mean": 0.7028908268814444, "median": 0.6532066877976788},
+    "raw_fit_state_projection_ratio": {"values": [0.0817138208483297, 0.023276404055715252, 0.04575490316632891], "mean": 0.050248376023457955, "median": 0.04575490316632891},
+    "raw_fit_innovation_projection_ratio": {"values": [0.13971916519896585, 0.036800920052018335, 0.04425033124026624], "mean": 0.0735901388304168, "median": 0.04425033124026624},
+    "state_target_oracle_ratio": {"values": [0.06840399098898997, 0.018352711804500255, 0.035839104359512056], "mean": 0.04086526905100076, "median": 0.035839104359512056},
+    "innovation_target_oracle_ratio": {"values": [0.13611551581614192, 0.035605752055745815, 0.042468459021366985], "mean": 0.07139657563108491, "median": 0.042468459021366985},
+    "state_context_mse": {"values": [0.00013540234067477286, 3.573799767764285e-05, 0.00012342345144134015], "mean": 9.818792993125196e-05, "median": 0.00012342345144134015},
+    "innovation_context_mse": {"values": [0.0014313326682895422, 0.000240675377426669, 0.0005212964024394751], "mean": 0.0007311014827185621, "median": 0.0005212964024394751},
+    "state_context_delta_mse": {"values": [0.00016621271788608283, 6.39424251858145e-05, 0.00013580264931079], "mean": 0.0001219859307942291, "median": 0.00013580264931079},
+    "innovation_context_delta_mse": {"values": [0.0008617054554633796, 0.00015362436533905566, 0.0003296744544059038], "mean": 0.0004483347584027797, "median": 0.0003296744544059038}
+  },
+  "diagnostic_ratios_of_medians": {
+    "combined_context_mse_innovation_over_state": 6.295203408031512,
+    "combined_context_delta_mse_innovation_over_state": 3.16914047344898,
+    "combined_target_oracle_innovation_over_state": 1.4621953415203879,
+    "spectral_primary_ratio_innovation_over_state": 0.6532066877976788
+  },
+  "interpretation": {
+    "primary": "Causal persistence-residual RVQ at the same nominal transmitted bitrate does not robustly improve the combined wave speed+spectral OOD system-identification path over absolute-state RVQ.",
+    "secondary": "Innovation RVQ improves spectral OOD rollout in all three paired replicates, but combined OOD shows substantially larger innovation-context and target-oracle distortion than the matched state codec.",
+    "mechanism_hypothesis": "The pattern is consistent with innovation-distribution/tail shift under the harder combined OOD regime; this is a hypothesis for a separately preregistered follow-up, not a post-hoc rescue of Phase 9."
+  },
+  "claim_limit": "Engineering screen on known synthetic PDEs only. SCREEN_FAIL authorizes no confirmatory success claim, no novel-physics/general law-discovery claim, and no AGI/SSI claim."
+}
