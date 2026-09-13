@@ -1,0 +1,22 @@
+{
+  "experiment": "physics-token-phase7-physical-coordinate-system-id-v1",
+  "status": "FAIL",
+  "protocol": "results/physics_tokens/phase7_physical_system_id_protocol.json",
+  "replicates": [
+    {"replicate":1,"ratios":{"wave_id":0.27661807825074664,"wave_spectral_ood":0.1816541488092553,"wave_combined_ood":1.5014812635731476,"gray_id":0.09739611163211673,"gray_sharp_ood":0.1597348516883949,"gray_parameter_ood":0.048879433261922595,"gray_combined_ood":0.3823142232771641},"pass":false,"reconstruction_nmse":0.0001244584855157882},
+    {"replicate":2,"ratios":{"wave_id":0.22017904263686866,"wave_spectral_ood":0.14533833825342585,"wave_combined_ood":0.9384350976564807,"gray_id":0.3946519595268543,"gray_sharp_ood":0.15539242106662265,"gray_parameter_ood":0.06181636442825467,"gray_combined_ood":0.11396150817524187},"pass":true,"reconstruction_nmse":0.00009273317118640989},
+    {"replicate":3,"ratios":{"wave_id":0.22344499648306282,"wave_spectral_ood":0.20213784840404075,"wave_combined_ood":1.1895408857692726,"gray_id":0.7597694475083081,"gray_sharp_ood":0.10420964211279433,"gray_parameter_ood":0.13017858470165553,"gray_combined_ood":0.12162093938439714},"pass":false,"reconstruction_nmse":0.00012104434426873922}
+  ],
+  "aggregate": {
+    "wave_id_mean": 0.24008070578955936,
+    "wave_spectral_ood_mean": 0.1763767784889073,
+    "wave_combined_ood_mean": 1.2098190823329669,
+    "gray_id_mean": 0.4172725062224264,
+    "gray_sharp_ood_mean": 0.13977897162260396,
+    "gray_parameter_ood_mean": 0.08029146079727759,
+    "gray_combined_ood_mean": 0.20596555694560102
+  },
+  "frozen_gate_pass": false,
+  "failure_pattern": "Replicates 1 and 3 fail only wave_combined_ood; replicate 2 narrowly passes it. Every Gray-Scott primary comparison passes.",
+  "interpretation": "Physical-coordinate, symmetry-aware context identification improves most tasks but remains non-robust on the combined faster-wave plus unseen-spectrum shift. No confirmatory seeds were retried or replaced."
+}
