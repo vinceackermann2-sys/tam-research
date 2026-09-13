@@ -1,0 +1,59 @@
+{
+  "experiment": "physics-token-phase5-gray-scott-transfer-v1",
+  "status": "PREREGISTERED_BEFORE_CONFIRMATORY_RUNS",
+  "parent_phase4_head": "243bc8ff4dec82486039b3137a8968741c539665",
+  "system": "Gray-Scott reaction-diffusion",
+  "hypothesis": "The hierarchical discrete-state plus learned local low-rank transition recipe from Phase 4 transfers beyond waves to a nonlinear reaction-diffusion system when augmented only with generic center monomials up to cubic order.",
+  "simulator": {
+    "grid": 16,
+    "periodic": true,
+    "Du": 0.16,
+    "Dv": 0.08,
+    "dt": 1.0,
+    "substeps_per_saved_frame": 4,
+    "equations": "Gray-Scott used only to generate data; its coefficients/terms are not provided to the learned model"
+  },
+  "training_distribution": {
+    "num_sequences": 128,
+    "seq_len": 8,
+    "F_range": [0.025, 0.045],
+    "k_range": [0.055, 0.065],
+    "initialization": "smooth periodic Gaussian blobs, radius 1.5-3.0 with low noise"
+  },
+  "representation": {
+    "two_stage_residual_vq": true,
+    "coarse_codebook_size": 256,
+    "residual_codebook_size": 32,
+    "kmeans_iters": 20,
+    "kmeans_max_points": 60000,
+    "coarse_kmeans_seed": 75193,
+    "residual_kmeans_seed": 75210,
+    "tokens_per_cell": 2
+  },
+  "learned_transition": {
+    "context_frames": 3,
+    "features": "full 3x3 neighborhood of both channels (18) plus generic center monomials u^2, uv, v^2, u^3, u^2v, uv^2, v^3 (7), total 25",
+    "specific_gray_scott_terms_supplied": false,
+    "true_F_or_k_labels_used": false,
+    "per_training_sequence_map": "ridge least-squares one-step map from 25 local features to next 2-channel state",
+    "per_sequence_map_ridge": 0.0001,
+    "family_learning": "PCA over flattened per-sequence local maps",
+    "latent_dimensions": 8,
+    "latent_inference": "ridge least squares from the two observed quantized context transitions",
+    "latent_inference_ridge": 0.00001,
+    "rollout": "recursive; requantize through both residual-VQ stages after every predicted step"
+  },
+  "confirmatory_replicates": [
+    {"replicate": 1, "training_seed": 91001, "id_seed": 91002, "sharp_seed": 91003, "parameter_seed": 91004, "combined_seed": 91005},
+    {"replicate": 2, "training_seed": 91011, "id_seed": 91012, "sharp_seed": 91013, "parameter_seed": 91014, "combined_seed": 91015},
+    {"replicate": 3, "training_seed": 91021, "id_seed": 91022, "sharp_seed": 91023, "parameter_seed": 91024, "combined_seed": 91025}
+  ],
+  "evaluation": {
+    "id": {"num_sequences": 48, "seq_len": 16, "F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "initialization": "smooth", "primary_horizon": 8},
+    "sharp_ood": {"num_sequences": 48, "seq_len": 8, "F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "initialization": "sharp blobs radius 0.8-1.8 plus higher noise", "primary_horizon": 3},
+    "parameter_ood": {"num_sequences": 48, "seq_len": 8, "F_range": [0.050, 0.060], "k_range": [0.045, 0.055], "initialization": "smooth", "primary_horizon": 3},
+    "combined_ood": {"num_sequences": 48, "seq_len": 8, "F_range": [0.050, 0.060], "k_range": [0.045, 0.055], "initialization": "sharp", "primary_horizon": 3}
+  },
+  "frozen_pass_rule": "PASS only if every one of the 3 fresh end-to-end replicates has requantized rollout MSE ratio < 1.0 versus raw-state persistence on all four primary tests: ID h8, sharp-initial-condition OOD h3, parameter OOD h3, and combined OOD h3. No retry or replacement of a failed replicate.",
+  "claim_limit": "A pass would demonstrate transfer of the representation/learning recipe to a second nonlinear synthetic PDE family. It would not establish unrestricted scientific-law discovery because locality, polynomial features through degree 3, local linear readout, and low-rank family structure are supplied priors."
+}
