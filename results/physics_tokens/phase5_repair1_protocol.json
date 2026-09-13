@@ -1,0 +1,15 @@
+{
+  "experiment": "physics-token-phase5-gray-scott-transfer-v1-repair1",
+  "status": "PREREGISTERED_BEFORE_REPAIR_CONFIRMATORY_RUNS",
+  "repair_reason": "Attempt 1 consumed seeds 91001-91025 with the wrong codec KMeans seeds (74193/74210 inherited from Phase 4 instead of frozen Phase-5 seeds 75193/75210). Attempt 1 is protocol-invalid and will not be counted or rerun.",
+  "parent_protocol": "physics-token-phase5-gray-scott-transfer-v1",
+  "frozen_changes_from_parent": "Only fresh confirmatory replicate seeds are substituted because attempt-1 seeds are consumed. All scientific settings, data distributions, model structure, codec sizes, codec KMeans seeds, horizons, and pass criteria remain identical to the original Phase-5 preregistration.",
+  "codec_kmeans_seeds": {"coarse": 75193, "residual": 75210},
+  "confirmatory_replicates": [
+    {"replicate": 1, "training_seed": 91101, "id_seed": 91102, "sharp_seed": 91103, "parameter_seed": 91104, "combined_seed": 91105},
+    {"replicate": 2, "training_seed": 91111, "id_seed": 91112, "sharp_seed": 91113, "parameter_seed": 91114, "combined_seed": 91115},
+    {"replicate": 3, "training_seed": 91121, "id_seed": 91122, "sharp_seed": 91123, "parameter_seed": 91124, "combined_seed": 91125}
+  ],
+  "frozen_pass_rule": "PASS only if every one of the 3 fresh end-to-end repair replicates has requantized rollout MSE ratio < 1.0 versus raw-state persistence on all four primary tests: ID h8, sharp-initial-condition OOD h3, parameter OOD h3, and combined OOD h3. No retry or replacement of a failed replicate.",
+  "claim_limit": "Same as original Phase 5: a pass demonstrates transfer to a second nonlinear synthetic PDE family under supplied locality/polynomial/local-linear/low-rank priors; it is not unrestricted law discovery."
+}
