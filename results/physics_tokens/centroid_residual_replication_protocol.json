@@ -1,0 +1,13 @@
+{
+  "protocol": "centroid-residual-v1 fresh-seed replication",
+  "frozen_after": "initial model seed 9132601 passed fixed Phase-0 ID-h3 persistence gate",
+  "benchmark_seed": 74193,
+  "codec_seed": 74193,
+  "replication_model_seeds": [9132602, 9132603],
+  "architecture_and_hyperparameters": "identical to direct-state-vq-centroid-residual-dynamics-v1; 30 epochs, lr=0.002, width=64, context=3, 256-code direct-state VQ",
+  "primary_metric": "ID horizon-3 discrete autoregressive decoded MSE / raw persistence MSE",
+  "per_seed_pass": "ratio < 1.0",
+  "replication_pass": "both fresh seeds pass; no retries or replacement seeds",
+  "ood": "reported only; not part of replication pass",
+  "note": "This replication protocol was written before executing seeds 9132602 and 9132603."
+}
