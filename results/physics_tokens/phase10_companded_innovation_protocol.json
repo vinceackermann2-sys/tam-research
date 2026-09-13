@@ -1,0 +1,107 @@
+{
+  "experiment": "physics-token-phase10-tail-aware-companded-innovation-v1",
+  "status": "PREREGISTERED_BEFORE_ANY_PHASE10_EXECUTION",
+  "parent_phase9_head": "f66c27a9fbf81b1752d759cc058be801e077ebee",
+  "phase_class": "cheap paired engineering screen; not a confirmatory scientific stage",
+  "phase9_observation": "Phase 9 SCREEN_FAIL: plain learned innovation RVQ improved spectral-only OOD in all three pairs but did not robustly improve combined speed+spectral OOD. On combined OOD its median context MSE was about 6.30x the state-RVQ median and its median target-oracle ratio about 1.46x the state-RVQ median.",
+  "hypothesis": "The Phase-9 combined-OOD failure is substantially caused by support/tail mismatch in a learned innovation codebook trained only on in-range innovation magnitudes. A causal tail-aware companded innovation token that reserves representable levels out to +/-16 training standard deviations should preserve combined-OOD context and improve downstream context-only system identification at the same exact 18 transmitted bits per cell per saved frame.",
+  "frozen_training_mixture": {
+    "grid": 16,
+    "wave_sequences": 64,
+    "gray_scott_sequences": 64,
+    "seq_len": 8,
+    "wave": {"c_range": [0.6, 1.0], "dt": 0.12, "initial_modes": "training generator default low-frequency modes"},
+    "gray_scott": {"F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "Du": 0.16, "Dv": 0.08, "dt": 1.0, "substeps_per_saved_frame": 4, "initialization": "smooth"},
+    "law_labels_given_to_representation_or_identifier": false
+  },
+  "matched_transmitted_budget": {
+    "bits_per_cell_per_saved_frame": 18,
+    "state_rvq": "2048-way coarse token (11 bits) + 128-way residual token (7 bits)",
+    "plain_innovation_rvq": "2048-way coarse innovation token (11 bits) + 128-way residual innovation token (7 bits)",
+    "companded_innovation": "two 9-bit scalar channel indices packed into one 18-bit integer token",
+    "frame0": "all causal innovation arms use the same 18-bit state-RVQ absolute anchor",
+    "bitrate_matched": true,
+    "codebook_storage_matched": false
+  },
+  "arm_state_rvq": {
+    "purpose": "fresh paired absolute-state control",
+    "normalization": "joint absolute-state mean/std from the fresh wave+Gray-Scott training mixture",
+    "codec": "2048 coarse + 128 residual Lloyd k-means RVQ, 20 iterations, at most 60000 training points",
+    "projection": "independent state RVQ encode/decode of every observed or predicted physical frame"
+  },
+  "arm_plain_innovation_rvq": {
+    "purpose": "fresh paired reproduction of the Phase-9 representation class",
+    "innovation": "d_t = x_t - xhat_{t-1}",
+    "normalization": "training-mixture one-step innovation mean/std",
+    "codec": "2048 coarse + 128 residual Lloyd k-means RVQ, 20 iterations, at most 60000 raw training-difference points",
+    "evaluation": "closed-loop causal relative to the previous decoder reconstruction"
+  },
+  "arm_companded_innovation": {
+    "innovation": "d_t = x_t - xhat_{t-1}",
+    "training_statistics": "reuse the same training-mixture innovation mean mu and standard deviation sigma as the plain innovation arm",
+    "standardize": "z = (d_t - mu) / sigma",
+    "compander": "y = asinh(z)",
+    "frozen_tail_range": "clip y to [-asinh(16), +asinh(16)], corresponding to z in [-16,+16] before clipping",
+    "quantizer": "independently uniform-quantize each of the two y channels to exactly 512 reconstruction levels including both endpoints; round to nearest integer index in [0,511]",
+    "token_packing": "packed_token = channel0_index * 512 + channel1_index, integer in [0,262143] and therefore exactly 18 bits",
+    "decode": "recover each uniform y reconstruction level, set zhat = sinh(yhat), then dhat = mu + sigma*zhat",
+    "causal_reconstruction": "xhat_t = xhat_{t-1} + dhat_t",
+    "future_or_parameter_leakage": false,
+    "learned_codebook": false,
+    "rationale": "preallocated extreme reconstruction levels can represent larger standardized innovations than those sampled by the in-range training trajectories; no OOD data or labels choose the range"
+  },
+  "frozen_downstream_identifier": {
+    "context_frames": 3,
+    "coordinates": "decoded physical units",
+    "features": "the unchanged Phase-7/9 16-dimensional basis: constant; for each channel center, D4 axial radius-1 sum, diagonal radius-1 sum, axial radius-2 sum; plus u^2, uv, v^2, u^3, u^2v, uv^2, v^3 at center",
+    "feature_scaling": "per-sequence RMS scaling from the two observed reconstructed context transitions only; constant scale fixed to 1",
+    "fit": "per-sequence ridge least squares 2x16 map",
+    "ridge": 0.001,
+    "law_identifier": false,
+    "family_router": false,
+    "governing_equations_or_hidden_parameters_supplied": false
+  },
+  "primary_evaluation": {
+    "name": "wave_combined_ood",
+    "num_sequences": 48,
+    "seq_len": 8,
+    "c_range": [1.15, 1.35],
+    "max_mode": 6,
+    "primary_horizon": 3,
+    "baseline": "raw-state persistence from final raw context frame",
+    "metric": "projected rollout MSE / raw-state persistence MSE"
+  },
+  "secondary_evaluations": {
+    "wave_id": {"num_sequences": 48, "seq_len": 16, "c_range": [0.6,1.0], "max_mode": 3, "horizon": 8},
+    "wave_spectral_ood": {"num_sequences": 48, "seq_len": 8, "c_range": [0.6,1.0], "max_mode": 6, "horizon": 3},
+    "combined_context_reconstruction_and_delta_mse": true,
+    "combined_target_codec_oracle": true,
+    "raw_context_projection_control": true,
+    "companded_clip_fraction": "fraction of standardized innovation channel values with |z|>16 before quantization, separately for observed context and recursive projection when measurable"
+  },
+  "fresh_paired_engineering_replicates": [
+    {"replicate":1,"wave_train_seed":2026091401,"gray_train_seed":2026091402,"state_coarse_seed":2026091403,"state_residual_seed":2026091404,"plain_innovation_coarse_seed":2026091405,"plain_innovation_residual_seed":2026091406,"combined_seed":2026091407,"id_seed":2026091408,"spectral_seed":2026091409},
+    {"replicate":2,"wave_train_seed":2026091411,"gray_train_seed":2026091412,"state_coarse_seed":2026091413,"state_residual_seed":2026091414,"plain_innovation_coarse_seed":2026091415,"plain_innovation_residual_seed":2026091416,"combined_seed":2026091417,"id_seed":2026091418,"spectral_seed":2026091419},
+    {"replicate":3,"wave_train_seed":2026091421,"gray_train_seed":2026091422,"state_coarse_seed":2026091423,"state_residual_seed":2026091424,"plain_innovation_coarse_seed":2026091425,"plain_innovation_residual_seed":2026091426,"combined_seed":2026091427,"id_seed":2026091428,"spectral_seed":2026091429}
+  ],
+  "execution_rule": "Each paired replicate gets identical raw trajectories across all three arms, runs exactly once in an independent process, and is persisted before the next registered pair. No retry, replacement seed, compander-range change, quantizer-level change, ridge change, feature change, or threshold change after a consumed registered attempt.",
+  "go_rule": {
+    "all_required": [
+      "companded primary combined-OOD ratio is strictly lower than plain-innovation RVQ primary ratio in all 3 fresh pairs",
+      "companded primary combined-OOD ratio is strictly lower than state-RVQ primary ratio in all 3 fresh pairs",
+      "median(companded_ratio/plain_innovation_ratio) <= 0.80",
+      "companded primary ratio < 1.0 versus raw persistence in all 3 fresh pairs",
+      "companded combined-context reconstruction MSE is lower than plain-innovation context MSE in all 3 fresh pairs"
+    ],
+    "otherwise": "SCREEN_FAIL_OR_INCONCLUSIVE"
+  },
+  "implementation_validation_before_seed_consumption": [
+    "verify packed companded token range is [0,262143] and exactly 18 bits",
+    "verify both 9-bit endpoint indices decode exactly to standardized z=-16 and z=+16 up to floating-point tolerance",
+    "verify companded encoder/decoder is prefix-causal under future-frame perturbation",
+    "verify static zero-innovation trajectory stays static to quantization tolerance",
+    "verify all three arms receive byte-for-byte identical raw trajectories",
+    "only dedicated non-listed smoke seeds may be used before registered execution"
+  ],
+  "claim_limit": "A GO would only support a separately preregistered follow-up that tail-aware causal discrete coordinates improve this synthetic representation bottleneck. It would not prove a universal tokenizer, novel physics, unrestricted law discovery, AGI, or SSI."
+}
