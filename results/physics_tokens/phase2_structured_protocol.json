@@ -1,0 +1,43 @@
+{
+  "experiment": "physics-token-phase2-structured-system-identification-v1",
+  "status": "PREREGISTERED_BEFORE_CONFIRMATORY_RUNS",
+  "parent_phase1_head": "3943edcf1a98a4172cfdd5ce70a30a28a937cbb3",
+  "hypothesis": "Phase-1 spectral OOD failure is primarily a transition-law extrapolation failure, not insufficient information in the frozen 256-token state representation. A structured local operator with a latent propagation-speed parameter inferred only from quantized context should recover OOD generalization.",
+  "frozen_codec": {
+    "grid": 16,
+    "dt": 0.12,
+    "training_data_seed": 74194,
+    "training_sequences": 128,
+    "training_seq_len": 8,
+    "training_wave_speed_range": [0.6, 1.0],
+    "training_max_initial_mode": 3,
+    "codebook_size": 256,
+    "kmeans_seed": 74193,
+    "kmeans_iters": 20,
+    "kmeans_max_points": 60000
+  },
+  "method": {
+    "context_frames": 3,
+    "input": "decoded physical state from the frozen discrete tokens only",
+    "operator_family": "periodic isotropic second-order wave update using the same local discrete Laplacian family as the simulator",
+    "latent_parameter": "one scalar wave speed c per sequence",
+    "inference": "grid-search c by minimizing one-step state MSE over the two observed context transitions",
+    "candidate_c_min": 0.35,
+    "candidate_c_max": 1.55,
+    "candidate_c_step": 0.01,
+    "true_c_used_at_inference": false,
+    "rollout": "recursive; every predicted state is requantized into the same 256-token vocabulary before the next step"
+  },
+  "confirmatory_replicates": [
+    {"replicate": 1, "id_seed": 74411, "spectrum_seed": 74412, "combined_seed": 74413},
+    {"replicate": 2, "id_seed": 74421, "spectrum_seed": 74422, "combined_seed": 74423},
+    {"replicate": 3, "id_seed": 74431, "spectrum_seed": 74432, "combined_seed": 74433}
+  ],
+  "evaluation": {
+    "id": {"num_sequences": 48, "seq_len": 16, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 3, "primary_horizon": 8},
+    "spectrum_ood": {"num_sequences": 48, "seq_len": 8, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 6, "primary_horizon": 3},
+    "combined_ood": {"num_sequences": 48, "seq_len": 8, "wave_speed_range": [1.15, 1.35], "max_initial_mode": 6, "primary_horizon": 3}
+  },
+  "frozen_pass_rule": "PASS only if every one of the 3 fresh confirmatory replicates has requantized rollout MSE ratio < 1.0 versus raw-state persistence on ID h8, spectrum-OOD h3, and combined-OOD h3. No reruns/retries of a failed replicate. Parameter-estimation diagnostics are secondary and cannot rescue a primary-gate failure.",
+  "claim_limit": "A pass would show that the frozen discrete state can support OOD prediction when paired with a known operator family and inferred latent parameter. It is not evidence of discovering an unknown law, because the operator family is supplied."
+}
