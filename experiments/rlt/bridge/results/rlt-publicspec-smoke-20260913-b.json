@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "job_id": "rlt-publicspec-smoke-20260913-b",
+  "status": "abandoned_infrastructure",
+  "worker": "orchestrator",
+  "note": "Colab worker cell stopped with no stdout and no terminal result. This tombstone prevents any retry of the ambiguous first smoke attempt. No scientific conclusion may be drawn from this attempt."
+}
