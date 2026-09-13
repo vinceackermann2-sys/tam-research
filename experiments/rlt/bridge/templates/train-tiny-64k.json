@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "job_id": "replace-with-new-unique-job-id",
+  "task": "train",
+  "seed": 20260913,
+  "profile": "tiny",
+  "token_budget": 65536,
+  "seq_len": 64,
+  "micro_batch_size": 2,
+  "grad_accum_steps": 4,
+  "train_tokens": 1000000,
+  "val_tokens": 100000
+}
