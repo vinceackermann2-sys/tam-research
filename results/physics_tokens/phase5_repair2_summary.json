@@ -1,0 +1,23 @@
+{
+  "experiment": "physics-token-phase5-gray-scott-transfer-v1-repair2",
+  "status": "PASS",
+  "protocol": "results/physics_tokens/phase5_repair2_protocol.json",
+  "supersedes_invalid_attempt1": true,
+  "repair1_status": "INFRASTRUCTURE_INCOMPLETE",
+  "codec_kmeans_seeds": {"coarse": 75193, "residual": 75210},
+  "replicates": [
+    {"replicate":1,"seeds":{"training":91201,"id":91202,"sharp":91203,"parameter":91204,"combined":91205},"gates":{"id_h8":true,"sharp_h3":true,"parameter_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.25025572987447525,"sharp_h3":0.08934984633970362,"parameter_h3":0.058523594914003205,"combined_h3":0.12145659904791861},"reconstruction_nmse":0.00016051465354394168,"pc8_explained_variance":0.9934052228927612},
+    {"replicate":2,"seeds":{"training":91211,"id":91212,"sharp":91213,"parameter":91214,"combined":91215},"gates":{"id_h8":true,"sharp_h3":true,"parameter_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.43250999892158104,"sharp_h3":0.06939283010910921,"parameter_h3":0.056917774854521666,"combined_h3":0.07636576429322227},"reconstruction_nmse":0.00016468462126795202,"pc8_explained_variance":0.9925078749656677},
+    {"replicate":3,"seeds":{"training":91221,"id":91222,"sharp":91223,"parameter":91224,"combined":91225},"gates":{"id_h8":true,"sharp_h3":true,"parameter_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.5872957779897848,"sharp_h3":0.06964067305776628,"parameter_h3":0.0634157357353444,"combined_h3":0.10789395774895502},"reconstruction_nmse":0.00016107461124192923,"pc8_explained_variance":0.9926140904426575}
+  ],
+  "aggregate": {
+    "id_h8":{"mean":0.4233538355952804,"min":0.25025572987447525,"max":0.5872957779897848},
+    "sharp_h3":{"mean":0.07612778316885971,"min":0.06939283010910921,"max":0.08934984633970362},
+    "parameter_h3":{"mean":0.05961903516795642,"min":0.056917774854521666,"max":0.0634157357353444},
+    "combined_h3":{"mean":0.1019054403633653,"min":0.07636576429322227,"max":0.12145659904791861}
+  },
+  "reconstruction_nmse_mean": 0.0001620912953512743,
+  "pc8_explained_variance_mean": 0.9928423961003622,
+  "frozen_gate_pass": true,
+  "claim_limit": "Demonstrates transfer of the discrete-state/local-low-rank recipe to a second synthetic nonlinear PDE family under supplied locality and degree-3 polynomial feature priors; not unrestricted law discovery."
+}
