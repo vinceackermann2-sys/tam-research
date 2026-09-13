@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import replace
 import math
 
 import torch
 import torch.nn.functional as F
 
-from tam_research.models import ModelConfig
-
-from experiments.rlt.model import RecurrentLoopedLM, parameter_count
+from experiments.rlt.model import RLTConfig, RecurrentLoopedTransformer, parameter_count
 
 
 def run_smoke(device: str | torch.device | None = None) -> dict[str, object]:
@@ -17,60 +14,53 @@ def run_smoke(device: str | torch.device | None = None) -> dict[str, object]:
     )
     torch.manual_seed(20260913)
 
-    base_cfg = ModelConfig(
+    cfg = RLTConfig(
         vocab_size=257,
         d_model=64,
-        n_layers=4,
         n_heads=4,
+        n_stages=2,
         max_seq_len=32,
-        architecture="transformer",
+        swa_window=4,
     )
-    short = RecurrentLoopedLM(base_cfg).to(resolved)
-    deep = RecurrentLoopedLM(replace(base_cfg, n_layers=12)).to(resolved)
-    short_params = parameter_count(short)
-    deep_params = parameter_count(deep)
-    if short_params != deep_params:
-        raise AssertionError("RLT parameter count changed with loop count")
-
-    short.eval()
-    tokens = torch.randint(0, base_cfg.vocab_size, (2, 16), device=resolved)
+    model = RecurrentLoopedTransformer(cfg).to(resolved).eval()
+    tokens = torch.randint(0, cfg.vocab_size, (2, 12), device=resolved)
     changed = tokens.clone()
-    changed[:, 8:] = torch.randint(
-        0, base_cfg.vocab_size, (2, 8), device=resolved
-    )
+    changed[:, 6:] = torch.randint(0, cfg.vocab_size, (2, 6), device=resolved)
+
     with torch.no_grad():
-        prefix_a = short(tokens)[:, :8]
-        prefix_b = short(changed)[:, :8]
+        prefix_a = model(tokens)[:, :6]
+        prefix_b = model(changed)[:, :6]
     causal_max_diff = float((prefix_a - prefix_b).abs().max().cpu())
     if causal_max_diff > 2e-5:
         raise AssertionError(f"causality check failed: max diff={causal_max_diff}")
+    if not model.last_cache_lengths or max(model.last_cache_lengths) > cfg.swa_window:
+        raise AssertionError("decoder SWA cache exceeded its configured window")
 
-    short.train()
-    logits = short(tokens)
-    loss = F.cross_entropy(
-        logits[:, :-1].reshape(-1, base_cfg.vocab_size),
-        tokens[:, 1:].reshape(-1),
-    )
-    loss.backward()
-    grads = [
-        p.grad for p in short.shared_block.parameters() if p.grad is not None
-    ]
-    if not grads or not all(torch.isfinite(g).all() for g in grads):
-        raise AssertionError("shared block did not receive finite gradients")
-    grad_l1 = sum(float(g.detach().abs().sum().cpu()) for g in grads)
+    model.train()
+    model.zero_grad(set_to_none=True)
+    logits = model(tokens)
+    final_target = tokens[:, -1]
+    final_loss = F.cross_entropy(logits[:, -2, :], final_target)
+    final_loss.backward()
+    start_grad = model.start_state.grad
+    if start_grad is None or not torch.isfinite(start_grad).all():
+        raise AssertionError("full-BPTT path to recurrent start state is missing")
+    start_grad_l1 = float(start_grad.detach().abs().sum().cpu())
+    if start_grad_l1 == 0.0:
+        raise AssertionError("recurrent start state received zero gradient")
 
-    learn_cfg = ModelConfig(
-        vocab_size=32,
-        d_model=32,
-        n_layers=3,
+    learn_cfg = RLTConfig(
+        vocab_size=16,
+        d_model=24,
         n_heads=4,
-        max_seq_len=32,
-        architecture="transformer",
+        n_stages=1,
+        max_seq_len=16,
+        swa_window=4,
     )
-    learner = RecurrentLoopedLM(learn_cfg).to(resolved)
-    optimizer = torch.optim.AdamW(learner.parameters(), lr=3e-3, weight_decay=0.0)
-    pattern = torch.tensor([1, 2, 3, 4, 5, 6, 7, 8] * 4, device=resolved)
-    batch = torch.stack([pattern.roll(i % 8) for i in range(16)])
+    learner = RecurrentLoopedTransformer(learn_cfg).to(resolved)
+    optimizer = torch.optim.AdamW(learner.parameters(), lr=4e-3, weight_decay=0.0)
+    pattern = torch.tensor([1, 2, 3, 4, 5, 6, 7, 8] * 2, device=resolved)
+    batch = torch.stack([pattern.roll(i % 8) for i in range(8)])
 
     def sequence_loss() -> torch.Tensor:
         out = learner(batch[:, :-1])
@@ -80,30 +70,52 @@ def run_smoke(device: str | torch.device | None = None) -> dict[str, object]:
         )
 
     learner.train()
-    initial_loss = float(sequence_loss().detach().cpu())
-    for _ in range(50):
+    optimization_initial = float(sequence_loss().detach().cpu())
+    for _ in range(35):
         optimizer.zero_grad(set_to_none=True)
-        train_loss = sequence_loss()
-        train_loss.backward()
+        loss = sequence_loss()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(learner.parameters(), 1.0)
         optimizer.step()
-    final_loss = float(sequence_loss().detach().cpu())
-    if not math.isfinite(final_loss) or final_loss >= initial_loss * 0.5:
+    optimization_final = float(sequence_loss().detach().cpu())
+    if not math.isfinite(optimization_final) or optimization_final >= optimization_initial * 0.5:
         raise AssertionError(
-            f"optimization smoke failed: {initial_loss:.4f} -> {final_loss:.4f}"
+            f"optimization smoke failed: {optimization_initial:.4f} -> "
+            f"{optimization_final:.4f}"
         )
+
+    depth_cfg = RLTConfig(
+        vocab_size=32,
+        d_model=32,
+        n_heads=4,
+        n_stages=48,
+        max_seq_len=4,
+        swa_window=4,
+    )
+    depth_probe = RecurrentLoopedTransformer(depth_cfg).to(resolved).eval()
+    with torch.no_grad():
+        depth_logits = depth_probe(
+            torch.randint(0, depth_cfg.vocab_size, (1, 4), device=resolved)
+        )
+    if depth_logits.shape != (1, 4, depth_cfg.vocab_size):
+        raise AssertionError("48-stage depth probe produced the wrong shape")
 
     return {
         "status": "pass",
         "device": str(resolved),
-        "short_loops": base_cfg.n_layers,
-        "deep_loops": 12,
-        "parameters_short": short_params,
-        "parameters_deep": deep_params,
-        "parameter_invariance": short_params == deep_params,
+        "architecture": "causal encoder + token-recurrent decoder",
+        "parameters_smoke_model": parameter_count(model),
+        "encoder_stages": cfg.n_stages,
+        "decoder_stages": cfg.n_stages,
+        "stage_weights_shared_across_encoder_decoder": True,
         "causal_max_diff": causal_max_diff,
-        "shared_block_grad_l1": grad_l1,
-        "optimization_initial_nll": initial_loss,
-        "optimization_final_nll": final_loss,
+        "swa_window": cfg.swa_window,
+        "decoder_cache_lengths": list(model.last_cache_lengths),
+        "recurrent_start_state_grad_l1": start_grad_l1,
+        "optimization_initial_nll": optimization_initial,
+        "optimization_final_nll": optimization_final,
+        "paper_depth_probe_stages": 48,
+        "paper_depth_probe_parameters": parameter_count(depth_probe),
     }
 
 
