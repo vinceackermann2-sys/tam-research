@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "job_id": "rlt-tiny-64k-20260913-a",
+  "status": "cancelled_unstarted",
+  "worker": "orchestrator",
+  "note": "Cancelled without training because its prerequisite smoke attempt was abandoned as an infrastructure event. Superseded by a fresh unique job namespace."
+}
