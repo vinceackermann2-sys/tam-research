@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import textwrap
 
 import numpy as np
 import pytest
@@ -141,7 +142,9 @@ def _call_name(node: ast.AST) -> str:
 
 
 def test_indexed_search_has_one_scratch_allocation_and_clip_kernel_has_none() -> None:
-    search_tree = ast.parse(inspect.getsource(prototype.ClipBoundTraversal.indexed_search))
+    search_tree = ast.parse(
+        textwrap.dedent(inspect.getsource(prototype.ClipBoundTraversal.indexed_search))
+    )
     search_calls = [
         _call_name(node.func)
         for node in ast.walk(search_tree)
@@ -149,7 +152,9 @@ def test_indexed_search_has_one_scratch_allocation_and_clip_kernel_has_none() ->
     ]
     assert search_calls.count("np.empty_like") == 1
 
-    kernel_tree = ast.parse(inspect.getsource(prototype.clip_subtract_dot_lower_bound))
+    kernel_tree = ast.parse(
+        textwrap.dedent(inspect.getsource(prototype.clip_subtract_dot_lower_bound))
+    )
     kernel_calls = [
         _call_name(node.func)
         for node in ast.walk(kernel_tree)
