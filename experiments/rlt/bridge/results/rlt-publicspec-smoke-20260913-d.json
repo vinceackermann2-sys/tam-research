@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "job_id": "rlt-publicspec-smoke-20260913-d",
+  "status": "superseded_unstarted",
+  "worker": "orchestrator",
+  "note": "This Colab-scoped job never acquired a claim and never started GPU execution. It is retired on exp/rlt-aws so the AWS lane cannot accidentally execute it. Superseded by rlt-publicspec-smoke-aws-20260913-a."
+}
