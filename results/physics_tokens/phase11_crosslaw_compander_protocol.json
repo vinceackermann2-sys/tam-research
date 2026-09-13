@@ -1,0 +1,89 @@
+{
+  "experiment": "physics-token-phase11-frozen-compander-crosslaw-validation-v1",
+  "status": "PREREGISTERED_BEFORE_ANY_PHASE11_EXECUTION",
+  "parent_phase10_head": "283218939a0676c6efff2b6457da346cfc9d499f",
+  "phase10_summary_commit": "026eb89ae8de2391d2ed4fa89b9b9d25b70ff394",
+  "phase_class": "fresh cross-law engineering validation; not a novel-physics or unrestricted discovery stage",
+  "hypothesis": "The fixed Phase-10 18-bit tail-aware causal innovation coordinate system is sufficiently robust for short-context system identification across two qualitatively different synthetic PDE families and their preregistered distribution shifts, without changing the compander, bit budget, context length, feature basis, ridge, or supplying law/parameter labels.",
+  "frozen_representation": {
+    "frame0_anchor": "2048-way coarse + 128-way residual absolute-state RVQ fitted on the fresh joint in-range wave+Gray-Scott training mixture",
+    "innovation": "d_t = x_t - xhat_{t-1}",
+    "innovation_statistics": "fresh joint in-range training-mixture one-step innovation mean mu and standard deviation sigma",
+    "standardize": "z=(d_t-mu)/sigma",
+    "compander": "y=asinh(z)",
+    "tail_range": "clip y to [-asinh(16),+asinh(16)]",
+    "quantizer": "512 uniform levels including endpoints independently per channel",
+    "packing": "idx0*512+idx1, exactly one 18-bit integer token per cell per saved frame",
+    "decode": "zhat=sinh(yhat); dhat=mu+sigma*zhat; xhat_t=xhat_{t-1}+dhat",
+    "bits_per_cell_per_saved_frame": 18,
+    "phase10_transform_or_range_changed": false
+  },
+  "paired_controls": {
+    "state_rvq": "fresh 2048+128 absolute-state RVQ at the same nominal 18-bit transmitted rate",
+    "plain_innovation_rvq": "fresh 2048+128 learned innovation RVQ at the same nominal 18-bit transmitted rate",
+    "role": "reported paired controls only; they cannot rescue a failed companded cross-law gate"
+  },
+  "frozen_training_mixture": {
+    "grid": 16,
+    "wave_sequences": 64,
+    "gray_scott_sequences": 64,
+    "seq_len": 8,
+    "wave": {"c_range": [0.6,1.0], "dt": 0.12, "max_mode": 3},
+    "gray_scott": {"F_range": [0.025,0.045], "k_range": [0.055,0.065], "Du": 0.16, "Dv": 0.08, "dt": 1.0, "substeps_per_saved_frame": 4, "initialization": "smooth"},
+    "law_labels_given": false
+  },
+  "frozen_identifier": {
+    "context_frames": 3,
+    "coordinates": "decoded physical units",
+    "features": "unchanged 16-dimensional Phase-7/10 basis: constant; per channel center, D4 axial radius-1 sum, diagonal radius-1 sum, axial radius-2 sum; center monomials u^2, uv, v^2, u^3, u^2v, uv^2, v^3",
+    "feature_scaling": "per-sequence RMS from the two observed decoded context transitions; constant scale 1",
+    "fit": "per-sequence ridge least squares 2x16 map",
+    "ridge": 0.001,
+    "law_identifier": false,
+    "family_router": false,
+    "known_integrator_or_governing_equation": false,
+    "hidden_parameter_labels": false
+  },
+  "evaluations": {
+    "wave_id": {"num_sequences":48,"seq_len":16,"c_range":[0.6,1.0],"max_mode":3,"horizon":8},
+    "wave_spectral_ood": {"num_sequences":48,"seq_len":8,"c_range":[0.6,1.0],"max_mode":6,"horizon":3},
+    "wave_combined_ood": {"num_sequences":48,"seq_len":8,"c_range":[1.15,1.35],"max_mode":6,"horizon":3},
+    "gray_id": {"num_sequences":48,"seq_len":16,"F_range":[0.025,0.045],"k_range":[0.055,0.065],"initialization":"smooth","horizon":8},
+    "gray_sharp_ood": {"num_sequences":48,"seq_len":8,"F_range":[0.025,0.045],"k_range":[0.055,0.065],"initialization":"sharp","horizon":3},
+    "gray_parameter_ood": {"num_sequences":48,"seq_len":8,"F_range":[0.050,0.060],"k_range":[0.045,0.055],"initialization":"smooth","horizon":3},
+    "gray_combined_ood": {"num_sequences":48,"seq_len":8,"F_range":[0.050,0.060],"k_range":[0.045,0.055],"initialization":"sharp","horizon":3}
+  },
+  "metric": "recursive projected rollout MSE / raw-state persistence MSE from final raw context frame",
+  "fresh_registered_replicates": [
+    {"replicate":1,"wave_train_seed":611370101,"gray_train_seed":611370102,"state_coarse_seed":611370103,"state_residual_seed":611370104,"plain_coarse_seed":611370105,"plain_residual_seed":611370106,"wave_id_seed":611370111,"wave_spectral_seed":611370112,"wave_combined_seed":611370113,"gray_id_seed":611370121,"gray_sharp_seed":611370122,"gray_parameter_seed":611370123,"gray_combined_seed":611370124},
+    {"replicate":2,"wave_train_seed":611370201,"gray_train_seed":611370202,"state_coarse_seed":611370203,"state_residual_seed":611370204,"plain_coarse_seed":611370205,"plain_residual_seed":611370206,"wave_id_seed":611370211,"wave_spectral_seed":611370212,"wave_combined_seed":611370213,"gray_id_seed":611370221,"gray_sharp_seed":611370222,"gray_parameter_seed":611370223,"gray_combined_seed":611370224},
+    {"replicate":3,"wave_train_seed":611370301,"gray_train_seed":611370302,"state_coarse_seed":611370303,"state_residual_seed":611370304,"plain_coarse_seed":611370305,"plain_residual_seed":611370306,"wave_id_seed":611370311,"wave_spectral_seed":611370312,"wave_combined_seed":611370313,"gray_id_seed":611370321,"gray_sharp_seed":611370322,"gray_parameter_seed":611370323,"gray_combined_seed":611370324}
+  ],
+  "seed_collision_policy": "The selected 611370xxx namespace does not overlap any consumed Phase-0 through Phase-10 seeds known in this experiment lineage. Repository code-search was unavailable upstream during preregistration. If a collision with another consumed repository experiment is discovered before Phase-11 execution, Phase 11 must stop and be separately re-preregistered with a new namespace; no registered Phase-11 seed may be silently replaced after consumption.",
+  "primary_crosslaw_pass_rule": {
+    "all_required": [
+      "for every one of the 3 fresh replicates, companded ratio < 1.0 versus raw persistence on all seven preregistered evaluations",
+      "no registered replicate is retried or replaced"
+    ],
+    "pass_label": "CROSSLAW_PASS",
+    "otherwise": "CROSSLAW_FAIL"
+  },
+  "secondary_superiority_readout": {
+    "report": [
+      "paired state-RVQ and plain-innovation ratios on every split",
+      "whether companded beats both paired controls on wave_combined_ood and gray_combined_ood in each replicate",
+      "context reconstruction MSE, context-delta MSE, target-oracle ratio, raw-context projection control, and companded clip fractions"
+    ],
+    "cannot_rescue_primary_failure": true
+  },
+  "execution_rule": "Run each registered replicate exactly once in an independent process and persist its complete result before starting the next. No retry, replacement seed, compander-range change, quantizer-level change, feature change, ridge change, horizon change, or threshold change after a registered attempt is consumed.",
+  "implementation_validation_before_seed_consumption": [
+    "reuse the exact Phase-10 compander constants and packing semantics",
+    "verify 18-bit packing and +/-16 standardized endpoints",
+    "verify prefix causality",
+    "verify Gray-Scott smooth/sharp generators and all requested parameter ranges",
+    "verify the same raw trajectory object is supplied to all paired arms without mutation",
+    "only non-listed smoke seeds may be used before registered execution"
+  ],
+  "claim_limit": "A CROSSLAW_PASS would support only that this frozen discrete coordinate system and supplied local feature prior support context-only prediction across these two known synthetic PDE families and specified shifts. It is not novel physics, unrestricted law discovery, a universal scientific tokenizer, AGI, or SSI."
+}
