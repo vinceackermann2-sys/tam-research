@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "job_id": "rlt-tiny-64k-20260913-c",
+  "status": "cancelled_unstarted",
+  "worker": "orchestrator",
+  "note": "This Colab-scoped training job never started because its prerequisite never claimed or passed. It is retired on exp/rlt-aws and superseded by rlt-tiny-64k-aws-20260913-a."
+}
