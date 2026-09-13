@@ -2,6 +2,7 @@
   "schema": 1,
   "job_id": "replace-with-new-unique-job-id",
   "task": "train",
+  "requires_job_id": "rlt-publicspec-smoke-20260913-b",
   "seed": 20260913,
   "profile": "tiny",
   "token_budget": 65536,
