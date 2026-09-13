@@ -1,0 +1,12 @@
+{
+  "experiment": "physics-token-phase5-gray-scott-transfer-v1",
+  "status": "PASS",
+  "replicates": [
+    {"replicate":1,"seeds":{"training":91001,"id":91002,"sharp":91003,"parameter":91004,"combined":91005},"gates":{"id_h8":true,"sharp_h3":true,"parameter_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.38981605765697674,"sharp_h3":0.111828240396774,"parameter_h3":0.12407781423768353,"combined_h3":0.08749079044711473},"reconstruction_nmse":0.0001631325576454401,"pc8_explained_variance":0.9914737939834595},
+    {"replicate":2,"seeds":{"training":91011,"id":91012,"sharp":91013,"parameter":91014,"combined":91015},"gates":{"id_h8":true,"sharp_h3":true,"parameter_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.3345042821834573,"sharp_h3":0.09326017304054124,"parameter_h3":0.09149748805043591,"combined_h3":0.1751740071125374},"reconstruction_nmse":0.0001549239968881011,"pc8_explained_variance":0.9943175315856934},
+    {"replicate":3,"seeds":{"training":91021,"id":91022,"sharp":91023,"parameter":91024,"combined":91025},"gates":{"id_h8":true,"sharp_h3":true,"parameter_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.5131966019466803,"sharp_h3":0.0871521121026909,"parameter_h3":0.056802922059091585,"combined_h3":0.1040989616567572},"reconstruction_nmse":0.00014166344772092998,"pc8_explained_variance":0.9942031502723694}
+  ],
+  "aggregate": {"id_h8":{"mean":0.41250564726237143,"min":0.3345042821834573,"max":0.5131966019466803},"sharp_h3":{"mean":0.09741350851333537,"min":0.0871521121026909,"max":0.111828240396774},"parameter_h3":{"mean":0.09079274144907035,"min":0.056802922059091585,"max":0.12407781423768353},"combined_h3":{"mean":0.12225458640546977,"min":0.08749079044711473,"max":0.1751740071125374},"reconstruction_nmse_mean":0.00015324000075149039,"pc8_explained_variance_mean":0.9933314919471741},
+  "frozen_gate":"all three fresh end-to-end replicates must beat raw persistence on ID h8, sharp OOD h3, parameter OOD h3, and combined OOD h3",
+  "claim_limit":"Transfer is demonstrated on a second synthetic nonlinear PDE family using generic local polynomial features. Locality, degree-3 polynomial basis, linear per-sequence maps, and low-rank latent family remain supplied priors."
+}
