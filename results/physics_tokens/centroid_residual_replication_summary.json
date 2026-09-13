@@ -1,0 +1,17 @@
+{
+  "experiment": "centroid-residual-v1-replication-summary",
+  "preregistered_replication_seeds": [9132602, 9132603],
+  "all_replication_seeds_pass": true,
+  "all_three_pass": true,
+  "runs": [
+    {"seed": 9132601, "id_mse": 0.0034486691001802683, "persistence": 0.01343230064958334, "id_ratio": 0.2567444840722236, "ood_ratio": 0.25400199614397967, "runtime": 16.35601234436035},
+    {"seed": 9132602, "id_mse": 0.003390358528122306, "persistence": 0.01343230064958334, "id_ratio": 0.2524034129795533, "ood_ratio": 0.23512247175041817, "runtime": 14.913480281829834},
+    {"seed": 9132603, "id_mse": 0.0038226477336138487, "persistence": 0.01343230064958334, "id_ratio": 0.2845862249020181, "ood_ratio": 0.2514926069172969, "runtime": 15.807774782180786}
+  ],
+  "id_ratio_mean": 0.264578040651265,
+  "id_ratio_stdev": 0.017463012406711734,
+  "id_ratio_min": 0.2524034129795533,
+  "id_ratio_max": 0.2845862249020181,
+  "ood_ratio_mean": 0.24687235827056492,
+  "interpretation": "Phase-0 representation+dynamics feasibility replicated across three model initializations; not evidence of novel physics or general scientific discovery."
+}
