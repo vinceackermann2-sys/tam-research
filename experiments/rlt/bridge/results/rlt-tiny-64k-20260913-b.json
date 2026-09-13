@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "job_id": "rlt-tiny-64k-20260913-b",
+  "status": "cancelled_unstarted",
+  "worker": "orchestrator",
+  "note": "Cancelled without training because prerequisite rlt-publicspec-smoke-20260913-c was retired as infrastructure-ambiguous. Superseded by a fresh unique namespace."
+}
