@@ -25,6 +25,7 @@ OWNER = "vinceackermann2-sys"
 REPO = "tam-research"
 DEFAULT_BRANCH = "exp/rlt-colab"
 JOBS_DIR = "experiments/rlt/bridge/jobs"
+CLAIMS_DIR = "experiments/rlt/bridge/claims"
 RESULTS_DIR = "experiments/rlt/bridge/results"
 _JOB_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{2,80}$")
 
@@ -52,7 +53,8 @@ class GitHubBridge:
             },
         )
         with urllib.request.urlopen(request, timeout=30) as response:
-            return json.loads(response.read().decode())
+            raw = response.read().decode()
+            return json.loads(raw) if raw else None
 
     def list_jobs(self) -> list[dict[str, Any]]:
         query = urllib.parse.urlencode({"ref": self.branch})
@@ -213,7 +215,10 @@ def _cuda_available() -> bool:
 
 def execute_job(job: dict[str, Any]) -> dict[str, Any]:
     if job["task"] == "smoke":
-        return run_smoke("cuda" if _cuda_available() else "cpu")
+        return run_smoke(
+            "cuda" if _cuda_available() else "cpu",
+            seed=job["seed"],
+        )
 
     if not _cuda_available():
         raise RuntimeError("train jobs require a Colab GPU runtime")
@@ -242,45 +247,66 @@ def execute_job(job: dict[str, Any]) -> dict[str, Any]:
     return {"data": data_meta, "training": training}
 
 
-def process_once(bridge: GitHubBridge) -> int:
+def process_once(bridge: GitHubBridge) -> tuple[int, int]:
     processed = 0
+    errors = 0
     for row in bridge.list_jobs():
         filename = row["name"]
         source_path = f"{JOBS_DIR}/{filename}"
+        queue_id = Path(filename).stem
+        result_path = f"{RESULTS_DIR}/{queue_id}.json"
+        claim_path = f"{CLAIMS_DIR}/{queue_id}.json"
+
         try:
-            raw = bridge.read_json(source_path)
-            queue_id = Path(filename).stem
-            result_path = f"{RESULTS_DIR}/{queue_id}.json"
             if bridge.exists(result_path):
                 continue
 
-            started = time.time()
-            try:
-                job = validate_job(raw, filename)
-                if not prerequisite_passed(bridge, job):
-                    print(
-                        f"[bridge] {queue_id} waiting for PASS from "
-                        f"{job.get('requires_job_id')}",
-                        flush=True,
-                    )
-                    continue
+            raw = bridge.read_json(source_path)
+            job = validate_job(raw, filename)
+            if not prerequisite_passed(bridge, job):
+                print(
+                    f"[bridge] {queue_id} waiting for PASS from "
+                    f"{job.get('requires_job_id')}",
+                    flush=True,
+                )
+                continue
 
+            if bridge.exists(claim_path):
+                print(
+                    f"[bridge] {queue_id} has a claim but no terminal result; "
+                    "manual review required, refusing to rerun",
+                    flush=True,
+                )
+                continue
+
+            started = time.time()
+            claim = {
+                "schema": 1,
+                "job_id": queue_id,
+                "status": "claimed",
+                "claimed_unix": started,
+                "worker": "google-colab",
+                "job": job,
+            }
+            bridge.create_json(
+                claim_path,
+                claim,
+                f"rlt bridge: claim {queue_id} before execution",
+            )
+            print(f"[bridge] claimed {queue_id}; starting {job['task']}", flush=True)
+
+            try:
+                output = execute_job(job)
                 payload = {
                     "schema": 1,
                     "job_id": job["job_id"],
-                    "status": "running",
+                    "status": "complete",
                     "started_unix": started,
+                    "finished_unix": time.time(),
                     "worker": "google-colab",
                     "job": job,
+                    "output": output,
                 }
-                output = execute_job(job)
-                payload.update(
-                    {
-                        "status": "complete",
-                        "finished_unix": time.time(),
-                        "output": output,
-                    }
-                )
             except Exception as exc:
                 payload = {
                     "schema": 1,
@@ -289,20 +315,29 @@ def process_once(bridge: GitHubBridge) -> int:
                     "started_unix": started,
                     "finished_unix": time.time(),
                     "worker": "google-colab",
+                    "job": job,
                     "error_type": type(exc).__name__,
                     "error": str(exc),
                 }
 
-            if not bridge.exists(result_path):
-                bridge.create_json(
-                    result_path,
-                    payload,
-                    f"rlt bridge: record {queue_id} result",
-                )
+            bridge.create_json(
+                result_path,
+                payload,
+                f"rlt bridge: record {queue_id} result",
+            )
             processed += 1
+            print(
+                f"[bridge] terminal result written for {queue_id}: {payload['status']}",
+                flush=True,
+            )
         except Exception as exc:
-            print(f"[bridge] queue item {filename} could not be processed: {exc}", flush=True)
-    return processed
+            errors += 1
+            print(
+                f"[bridge] queue item {filename} infrastructure/writeback error: "
+                f"{type(exc).__name__}: {exc}",
+                flush=True,
+            )
+    return processed, errors
 
 
 def main() -> None:
@@ -323,15 +358,21 @@ def main() -> None:
     bridge = GitHubBridge(token=token, branch=args.branch)
     print(
         f"[bridge] watching {OWNER}/{REPO}:{args.branch}/{JOBS_DIR}; "
-        "only bounded smoke/train schema-1 jobs are accepted",
+        "claims are written before GPU execution",
         flush=True,
     )
     while True:
-        count = process_once(bridge)
+        count, errors = process_once(bridge)
         if args.once:
+            if errors:
+                raise RuntimeError(
+                    f"bridge encountered {errors} infrastructure/writeback error(s)"
+                )
             return
         if count:
             print(f"[bridge] processed {count} queued job(s)", flush=True)
+        if errors:
+            print(f"[bridge] encountered {errors} infrastructure error(s)", flush=True)
         time.sleep(args.poll_seconds)
 
 
