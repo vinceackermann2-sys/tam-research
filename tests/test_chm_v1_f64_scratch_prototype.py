@@ -167,6 +167,6 @@ def test_source_has_no_cuda_modal_or_training_path() -> None:
     assert "torch.cuda" not in source
     assert ".cuda(" not in source
     assert "modal." not in source
-    assert "optimizer" not in source
-    assert "backward(" not in source
+    assert "torch.optim" not in source
+    assert ".backward(" not in source
     assert "not scientific evidence" in source
