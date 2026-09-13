@@ -1,0 +1,22 @@
+{
+  "experiment": "physics-token-phase6-shared-context-system-id-v1",
+  "status": "FAIL",
+  "protocol": "results/physics_tokens/phase6_context_system_id_protocol.json",
+  "replicates": [
+    {"replicate":1,"seeds":{"wave_train":92501,"gray_train":92502,"coarse_kmeans":75701,"residual_kmeans":75702,"wave_id":92511,"wave_spectral":92512,"wave_combined":92513,"gray_id":92521,"gray_sharp":92522,"gray_parameter":92523,"gray_combined":92524},"ratios":{"wave_id":0.3826643251441268,"wave_spectral_ood":0.5864867000663444,"wave_combined_ood":1.347451414605741,"gray_id":0.49774662004754006,"gray_sharp_ood":0.20044124828048338,"gray_parameter_ood":0.07518656031715304,"gray_combined_ood":0.3917676514625173},"pass":false,"reconstruction_nmse":0.00025079853367060423},
+    {"replicate":2,"seeds":{"wave_train":92601,"gray_train":92602,"coarse_kmeans":75711,"residual_kmeans":75712,"wave_id":92611,"wave_spectral":92612,"wave_combined":92613,"gray_id":92621,"gray_sharp":92622,"gray_parameter":92623,"gray_combined":92624},"ratios":{"wave_id":0.7426904378182221,"wave_spectral_ood":0.1895903363972287,"wave_combined_ood":0.5434299730404635,"gray_id":0.7178756762562513,"gray_sharp_ood":0.6574820691503886,"gray_parameter_ood":0.06030975526020547,"gray_combined_ood":0.32570779344794604},"pass":true,"reconstruction_nmse":0.00025162988458760083},
+    {"replicate":3,"seeds":{"wave_train":92701,"gray_train":92702,"coarse_kmeans":75721,"residual_kmeans":75722,"wave_id":92711,"wave_spectral":92712,"wave_combined":92713,"gray_id":92721,"gray_sharp":92722,"gray_parameter":92723,"gray_combined":92724},"ratios":{"wave_id":0.5198200399531591,"wave_spectral_ood":0.2882658922458319,"wave_combined_ood":1.121360791038217,"gray_id":0.47605581557287546,"gray_sharp_ood":0.3196455817118704,"gray_parameter_ood":0.12751034004429965,"gray_combined_ood":0.39067390809180164},"pass":false,"reconstruction_nmse":0.00024298683274537325}
+  ],
+  "aggregate": {
+    "wave_id_mean": 0.548391600971836,
+    "wave_spectral_ood_mean": 0.35478097623646837,
+    "wave_combined_ood_mean": 1.0040807262281406,
+    "gray_id_mean": 0.5638927039588889,
+    "gray_sharp_ood_mean": 0.39252296638091416,
+    "gray_parameter_ood_mean": 0.08766888520721938,
+    "gray_combined_ood_mean": 0.36938311766742166
+  },
+  "frozen_gate_pass": false,
+  "failure_pattern": "Replicates 1 and 3 fail wave_combined_ood; replicate 2 passes all seven. All Gray-Scott gates pass in all three replicates.",
+  "interpretation": "A single shared discrete representation plus dense direct context fitting is not robust to the combined unseen-frequency + faster-wave shift. No confirmatory seeds were retried or replaced."
+}
