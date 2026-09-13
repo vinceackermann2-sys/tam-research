@@ -1,0 +1,23 @@
+{
+  "experiment": "physics-token-phase8-wave-failure-decomposition-v1",
+  "replicate": 3,
+  "seeds": {"wave_train":980301,"gray_train":980302,"coarse_kmeans":78021,"residual_kmeans":78022,"combined_wave":980313},
+  "reconstruction_nmse": 0.00012985507783014327,
+  "persistence_mse": 0.17195679247379303,
+  "ratios": {
+    "raw_context_raw_start_continuous": 0.00028221678803674877,
+    "raw_context_quantized_start_continuous": 0.039360105991363525,
+    "raw_context_quantized_start_requantized": 0.4623863995075226,
+    "quantized_context_quantized_start_continuous": 15.96111011505127,
+    "quantized_context_quantized_start_requantized": 0.649433970451355,
+    "target_token_oracle": 0.4091251492500305
+  },
+  "diagnostic_flags": {
+    "candidate_family_passes_raw": true,
+    "quantized_start_passes_with_raw_fit": true,
+    "requantized_rollout_passes_with_raw_fit": true,
+    "quantized_context_continuous_passes": false,
+    "phase7_path_passes": true,
+    "oracle_passes": true
+  }
+}
