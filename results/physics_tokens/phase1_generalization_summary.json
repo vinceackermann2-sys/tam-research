@@ -1,0 +1,28 @@
+{
+  "experiment": "physics-token-phase1-generalization-v1",
+  "status": "FAIL",
+  "seeds": [
+    {
+      "seed": 9132611,
+      "gates": {"id_long_h8": true, "spectrum_ood_h3": false, "combined_ood_h3": false, "per_seed_pass": false},
+      "ratios": {"id_long_h8": 0.16498662117964868, "spectrum_ood_h3": 1.5498281757922214, "combined_ood_h3": 1.9674331048647453, "spectrum_ood_h3_pre_requant": 1.50634783261188, "combined_ood_h3_pre_requant": 1.9324930729530192, "spectrum_oracle": 0.16294536706780294, "combined_oracle": 0.6899437500110853, "raw_spectrum": 0.2805745874855808, "raw_combined": 0.28475944787824653}
+    },
+    {
+      "seed": 9132612,
+      "gates": {"id_long_h8": true, "spectrum_ood_h3": false, "combined_ood_h3": false, "per_seed_pass": false},
+      "ratios": {"id_long_h8": 0.1792121508732845, "spectrum_ood_h3": 1.5537363531672088, "combined_ood_h3": 1.9315845041124269, "spectrum_ood_h3_pre_requant": 1.5143997926962587, "combined_ood_h3_pre_requant": 1.8914037373164152, "spectrum_oracle": 0.16294536706780294, "combined_oracle": 0.6899437500110853, "raw_spectrum": 0.2814729157613816, "raw_combined": 0.2752518633488404}
+    },
+    {
+      "seed": 9132613,
+      "gates": {"id_long_h8": true, "spectrum_ood_h3": false, "combined_ood_h3": false, "per_seed_pass": false},
+      "ratios": {"id_long_h8": 0.16192702780868587, "spectrum_ood_h3": 1.5831365934291566, "combined_ood_h3": 2.0190069948696165, "spectrum_ood_h3_pre_requant": 1.5466248842180135, "combined_ood_h3_pre_requant": 1.9858720707002588, "spectrum_oracle": 0.16294536706780294, "combined_oracle": 0.6899437500110853, "raw_spectrum": 0.303378451413065, "raw_combined": 0.30804939014764976}
+    }
+  ],
+  "aggregate": {"id_h8_mean": 0.16870859995387302, "spectrum_h3_mean": 1.5622337074628623, "combined_h3_mean": 1.9726748679489297, "raw_spectrum_h3_mean": 0.28847531822000916, "raw_combined_h3_mean": 0.2893535671249122},
+  "known_solver_from_quantized_state": {
+    "id_h8": {"known_solver_initial_quantized_ratio": 0.035478191522233575, "known_solver_requant_each_step_ratio": 0.3725525706595546},
+    "spectrum_h3": {"known_solver_initial_quantized_ratio": 0.06697744383533154, "known_solver_requant_each_step_ratio": 0.2943909463372358},
+    "combined_h3": {"known_solver_initial_quantized_ratio": 0.22447418564061777, "known_solver_requant_each_step_ratio": 0.8768496705686082}
+  },
+  "conclusion": "codec preserves sufficient state; unconstrained learned transition fails unseen spectral extrapolation"
+}
