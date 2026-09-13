@@ -1,0 +1,16 @@
+{
+  "experiment": "physics-token-phase3-learned-local-operator-v1",
+  "status": "PASS",
+  "replicates": [
+    {"replicate":1,"seeds":{"operator_train":74501,"id":74502,"spectrum":74503,"combined":74504},"gates":{"id_h8":true,"spectrum_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.4377756394322764,"spectrum_h3":0.3047766224508821,"combined_h3":0.9054012878541755},"kernel_true_laplacian_cosine_diagnostic":0.6232485175132751},
+    {"replicate":2,"seeds":{"operator_train":74511,"id":74512,"spectrum":74513,"combined":74514},"gates":{"id_h8":true,"spectrum_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.3723498522414636,"spectrum_h3":0.4138161664442868,"combined_h3":0.8135914760643571},"kernel_true_laplacian_cosine_diagnostic":0.5678296685218811},
+    {"replicate":3,"seeds":{"operator_train":74521,"id":74522,"spectrum":74523,"combined":74524},"gates":{"id_h8":true,"spectrum_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.37971136721362625,"spectrum_h3":0.33814494531928363,"combined_h3":0.7616290572370311},"kernel_true_laplacian_cosine_diagnostic":0.5369916558265686}
+  ],
+  "aggregate": {
+    "id_h8": {"mean": 0.39661228629578876, "min": 0.3723498522414636, "max": 0.4377756394322764},
+    "spectrum_h3": {"mean": 0.35224591140481754, "min": 0.3047766224508821, "max": 0.4138161664442868},
+    "combined_h3": {"mean": 0.8268739403851879, "min": 0.7616290572370311, "max": 0.9054012878541755},
+    "kernel_true_laplacian_cosine_mean": 0.576023280620575
+  },
+  "claim_limit": "The 3x3 spatial operator is learned from quantized trajectories without true c labels or the true Laplacian. Velocity-Verlet temporal form and 3x3 locality remain supplied priors."
+}
