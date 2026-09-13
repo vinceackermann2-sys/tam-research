@@ -1,0 +1,16 @@
+{
+  "experiment": "physics-token-phase4-rvq-local-state-space-v1",
+  "status": "PASS",
+  "representation": {"reconstruction_nmse": 0.0008366621914319694, "coarse_codes": 256, "residual_codes": 32, "tokens_per_cell": 2, "nominal_bits_per_cell": 13},
+  "replicates": [
+    {"replicate":1,"seeds":{"transition_train":74601,"id":74602,"spectrum":74603,"combined":74604},"gates":{"id_h8":true,"spectrum_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.0693364742570857,"spectrum_h3":0.17135818980585948,"combined_h3":0.7760550533491261},"pc12_explained_variance":0.9537692070007324},
+    {"replicate":2,"seeds":{"transition_train":74611,"id":74612,"spectrum":74613,"combined":74614},"gates":{"id_h8":true,"spectrum_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.06532268446522285,"spectrum_h3":0.13929974658539568,"combined_h3":0.896739526841459},"pc12_explained_variance":0.9518447518348694},
+    {"replicate":3,"seeds":{"transition_train":74621,"id":74622,"spectrum":74623,"combined":74624},"gates":{"id_h8":true,"spectrum_h3":true,"combined_h3":true,"pass":true},"ratios":{"id_h8":0.09818311883468077,"spectrum_h3":0.28208420412210666,"combined_h3":0.9390562066274084},"pc12_explained_variance":0.94877690076828}
+  ],
+  "aggregate": {
+    "id_h8": {"mean": 0.07761409251899644, "min": 0.06532268446522285, "max": 0.09818311883468077},
+    "spectrum_h3": {"mean": 0.19758071350445394, "min": 0.13929974658539568, "max": 0.28208420412210666},
+    "combined_h3": {"mean": 0.8706169289393312, "min": 0.7760550533491261, "max": 0.9390562066274084}
+  },
+  "claim_limit": "No true wave-speed labels, true Laplacian, or known temporal integrator are used. Supplied priors are 3x3 locality, linear local maps, a 12-dimensional low-rank family, and a two-stage residual discrete code."
+}
