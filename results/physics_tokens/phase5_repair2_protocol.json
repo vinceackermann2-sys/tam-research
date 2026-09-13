@@ -1,0 +1,15 @@
+{
+  "experiment": "physics-token-phase5-gray-scott-transfer-v1-repair2",
+  "status": "PREREGISTERED_BEFORE_REPAIR2_CONFIRMATORY_RUNS",
+  "parent_repair1_status": "INFRASTRUCTURE_INCOMPLETE",
+  "repair_reason": "Repair1's single process hit the local execution ceiling during replicate 3. Its seeds 91101-91125 are consumed and will not be reused. Repair2 changes only execution partitioning and fresh replicate seeds; each replicate writes an independent durable result.",
+  "scientific_configuration": "Identical to original Phase-5 preregistration: Gray-Scott simulator/distributions; 256+32 RVQ; KMeans seeds 75193/75210; 25 local features; ridge 1e-4; PCA latent dim 8; context 3; latent ridge 1e-5; recursive RVQ rollout; same ID h8 and OOD h3 gates.",
+  "codec_kmeans_seeds": {"coarse": 75193, "residual": 75210},
+  "confirmatory_replicates": [
+    {"replicate":1,"training_seed":91201,"id_seed":91202,"sharp_seed":91203,"parameter_seed":91204,"combined_seed":91205},
+    {"replicate":2,"training_seed":91211,"id_seed":91212,"sharp_seed":91213,"parameter_seed":91214,"combined_seed":91215},
+    {"replicate":3,"training_seed":91221,"id_seed":91222,"sharp_seed":91223,"parameter_seed":91224,"combined_seed":91225}
+  ],
+  "execution": "Run each replicate exactly once in an independent process and persist its JSON immediately. Aggregate only after all three durable per-replicate files exist.",
+  "frozen_pass_rule": "PASS only if all 3 fresh end-to-end repair2 replicates have requantized rollout MSE ratio < 1.0 versus raw-state persistence on ID h8, sharp OOD h3, parameter OOD h3, and combined OOD h3. No retry or replacement of a failed or consumed replicate."
+}
