@@ -19,7 +19,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from tam_research.data import prepare_fineweb
 from experiments.rlt.smoke import run_smoke
-from experiments.rlt.train_compare import run_comparison
+from experiments.rlt.train_rlt import train_rlt
 
 OWNER = "vinceackermann2-sys"
 REPO = "tam-research"
@@ -39,7 +39,7 @@ class GitHubBridge:
     ) -> Any:
         url = f"https://api.github.com/repos/{OWNER}/{REPO}/{path}"
         body = None if payload is None else json.dumps(payload).encode()
-        req = urllib.request.Request(
+        request = urllib.request.Request(
             url,
             data=body,
             method=method,
@@ -51,7 +51,7 @@ class GitHubBridge:
                 "Content-Type": "application/json",
             },
         )
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:
             return json.loads(response.read().decode())
 
     def list_jobs(self) -> list[dict[str, Any]]:
@@ -122,14 +122,13 @@ def validate_job(job: dict[str, Any], filename: str) -> dict[str, Any]:
         "job_id",
         "task",
         "seed",
-        "model_scale",
+        "profile",
         "token_budget",
         "seq_len",
         "micro_batch_size",
         "grad_accum_steps",
         "train_tokens",
         "val_tokens",
-        "compile_model",
     }
     unknown = set(job) - allowed_keys
     if unknown:
@@ -144,8 +143,8 @@ def validate_job(job: dict[str, Any], filename: str) -> dict[str, Any]:
         raise ValueError("job_id must match the queue filename")
 
     task = str(job.get("task", ""))
-    if task not in {"smoke", "compare"}:
-        raise ValueError("task must be 'smoke' or 'compare'")
+    if task not in {"smoke", "train"}:
+        raise ValueError("task must be 'smoke' or 'train'")
 
     normalized: dict[str, Any] = {
         "schema": 1,
@@ -153,30 +152,29 @@ def validate_job(job: dict[str, Any], filename: str) -> dict[str, Any]:
         "task": task,
         "seed": _bounded_int(job, "seed", 20260913, 0, 2_147_483_647),
     }
-    if task == "compare":
-        scale = str(job.get("model_scale", "25m")).lower()
-        if scale != "25m":
-            raise ValueError("Colab bridge currently permits model_scale='25m' only")
+    if task == "train":
+        profile = str(job.get("profile", "tiny")).lower()
+        if profile != "tiny":
+            raise ValueError("initial Colab bridge permits profile='tiny' only")
         normalized.update(
             {
-                "model_scale": scale,
+                "profile": profile,
                 "token_budget": _bounded_int(
-                    job, "token_budget", 1_000_000, 65_536, 5_000_000
+                    job, "token_budget", 65_536, 65_536, 500_000
                 ),
-                "seq_len": _bounded_int(job, "seq_len", 256, 64, 512),
+                "seq_len": _bounded_int(job, "seq_len", 64, 32, 128),
                 "micro_batch_size": _bounded_int(
-                    job, "micro_batch_size", 4, 1, 16
+                    job, "micro_batch_size", 2, 1, 4
                 ),
                 "grad_accum_steps": _bounded_int(
-                    job, "grad_accum_steps", 4, 1, 32
+                    job, "grad_accum_steps", 4, 1, 16
                 ),
                 "train_tokens": _bounded_int(
-                    job, "train_tokens", 6_000_000, 1_000_000, 12_000_000
+                    job, "train_tokens", 1_000_000, 1_000_000, 4_000_000
                 ),
                 "val_tokens": _bounded_int(
-                    job, "val_tokens", 500_000, 100_000, 2_000_000
+                    job, "val_tokens", 100_000, 100_000, 500_000
                 ),
-                "compile_model": bool(job.get("compile_model", False)),
             }
         )
         if normalized["train_tokens"] < normalized["token_budget"] + 1024:
@@ -184,12 +182,18 @@ def validate_job(job: dict[str, Any], filename: str) -> dict[str, Any]:
     return normalized
 
 
+def _cuda_available() -> bool:
+    import torch
+
+    return torch.cuda.is_available()
+
+
 def execute_job(job: dict[str, Any]) -> dict[str, Any]:
     if job["task"] == "smoke":
         return run_smoke("cuda" if _cuda_available() else "cpu")
 
     if not _cuda_available():
-        raise RuntimeError("compare jobs require a Colab GPU runtime")
+        raise RuntimeError("train jobs require a Colab GPU runtime")
 
     data_dir = Path(os.environ.get("RLT_DATA_DIR", "/content/rlt-data"))
     run_root = Path(os.environ.get("RLT_RUN_ROOT", "/content/rlt-runs"))
@@ -202,8 +206,8 @@ def execute_job(job: dict[str, Any]) -> dict[str, Any]:
         val_tokens=job["val_tokens"],
         seed=1234,
     )
-    comparison = run_comparison(
-        model_scale=job["model_scale"],
+    training = train_rlt(
+        profile=job["profile"],
         seed=job["seed"],
         data_dir=str(data_dir),
         run_root=str(run_root / job["job_id"]),
@@ -211,15 +215,8 @@ def execute_job(job: dict[str, Any]) -> dict[str, Any]:
         seq_len=job["seq_len"],
         micro_batch_size=job["micro_batch_size"],
         grad_accum_steps=job["grad_accum_steps"],
-        compile_model=job["compile_model"],
     )
-    return {"data": data_meta, **comparison}
-
-
-def _cuda_available() -> bool:
-    import torch
-
-    return torch.cuda.is_available()
+    return {"data": data_meta, "training": training}
 
 
 def process_once(bridge: GitHubBridge) -> int:
@@ -237,10 +234,9 @@ def process_once(bridge: GitHubBridge) -> int:
             started = time.time()
             try:
                 job = validate_job(raw, filename)
-                job_id = job["job_id"]
                 payload = {
                     "schema": 1,
-                    "job_id": job_id,
+                    "job_id": job["job_id"],
                     "status": "running",
                     "started_unix": started,
                     "worker": "google-colab",
@@ -296,7 +292,7 @@ def main() -> None:
     bridge = GitHubBridge(token=token, branch=args.branch)
     print(
         f"[bridge] watching {OWNER}/{REPO}:{args.branch}/{JOBS_DIR}; "
-        "only smoke/compare schema-1 jobs are accepted",
+        "only bounded smoke/train schema-1 jobs are accepted",
         flush=True,
     )
     while True:
