@@ -1,0 +1,98 @@
+{
+  "experiment": "physics-token-phase9-causal-innovation-tokenizer-screen-v1",
+  "status": "PREREGISTERED_BEFORE_ANY_PHASE9_EXECUTION",
+  "parent_phase8_head": "fa24420b1fb0323109903d47bbded6546a7b1680",
+  "purpose": "Test the Phase-8 diagnosis that context tokenization, rather than raw candidate-law capacity alone, destabilizes wave system identification. Compare absolute-state residual VQ against a causal predictive/innovation residual VQ at the same transmitted bit rate while freezing the downstream Phase-7 physical-coordinate system identifier.",
+  "phase_class": "cheap paired engineering screen; not a confirmatory scientific stage",
+  "hypothesis": "At a fixed 18 nominal bits per cell per saved frame, causally encoding only the new physical innovation relative to the previously reconstructed state will preserve temporal change information better than independently quantizing each absolute state, thereby improving context-only system identification on the Phase-8 combined wave OOD failure case.",
+  "frozen_training_mixture": {
+    "grid": 16,
+    "wave_sequences": 64,
+    "gray_scott_sequences": 64,
+    "seq_len": 8,
+    "wave": {"c_range": [0.6, 1.0], "dt": 0.12, "initial_modes": "training generator default low-frequency modes"},
+    "gray_scott": {"F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "Du": 0.16, "Dv": 0.08, "dt": 1.0, "substeps_per_saved_frame": 4, "initialization": "smooth"},
+    "law_labels_given_to_codec_or_identifier": false
+  },
+  "matched_channel_budget": {
+    "coarse_codebook_size": 2048,
+    "residual_codebook_size": 128,
+    "tokens_per_cell_per_saved_frame": 2,
+    "nominal_bits_per_cell_per_saved_frame": 18,
+    "kmeans_iters": 20,
+    "kmeans_max_points": 60000,
+    "bitrate_matched": true,
+    "model_storage_matched": false,
+    "storage_note": "The innovation arm reuses the paired state RVQ for the first-frame absolute anchor and additionally has an innovation RVQ. The comparison is therefore about transmitted representation bitrate and downstream identification, not equal codebook-storage bytes."
+  },
+  "arm_state_rvq": {
+    "normalization": "joint mean/std fitted on absolute physical states from the paired wave+Gray-Scott training mixture",
+    "encoding": "Every saved frame is independently normalized, quantized by a 2048-code coarse VQ plus 128-code residual VQ, decoded, and inverse-normalized to physical units.",
+    "recursive_projection": "Every predicted physical frame is independently state-RVQ encoded/decoded before the next prediction step.",
+    "role": "Matched-bit absolute-state baseline reproducing the Phase-7/8 representation class."
+  },
+  "arm_causal_innovation_rvq": {
+    "anchor": "Frame 0 uses the paired state RVQ and therefore costs exactly the same 18 nominal bits/cell as the baseline frame.",
+    "predictor": "Persistence from the previous decoder-reconstructed physical state only; no future frame, PDE operator, law label, hidden parameter, Laplacian, or integrator is supplied.",
+    "innovation_definition": "For each t>=1, e_t = x_t - xhat_{t-1}, where xhat_{t-1} is the causal decoder reconstruction available before encoding frame t.",
+    "innovation_normalization": "Separate joint mean/std fitted only on one-step physical innovations from the paired wave+Gray-Scott training mixture; no evaluation data are used.",
+    "innovation_codebook": "A separate 2048-code coarse VQ plus 128-code residual VQ is trained on normalized one-step innovations using the frozen training mixture.",
+    "causal_encoding": "At evaluation, each observed frame t>=1 is encoded as the residual to the previous reconstructed frame; decoder reconstruction is xhat_t = xhat_{t-1} + decoded_innovation_t.",
+    "recursive_projection": "For a downstream predicted physical next state y_t, encode y_t - xhat_{t-1} through the innovation RVQ, then set xhat_t = xhat_{t-1} + decoded_innovation before the next prediction step.",
+    "teacher_forcing_rule": "Codebook fitting may use raw one-step training differences x_t-x_{t-1}; all evaluation context encoding and rollout projection must be closed-loop causal from decoder-reconstructed history."
+  },
+  "frozen_downstream_identifier": {
+    "context_frames": 3,
+    "coordinates": "decoded physical units",
+    "feature_dim": 16,
+    "features": "constant; per channel center, D4 axial radius-1 sum, diagonal radius-1 sum, axial radius-2 sum; plus center monomials u^2, uv, v^2, u^3, u^2v, uv^2, v^3",
+    "feature_scaling": "per-sequence RMS scaling fitted only from the two observed reconstructed context transitions; constant scale fixed to 1",
+    "fit": "per-sequence ridge least-squares 2x16 local map from exactly the two observed reconstructed context transitions",
+    "ridge": 0.001,
+    "law_identifier": false,
+    "family_router": false,
+    "governing_equations_supplied": false,
+    "hidden_parameter_labels_supplied": false
+  },
+  "primary_evaluation": {
+    "name": "wave_combined_ood",
+    "num_sequences": 48,
+    "seq_len": 8,
+    "c_range": [1.15, 1.35],
+    "max_mode": 6,
+    "primary_horizon": 3,
+    "baseline": "raw-state persistence from the final raw context frame",
+    "primary_metric": "requantized/projected rollout MSE divided by raw-state persistence MSE"
+  },
+  "secondary_evaluations": {
+    "wave_id": {"num_sequences": 48, "seq_len": 16, "c_range": [0.6, 1.0], "max_mode": 3, "horizon": 8},
+    "wave_spectral_ood": {"num_sequences": 48, "seq_len": 8, "c_range": [0.6, 1.0], "max_mode": 6, "horizon": 3},
+    "context_reconstruction": "physical MSE and normalized MSE for the three observed context frames",
+    "context_transition_fidelity": "MSE of reconstructed one-step context deltas versus raw one-step context deltas",
+    "target_codec_oracle": "Representation-only target reconstruction at the primary horizon; for innovation RVQ, feed the true future states sequentially through the causal innovation encoder starting from the reconstructed context, without using them to fit the downstream law.",
+    "raw_context_projection_control": "Fit the same 16-feature ridge map on raw context, then compare state-RVQ versus innovation-RVQ recursive projection to distinguish identifier corruption from rollout projection error."
+  },
+  "paired_fresh_engineering_replicates": [
+    {"replicate": 1, "wave_train_seed": 2026091301, "gray_train_seed": 2026091302, "state_coarse_kmeans_seed": 2026091303, "state_residual_kmeans_seed": 2026091304, "innovation_coarse_kmeans_seed": 2026091305, "innovation_residual_kmeans_seed": 2026091306, "wave_combined_seed": 2026091307, "wave_id_seed": 2026091308, "wave_spectral_seed": 2026091309},
+    {"replicate": 2, "wave_train_seed": 2026091311, "gray_train_seed": 2026091312, "state_coarse_kmeans_seed": 2026091313, "state_residual_kmeans_seed": 2026091314, "innovation_coarse_kmeans_seed": 2026091315, "innovation_residual_kmeans_seed": 2026091316, "wave_combined_seed": 2026091317, "wave_id_seed": 2026091318, "wave_spectral_seed": 2026091319},
+    {"replicate": 3, "wave_train_seed": 2026091321, "gray_train_seed": 2026091322, "state_coarse_kmeans_seed": 2026091323, "state_residual_kmeans_seed": 2026091324, "innovation_coarse_kmeans_seed": 2026091325, "innovation_residual_kmeans_seed": 2026091326, "wave_combined_seed": 2026091327, "wave_id_seed": 2026091328, "wave_spectral_seed": 2026091329}
+  ],
+  "paired_execution_rule": "Each replicate uses exactly the same generated training/evaluation trajectories for both arms. Run each paired replicate exactly once in an independent process and persist its result immediately. No retry, replacement seed, codebook-size change, predictor change, threshold change, or hyperparameter tuning after a consumed attempt.",
+  "screen_decision_rule": {
+    "go_to_separate_confirmatory_stage_only_if_all_are_true": [
+      "innovation primary h3 ratio is strictly lower than matched state-RVQ primary h3 ratio in all 3 fresh paired replicates",
+      "median across the 3 paired values of innovation_ratio/state_ratio is <= 0.80",
+      "innovation primary h3 ratio is < 1.0 versus raw persistence in at least 2 of 3 fresh paired replicates"
+    ],
+    "otherwise": "SCREEN_FAIL_OR_INCONCLUSIVE; retain all unfavorable results and do not promote the representation without a new preregistered hypothesis."
+  },
+  "implementation_validation_before_seed_consumption": [
+    "unit test exact 18-bit nominal accounting for both arms",
+    "unit test causal innovation decode uses no current/future raw state except the frame being encoded",
+    "unit test frame-0 anchor plus zero innovation reconstructs a static trajectory",
+    "unit test innovation projection is algebraically previous_reconstruction + decoded_innovation",
+    "unit test paired arms receive byte-for-byte identical raw train/eval arrays",
+    "smoke test may use a dedicated non-listed seed only and cannot count toward the screen"
+  ],
+  "claim_limit": "This is an engineering representation screen on known synthetic PDEs. Even a GO result would only justify a separately preregistered confirmatory stage; it would not establish novel physics, general scientific-law discovery, AGI, or SSI."
+}
