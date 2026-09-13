@@ -1,0 +1,9 @@
+{
+  "experiment": "physics-token-phase8-wave-failure-decomposition-v1",
+  "replicate": 2,
+  "status": "INFRASTRUCTURE_INCOMPLETE",
+  "seeds": {"wave_train":980201,"gray_train":980202,"coarse_kmeans":78011,"residual_kmeans":78012,"combined_wave":980213},
+  "cause": "The independent local process exceeded its execution timeout before writing a durable result file.",
+  "scientific_evidence": false,
+  "same_seeds_must_not_be_reused": true
+}
