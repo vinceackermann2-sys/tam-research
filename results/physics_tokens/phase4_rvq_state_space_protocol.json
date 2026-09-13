@@ -1,0 +1,51 @@
+{
+  "experiment": "physics-token-phase4-rvq-local-state-space-v1",
+  "status": "PREREGISTERED_BEFORE_CONFIRMATORY_RUNS",
+  "parent_phase3_head": "7fbf12fe64f827b660469562e5b46d29e94ec943",
+  "hypothesis": "The remaining failure after removing the supplied temporal integrator is primarily hard-quantization error. A compact two-stage residual discrete code should preserve enough state for a generic learned local spatiotemporal law to extrapolate without receiving the Laplacian, wave-speed labels, or velocity-Verlet update.",
+  "frozen_representation": {
+    "grid": 16,
+    "dt": 0.12,
+    "normalization_and_codec_training_seed": 74194,
+    "codec_training_sequences": 128,
+    "codec_training_seq_len": 8,
+    "codec_training_wave_speed_range": [0.6, 1.0],
+    "codec_training_max_initial_mode": 3,
+    "coarse_codebook_size": 256,
+    "coarse_kmeans_seed": 74193,
+    "residual_codebook_size": 32,
+    "residual_kmeans_seed": 74210,
+    "kmeans_iters": 20,
+    "kmeans_max_points": 60000,
+    "tokens_per_cell": 2,
+    "nominal_code_bits_per_cell": 13
+  },
+  "learned_transition": {
+    "input": "decoded two-stage residual-VQ states only",
+    "local_features": "full 3x3 neighborhood of both state channels (18 features)",
+    "per_training_sequence_map": "ridge least-squares one-step map from 18 local features to the next 2-channel state",
+    "per_sequence_map_ridge": 0.0001,
+    "family_learning": "PCA over flattened per-sequence 2x18 maps; use mean plus top 12 principal directions",
+    "latent_dimensions": 12,
+    "inference_context_frames": 3,
+    "latent_inference": "ridge least squares from the two observed context transitions",
+    "latent_inference_ridge": 0.00001,
+    "rollout": "generic one-step local linear state-space map; recursive; requantize through both residual-VQ stages after every predicted step",
+    "true_wave_speed_labels_used": false,
+    "true_laplacian_used": false,
+    "velocity_verlet_or_known_integrator_used": false
+  },
+  "confirmatory_replicates": [
+    {"replicate": 1, "transition_train_seed": 74601, "id_seed": 74602, "spectrum_seed": 74603, "combined_seed": 74604},
+    {"replicate": 2, "transition_train_seed": 74611, "id_seed": 74612, "spectrum_seed": 74613, "combined_seed": 74614},
+    {"replicate": 3, "transition_train_seed": 74621, "id_seed": 74622, "spectrum_seed": 74623, "combined_seed": 74624}
+  ],
+  "transition_training_distribution": {"num_sequences": 128, "seq_len": 8, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 3},
+  "evaluation": {
+    "id": {"num_sequences": 48, "seq_len": 16, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 3, "primary_horizon": 8},
+    "spectrum_ood": {"num_sequences": 48, "seq_len": 8, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 6, "primary_horizon": 3},
+    "combined_ood": {"num_sequences": 48, "seq_len": 8, "wave_speed_range": [1.15, 1.35], "max_initial_mode": 6, "primary_horizon": 3}
+  },
+  "frozen_pass_rule": "PASS only if every one of the 3 fresh transition-training/evaluation replicates has requantized rollout MSE ratio < 1.0 versus raw-state persistence on ID h8, spectrum-OOD h3, and combined-OOD h3. No retry or replacement of a failed replicate. Reconstruction NMSE and latent diagnostics are secondary and cannot rescue failure.",
+  "claim_limit": "A pass would show that a hierarchical discrete state representation plus a learned local low-rank spatiotemporal family can extrapolate in this synthetic wave system without the exact spatial law, speed labels, or known temporal integrator. Locality, linearity, and low-rank family structure remain supplied priors; this is not unrestricted scientific-law discovery."
+}
