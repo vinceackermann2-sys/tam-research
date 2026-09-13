@@ -1,0 +1,72 @@
+{
+  "seeds": {
+    "wave": 2026091311,
+    "gray": 2026091312,
+    "sc1": 2026091313,
+    "sc2": 2026091314,
+    "ic1": 2026091315,
+    "ic2": 2026091316,
+    "combined": 2026091317,
+    "id": 2026091318,
+    "spectral": 2026091319
+  },
+  "codec": {
+    "state_mean": [0.40997743606567383, 0.05097467824816704],
+    "state_std": [0.6761425137519836, 0.22481504082679749],
+    "innovation_mean": [-0.01158333383500576, 0.004540496505796909],
+    "innovation_std": [0.03623730316758156, 0.042792659252882004],
+    "coarse": 2048,
+    "residual": 128
+  },
+  "primary_combined_ood_h3": {
+    "persistence_mse": 0.23621182143688202,
+    "state_ratio": 0.5406929273556803,
+    "innovation_ratio": 0.5532979722881292,
+    "innovation_over_state": 1.0233127608938686,
+    "state_mse": 0.12771806120872498,
+    "innovation_mse": 0.13069552183151245,
+    "raw_fit_state_projection_ratio": 0.3520663160590079,
+    "raw_fit_innovation_projection_ratio": 0.4414022868037265,
+    "state_target_oracle_ratio": 0.3029958792970461,
+    "innovation_target_oracle_ratio": 0.4198873990365954,
+    "state_context_mse": 0.0008708153618499637,
+    "innovation_context_mse": 0.01926635392010212,
+    "state_context_delta_mse": 0.0013096727197989821,
+    "innovation_context_delta_mse": 0.011456921696662903
+  },
+  "secondary_id_h8": {
+    "persistence_mse": 0.10170958191156387,
+    "state_ratio": 0.17934485971922381,
+    "innovation_ratio": 0.27095206959021784,
+    "innovation_over_state": 1.5107880427373894,
+    "state_mse": 0.018241090700030327,
+    "innovation_mse": 0.027558421716094017,
+    "raw_fit_state_projection_ratio": 0.013602145272048399,
+    "raw_fit_innovation_projection_ratio": 0.0013627231440572127,
+    "state_target_oracle_ratio": 0.006366247431824636,
+    "innovation_target_oracle_ratio": 0.00011605295779081044,
+    "state_context_mse": 3.9386348362313583e-05,
+    "innovation_context_mse": 2.252048216178082e-05,
+    "state_context_delta_mse": 7.038561307126656e-05,
+    "innovation_context_delta_mse": 2.2812755560153164e-05
+  },
+  "secondary_spectral_h3": {
+    "persistence_mse": 0.05265703797340393,
+    "state_ratio": 0.10995899297178015,
+    "innovation_ratio": 0.09073407663634764,
+    "innovation_over_state": 0.825162855571382,
+    "state_mse": 0.005790114868432283,
+    "innovation_mse": 0.0047777877189219,
+    "raw_fit_state_projection_ratio": 0.023276404055715252,
+    "raw_fit_innovation_projection_ratio": 0.036800920052018335,
+    "state_target_oracle_ratio": 0.018352711804500255,
+    "innovation_target_oracle_ratio": 0.035605752055745815,
+    "state_context_mse": 3.573799767764285e-05,
+    "innovation_context_mse": 0.000240675377426669,
+    "state_context_delta_mse": 6.39424251858145e-05,
+    "innovation_context_delta_mse": 0.00015362436533905566
+  },
+  "runtime_seconds": 22.442859411239624,
+  "replicate": 2,
+  "status": "PHASE9_PAIRED_ENGINEERING_SCREEN"
+}
