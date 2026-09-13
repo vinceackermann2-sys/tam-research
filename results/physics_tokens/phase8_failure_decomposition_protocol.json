@@ -1,0 +1,52 @@
+{
+  "experiment": "physics-token-phase8-wave-failure-decomposition-v1",
+  "status": "PREREGISTERED_BEFORE_DIAGNOSTIC_RUNS",
+  "parent_phase7_head": "df6046da25d0d843eb228470cfc72700fc7797d0",
+  "purpose": "Decompose the Phase-7 combined wave OOD failure into candidate-law/estimator error, context-tokenization error, recursive requantization error, and irreducible target-token codec error.",
+  "frozen_phase7_model_components": {
+    "grid": 16,
+    "wave_dt": 0.12,
+    "training_wave_c_range": [0.6, 1.0],
+    "training_gray_F_range": [0.025, 0.045],
+    "training_gray_k_range": [0.055, 0.065],
+    "training_sequences_per_family": 64,
+    "shared_two_stage_rvq": {"coarse": 2048, "residual": 128},
+    "context_frames": 3,
+    "feature_dim": 16,
+    "features": "constant; per channel center, D4 axial radius-1 sum, diagonal radius-1 sum, axial radius-2 sum; generic center monomials u^2, uv, v^2, u^3, u^2v, uv^2, v^3",
+    "ridge": 0.001,
+    "dynamics_coordinates": "physical units"
+  },
+  "diagnostic_test": {
+    "law": "wave",
+    "num_sequences": 48,
+    "seq_len": 8,
+    "c_range": [1.15, 1.35],
+    "max_mode": 6,
+    "primary_horizon": 3,
+    "baseline": "raw-state persistence"
+  },
+  "cases": {
+    "raw_context_raw_start_continuous": "Fit the unchanged 16-feature Phase-7 local map from true raw physical context and roll continuously from the raw last context frame.",
+    "raw_context_quantized_start_continuous": "Fit from raw context, start from decoded-token last context frame, then roll continuously without further tokenization.",
+    "raw_context_quantized_start_requantized": "Fit from raw context, start from decoded-token context state, and requantize through the shared RVQ after every recursive step.",
+    "quantized_context_quantized_start_continuous": "Fit from decoded-token context exactly as Phase 7, then roll continuously without further tokenization.",
+    "quantized_context_quantized_start_requantized": "Exact Phase-7 path: fit from decoded-token context and requantize after every recursive step.",
+    "target_token_oracle": "Quantize/decode the true horizon-3 target and compare it with the raw target."
+  },
+  "fresh_diagnostic_replicates": [
+    {"replicate":1,"wave_train_seed":980101,"gray_train_seed":980102,"coarse_kmeans_seed":78001,"residual_kmeans_seed":78002,"combined_wave_seed":980113},
+    {"replicate":2,"wave_train_seed":980201,"gray_train_seed":980202,"coarse_kmeans_seed":78011,"residual_kmeans_seed":78012,"combined_wave_seed":980213},
+    {"replicate":3,"wave_train_seed":980301,"gray_train_seed":980302,"coarse_kmeans_seed":78021,"residual_kmeans_seed":78022,"combined_wave_seed":980313}
+  ],
+  "execution_rule": "Run each diagnostic replicate exactly once in an independent process and persist its result immediately. No reruns with the same seeds if interrupted after consumption.",
+  "causal_readout": {
+    "case1_fails": "The candidate law family or estimator is itself insufficient even without tokenization.",
+    "case1_passes_case2_fails": "The decoded token state is too distorted even when coefficients are inferred from raw context.",
+    "case2_passes_case3_fails": "Recursive requantization is the dominant bottleneck.",
+    "cases1_to3_pass_case4_or5_fails": "Quantized context corrupts system identification; coefficient estimation from tokenized observations is the dominant bottleneck.",
+    "case4_passes_case5_fails": "Repeated rollout tokenization is the dominant bottleneck after token-context identification.",
+    "oracle_near_or_above_1": "The representation itself makes the requested horizon close to or worse than persistence even with perfect target token IDs."
+  },
+  "claim_limit": "Diagnostic only. This phase locates a failure mechanism; it does not establish a new scientific capability."
+}
