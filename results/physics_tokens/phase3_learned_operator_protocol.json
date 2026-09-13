@@ -1,0 +1,46 @@
+{
+  "experiment": "physics-token-phase3-learned-local-operator-v1",
+  "status": "PREREGISTERED_BEFORE_CONFIRMATORY_RUNS",
+  "parent_phase2_head": "71e26886a2bc7bd03e96cb3cb9735cfd0a202e63",
+  "hypothesis": "The frozen 256-token state representation can support spectral and wave-speed OOD generalization even when the exact spatial Laplacian is not supplied, provided the transition is constrained to a learnable local operator plus a context-inferred scalar coefficient.",
+  "frozen_codec": {
+    "grid": 16,
+    "dt": 0.12,
+    "codec_training_seed": 74194,
+    "codec_training_sequences": 128,
+    "codec_training_seq_len": 8,
+    "codec_training_wave_speed_range": [0.6, 1.0],
+    "codec_training_max_initial_mode": 3,
+    "codebook_size": 256,
+    "kmeans_seed": 74193,
+    "kmeans_iters": 20,
+    "kmeans_max_points": 60000
+  },
+  "learned_operator": {
+    "input_data": "decoded states from frozen discrete tokens only",
+    "spatial_family": "unconstrained 3x3 periodic linear convolution kernel",
+    "kernel_fit": "ridge least squares mapping midpoint displacement u_avg=(u_t+u_t+1)/2 to observed velocity derivative (v_t+1-v_t)/dt over all quantized training transitions",
+    "ridge": 1e-5,
+    "true_wave_speed_labels_used_for_kernel_fit": false,
+    "true_laplacian_used_for_kernel_fit": false,
+    "time_update_prior": "velocity-Verlet form is supplied; acceleration is scale * learned_kernel(u)",
+    "context_frames": 3,
+    "sequence_scale_inference": "closed-form least-squares scalar from the two observed quantized context transitions",
+    "sequence_scale_clip": [0.1, 4.0],
+    "true_wave_speed_labels_used_at_inference": false,
+    "rollout": "recursive with requantization to the same 256-token codebook after every predicted step"
+  },
+  "confirmatory_replicates": [
+    {"replicate": 1, "operator_train_seed": 74501, "id_seed": 74502, "spectrum_seed": 74503, "combined_seed": 74504},
+    {"replicate": 2, "operator_train_seed": 74511, "id_seed": 74512, "spectrum_seed": 74513, "combined_seed": 74514},
+    {"replicate": 3, "operator_train_seed": 74521, "id_seed": 74522, "spectrum_seed": 74523, "combined_seed": 74524}
+  ],
+  "operator_training_distribution": {"num_sequences": 128, "seq_len": 8, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 3},
+  "evaluation": {
+    "id": {"num_sequences": 48, "seq_len": 16, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 3, "primary_horizon": 8},
+    "spectrum_ood": {"num_sequences": 48, "seq_len": 8, "wave_speed_range": [0.6, 1.0], "max_initial_mode": 6, "primary_horizon": 3},
+    "combined_ood": {"num_sequences": 48, "seq_len": 8, "wave_speed_range": [1.15, 1.35], "max_initial_mode": 6, "primary_horizon": 3}
+  },
+  "frozen_pass_rule": "PASS only if every one of the 3 fresh replicates has requantized rollout MSE ratio < 1.0 versus raw-state persistence on ID h8, spectrum-OOD h3, and combined-OOD h3. No retry or replacement of a failed replicate. Kernel similarity to the true Laplacian and inferred-scale correlations are secondary diagnostics only.",
+  "claim_limit": "A pass would demonstrate learned local-operator extrapolation in this synthetic wave benchmark from quantized trajectories. It would not establish general scientific-law discovery because the 3x3 locality and velocity-Verlet temporal form are supplied priors."
+}
