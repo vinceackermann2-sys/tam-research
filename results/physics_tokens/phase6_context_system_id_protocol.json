@@ -1,0 +1,50 @@
+{
+  "experiment": "physics-token-phase6-shared-context-system-id-v1",
+  "status": "PREREGISTERED_BEFORE_CONFIRMATORY_RUNS",
+  "parent_phase5_head": "48307e4e35c0c313ea1069189c2ad83e4757f23a",
+  "hypothesis": "One shared hierarchical discrete state representation plus a generic context-fitted local transition law can identify and roll out two qualitatively different PDE families without an explicit law identifier, family-specific router, governing equations, or hidden parameter labels.",
+  "training_mixture": {
+    "law_labels_given_to_model": false,
+    "wave_sequences": 64,
+    "gray_scott_sequences": 64,
+    "seq_len": 8,
+    "grid": 16,
+    "wave": {"c_range": [0.6, 1.0], "dt": 0.12, "initial_modes": "training generator default low-frequency modes"},
+    "gray_scott": {"F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "Du": 0.16, "Dv": 0.08, "dt": 1.0, "substeps_per_saved_frame": 4, "initialization": "smooth"}
+  },
+  "shared_representation": {
+    "normalization": "single mean/std fitted jointly across both law families",
+    "two_stage_residual_vq": true,
+    "coarse_codebook_size": 1024,
+    "residual_codebook_size": 64,
+    "tokens_per_cell": 2,
+    "kmeans_iters": 20,
+    "kmeans_max_points": 60000
+  },
+  "transition_identification": {
+    "context_frames": 3,
+    "law_identifier": false,
+    "training_family_model": false,
+    "features": "same generic 25-dimensional basis for every sequence: full 3x3 neighborhood of both channels (18) plus center monomials u^2, uv, v^2, u^3, u^2v, uv^2, v^3 (7)",
+    "fit": "for each test sequence independently, ridge least-squares 2x25 local map from the two observed quantized context transitions",
+    "ridge": 0.01,
+    "rollout": "recursive; every predicted frame is requantized through the same shared two-stage RVQ before the next step"
+  },
+  "confirmatory_replicates": [
+    {"replicate": 1, "wave_train_seed": 92501, "gray_train_seed": 92502, "coarse_kmeans_seed": 75701, "residual_kmeans_seed": 75702, "wave_id_seed": 92511, "wave_spectral_seed": 92512, "wave_combined_seed": 92513, "gray_id_seed": 92521, "gray_sharp_seed": 92522, "gray_parameter_seed": 92523, "gray_combined_seed": 92524},
+    {"replicate": 2, "wave_train_seed": 92601, "gray_train_seed": 92602, "coarse_kmeans_seed": 75711, "residual_kmeans_seed": 75712, "wave_id_seed": 92611, "wave_spectral_seed": 92612, "wave_combined_seed": 92613, "gray_id_seed": 92621, "gray_sharp_seed": 92622, "gray_parameter_seed": 92623, "gray_combined_seed": 92624},
+    {"replicate": 3, "wave_train_seed": 92701, "gray_train_seed": 92702, "coarse_kmeans_seed": 75721, "residual_kmeans_seed": 75722, "wave_id_seed": 92711, "wave_spectral_seed": 92712, "wave_combined_seed": 92713, "gray_id_seed": 92721, "gray_sharp_seed": 92722, "gray_parameter_seed": 92723, "gray_combined_seed": 92724}
+  ],
+  "evaluation": {
+    "wave_id": {"num_sequences": 48, "seq_len": 16, "c_range": [0.6, 1.0], "primary_horizon": 8},
+    "wave_spectral_ood": {"num_sequences": 48, "seq_len": 8, "c_range": [0.6, 1.0], "max_mode": 6, "primary_horizon": 3},
+    "wave_combined_ood": {"num_sequences": 48, "seq_len": 8, "c_range": [1.15, 1.35], "max_mode": 6, "primary_horizon": 3},
+    "gray_id": {"num_sequences": 48, "seq_len": 16, "F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "initialization": "smooth", "primary_horizon": 8},
+    "gray_sharp_ood": {"num_sequences": 48, "seq_len": 8, "F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "initialization": "sharp", "primary_horizon": 3},
+    "gray_parameter_ood": {"num_sequences": 48, "seq_len": 8, "F_range": [0.050, 0.060], "k_range": [0.045, 0.055], "initialization": "smooth", "primary_horizon": 3},
+    "gray_combined_ood": {"num_sequences": 48, "seq_len": 8, "F_range": [0.050, 0.060], "k_range": [0.045, 0.055], "initialization": "sharp", "primary_horizon": 3}
+  },
+  "frozen_pass_rule": "PASS only if every one of the 3 fresh end-to-end replicates has requantized rollout MSE ratio < 1.0 versus raw-state persistence on all seven primary tests. No retry or replacement of a failed or consumed replicate.",
+  "execution_rule": "Run each replicate exactly once in an independent process and persist its result immediately before starting the next replicate.",
+  "claim_limit": "A pass would show context-based identification and recursive prediction across two synthetic PDE law families under a single shared discrete representation and a single generic local polynomial feature prior. It would not establish unrestricted law discovery because locality and the degree-3 feature basis are supplied."
+}
