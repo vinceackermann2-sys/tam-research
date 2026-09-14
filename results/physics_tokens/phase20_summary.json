@@ -1,0 +1,42 @@
+{
+  "phase": 20,
+  "status": "FAIL",
+  "experiment": "physics-token-phase20-random-stencil-projection-v1",
+  "feature_library": "random_orthogonal_5x2_patch_projection_plus_center_polynomial_v1",
+  "feature_dim": 18,
+  "spatial_rank_per_channel": 5,
+  "full_local_stencil_rank_per_channel": 9,
+  "basis_data_independent": true,
+  "registered_replicates": 3,
+  "required_cells": 45,
+  "passing_cells": 19,
+  "failing_cells": 26,
+  "per_replicate_passing_cells": [7, 6, 6],
+  "replicate_all_fifteen_pass": [false, false, false],
+  "per_split_median": {
+    "wave_id_h8": 4.57665008405716,
+    "wave_spectral_ood_h3": 1.757866436356343,
+    "wave_combined_ood_h3": 0.37346642717812434,
+    "gray_id_h8": 0.10184563492039608,
+    "gray_sharp_ood_h3": 0.06685646726552569,
+    "gray_parameter_ood_h3": 0.03747063338573035,
+    "gray_combined_ood_h3": 0.06301602972957437,
+    "nls_id_h8": 130.60751469798487,
+    "nls_spectral_ood_h3": 45.53841982429494,
+    "nls_parameter_ood_h3": 3.0940209988187357,
+    "nls_combined_ood_h3": 12.012157033192707,
+    "adv_id_h8": 6.285144160913177,
+    "adv_spectral_ood_h3": 10.98273270809389,
+    "adv_speed_ood_h3": 0.2803320065451708,
+    "adv_combined_ood_h3": 1.6477208029994859
+  },
+  "worst_registered_cell": 165.36958338004877,
+  "interpretation": "Three independent data-independent random orthogonal projections from the full 9-dimensional per-channel 3x3 stencil to rank 5 all failed the frozen 45/45 gate. Together with Phase 18 PCA compression and Phase 19 transition-predictive compression, this indicates that the failure is not specific to a variance or predictiveness objective. At rank 5, removing four local spatial directions can destroy dynamics-critical information for wave, NLS, and advection even though Gray-Scott remains robust.",
+  "comparison_to_phase17": "The uncompressed unnamed 3x3 stencil in Phase 17 passed all 45 registered cells. Phase 20 therefore brackets a real gap between rank 5 and rank 9 spatial operator coverage but does not yet locate the minimal sufficient rank.",
+  "provenance": {
+    "replicate_1": "full registered JSON committed normally",
+    "replicate_2": "registered execution completed once; primary metrics recovered from exact execution stdout after ephemeral local artifact loss; no rerun; secondary split diagnostics unavailable",
+    "replicate_3": "registered execution completed once after reconstructing the sealed execution path from the committed Phase-10/16/17/20 source because the earlier ephemeral workspace had been recycled"
+  },
+  "claim_limit": "Synthetic known-law systems only. Random rank-5 failure does not prove that no specially structured rank-5 basis can work, nor does it establish a universal lower bound. It motivates a preregistered paired rank sweep to locate the sufficiency threshold under data-independent projections."
+}
