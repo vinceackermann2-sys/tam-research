@@ -1,0 +1,50 @@
+{
+  "phase": 20,
+  "experiment": "physics-token-phase20-random-stencil-projection-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent_evidence": ["Phase-17 full 3x3 stencil PASS", "Phase-18 5D/channel PCA FAIL", "Phase-19 5D/channel transition-predictive basis FAIL"],
+  "question": "Is the failure of learned 5-of-9 spatial projections mainly caused by data-dependent subspace selection, or is a rank-5 per-channel spatial bottleneck itself insufficient for robust four-family transfer?",
+  "representation": {
+    "unchanged": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false
+  },
+  "spatial_projection": {
+    "data_independent": true,
+    "patch": "raw periodic 3x3 patch per input channel",
+    "components_per_channel": 5,
+    "method": "independent seeded Gaussian 9x5 matrices followed by reduced QR; transpose Q gives 5 orthonormal rows; row signs canonicalized by largest-magnitude element positive",
+    "basis_uses_physics_data": false,
+    "basis_uses_family_labels": false
+  },
+  "identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "feature_dim": 18,
+    "features": "constant + five fixed random orthogonal patch projections per channel + seven degree-2/3 center monomials",
+    "named_derivatives_supplied": false,
+    "raw_stencil_values_supplied_directly": false,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false
+  },
+  "registered_replicates": [
+    {"replicate":1,"seed_prefix":8202000,"basis_seeds":[820200007,820200008]},
+    {"replicate":2,"seed_prefix":8202001,"basis_seeds":[820200107,820200108]},
+    {"replicate":3,"seed_prefix":8202002,"basis_seeds":[820200207,820200208]}
+  ],
+  "evaluation": {
+    "wave": ["id_h8","spectral_ood_h3","combined_ood_h3"],
+    "gray_scott": ["id_h8","sharp_ood_h3","parameter_ood_h3","combined_ood_h3"],
+    "nls": ["id_h8","spectral_ood_h3","parameter_ood_h3","combined_ood_h3"],
+    "advection": ["id_h8","spectral_ood_h3","speed_ood_h3","combined_ood_h3"]
+  },
+  "frozen_pass_rule": "PASS only if all 45 registered split-replicate cells have companded rollout MSE / raw-state persistence MSE < 1.0. Any single cell >=1 makes Phase 20 FAIL. No retries or replacement of consumed seeds.",
+  "interpretation_rule": "A robust FAIL, together with Phase 17 PASS and Phases 18/19 FAIL, supports the conclusion that a 5-of-9 per-channel linear spatial bottleneck is not robustly operator-complete for this tested family set, rather than merely showing that PCA or predictive training chose the wrong subspace. A PASS would falsify that rank-bottleneck hypothesis.",
+  "claim_limit": "Synthetic known-law benchmark only; not a theorem about all scientific representations or a novel-physics claim."
+}
