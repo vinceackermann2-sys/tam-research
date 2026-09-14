@@ -1,0 +1,335 @@
+name: CHM-v1 EIEM optimized scientific seed 19591 v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-eiem-optimized-seed-19591-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+    steps:
+      - name: Resolve immutable scientific payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v1-eiem-optimized-seed-19591-v1",
+              "seed": 19591,
+              "research_issue": 959,
+              "run_control_issue": 966,
+              "authorization_comment_id": 5655031401,
+              "result_root": "/vol/chm-v1/eiem-optimized-replication/issue-966/seed-19591-v1",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r}"
+          for key in ("source_sha", "source_tree", "harness_sha"):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
+              print(f"{key}={value}")
+          print("seed=19591")
+          PY
+
+      - name: Checkout exact paid boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on live source and frozen scientific core
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor 22da370b335727973e76fd20d0a3f87f6bb2d320 "$SOURCE_SHA"
+          test "$(git -C source rev-parse 22da370b335727973e76fd20d0a3f87f6bb2d320^{tree})" = "a217d3f88e6784b491c7f3dc4333a22283c2583f"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_eiem_seed19591_v1.py")" = "$HARNESS_SHA"
+          git -C source diff --exit-code 22da370b335727973e76fd20d0a3f87f6bb2d320 "$SOURCE_SHA" -- tam_research architectures/chm_v1
+
+      - name: Verify explicit authorization, final launcher authority, and trigger uniqueness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo = os.environ["GITHUB_REPOSITORY"]
+          owner = repo.split("/", 1)[0]
+          source_sha = os.environ["SOURCE_SHA"]
+          source_tree = os.environ["SOURCE_TREE"]
+          harness_sha = os.environ["HARNESS_SHA"]
+          issue_number = int(os.environ["ISSUE_NUMBER"])
+
+          def gh(path):
+              return json.loads(subprocess.check_output(["gh", "api", path], text=True))
+
+          auth = gh(f"repos/{repo}/issues/comments/5655031401")
+          assert auth["user"]["login"] == owner
+          auth_body = auth["body"]
+          for needle in (
+              "CHM_V1_959_EXPLICIT_OWNER_AUTHORIZATION_SEED_19591",
+              "classification=AUTHORIZED_PAID_GPU_EXECUTION_ENVELOPE",
+              "scientific_seed=19591",
+              "provider=Modal",
+              "gpu=1x NVIDIA L4",
+              "cpu=4 physical cores",
+              "memory=8 GiB",
+              "max_gpu_runtime_seconds=3600",
+              "max_billed_compute_usd=1.25",
+              "automatic_retry=false",
+              "seed_19592_authorized=false",
+              "seed_19593_authorized=false",
+              "legacy_8611_8612_8613_authorized=false",
+          ):
+              assert needle in auth_body, needle
+
+          control = gh(f"repos/{repo}/issues/966")
+          assert control["state"] == "open"
+          assert control["title"] == "[chm-v1-run] EIEM optimized replication — seed 19591 / L4 / $1.25 cap"
+          comments = gh(f"repos/{repo}/issues/966/comments?per_page=100")
+          markers = [
+              c for c in comments
+              if c["user"]["login"] == owner
+              and "CHM_V1_966_FINAL_LAUNCHER_AUTHORITY_V1" in c["body"]
+          ]
+          assert len(markers) == 1, f"need exactly one final launcher authority marker, got {len(markers)}"
+          authority = markers[0]
+          for needle in (
+              f"source_sha={source_sha}",
+              f"source_tree={source_tree}",
+              f"harness_blob={harness_sha}",
+              "ci_status=PASS",
+              "ci_url=https://github.com/",
+              "scientific_seed=19591",
+              "authorization_comment_id=5655031401",
+              "max_billed_compute_usd=1.25",
+          ):
+              assert needle in authority["body"], needle
+
+          trigger = gh(f"repos/{repo}/issues/{issue_number}")
+          assert trigger["user"]["login"] == owner
+          assert trigger["created_at"] > authority["created_at"]
+
+          query = f'repo:{repo} in:title "[modal-chm-v1-eiem-optimized-seed-19591-v1]"'
+          found = json.loads(subprocess.check_output(
+              ["gh", "api", "-X", "GET", "search/issues", "-f", f"q={query}"], text=True
+          ))
+          assert found["total_count"] == 1, found["total_count"]
+          assert found["items"][0]["number"] == issue_number
+          PY
+
+      - name: Run setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Fail closed on live Modal rates and $1.25 cap
+        run: |
+          modal billing rates --json > modal-rates.json
+          cat modal-rates.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rates = json.loads(Path("modal-rates.json").read_text(encoding="utf-8"))
+          l4 = float(rates["gpu_hour_cost_l4"])
+          cpu = float(rates["cpu_hour_cost"])
+          ram = float(rates["mem_gib_hour_cost"])
+          for name, value in (("l4", l4), ("cpu", cpu), ("ram", ram)):
+              assert value > 0.0, f"invalid {name} hourly rate: {value}"
+          one_seed = l4 + 4 * cpu + 8 * ram
+          assert one_seed <= 1.25, f"live Modal bound ${one_seed:.6f} exceeds authorized $1.25 cap"
+          envelope = {
+              "gpu_hour_cost_l4": l4,
+              "cpu_hour_cost_per_core": cpu,
+              "mem_gib_hour_cost": ram,
+              "max_seconds": 3600,
+              "one_seed_bound_usd": one_seed,
+              "authorized_cap_usd": 1.25,
+          }
+          Path("modal-rate-envelope.json").write_text(
+              json.dumps(envelope, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          print(f"CHM-v1 seed19591 live one-hour bound=${one_seed:.6f} <= $1.25")
+          PY
+
+      - name: Run zero-GPU corpus and protocol preflight
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_eiem_seed19591_v1.py \
+            --phase preflight \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" | tee ../zero-gpu.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("zero-gpu.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_ZERO_GPU=", 1)[1] for line in lines if "CHM_V1_ZERO_GPU=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "PASS"
+          assert payload["seed"] == 19591
+          assert payload["research_issue"] == 959
+          assert payload["run_control_issue"] == 966
+          assert payload["authorization_comment_id"] == 5655031401
+          assert payload["gpu_allocated"] is False
+          assert payload["scientific_seed_consumed"] is False
+          plan = payload["execution_manifest"]["evaluation_plan"]
+          assert plan["validation_tokens_per_model"] == 524288
+          assert plan["timing_batch1_sessions"] == 8
+          assert plan["timing_throughput_batches"] == 8
+          Path("zero-gpu.json").write_text(json.dumps(payload, indent=2, sort_keys=True))
+          PY
+
+      - name: Record zero-GPU evidence before allocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > preflight-comment.md
+          import json
+          p = json.load(open("zero-gpu.json", encoding="utf-8"))
+          live = json.load(open("modal-rate-envelope.json", encoding="utf-8"))
+          files = {x["name"]: x for x in p["corpus_fingerprint"]["files"]}
+          print("🟨 **CHM-v1 #959 seed 19591 zero-GPU preflight PASS**")
+          print()
+          print(f"- execution: `{p['execution_code_sha']}`")
+          print(f"- tree: `{p['execution_tree_sha']}`")
+          print(f"- harness blob: `{p['harness_blob_sha']}`")
+          print(f"- train.bin: `{files['train.bin']['sha256']}` ({files['train.bin']['bytes']} bytes)")
+          print(f"- val.bin: `{files['val.bin']['sha256']}` ({files['val.bin']['bytes']} bytes)")
+          print(f"- meta.json: `{files['meta.json']['sha256']}` ({files['meta.json']['bytes']} bytes)")
+          print(f"- live one-hour resource bound: `${live['one_seed_bound_usd']:.6f}` <= $1.25")
+          print("- GPU allocated: **false**; seed 19591 consumed: **false**.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/966/comments" -f body="$(cat preflight-comment.md)"
+
+      - name: Write durable dispatch marker before L4 allocation
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_eiem_seed19591_v1.py \
+            --phase reserve \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" | tee ../dispatch.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("dispatch.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_DISPATCH=", 1)[1] for line in lines if "CHM_V1_DISPATCH=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "DISPATCH_RESERVED"
+          assert payload["seed"] == 19591
+          assert payload["gpu_allocation_started"] is False
+          assert payload["scientific_seed_consumed"] is False
+          assert payload["automatic_retry_authorized"] is False
+          PY
+
+      - name: Record dispatch reservation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > dispatch-comment.md <<'EOF'
+          🟧 **CHM-v1 #959 seed 19591 dispatch reserved.** Durable marker exists before allocation. The next step is the single authorized L4 allocation. Once the GPU function begins, seed 19591 is permanently consumed; no retry or redispatch is authorized.
+          EOF
+          gh api "repos/$GITHUB_REPOSITORY/issues/966/comments" -f body="$(cat dispatch-comment.md)"
+
+      - name: Launch scientific seed 19591 exactly once
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_eiem_seed19591_v1.py \
+            --phase run \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" | tee ../result.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("result.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_RESULT=", 1)[1] for line in lines if "CHM_V1_RESULT=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "COMPLETE"
+          assert payload["seed"] == 19591
+          assert payload["scientific_seed_consumed"] is True
+          assert payload["automatic_retry_authorized"] is False
+          assert payload["next_seed_authorized_automatically"] is False
+          Path("result.json").write_text(json.dumps(payload, indent=2, sort_keys=True))
+          PY
+
+      - name: Record authoritative seed-19591 result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > result-comment.md
+          import json
+          p = json.load(open("result.json", encoding="utf-8"))
+          d = p["derived"]
+          print("🟩 **CHM-v1 #959 seed 19591 scientific attempt COMPLETE**")
+          print()
+          print(f"- classification: `{p['classification']}`")
+          print(f"- seed consumed: `{p['scientific_seed_consumed']}`")
+          print(f"- LOCAL vs EIEM-FLAT NLL delta: `{d['nll_delta']}`")
+          print(f"- optimized vs flat NLL delta: `{d['optimized_minus_flat_nll']}`")
+          print(f"- combined exact match: `{d['combined_exact_match_rate']}`")
+          print(f"- sparse read fraction @1024: `{d['sparse_read_fraction_1024']}`")
+          print(f"- flat practical seconds: `{d['flat_reference_practical_seconds']}`")
+          print(f"- optimized-indexed practical seconds: `{d['optimized_indexed_practical_seconds']}`")
+          print(f"- immediate stop reasons: `{p['immediate_stop_reasons']}`")
+          print("- seed 19592 is **not** automatically authorized.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/966/comments" -f body="$(cat result-comment.md)"
+
+      - name: Record workflow failure without retry
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/966/comments" \
+            -f body="🟥 **CHM-v1 #959 seed-19591 launcher workflow failed.** Do not retry or redispatch automatically. Workflow failure is not scientific evidence. Inspect the durable Modal namespace `/vol/chm-v1/eiem-optimized-replication/issue-966/seed-19591-v1` to determine whether `SEED_CONSUMED.json`, `ATTEMPT_FAILURE.json`, or `RESULT.json` exists before any next action. Seed 19592 remains blocked."
