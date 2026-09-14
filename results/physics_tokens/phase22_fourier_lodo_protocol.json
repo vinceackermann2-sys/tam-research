@@ -1,0 +1,75 @@
+{
+  "phase": 22,
+  "experiment": "physics-token-phase22-fourier-leave-one-direction-out-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-21 paired random rank sweep found rank 9 sufficient and ranks 5-8 insufficient under random nested projections",
+  "question": "Can any structured rank-8 subspace of the 3x3 neighborhood preserve full transfer, and which single local spatial Fourier mode is dynamically critical when omitted?",
+  "representation": {
+    "unchanged_from_phase21": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false
+  },
+  "spatial_basis": {
+    "basis": "fixed real orthonormal 3x3 discrete Fourier basis, identical for both state channels",
+    "patch_coordinates": "x,y in {-1,0,1} matching the frozen 3x3 stencil ordering",
+    "modes": [
+      "dc",
+      "cos_x", "sin_x",
+      "cos_y", "sin_y",
+      "cos_diag_plus", "sin_diag_plus",
+      "cos_diag_minus", "sin_diag_minus"
+    ],
+    "construction": "dc=1/3; each nonzero real Fourier cosine/sine mode uses sqrt(2/9) normalization for frequency representatives (1,0),(0,1),(1,1),(1,-1)",
+    "full_control_rank": 9,
+    "leave_one_out_rank": 8,
+    "lodo_variants": "nine variants; each removes the same named Fourier mode from both channels",
+    "lodo_feature_dim": 24,
+    "full_control_feature_dim": 26,
+    "center_polynomial_features": 7,
+    "basis_fit_to_physics_data": false,
+    "named_physical_derivatives_supplied": false,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false
+  },
+  "identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "fit_separately_from_context_for_each_evaluation_trajectory": true,
+    "recursive_state_projection": "same frozen Phase-10 18-bit companded token representation after every predicted step"
+  },
+  "registered_replicates": [
+    {"replicate":1,"seed_prefix":8222200},
+    {"replicate":2,"seed_prefix":8222201},
+    {"replicate":3,"seed_prefix":8222202}
+  ],
+  "paired_design": "Within each replicate, the full-rank control and all nine leave-one-out variants share exactly the same representation codebooks, physical evaluation trajectories, context and targets. Only the omitted fixed Fourier mode changes.",
+  "evaluation": {
+    "wave": ["id_h8", "spectral_ood_h3", "combined_ood_h3"],
+    "gray_scott": ["id_h8", "sharp_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "nls": ["id_h8", "spectral_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "advection": ["id_h8", "spectral_ood_h3", "speed_ood_h3", "combined_ood_h3"]
+  },
+  "control_rule": "The rank-9 full Fourier basis must pass all 45 registered cells. If it does not, Phase 22 is CONTROL_FAIL and leave-one-out sufficiency conclusions are not interpreted.",
+  "primary_rule": "Conditional on the full-rank control passing, a leave-one-out variant is called sufficient only if all 45 registered cells beat persistence. A Fourier mode is operationally critical in this protocol if omitting it causes any registered failure. A mode is operationally dispensable only if its omission passes 45/45. All nine variants are evaluated; no posthoc mode replacement or basis rotation is allowed.",
+  "primary_outcomes": [
+    "whether any structured rank-8 leave-one-out variant is sufficient",
+    "set of modes whose omission is sufficient",
+    "set of modes whose omission is critical under the frozen gate"
+  ],
+  "secondary_diagnostics": [
+    "per-variant pass count out of 45",
+    "per-split median ratio by omitted mode",
+    "worst registered cell by omitted mode",
+    "family-specific failure patterns",
+    "context and rollout clipping",
+    "comparison with Phase-21 random rank-8 variability"
+  ],
+  "failure_policy": "All registered outcomes are retained. No consumed replicate is rerun or replaced. A passing omission cannot erase failures of other omissions. The full-rank control cannot be tuned after execution.",
+  "claim_limit": "Synthetic known-law systems only. Fourier-mode omission identifies sensitivity within this fixed representation and simulator suite; it is not a universal decomposition of physical law, proof of minimal operator dimension, or discovery of new physics."
+}
