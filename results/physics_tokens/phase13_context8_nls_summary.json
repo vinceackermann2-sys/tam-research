@@ -1,0 +1,31 @@
+{
+  "experiment": "physics-token-phase13-context8-unseen-nls-v1",
+  "status": "PASS",
+  "registered_replicates_completed": 3,
+  "retries_or_replacements": 0,
+  "context_frames": 8,
+  "observed_transitions_used": 7,
+  "nls_used_in_representation_training": false,
+  "pass_rule": "PASS only if the frozen companded arm has ratio < 1.0 versus raw persistence on all four NLS tests in all three fresh replicates (12/12 cells).",
+  "per_split_companded_ratios": {
+    "nls_id_h8": [0.2359188198089843, 0.13747223290942817, 0.43290198846604167],
+    "nls_spectral_ood_h3": [0.2299277383441559, 0.09718338507864176, 0.4017298351098805],
+    "nls_parameter_ood_h3": [0.14646394786504488, 0.07493532135112782, 0.1665719148579238],
+    "nls_combined_ood_h3": [0.043806096072421, 0.02392861434176243, 0.086536183014828]
+  },
+  "median_companded_ratios": {
+    "nls_id_h8": 0.2359188198089843,
+    "nls_spectral_ood_h3": 0.2299277383441559,
+    "nls_parameter_ood_h3": 0.14646394786504488,
+    "nls_combined_ood_h3": 0.043806096072421
+  },
+  "cell_pass_counts": {
+    "nls_id_h8": "3/3",
+    "nls_spectral_ood_h3": "3/3",
+    "nls_parameter_ood_h3": "3/3",
+    "nls_combined_ood_h3": "3/3",
+    "overall": "12/12"
+  },
+  "interpretation": "Phase 13 changes only the amount of observed context relative to Phase 12: eight decoded context frames and seven observed transitions are used instead of three frames and two transitions. The tokenizer, compander, 16-feature basis, ridge, wave+Gray-only representation training mixture, NLS generator and evaluation regimes remain frozen. The 12/12 pass supports the Phase-12 diagnosis that short-context transition-estimation noise, rather than representation capacity, caused the unseen-NLS failure. More independent observed transitions reduce coefficient-estimation error enough for robust long-horizon and OOD rollouts on this synthetic NLS family.",
+  "claim_limit": "This confirms context sufficiency for this fixed representation+identifier on one known synthetic unseen PDE family. It does not establish a universal scientific tokenizer, unrestricted law discovery, novel physics, AGI, or SSI."
+}
