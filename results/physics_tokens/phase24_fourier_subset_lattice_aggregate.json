@@ -1,0 +1,21 @@
+{
+  "phase":24,
+  "status":"PASS",
+  "control_pass_45_of_45":true,
+  "minimum_tested_sufficient_rank":6,
+  "rank_summary":{
+    "9":{"variant_count":1,"sufficient_variants":["none"],"insufficient_variants":[]},
+    "8":{"variant_count":4,"sufficient_variants":["omit__sin_x","omit__sin_y","omit__sin_diag_plus","omit__sin_diag_minus"],"insufficient_variants":[]},
+    "7":{"variant_count":6,"sufficient_variants":["omit__sin_x__sin_y","omit__sin_x__sin_diag_plus","omit__sin_x__sin_diag_minus","omit__sin_y__sin_diag_plus","omit__sin_y__sin_diag_minus","omit__sin_diag_plus__sin_diag_minus"],"insufficient_variants":[]},
+    "6":{"variant_count":4,"sufficient_variants":["omit__sin_x__sin_y__sin_diag_plus","omit__sin_x__sin_y__sin_diag_minus","omit__sin_x__sin_diag_plus__sin_diag_minus","omit__sin_y__sin_diag_plus__sin_diag_minus"],"insufficient_variants":[]},
+    "5":{"variant_count":1,"sufficient_variants":[],"insufficient_variants":["omit__sin_x__sin_y__sin_diag_plus__sin_diag_minus"]}
+  },
+  "rank6_worst_registered_cells":{
+    "omit__sin_x__sin_y__sin_diag_plus":{"replicate":2,"split":"adv_id_h8","ratio":0.7258060863829812},
+    "omit__sin_x__sin_y__sin_diag_minus":{"replicate":2,"split":"nls_id_h8","ratio":0.6982878261756436},
+    "omit__sin_x__sin_diag_plus__sin_diag_minus":{"replicate":2,"split":"nls_id_h8","ratio":0.8042262004295444},
+    "omit__sin_y__sin_diag_plus__sin_diag_minus":{"replicate":2,"split":"nls_id_h8","ratio":0.7464086287192295}
+  },
+  "rank5_result":{"passing_cells":44,"total_cells":45,"failure":{"replicate":2,"split":"adv_id_h8","ratio":1.0529059915659391}},
+  "interpretation":"Within the preregistered Fourier sine-subset lattice, every tested rank-6 variant is sufficient at 45/45 while the sole tested rank-5 cosine-core variant fails one registered cell. The minimum tested sufficient rank is therefore 6, conditional on this structured subset family and benchmark."
+}
