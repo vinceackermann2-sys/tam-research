@@ -1,0 +1,63 @@
+{
+  "phase": 15,
+  "status": "FAIL",
+  "registered_replicates": 3,
+  "required_cells": 12,
+  "passing_cells": 9,
+  "failing_cells": 3,
+  "per_split": {
+    "adv_id_h8": {
+      "values": [7.323303163028881, 0.9302354453060252, 1.1525923029530258],
+      "median": 1.1525923029530258,
+      "mean": 3.135376970429311,
+      "passes": 1,
+      "fails": 2
+    },
+    "adv_spectral_ood_h3": {
+      "values": [1.0019929146180075, 0.9295934480957327, 0.8949205874386312],
+      "median": 0.9295934480957327,
+      "mean": 0.9421689833841237,
+      "passes": 2,
+      "fails": 1
+    },
+    "adv_speed_ood_h3": {
+      "values": [0.8404374785523107, 0.8281216799713006, 0.8973986677997138],
+      "median": 0.8404374785523107,
+      "mean": 0.8553192754411083,
+      "passes": 3,
+      "fails": 0
+    },
+    "adv_combined_ood_h3": {
+      "values": [0.8666133685850532, 0.953666635110097, 0.8948850363436017],
+      "median": 0.8948850363436017,
+      "mean": 0.9050550133462507,
+      "passes": 3,
+      "fails": 0
+    }
+  },
+  "replicate_all_four_pass": [false, true, false],
+  "control_one_step_medians": {
+    "adv_id_h8": {
+      "frozen16": 0.7641943971172434,
+      "directional20": 1.2742615702899985e-05,
+      "improvement_factor": 59971.548615668195
+    },
+    "adv_spectral_ood_h3": {
+      "frozen16": 0.86077825054394,
+      "directional20": 2.3537421192922107e-06,
+      "improvement_factor": 365706.26981123275
+    },
+    "adv_speed_ood_h3": {
+      "frozen16": 0.8059883828034664,
+      "directional20": 3.1931604725198956e-06,
+      "improvement_factor": 252410.8605689389
+    },
+    "adv_combined_ood_h3": {
+      "frozen16": 0.8889991611767821,
+      "directional20": 3.5319740867220406e-07,
+      "improvement_factor": 2517003.6340834135
+    }
+  },
+  "interpretation": "Preregistered gate fails because all 12 cells and all 3 replicates were required; replicates 1 and 3 fail at least one cell. Adding centered directional-gradient features closes the one-step representability gap by roughly 6e4 to 2.5e6 times, showing that the frozen symmetric 16-feature hypothesis class is a real limitation. Primary token performance is seed-sensitive rather than uniformly catastrophic. The 20-feature raw control can still become multi-step unstable because it retains redundant frozen polynomial features, so this phase establishes a missing-operator boundary, not a production-ready expanded model.",
+  "claim_limit": "Synthetic known-law falsification only; no novel-physics or general scientific-discovery claim."
+}
