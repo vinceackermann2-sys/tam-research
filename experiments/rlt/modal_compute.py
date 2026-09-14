@@ -13,7 +13,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 REMOTE_ROOT = "/root/tam-research"
 MODAL_JOB_MARKER = "-modal-"
 
-image = (
+# Keep the control-plane check intentionally tiny. The previous version reused
+# the full Torch/Transformers image for preflight, which can spend many minutes
+# building packages before proving that Modal authentication works.
+preflight_image = modal.Image.debian_slim(python_version="3.11")
+
+compute_image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
         "torch>=2.7,<2.11",
@@ -56,10 +61,10 @@ def _encode(value: dict[str, Any]) -> str:
 
 
 @app.function(
-    image=image,
-    timeout=10 * 60,
+    image=preflight_image,
+    timeout=5 * 60,
     cpu=1.0,
-    memory=2048,
+    memory=512,
     retries=0,
     max_containers=1,
 )
@@ -76,7 +81,7 @@ def preflight_remote() -> dict[str, Any]:
 
 
 @app.function(
-    image=image,
+    image=compute_image,
     gpu="A100",
     timeout=60 * 60,
     cpu=4.0,
