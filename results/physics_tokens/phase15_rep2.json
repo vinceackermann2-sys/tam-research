@@ -1,0 +1,121 @@
+{
+  "seeds": {
+    "wave": 815150101,
+    "gray": 815150102,
+    "sc1": 815150103,
+    "sc2": 815150104,
+    "ic1": 815150105,
+    "ic2": 815150106,
+    "adv_id": 815150111,
+    "adv_spectral": 815150112,
+    "adv_speed": 815150113,
+    "adv_combined": 815150114
+  },
+  "context_frames": 8,
+  "observed_transitions_used": 7,
+  "representation_training_families": [
+    "wave",
+    "gray_scott"
+  ],
+  "advection_used_in_representation_training": false,
+  "frozen_feature_dim": 16,
+  "directional_control_feature_dim": 20,
+  "primary_companded_ratios": {
+    "adv_id_h8": 0.9302354453060252,
+    "adv_spectral_ood_h3": 0.9295934480957327,
+    "adv_speed_ood_h3": 0.8281216799713006,
+    "adv_combined_ood_h3": 0.953666635110097
+  },
+  "all_four_below_persistence": true,
+  "splits": {
+    "adv_id_h8": {
+      "persistence_mse": 0.008604452945291996,
+      "companded_mse": 0.00800416711717844,
+      "companded_ratio": 0.9302354453060252,
+      "raw_context_fit_companded_projection_ratio": 166.4146676233399,
+      "context_mse": 0.0002582524612080306,
+      "context_delta_mse": 0.00025384940090589225,
+      "true_transition_signal_mse": 0.0001382435002597049,
+      "transition_noise_over_signal": 1.8362483619773051,
+      "context_clip_fraction": 0.00023832775297619047,
+      "rollout_clip_fraction": 0.0
+    },
+    "adv_spectral_ood_h3": {
+      "persistence_mse": 0.0021327484864741564,
+      "companded_mse": 0.0019825890194624662,
+      "companded_ratio": 0.9295934480957327,
+      "raw_context_fit_companded_projection_ratio": 0.8653556708261987,
+      "context_mse": 0.000338296260451898,
+      "context_delta_mse": 0.0003223696839995682,
+      "true_transition_signal_mse": 0.0002472894557286054,
+      "transition_noise_over_signal": 1.303612736134458,
+      "context_clip_fraction": 0.000244140625,
+      "rollout_clip_fraction": 0.0
+    },
+    "adv_speed_ood_h3": {
+      "persistence_mse": 0.0059982300736010075,
+      "companded_mse": 0.004967264365404844,
+      "companded_ratio": 0.8281216799713006,
+      "raw_context_fit_companded_projection_ratio": 10.378502272437737,
+      "context_mse": 0.00015170853293966502,
+      "context_delta_mse": 0.0001648551842663437,
+      "true_transition_signal_mse": 0.000663667218759656,
+      "transition_noise_over_signal": 0.2484003723650019,
+      "context_clip_fraction": 6.394159226190477e-05,
+      "rollout_clip_fraction": 0.0
+    },
+    "adv_combined_ood_h3": {
+      "persistence_mse": 0.012051058001816273,
+      "companded_mse": 0.011492691934108734,
+      "companded_ratio": 0.953666635110097,
+      "raw_context_fit_companded_projection_ratio": 10.873989362215967,
+      "context_mse": 0.0002372817398281768,
+      "context_delta_mse": 0.00023534482170362025,
+      "true_transition_signal_mse": 0.0013487201649695635,
+      "transition_noise_over_signal": 0.17449492327337693,
+      "context_clip_fraction": 0.00016276041666666668,
+      "rollout_clip_fraction": 0.0
+    }
+  },
+  "controls": {
+    "adv_id_h8": {
+      "raw_frozen16_rollout_ratio": null,
+      "raw_directional20_rollout_ratio": null,
+      "raw_frozen16_context_one_step_ratio": 0.750156552285516,
+      "raw_directional20_context_one_step_ratio": 1.0587629504894647e-05
+    },
+    "adv_spectral_ood_h3": {
+      "raw_frozen16_rollout_ratio": 0.863982102786164,
+      "raw_directional20_rollout_ratio": 2.9422630658996044e-06,
+      "raw_frozen16_context_one_step_ratio": 0.86077825054394,
+      "raw_directional20_context_one_step_ratio": 3.142101495222612e-06
+    },
+    "adv_speed_ood_h3": {
+      "raw_frozen16_rollout_ratio": 2.033029553565598e+16,
+      "raw_directional20_rollout_ratio": 5.958666773717375e-06,
+      "raw_frozen16_context_one_step_ratio": 0.7914249048125739,
+      "raw_directional20_context_one_step_ratio": 3.1931604725198956e-06
+    },
+    "adv_combined_ood_h3": {
+      "raw_frozen16_rollout_ratio": 1039147241521.2528,
+      "raw_directional20_rollout_ratio": 4.798232393295412e-07,
+      "raw_frozen16_context_one_step_ratio": 0.9424119181543558,
+      "raw_directional20_context_one_step_ratio": 4.446954597815323e-07
+    }
+  },
+  "runtime_seconds": 4.084839344024658,
+  "replicate": 2,
+  "status": "PHASE15_OUTOFCLASS_ADVECTION_REGISTERED_FALSIFICATION",
+  "invariants": {
+    "phase10_levels": 512,
+    "phase10_zmax": 16.0,
+    "context_frames": 8,
+    "ridge": 0.001,
+    "frozen_feature_dim": 16,
+    "directional_feature_dim": 20,
+    "advection_deterministic": true,
+    "registered_seed_count": 30,
+    "probe_frozen16_one_step_ratio": 0.7842745217974595,
+    "probe_directional20_one_step_ratio": 2.5737118359243044e-07
+  }
+}
