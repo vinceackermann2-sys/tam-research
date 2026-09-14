@@ -1,0 +1,57 @@
+{
+  "phase": 21,
+  "experiment": "physics-token-phase21-paired-random-rank-sweep-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-20 data-independent random rank-5 FAIL; Phase-17 full raw 3x3 stencil PASS",
+  "question": "Under a data-independent nested orthogonal basis of the same local 3x3 patch, at what per-channel spatial rank does the context-only token dynamics recover robust transfer across wave, Gray-Scott, unseen NLS, and unseen advection?",
+  "representation": {
+    "unchanged_from_phase20": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false
+  },
+  "spatial_basis": {
+    "method": "per-channel 9x9 orthogonal matrix from QR of a seeded iid Gaussian matrix; row signs canonicalized; no physics data used",
+    "nested_ranks": [5, 6, 7, 8, 9],
+    "nesting_rule": "rank k uses the first k rows of the same per-channel 9x9 orthogonal matrix within a replicate",
+    "feature_dim_by_rank": {"5":18,"6":20,"7":22,"8":24,"9":26},
+    "center_polynomial_features": 7,
+    "named_derivatives_supplied": false,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false
+  },
+  "identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "fit_separately_from_context_for_each_evaluation_trajectory": true,
+    "recursive_state_projection": "same frozen Phase-10 18-bit companded token representation after every predicted step"
+  },
+  "registered_replicates": [
+    {"replicate":1,"seed_prefix":8212100},
+    {"replicate":2,"seed_prefix":8212101},
+    {"replicate":3,"seed_prefix":8212102}
+  ],
+  "paired_design": "Within each replicate, all five ranks use exactly the same representation codebooks, physical evaluation trajectories, context, targets, and full 9x9 orthogonal basis; only the retained row count changes.",
+  "evaluation": {
+    "wave": ["id_h8", "spectral_ood_h3", "combined_ood_h3"],
+    "gray_scott": ["id_h8", "sharp_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "nls": ["id_h8", "spectral_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "advection": ["id_h8", "spectral_ood_h3", "speed_ood_h3", "combined_ood_h3"]
+  },
+  "primary_rule": "A rank k is declared sufficient under Phase 21 only if every one of 3 fresh registered replicates has companded rollout MSE / raw-state persistence MSE < 1.0 on all 15 splits: 45/45 cells. The primary Phase-21 outcome is the smallest tested sufficient rank. If no tested rank qualifies, report NO_THRESHOLD_FOUND. No retry or replacement of consumed replicate seeds.",
+  "secondary_diagnostics": [
+    "per-rank pass count out of 45",
+    "per-split median ratio by rank",
+    "paired ratio change as rank increases",
+    "monotonicity violations",
+    "rank-9 comparison against the raw full-stencil Phase-17 diagnostic",
+    "context and rollout clipping"
+  ],
+  "failure_policy": "All registered outcomes are retained. An unfavorable rank or replicate may not be replaced. A higher-rank pass cannot retroactively redefine a lower-rank failure.",
+  "claim_limit": "Synthetic known-law systems only. A threshold found under these random nested projections is not a universal operator-dimension lower bound and does not prove unrestricted law discovery. It only measures sufficiency within this fixed local patch, token representation, ridge identifier, simulator suite, and projection family."
+}
