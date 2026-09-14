@@ -1,0 +1,19 @@
+{
+  "phase":24,
+  "experiment":"physics-token-phase24-fourier-sine-subset-lattice-v1",
+  "status":"PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent":"Phase-22 showed four individual Fourier sine-mode omissions were each sufficient at 45/45; Phase-23 compact geometry aggregation was CONTROL_FAIL",
+  "question":"How many of the four individually dispensable sine directions can be removed simultaneously while preserving four-family transfer?",
+  "representation":{"unchanged_from_phase22":true,"nominal_bits":18,"compander":"asinh","zmax":16.0,"levels_per_channel":512,"representation_training_families":["wave","gray_scott"],"nls_seen_during_representation_fit":false,"advection_seen_during_representation_fit":false},
+  "basis":{"full":"fixed real orthonormal 3x3 DFT basis from Phase 22","candidate_omission_pool":["sin_x","sin_y","sin_diag_plus","sin_diag_minus"],"always_retained_modes":["dc","cos_x","cos_y","cos_diag_plus","cos_diag_minus"],"tested_lattice":"exhaustive subsets of the four candidate sine modes of sizes 0,1,2,3,4","variant_counts_by_omitted_count":{"0":1,"1":4,"2":6,"3":4,"4":1},"retained_spatial_ranks":[9,8,7,6,5],"feature_dim_formula":"8 + 2 * retained_spatial_rank","basis_fit_to_physics_data":false,"named_physical_derivatives_supplied":false,"law_family_id_supplied":false,"hidden_simulator_parameters_supplied":false},
+  "identifier":{"context_frames":8,"observed_transitions":7,"ridge":0.001,"fit_separately_from_context_for_each_evaluation_trajectory":true,"recursive_state_projection":"same frozen Phase-10 18-bit companded token representation after every predicted step"},
+  "registered_replicates":[{"replicate":1,"seed_prefix":8242400},{"replicate":2,"seed_prefix":8242401},{"replicate":3,"seed_prefix":8242402}],
+  "paired_design":"Within each replicate all 16 Fourier-subset variants share exactly the same representation codebooks, physical trajectories, contexts and targets. Only which subset of the four preregistered sine modes is omitted changes.",
+  "evaluation":{"wave":["id_h8","spectral_ood_h3","combined_ood_h3"],"gray_scott":["id_h8","sharp_ood_h3","parameter_ood_h3","combined_ood_h3"],"nls":["id_h8","spectral_ood_h3","parameter_ood_h3","combined_ood_h3"],"advection":["id_h8","spectral_ood_h3","speed_ood_h3","combined_ood_h3"]},
+  "control_rule":"The full rank-9 no-omission control must pass all 45 registered cells. Otherwise Phase 24 is CONTROL_FAIL and compression sufficiency is not interpreted.",
+  "variant_rule":"Conditional on control PASS, an omission subset is sufficient only if all 45 registered cells for that exact subset have companded rollout MSE / raw-state persistence MSE < 1.0. Any one failure makes that subset insufficient. No posthoc rotation or replacement.",
+  "primary_outcomes":["minimum retained Fourier spatial rank among tested sufficient variants","complete set of sufficient omission subsets at each tested rank","whether all four individually dispensable sine modes can be removed jointly"],
+  "failure_policy":"All registered outcomes are retained. No consumed replicate is rerun or replaced. A successful subset cannot erase failures of another subset.",
+  "collision_policy":"If any 824240xxx seed collides with a previously consumed registered seed before execution, stop before consuming it and preregister a repair namespace only for unconsumed seeds.",
+  "claim_limit":"Synthetic known-law benchmark only. A sufficient structured subset is conditional on this 3x3 grid representation, tokenizer, context, polynomial center terms, identifier and four-family suite; it is not a universal minimal operator dimension or discovery of new physics."
+}
