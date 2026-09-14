@@ -1,0 +1,31 @@
+{
+  "phase": 22,
+  "experiment": "physics-token-phase22-fourier-leave-one-direction-out-v1",
+  "status": "PASS_WITH_STRUCTURED_RANK8_SUFFICIENCY",
+  "control_pass": true,
+  "sufficient_omissions": ["sin_x", "sin_y", "sin_diag_plus", "sin_diag_minus"],
+  "critical_omissions": ["dc", "cos_x", "cos_y", "cos_diag_plus", "cos_diag_minus"],
+  "registered_replicates": 3,
+  "cells_per_variant": 45,
+  "variants": {
+    "full_control": {"passing_cells":45,"total_cells":45,"sufficient":true,"worst_registered_ratio":0.8102992352910476},
+    "dc": {"passing_cells":12,"total_cells":45,"sufficient":false,"worst_registered_ratio":5300.59320927118},
+    "cos_x": {"passing_cells":19,"total_cells":45,"sufficient":false,"worst_registered_ratio":257.5509353221996},
+    "sin_x": {"passing_cells":45,"total_cells":45,"sufficient":true,"worst_registered_ratio":0.6818562853751508},
+    "cos_y": {"passing_cells":18,"total_cells":45,"sufficient":false,"worst_registered_ratio":291.1058501708486},
+    "sin_y": {"passing_cells":45,"total_cells":45,"sufficient":true,"worst_registered_ratio":0.7942638569083081},
+    "cos_diag_plus": {"passing_cells":31,"total_cells":45,"sufficient":false,"worst_registered_ratio":153.9591364218221},
+    "sin_diag_plus": {"passing_cells":45,"total_cells":45,"sufficient":true,"worst_registered_ratio":0.7744256423368464},
+    "cos_diag_minus": {"passing_cells":43,"total_cells":45,"sufficient":false,"worst_registered_ratio":1.7468923842067827},
+    "sin_diag_minus": {"passing_cells":45,"total_cells":45,"sufficient":true,"worst_registered_ratio":0.8100902343157097}
+  },
+  "representative_medians": {
+    "full_control": {"wave_id_h8":0.0035659593734947244,"nls_id_h8":0.6418440700443803,"nls_spectral_ood_h3":0.41438718601309216,"adv_id_h8":0.11708779498456881,"adv_spectral_ood_h3":0.07765869189543032},
+    "omit_sin_x": {"wave_id_h8":0.003605186469138716,"nls_id_h8":0.6575558523079407,"adv_id_h8":0.48981440333949916},
+    "omit_sin_y": {"wave_id_h8":0.003575258344807611,"nls_id_h8":0.6277648718049132,"adv_id_h8":0.12755560356494972},
+    "omit_sin_diag_plus": {"wave_id_h8":0.0035113863156404188,"nls_id_h8":0.6391870155045799,"adv_id_h8":0.11879522947276158},
+    "omit_sin_diag_minus": {"wave_id_h8":0.003557708236335526,"nls_id_h8":0.646595315494155,"adv_id_h8":0.11768320020533823}
+  },
+  "interpretation": "The full Fourier rank-9 control passed 45/45. Four structured rank-8 subspaces also passed 45/45, so Phase-21 random rank-8 failure is not a universal dimensional lower bound. Which spatial direction is omitted matters strongly.",
+  "claim_limit": "Known synthetic PDEs under the frozen tokenizer, context, identifier, simulator families, and 3x3 Fourier basis only; not a universal theorem or novel-physics result."
+}
