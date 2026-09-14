@@ -1,0 +1,121 @@
+{
+  "seeds": {
+    "wave": 815150001,
+    "gray": 815150002,
+    "sc1": 815150003,
+    "sc2": 815150004,
+    "ic1": 815150005,
+    "ic2": 815150006,
+    "adv_id": 815150011,
+    "adv_spectral": 815150012,
+    "adv_speed": 815150013,
+    "adv_combined": 815150014
+  },
+  "context_frames": 8,
+  "observed_transitions_used": 7,
+  "representation_training_families": [
+    "wave",
+    "gray_scott"
+  ],
+  "advection_used_in_representation_training": false,
+  "frozen_feature_dim": 16,
+  "directional_control_feature_dim": 20,
+  "primary_companded_ratios": {
+    "adv_id_h8": 7.323303163028881,
+    "adv_spectral_ood_h3": 1.0019929146180075,
+    "adv_speed_ood_h3": 0.8404374785523107,
+    "adv_combined_ood_h3": 0.8666133685850532
+  },
+  "all_four_below_persistence": false,
+  "splits": {
+    "adv_id_h8": {
+      "persistence_mse": 0.008107909001410007,
+      "companded_mse": 0.05937667563557625,
+      "companded_ratio": 7.323303163028881,
+      "raw_context_fit_companded_projection_ratio": 14.68827325595887,
+      "context_mse": 0.0002817199274431914,
+      "context_delta_mse": 0.000286270456854254,
+      "true_transition_signal_mse": 0.00013007440429646522,
+      "transition_noise_over_signal": 2.2008208179203894,
+      "context_clip_fraction": 0.0001976376488095238,
+      "rollout_clip_fraction": 0.006937662760416667
+    },
+    "adv_spectral_ood_h3": {
+      "persistence_mse": 0.001542612910270691,
+      "companded_mse": 0.0015456872060894966,
+      "companded_ratio": 1.0019929146180075,
+      "raw_context_fit_companded_projection_ratio": 29.699970054963632,
+      "context_mse": 0.00023958971723914146,
+      "context_delta_mse": 0.00024620708427391946,
+      "true_transition_signal_mse": 0.00017795979510992765,
+      "transition_noise_over_signal": 1.383498357715206,
+      "context_clip_fraction": 0.00016276041666666668,
+      "rollout_clip_fraction": 0.0
+    },
+    "adv_speed_ood_h3": {
+      "persistence_mse": 0.005787468980997801,
+      "companded_mse": 0.004864005837589502,
+      "companded_ratio": 0.8404374785523107,
+      "raw_context_fit_companded_projection_ratio": 1.8895396425713653,
+      "context_mse": 0.0002683717175386846,
+      "context_delta_mse": 0.0002767792029771954,
+      "true_transition_signal_mse": 0.0006404688465408981,
+      "transition_noise_over_signal": 0.43215092267492705,
+      "context_clip_fraction": 0.00017438616071428572,
+      "rollout_clip_fraction": 0.0
+    },
+    "adv_combined_ood_h3": {
+      "persistence_mse": 0.011989389546215534,
+      "companded_mse": 0.010390165261924267,
+      "companded_ratio": 0.8666133685850532,
+      "raw_context_fit_companded_projection_ratio": 2.0317479872814785,
+      "context_mse": 0.00035883518285118043,
+      "context_delta_mse": 0.00035334363928996027,
+      "true_transition_signal_mse": 0.0013468635734170675,
+      "transition_noise_over_signal": 0.26234553095344904,
+      "context_clip_fraction": 0.00027901785714285713,
+      "rollout_clip_fraction": 0.0
+    }
+  },
+  "controls": {
+    "adv_id_h8": {
+      "raw_frozen16_rollout_ratio": 179.55195070505286,
+      "raw_directional20_rollout_ratio": 0.7022581839396512,
+      "raw_frozen16_context_one_step_ratio": 0.7707449507168033,
+      "raw_directional20_context_one_step_ratio": 1.2742615702899985e-05
+    },
+    "adv_spectral_ood_h3": {
+      "raw_frozen16_rollout_ratio": 1628457621.0108285,
+      "raw_directional20_rollout_ratio": 50.37082097698096,
+      "raw_frozen16_context_one_step_ratio": 0.9220810930859189,
+      "raw_directional20_context_one_step_ratio": 2.3537421192922107e-06
+    },
+    "adv_speed_ood_h3": {
+      "raw_frozen16_rollout_ratio": 0.8560697815785419,
+      "raw_directional20_rollout_ratio": 3.6107148528732826e-06,
+      "raw_frozen16_context_one_step_ratio": 0.8059883828034664,
+      "raw_directional20_context_one_step_ratio": 3.6787723155583327e-06
+    },
+    "adv_combined_ood_h3": {
+      "raw_frozen16_rollout_ratio": 107427.7314084295,
+      "raw_directional20_rollout_ratio": 2.3079882035226468e-07,
+      "raw_frozen16_context_one_step_ratio": 0.8388882118195561,
+      "raw_directional20_context_one_step_ratio": 2.4048724868145953e-07
+    }
+  },
+  "runtime_seconds": 4.247485399246216,
+  "replicate": 1,
+  "status": "PHASE15_OUTOFCLASS_ADVECTION_REGISTERED_FALSIFICATION",
+  "invariants": {
+    "phase10_levels": 512,
+    "phase10_zmax": 16.0,
+    "context_frames": 8,
+    "ridge": 0.001,
+    "frozen_feature_dim": 16,
+    "directional_feature_dim": 20,
+    "advection_deterministic": true,
+    "registered_seed_count": 30,
+    "probe_frozen16_one_step_ratio": 0.7842745217974595,
+    "probe_directional20_one_step_ratio": 2.5737118359243044e-07
+  }
+}
