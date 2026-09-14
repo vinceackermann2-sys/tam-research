@@ -1,0 +1,73 @@
+{
+  "experiment": "physics-token-phase12-unseen-cubic-nls-transfer-v1",
+  "status": "PREREGISTERED_BEFORE_ANY_PHASE12_EXECUTION",
+  "parent_phase11_head": "4b5b011e0caaf5a719b1a4a4f31658c80dda84cc",
+  "phase_class": "fresh third-law transfer test; known synthetic PDE; no confirmatory claim beyond the frozen gate",
+  "hypothesis": "The Phase-10/11 18-bit tail-aware causal innovation representation plus the unchanged generic 16-feature context-only identifier can transfer to a qualitatively different, completely unseen two-channel dispersive nonlinear PDE family without fitting tokenizer statistics, codebooks, thresholds, or feature choices on that family.",
+  "frozen_representation_training": {
+    "nls_used_in_representation_training": false,
+    "training_mixture": "exact Phase-10/11 mixture only: 64 low-mode wave sequences plus 64 smooth Gray-Scott sequences, seq_len 8, grid 16",
+    "wave": {"c_range": [0.6, 1.0], "dt": 0.12, "max_mode": 3},
+    "gray_scott": {"F_range": [0.025, 0.045], "k_range": [0.055, 0.065], "Du": 0.16, "Dv": 0.08, "substeps_per_saved_frame": 4},
+    "state_codec": "2048+128 residual VQ on joint physical state, fit only on wave+Gray-Scott training mixture",
+    "innovation_statistics": "mean/std from raw one-step wave+Gray-Scott training-mixture differences only",
+    "plain_innovation_control": "2048+128 residual VQ fit only on wave+Gray-Scott training-mixture innovations",
+    "primary_codec": "frozen Phase-10/11 compander: z=(d-mu)/sigma; y=asinh(z); clip corresponding to z in [-16,+16]; two independent 512-level y quantizers packed into exactly 18 bits",
+    "compander_levels_per_channel": 512,
+    "compander_zmax": 16.0,
+    "bits_per_cell_per_saved_frame": 18
+  },
+  "frozen_identifier": {
+    "context_frames": 3,
+    "coordinates": "decoded physical units",
+    "feature_dim": 16,
+    "features": "unchanged Phase-7/9/10/11 basis: constant; per channel center, D4 axial radius-1 sum, diagonal radius-1 sum, axial radius-2 sum; plus center u^2, uv, v^2, u^3, u^2v, uv^2, v^3",
+    "feature_scaling": "per-sequence RMS from the two observed context transitions; constant scale fixed to 1",
+    "ridge": 0.001,
+    "law_id_or_family_router": false,
+    "hidden_parameters_supplied": false,
+    "known_equation_or_integrator_supplied_to_identifier": false
+  },
+  "unseen_family": {
+    "name": "two-dimensional cubic nonlinear Schrodinger / Gross-Pitaevskii-like discrete-time system",
+    "state_channels": ["real_psi_u", "imag_psi_v"],
+    "periodic_grid": true,
+    "discrete_update": [
+      "u_next = u + dt * (-alpha * Laplacian(v) + g * (u^2+v^2) * v)",
+      "v_next = v + dt * (+alpha * Laplacian(u) - g * (u^2+v^2) * u)"
+    ],
+    "integrator": "single explicit Euler step per saved frame; chosen because the exact discrete one-step map lies inside the already-frozen generic spatial+cubic feature family",
+    "dt": 0.08,
+    "initialization": "independent smooth periodic random real/imaginary fields generated without NLS parameter labels; each channel scaled by an independent amplitude in [0.25,0.55]"
+  },
+  "evaluations": {
+    "nls_id_h8": {"num_sequences": 48, "seq_len": 16, "alpha_range": [0.04,0.08], "g_range": [0.10,0.25], "max_mode": 3, "horizon": 8},
+    "nls_spectral_ood_h3": {"num_sequences": 48, "seq_len": 8, "alpha_range": [0.04,0.08], "g_range": [0.10,0.25], "max_mode": 6, "horizon": 3},
+    "nls_parameter_ood_h3": {"num_sequences": 48, "seq_len": 8, "alpha_range": [0.10,0.14], "g_range": [0.30,0.45], "max_mode": 3, "horizon": 3},
+    "nls_combined_ood_h3": {"num_sequences": 48, "seq_len": 8, "alpha_range": [0.10,0.14], "g_range": [0.30,0.45], "max_mode": 6, "horizon": 3},
+    "baseline": "raw-state persistence from final raw context frame",
+    "metric": "projected rollout MSE / raw-state persistence MSE",
+    "paired_controls": ["state RVQ", "plain innovation RVQ"],
+    "diagnostics": ["context MSE", "context-delta MSE", "target-codec oracle ratio", "raw-context projection ratio", "compander clip fractions"]
+  },
+  "fresh_registered_replicates": [
+    {"replicate":1,"wave_train_seed":781240001,"gray_train_seed":781240002,"state_coarse_seed":781240003,"state_residual_seed":781240004,"plain_innovation_coarse_seed":781240005,"plain_innovation_residual_seed":781240006,"nls_id_seed":781240011,"nls_spectral_seed":781240012,"nls_parameter_seed":781240013,"nls_combined_seed":781240014},
+    {"replicate":2,"wave_train_seed":781240101,"gray_train_seed":781240102,"state_coarse_seed":781240103,"state_residual_seed":781240104,"plain_innovation_coarse_seed":781240105,"plain_innovation_residual_seed":781240106,"nls_id_seed":781240111,"nls_spectral_seed":781240112,"nls_parameter_seed":781240113,"nls_combined_seed":781240114},
+    {"replicate":3,"wave_train_seed":781240201,"gray_train_seed":781240202,"state_coarse_seed":781240203,"state_residual_seed":781240204,"plain_innovation_coarse_seed":781240205,"plain_innovation_residual_seed":781240206,"nls_id_seed":781240211,"nls_spectral_seed":781240212,"nls_parameter_seed":781240213,"nls_combined_seed":781240214}
+  ],
+  "execution_rule": "Each registered replicate runs exactly once in an independent process and is persisted before the next. No retry, replacement seed, NLS-informed normalization, codebook refit on NLS, feature change, ridge change, compander change, or threshold change after any registered attempt is consumed.",
+  "pass_rule": {
+    "required": "PASS only if the frozen companded arm has ratio < 1.0 versus raw persistence on all 4 NLS tests in all 3 fresh replicates (12/12 cells).",
+    "controls_cannot_rescue_failure": true,
+    "failure_policy": "Any registered companded ratio >= 1.0 makes Phase 12 FAIL even if another codec wins or later replicates pass. Remaining registered replicates should still run once for characterization if infrastructure permits."
+  },
+  "pre_execution_validation": [
+    "verify Phase-10 compander LEVELS=512 and ZMAX=16.0 unchanged",
+    "verify Phase-10 feature function and fit_maps are imported unchanged",
+    "verify no NLS frames enter state/innovation statistics or VQ fitting",
+    "verify NLS generator is deterministic by seed and produces finite trajectories",
+    "verify explicit NLS one-step update is representable by the frozen feature library (Laplacian via axial sum-center combination and cubic center terms)",
+    "use only non-registered smoke seeds before registered execution"
+  ],
+  "claim_limit": "A PASS would show transfer of this fixed discrete representation+context-identifier recipe to one additional known synthetic PDE family absent from representation training. It would not establish a universal scientific tokenizer, unrestricted law discovery, novel physics, AGI, or SSI."
+}
