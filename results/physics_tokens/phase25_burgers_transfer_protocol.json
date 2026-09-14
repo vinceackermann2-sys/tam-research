@@ -1,0 +1,18 @@
+{
+  "phase":25,
+  "experiment":"physics-token-phase25-unseen-burgers-transfer-v1",
+  "status":"PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent":"Phase-24 established structured rank-6 sufficiency on wave, Gray-Scott, NLS and linear advection",
+  "question":"Does the frozen context-only identifier transfer to a fifth unseen nonlinear-flux PDE, and if not is the bottleneck the missing center-times-spatial interaction class rather than token capacity?",
+  "new_family":{"name":"two_component_viscous_burgers_2d","equations":"u_t=-u*Dx(u)-v*Dy(u)+nu*Laplacian(u); v_t=-u*Dx(v)-v*Dy(v)+nu*Laplacian(v)","discretization":"periodic centered first differences plus 5-point Laplacian; explicit Euler","dt":0.05,"id_viscosity_range":[0.01,0.03],"id_initial_amplitude_range":[0.15,0.35],"id_max_mode":3,"spectral_ood_max_mode":6,"parameter_ood_viscosity_range":[0.04,0.06],"combined_ood_initial_amplitude_range":[0.35,0.55]},
+  "representation":{"unchanged":true,"nominal_bits":18,"compander":"asinh","zmax":16.0,"levels_per_channel":512,"representation_training_families":["wave","gray_scott"],"burgers_seen_during_representation_fit":false},
+  "primary_identifier":{"spatial_basis":"full fixed real orthonormal 3x3 DFT, rank 9 per channel","feature_dim":26,"features":"constant + 18 linear spatial Fourier coordinates + seven center degree-2/3 monomials","context_frames":8,"ridge":0.001,"law_family_id_supplied":false,"hidden_viscosity_supplied":false,"recursive_projection":"frozen Phase-10 18-bit companded token projection after every step"},
+  "secondary_interaction_diagnostic":{"feature_dim":62,"construction":"the frozen 26 features plus every product between center u or v and each of the 18 linear spatial Fourier coordinates (36 generic center-times-spatial interaction terms)","purpose":"contains generic multiplicative local-flux interactions without naming Burgers derivatives; diagnostic only and cannot rescue primary failure","evaluate_from_raw_context":true,"evaluate_from_token_context":true,"ridge":0.001},
+  "registered_replicates":[{"replicate":1,"seed_prefix":8252500},{"replicate":2,"seed_prefix":8252501},{"replicate":3,"seed_prefix":8252502}],
+  "evaluation":{"id_h8":{"seq_len":16,"max_mode":3,"nu":[0.01,0.03],"amplitude":[0.15,0.35]},"spectral_ood_h3":{"seq_len":11,"max_mode":6,"nu":[0.01,0.03],"amplitude":[0.15,0.35]},"parameter_ood_h3":{"seq_len":11,"max_mode":3,"nu":[0.04,0.06],"amplitude":[0.15,0.35]},"combined_ood_h3":{"seq_len":11,"max_mode":6,"nu":[0.04,0.06],"amplitude":[0.35,0.55]}},
+  "primary_rule":"PASS only if the frozen 26-feature token model beats raw-state persistence on all four Burgers tests in all three fresh registered replicates (12/12 cells). Any one ratio >=1.0 makes Phase 25 primary transfer FAIL. No retries or replacement seeds.",
+  "diagnostic_interpretation":"If primary fails while the 62-feature raw-context diagnostic strongly beats persistence, interpret the dominant boundary as hypothesis-class insufficiency. If raw 62 also fails, do not attribute failure to tokens alone. Token-62 performance is reported separately.",
+  "failure_policy":"All registered outcomes are retained. Secondary diagnostics cannot redefine the primary gate. No Burgers data enters tokenizer fitting.",
+  "collision_policy":"If any 825250xxx registered seed collides with a previously consumed registered seed before execution, stop before consuming it and preregister a repair namespace only for unconsumed seeds.",
+  "claim_limit":"Known synthetic Burgers dynamics only. This tests representational and system-identification structure; it is not discovery of new physics or a universal scientific model."
+}
