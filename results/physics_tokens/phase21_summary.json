@@ -1,0 +1,141 @@
+{
+  "phase": 21,
+  "status": "PASS_THRESHOLD_FOUND",
+  "experiment": "physics-token-phase21-paired-random-rank-sweep-v1",
+  "primary_outcome": {
+    "smallest_tested_sufficient_rank_per_channel": 9,
+    "sufficiency_rule": "45/45 registered cells below persistence across 3 fresh replicates",
+    "rank9_passing_cells": 45,
+    "rank9_failing_cells": 0
+  },
+  "ranks": {
+    "5": {
+      "feature_dim": 18,
+      "passing_cells": 20,
+      "failing_cells": 25,
+      "per_replicate_passing_cells": [9, 5, 6],
+      "all_45_pass": false,
+      "worst_registered_cell": 256.4253635713714,
+      "per_split_median": {
+        "wave_id_h8": 4.750046078245988,
+        "wave_spectral_ood_h3": 1.5161518112026766,
+        "wave_combined_ood_h3": 0.5074313909754355,
+        "gray_id_h8": 0.2175388483094688,
+        "gray_sharp_ood_h3": 0.04180845538426261,
+        "gray_parameter_ood_h3": 0.013699930221521077,
+        "gray_combined_ood_h3": 0.07485823416210587,
+        "nls_id_h8": 230.24299921707228,
+        "nls_spectral_ood_h3": 66.86766925011727,
+        "nls_parameter_ood_h3": 7.529417976244959,
+        "nls_combined_ood_h3": 26.379801518586664,
+        "adv_id_h8": 13.353591403747638,
+        "adv_spectral_ood_h3": 11.45408426054522,
+        "adv_speed_ood_h3": 0.46320481728699225,
+        "adv_combined_ood_h3": 2.135824522076122
+      }
+    },
+    "6": {
+      "feature_dim": 20,
+      "passing_cells": 21,
+      "failing_cells": 24,
+      "per_replicate_passing_cells": [9, 6, 6],
+      "all_45_pass": false,
+      "worst_registered_cell": 269.5919192829134,
+      "per_split_median": {
+        "wave_id_h8": 4.835557744116997,
+        "wave_spectral_ood_h3": 1.004227815622782,
+        "wave_combined_ood_h3": 0.3616927708519532,
+        "gray_id_h8": 0.1557333866935355,
+        "gray_sharp_ood_h3": 0.0352184851165098,
+        "gray_parameter_ood_h3": 0.01179544227451096,
+        "gray_combined_ood_h3": 0.07124046887476759,
+        "nls_id_h8": 86.28774416163894,
+        "nls_spectral_ood_h3": 49.762893724064064,
+        "nls_parameter_ood_h3": 4.799610113472637,
+        "nls_combined_ood_h3": 23.057882084191647,
+        "adv_id_h8": 18.73243478857098,
+        "adv_spectral_ood_h3": 11.607848003803435,
+        "adv_speed_ood_h3": 0.1212679409030975,
+        "adv_combined_ood_h3": 1.6834635290982518
+      }
+    },
+    "7": {
+      "feature_dim": 22,
+      "passing_cells": 29,
+      "failing_cells": 16,
+      "per_replicate_passing_cells": [11, 10, 8],
+      "all_45_pass": false,
+      "worst_registered_cell": 38.90211227259595,
+      "per_split_median": {
+        "wave_id_h8": 1.7417362683936226,
+        "wave_spectral_ood_h3": 0.33235962939474667,
+        "wave_combined_ood_h3": 0.17939353841143998,
+        "gray_id_h8": 0.21446848699558543,
+        "gray_sharp_ood_h3": 0.02936401529759643,
+        "gray_parameter_ood_h3": 0.010199997026786502,
+        "gray_combined_ood_h3": 0.06835901895675404,
+        "nls_id_h8": 16.179422040612618,
+        "nls_spectral_ood_h3": 18.27426382560377,
+        "nls_parameter_ood_h3": 0.902667219881206,
+        "nls_combined_ood_h3": 5.925813747740907,
+        "adv_id_h8": 1.4756099950044568,
+        "adv_spectral_ood_h3": 1.7347519152626696,
+        "adv_speed_ood_h3": 0.03835983761396196,
+        "adv_combined_ood_h3": 0.27407485623178973
+      }
+    },
+    "8": {
+      "feature_dim": 24,
+      "passing_cells": 33,
+      "failing_cells": 12,
+      "per_replicate_passing_cells": [14, 11, 8],
+      "all_45_pass": false,
+      "worst_registered_cell": 34.59600549083147,
+      "per_split_median": {
+        "wave_id_h8": 0.8380126296405959,
+        "wave_spectral_ood_h3": 0.14675437025996893,
+        "wave_combined_ood_h3": 0.0941847000256075,
+        "gray_id_h8": 0.19244405605248055,
+        "gray_sharp_ood_h3": 0.029713590639435985,
+        "gray_parameter_ood_h3": 0.008844769423560219,
+        "gray_combined_ood_h3": 0.062216880150555674,
+        "nls_id_h8": 31.171464658770443,
+        "nls_spectral_ood_h3": 9.721252573021438,
+        "nls_parameter_ood_h3": 0.7263076591950929,
+        "nls_combined_ood_h3": 4.142669564627644,
+        "adv_id_h8": 1.219090933578866,
+        "adv_spectral_ood_h3": 0.9411906282598871,
+        "adv_speed_ood_h3": 0.019301115737438364,
+        "adv_combined_ood_h3": 0.05278304566863919
+      }
+    },
+    "9": {
+      "feature_dim": 26,
+      "passing_cells": 45,
+      "failing_cells": 0,
+      "per_replicate_passing_cells": [15, 15, 15],
+      "all_45_pass": true,
+      "worst_registered_cell": 0.49119408887912774,
+      "per_split_median": {
+        "wave_id_h8": 0.006146750845657259,
+        "wave_spectral_ood_h3": 0.003466690182747871,
+        "wave_combined_ood_h3": 0.08480167535479174,
+        "gray_id_h8": 0.20696836003665406,
+        "gray_sharp_ood_h3": 0.032136544313273556,
+        "gray_parameter_ood_h3": 0.00848640917905813,
+        "gray_combined_ood_h3": 0.06894317381907146,
+        "nls_id_h8": 0.3748355654113303,
+        "nls_spectral_ood_h3": 0.20132839166152156,
+        "nls_parameter_ood_h3": 0.11538880752345361,
+        "nls_combined_ood_h3": 0.09612682738606573,
+        "adv_id_h8": 0.0945249213936586,
+        "adv_spectral_ood_h3": 0.04264290922912054,
+        "adv_speed_ood_h3": 0.009065193124395065,
+        "adv_combined_ood_h3": 0.005974375780225313
+      }
+    }
+  },
+  "important_observation": "Rank 8 is strongly orientation-dependent: replicate 1 missed only NLS spectral OOD at 1.0767x persistence, whereas replicates 2 and 3 had worst cells 31.17x and 34.60x. Therefore removing one of nine spatial directions can be nearly harmless or catastrophic depending on which direction the random basis omits.",
+  "interpretation": "Within the preregistered paired nested random-projection protocol, full rank 9 was the only tested rank that replicated the 45/45 transfer gate. This extends Phase 20 by locating the tested sufficiency threshold at the complete 3x3 spatial rank rather than merely showing rank 5 failure.",
+  "claim_limit": "This is not a universal lower bound on physical operator dimension. It applies only to this fixed 3x3 local patch, random orthogonal projection family, frozen token representation, ridge context identifier, simulator suite, and gate. Structured rank-8 subspaces may still succeed."
+}
