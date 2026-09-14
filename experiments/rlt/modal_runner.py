@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
 from pathlib import Path
 import sys
 import time
 from typing import Any
+import urllib.parse
 
 import modal
 
@@ -17,6 +19,10 @@ MODAL_ROOT = "experiments/rlt/modal"
 JOBS_DIR = f"{MODAL_ROOT}/jobs"
 CLAIMS_DIR = f"{MODAL_ROOT}/claims"
 RESULTS_DIR = f"{MODAL_ROOT}/results"
+DIAGNOSTICS_DIR = f"{MODAL_ROOT}/diagnostics"
+DIAGNOSTIC_ID = "modal-auth-writecheck-20260914-a"
+DIAGNOSTIC_PATH = f"{DIAGNOSTICS_DIR}/{DIAGNOSTIC_ID}.json"
+PREREGISTERED_SMOKE_JOB_ID = "rlt-publicspec-smoke-modal-20260914-a"
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -59,6 +65,81 @@ def _runtime_metadata() -> dict[str, Any]:
     }
 
 
+def _branch_head(bridge: Any) -> str:
+    row = bridge._request("GET", f"git/ref/heads/{BRANCH}")
+    return str(row["object"]["sha"])
+
+
+def _read_json_at_ref(bridge: Any, path: str, ref: str) -> tuple[dict[str, Any], str]:
+    query = urllib.parse.urlencode({"ref": ref})
+    row = bridge._request("GET", f"contents/{path}?{query}")
+    raw = base64.b64decode(row["content"]).decode()
+    value = json.loads(raw)
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain a JSON object")
+    return value, str(row["sha"])
+
+
+@app.function(
+    image=image,
+    timeout=10 * 60,
+    cpu=1.0,
+    memory=2048,
+    secrets=[github_secret],
+    retries=0,
+    max_containers=1,
+)
+def preflight_control() -> dict[str, Any]:
+    """Prove Modal can read and create an isolated GitHub file before any GPU attempt."""
+    if REMOTE_ROOT not in sys.path:
+        sys.path.insert(0, REMOTE_ROOT)
+
+    from experiments.rlt.bridge_worker import GitHubBridge, validate_job
+
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        raise RuntimeError("Modal secret tam-rlt-github must provide GITHUB_TOKEN")
+
+    bridge = GitHubBridge(token=token, branch=BRANCH)
+    if bridge.exists(DIAGNOSTIC_PATH):
+        existing = bridge.read_json(DIAGNOSTIC_PATH)
+        if existing.get("status") != "pass":
+            raise RuntimeError("existing Modal preflight diagnostic is not PASS")
+        return existing
+
+    head = _branch_head(bridge)
+    source_path = f"{JOBS_DIR}/{PREREGISTERED_SMOKE_JOB_ID}.json"
+    raw, source_blob_sha = _read_json_at_ref(bridge, source_path, head)
+    job = validate_job(raw, f"{PREREGISTERED_SMOKE_JOB_ID}.json")
+    if job["task"] != "smoke" or job["job_id"] != PREREGISTERED_SMOKE_JOB_ID:
+        raise RuntimeError("preregistered Modal smoke job does not match the expected control job")
+
+    payload = {
+        "schema": 1,
+        "diagnostic_id": DIAGNOSTIC_ID,
+        "status": "pass",
+        "worker": "modal-control",
+        "finished_unix": time.time(),
+        "branch": BRANCH,
+        "branch_head": head,
+        "job_id_checked": PREREGISTERED_SMOKE_JOB_ID,
+        "job_source_blob_sha": source_blob_sha,
+        "checks": {
+            "github_secret_present": True,
+            "branch_read": True,
+            "job_read": True,
+            "github_create_permission": True,
+            "scientific_job_executed": False,
+        },
+    }
+    bridge.create_json(
+        DIAGNOSTIC_PATH,
+        payload,
+        f"rlt modal: record isolated control-plane preflight {DIAGNOSTIC_ID}",
+    )
+    return payload
+
+
 @app.function(
     image=image,
     gpu="A100",
@@ -66,6 +147,8 @@ def _runtime_metadata() -> dict[str, Any]:
     cpu=4.0,
     memory=16384,
     secrets=[github_secret],
+    retries=0,
+    max_containers=1,
 )
 def run_job(job_id: str) -> dict[str, Any]:
     if REMOTE_ROOT not in sys.path:
@@ -86,14 +169,27 @@ def run_job(job_id: str) -> dict[str, Any]:
         raise RuntimeError("Modal secret tam-rlt-github must provide GITHUB_TOKEN")
 
     bridge = GitHubBridge(token=token, branch=BRANCH)
+    if not bridge.exists(DIAGNOSTIC_PATH):
+        raise RuntimeError(
+            "Modal GitHub preflight has not been durably recorded; run the preflight entrypoint first"
+        )
+    diagnostic = bridge.read_json(DIAGNOSTIC_PATH)
+    if diagnostic.get("status") != "pass":
+        raise RuntimeError("Modal GitHub preflight diagnostic is not PASS")
+
     source_path = f"{JOBS_DIR}/{job_id}.json"
     result_path = f"{RESULTS_DIR}/{job_id}.json"
     claim_path = f"{CLAIMS_DIR}/{job_id}.json"
 
     if bridge.exists(result_path):
         return bridge.read_json(result_path)
+    if bridge.exists(claim_path):
+        raise RuntimeError(
+            f"{job_id} already has a claim but no terminal result; refusing to rerun"
+        )
 
-    raw = bridge.read_json(source_path)
+    head = _branch_head(bridge)
+    raw, source_blob_sha = _read_json_at_ref(bridge, source_path, head)
     job = validate_job(raw, f"{job_id}.json")
     if job["job_id"] != job_id:
         raise ValueError("job_id mismatch")
@@ -112,11 +208,6 @@ def run_job(job_id: str) -> dict[str, Any]:
         if not prerequisite_ok:
             raise RuntimeError(f"prerequisite {prerequisite!r} has not durably passed")
 
-    if bridge.exists(claim_path):
-        raise RuntimeError(
-            f"{job_id} already has a claim but no terminal result; refusing to rerun"
-        )
-
     started = time.time()
     runtime = _runtime_metadata()
     if not runtime["cuda_available"]:
@@ -129,6 +220,8 @@ def run_job(job_id: str) -> dict[str, Any]:
         "claimed_unix": started,
         "worker": "modal",
         "branch": BRANCH,
+        "branch_head_at_claim": head,
+        "job_source_blob_sha": source_blob_sha,
         "runtime": runtime,
         "job": job,
     }
@@ -137,7 +230,18 @@ def run_job(job_id: str) -> dict[str, Any]:
         claim,
         f"rlt modal: claim {job_id} before GPU execution",
     )
-    print(json.dumps({"event": "claimed", "job_id": job_id, "runtime": runtime}), flush=True)
+    print(
+        json.dumps(
+            {
+                "event": "claimed",
+                "job_id": job_id,
+                "branch_head": head,
+                "job_source_blob_sha": source_blob_sha,
+                "runtime": runtime,
+            }
+        ),
+        flush=True,
+    )
 
     try:
         if job["task"] == "smoke":
@@ -182,8 +286,29 @@ def run_job(job_id: str) -> dict[str, Any]:
             "finished_unix": time.time(),
             "worker": "modal",
             "branch": BRANCH,
+            "branch_head_at_claim": head,
+            "job_source_blob_sha": source_blob_sha,
             "job": job,
             "output": output,
+        }
+    except AssertionError as exc:
+        payload = {
+            "schema": 1,
+            "job_id": job_id,
+            "status": "complete",
+            "started_unix": started,
+            "finished_unix": time.time(),
+            "worker": "modal",
+            "branch": BRANCH,
+            "branch_head_at_claim": head,
+            "job_source_blob_sha": source_blob_sha,
+            "job": job,
+            "output": {
+                "status": "fail",
+                "runtime": runtime,
+                "error_type": type(exc).__name__,
+                "error": str(exc),
+            },
         }
     except Exception as exc:
         payload = {
@@ -194,6 +319,8 @@ def run_job(job_id: str) -> dict[str, Any]:
             "finished_unix": time.time(),
             "worker": "modal",
             "branch": BRANCH,
+            "branch_head_at_claim": head,
+            "job_source_blob_sha": source_blob_sha,
             "runtime": runtime,
             "job": job,
             "error_type": type(exc).__name__,
@@ -210,6 +337,12 @@ def run_job(job_id: str) -> dict[str, Any]:
         flush=True,
     )
     return payload
+
+
+@app.local_entrypoint()
+def preflight() -> None:
+    result = preflight_control.remote()
+    print(json.dumps(result, indent=2, sort_keys=True))
 
 
 @app.local_entrypoint()
