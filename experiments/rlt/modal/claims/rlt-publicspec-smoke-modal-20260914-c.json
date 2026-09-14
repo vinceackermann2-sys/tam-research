@@ -1,0 +1,16 @@
+{
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789418441.2144125,
+  "job": {
+    "job_id": "rlt-publicspec-smoke-modal-20260914-c",
+    "schema": 1,
+    "seed": 20260918,
+    "task": "smoke"
+  },
+  "job_id": "rlt-publicspec-smoke-modal-20260914-c",
+  "job_source_blob_sha": "6b553d4740a379219ddb8fcf2d5dc44d7c227d2f",
+  "schema": 1,
+  "status": "claimed",
+  "trigger_sha": "59d2dd5458dccd34b83f3be9bab6cff726618b8e",
+  "worker": "github-actions-modal"
+}
