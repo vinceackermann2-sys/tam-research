@@ -1,0 +1,26 @@
+{
+  "status": "POSTHOC_EXPLORATORY_FRESH_SEEDS_ONLY",
+  "purpose": "Diagnose whether Phase-12 unseen-NLS failure is caused by insufficient transition averaging rather than representation capacity.",
+  "frozen_items": ["Phase-10/11 tokenizer and compander", "16-feature basis", "ridge=0.001", "NLS family and parameter ranges", "ID rollout horizon=8"],
+  "only_change": "Use all observed transitions from context lengths 3, 5, or 8 instead of exactly 3 context frames.",
+  "fresh_throwaway_seed_bases": [884123000, 884124000, 884125000],
+  "id_h8_companded_ratios": {
+    "context_3": [6.646397362399275, 1.589927556571654, 4.86359661689062],
+    "context_5": [1.6018428613427458, 0.4579235547208082, 1.2489424675968874],
+    "context_8": [0.7248455371086268, 0.23189892600279785, 0.5964445946234473]
+  },
+  "median_id_h8_ratio": {
+    "context_3": 4.86359661689062,
+    "context_5": 1.2489424675968874,
+    "context_8": 0.5964445946234473
+  },
+  "pass_counts": {"context_3":"0/3", "context_5":"1/3", "context_8":"3/3"},
+  "median_quantized_transition_error_over_true_transition_signal": {
+    "context_3": 27.689558431009914,
+    "context_5": 13.890512664824671,
+    "context_8": 7.926261059057235
+  },
+  "typical_true_one_step_delta_mse": "approximately 2.6e-5 to 2.9e-5 on these NLS ID draws",
+  "interpretation": "The three-frame identifier operates in a regime where decoded transition error is much larger than the physical one-step signal. Additional independent observed transitions materially reduce estimator variance and 8-frame context passed all three fresh exploratory ID-h8 draws. This is not confirmatory evidence; it motivates a separately preregistered Phase-13 context-sufficiency test.",
+  "not_counted_as": ["Phase-12 rescue", "confirmatory PASS", "universal law discovery evidence"]
+}
