@@ -1,0 +1,50 @@
+{
+  "phase": 19,
+  "experiment": "physics-token-phase19-predictive-stencil-basis-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-18 PCA learned-basis FAIL",
+  "question": "Can a compact spatial basis learned to preserve transition-predictive directions, rather than high state variance, recover the Phase-17 four-family transfer result?",
+  "representation": {
+    "unchanged": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false
+  },
+  "learned_spatial_basis": {
+    "source": "raw physical wave+Gray training trajectories only",
+    "patch": "3x3 per input channel",
+    "target": "next-step minus current-step 3x3 patches from both output channels",
+    "method": "per input channel generalized predictive eigenspace: top eigenvectors of Cpt Ctp v = lambda (Cpp + 1e-6 trace(Cpp)/9 I) v; normalized in Cpp metric; deterministic sign canonicalization",
+    "components_per_channel": 5,
+    "nls_seen_during_basis_fit": false,
+    "advection_seen_during_basis_fit": false
+  },
+  "identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "feature_dim": 18,
+    "features": "constant + 5 predictive patch projections per channel + seven degree-2/3 center monomials",
+    "named_derivatives_supplied": false,
+    "raw_stencil_values_supplied_directly": false,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false
+  },
+  "registered_replicates": [
+    {"replicate":1,"seed_prefix":8191900},
+    {"replicate":2,"seed_prefix":8191901},
+    {"replicate":3,"seed_prefix":8191902}
+  ],
+  "evaluation": {
+    "wave": ["id_h8","spectral_ood_h3","combined_ood_h3"],
+    "gray_scott": ["id_h8","sharp_ood_h3","parameter_ood_h3","combined_ood_h3"],
+    "nls": ["id_h8","spectral_ood_h3","parameter_ood_h3","combined_ood_h3"],
+    "advection": ["id_h8","spectral_ood_h3","speed_ood_h3","combined_ood_h3"]
+  },
+  "frozen_pass_rule": "PASS only if all 45 registered split-replicate cells have companded rollout MSE / persistence MSE < 1.0. Any single cell >=1 makes Phase 19 FAIL. No retries or replacement of consumed seeds.",
+  "claim_limit": "Synthetic known-law benchmark only. Even a pass would not establish unrestricted operator discovery or novel physics."
+}
