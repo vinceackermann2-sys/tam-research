@@ -1,0 +1,53 @@
+{
+  "replicate": 1,
+  "status": "PHASE22_FOURIER_LODO_REGISTERED_CONFIRMATION",
+  "seeds": {
+    "wave_train": 822220001,
+    "gray_train": 822220002,
+    "sc1": 822220003,
+    "sc2": 822220004,
+    "ic1": 822220005,
+    "ic2": 822220006,
+    "wave_id": 822220011,
+    "wave_spectral": 822220012,
+    "wave_combined": 822220013,
+    "gray_id": 822220021,
+    "gray_sharp": 822220022,
+    "gray_parameter": 822220023,
+    "gray_combined": 822220024,
+    "nls_id": 822220031,
+    "nls_spectral": 822220032,
+    "nls_parameter": 822220033,
+    "nls_combined": 822220034,
+    "adv_id": 822220041,
+    "adv_spectral": 822220042,
+    "adv_speed": 822220043,
+    "adv_combined": 822220044
+  },
+  "basis": "fixed_real_3x3_dft_v1",
+  "mode_names": ["dc","cos_x","sin_x","cos_y","sin_y","cos_diag_plus","sin_diag_plus","cos_diag_minus","sin_diag_minus"],
+  "context_frames": 8,
+  "ridge": 0.001,
+  "representation_training_families": ["wave","gray_scott"],
+  "nls_used_in_representation_training": false,
+  "advection_used_in_representation_training": false,
+  "runtime_seconds": 20.464399576187134,
+  "invariants": {"basis_orthonormal":true,"basis_data_independent":true,"full_feature_dim":26,"lodo_feature_dim":24,"mode_names":["dc","cos_x","sin_x","cos_y","sin_y","cos_diag_plus","sin_diag_plus","cos_diag_minus","sin_diag_minus"],"context_frames":8,"ridge":0.001,"registered_seed_count":63},
+  "full_control": {
+    "feature_dim": 26,
+    "primary_companded_ratios": {"wave_id_h8":0.007381070563161177,"wave_spectral_ood_h3":0.003354775035251543,"wave_combined_ood_h3":0.053536493217321186,"gray_id_h8":0.05634339156558746,"gray_sharp_ood_h3":0.07815674664436781,"gray_parameter_ood_h3":0.01612085136809437,"gray_combined_ood_h3":0.047138834031552564,"nls_id_h8":0.6414722499276702,"nls_spectral_ood_h3":0.3361194474137694,"nls_parameter_ood_h3":0.19138127348353898,"nls_combined_ood_h3":0.14694171426662897,"adv_id_h8":0.07161425058559848,"adv_spectral_ood_h3":0.07669399403100799,"adv_speed_ood_h3":0.02089548237076022,"adv_combined_ood_h3":0.008884885620513523},
+    "all_fifteen_below_persistence": true,
+    "passing_cells": 15
+  },
+  "leave_one_out": {
+    "dc": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":96.93898248283058,"wave_spectral_ood_h3":4.526766698786446,"wave_combined_ood_h3":1.0767660367682659,"gray_id_h8":0.05919219264803686,"gray_sharp_ood_h3":0.07693137921572528,"gray_parameter_ood_h3":0.01580532206435002,"gray_combined_ood_h3":0.04611853511304892,"nls_id_h8":5207.549925312511,"nls_spectral_ood_h3":320.50886607120134,"nls_parameter_ood_h3":370.74477803401606,"nls_combined_ood_h3":162.89328180835798,"adv_id_h8":825.2153782198908,"adv_spectral_ood_h3":73.78229351517858,"adv_speed_ood_h3":47.64467182102588,"adv_combined_ood_h3":13.479296704689554},"all_fifteen_below_persistence":false,"passing_cells":4},
+    "cos_x": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":21.5343624965112,"wave_spectral_ood_h3":1.9170805885599655,"wave_combined_ood_h3":0.5586157801734708,"gray_id_h8":0.1139140669279601,"gray_sharp_ood_h3":0.07355948889318158,"gray_parameter_ood_h3":0.01823957992799251,"gray_combined_ood_h3":0.04266361783733023,"nls_id_h8":257.5509353221996,"nls_spectral_ood_h3":26.39531773676743,"nls_parameter_ood_h3":3.7647133523881138,"nls_combined_ood_h3":21.12754231647307,"adv_id_h8":36.74618393793042,"adv_spectral_ood_h3":17.657864197807534,"adv_speed_ood_h3":0.14299679720810307,"adv_combined_ood_h3":0.9971886261119186},"all_fifteen_below_persistence":false,"passing_cells":7},
+    "sin_x": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":0.007391467862165957,"wave_spectral_ood_h3":0.003347011759730399,"wave_combined_ood_h3":0.05352900735935453,"gray_id_h8":0.05460972431685306,"gray_sharp_ood_h3":0.0780061408628761,"gray_parameter_ood_h3":0.016036767015715766,"gray_combined_ood_h3":0.04652347748525865,"nls_id_h8":0.6359876608964123,"nls_spectral_ood_h3":0.3339945733512735,"nls_parameter_ood_h3":0.18987408719703774,"nls_combined_ood_h3":0.14651276387244583,"adv_id_h8":0.4261656940641971,"adv_spectral_ood_h3":0.3717837769838939,"adv_speed_ood_h3":0.2769879626805118,"adv_combined_ood_h3":0.016809287949586568},"all_fifteen_below_persistence":true,"passing_cells":15},
+    "cos_y": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":20.53541176634616,"wave_spectral_ood_h3":2.6124765373717556,"wave_combined_ood_h3":0.2622298125125284,"gray_id_h8":0.11454867181900351,"gray_sharp_ood_h3":0.07515608590543363,"gray_parameter_ood_h3":0.017786157490601546,"gray_combined_ood_h3":0.04280339260544096,"nls_id_h8":130.4652530977692,"nls_spectral_ood_h3":88.76205042763401,"nls_parameter_ood_h3":3.8374441412585836,"nls_combined_ood_h3":11.975816992535131,"adv_id_h8":56.193173975273986,"adv_spectral_ood_h3":21.941635752404657,"adv_speed_ood_h3":0.29850557476904005,"adv_combined_ood_h3":1.6441392448664993},"all_fifteen_below_persistence":false,"passing_cells":6},
+    "sin_y": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":0.0073696348039305835,"wave_spectral_ood_h3":0.00334406993111229,"wave_combined_ood_h3":0.05353225406669234,"gray_id_h8":0.055571796907505834,"gray_sharp_ood_h3":0.0776318783365624,"gray_parameter_ood_h3":0.01596031438144486,"gray_combined_ood_h3":0.04703783709830574,"nls_id_h8":0.6277648718049132,"nls_spectral_ood_h3":0.33336767306099974,"nls_parameter_ood_h3":0.18905529384219805,"nls_combined_ood_h3":0.1455394607122063,"adv_id_h8":0.07514701021710561,"adv_spectral_ood_h3":0.08038538881504788,"adv_speed_ood_h3":0.024631148570259487,"adv_combined_ood_h3":0.13015487312142307},"all_fifteen_below_persistence":true,"passing_cells":15},
+    "cos_diag_plus": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":0.012083301328621784,"wave_spectral_ood_h3":0.7169959541366419,"wave_combined_ood_h3":0.3645608292878824,"gray_id_h8":0.15703102504711328,"gray_sharp_ood_h3":0.07372041709340474,"gray_parameter_ood_h3":0.018211312985164825,"gray_combined_ood_h3":0.04283364882406216,"nls_id_h8":0.7005251271113769,"nls_spectral_ood_h3":72.21138984814696,"nls_parameter_ood_h3":0.3121650318271637,"nls_combined_ood_h3":28.437922495559786,"adv_id_h8":0.07440395754562443,"adv_spectral_ood_h3":3.784028579818403,"adv_speed_ood_h3":0.021375358798040346,"adv_combined_ood_h3":1.6775931858071096},"all_fifteen_below_persistence":false,"passing_cells":11},
+    "sin_diag_plus": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":0.007302767053585809,"wave_spectral_ood_h3":0.0033423677145531273,"wave_combined_ood_h3":0.0535145838501915,"gray_id_h8":0.056023823096549345,"gray_sharp_ood_h3":0.07724188486064344,"gray_parameter_ood_h3":0.016275720707947403,"gray_combined_ood_h3":0.04715627860216005,"nls_id_h8":0.6391870155045799,"nls_spectral_ood_h3":0.33366317856450906,"nls_parameter_ood_h3":0.19025578448557953,"nls_combined_ood_h3":0.1462780951108597,"adv_id_h8":0.07343781765482937,"adv_spectral_ood_h3":0.09101571371341029,"adv_speed_ood_h3":0.021535730649407607,"adv_combined_ood_h3":0.02229322698235307},"all_fifteen_below_persistence":true,"passing_cells":15},
+    "cos_diag_minus": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":0.010103276433161716,"wave_spectral_ood_h3":0.022858257565129592,"wave_combined_ood_h3":0.06408011622285989,"gray_id_h8":0.15538338023728998,"gray_sharp_ood_h3":0.07352535852506825,"gray_parameter_ood_h3":0.018371554113522436,"gray_combined_ood_h3":0.04361983903333217,"nls_id_h8":0.6900733032989621,"nls_spectral_ood_h3":1.0482448091923209,"nls_parameter_ood_h3":0.2633526144682687,"nls_combined_ood_h3":0.5454321446489304,"adv_id_h8":0.07345821888375285,"adv_spectral_ood_h3":0.14480699889496482,"adv_speed_ood_h3":0.021819979451168144,"adv_combined_ood_h3":0.02154722826466465},"all_fifteen_below_persistence":false,"passing_cells":14},
+    "sin_diag_minus": {"feature_dim":24,"primary_companded_ratios":{"wave_id_h8":0.007543176610109993,"wave_spectral_ood_h3":0.0033330974243717445,"wave_combined_ood_h3":0.053524829645691316,"gray_id_h8":0.055847328076158775,"gray_sharp_ood_h3":0.07947610926299753,"gray_parameter_ood_h3":0.016070286334363956,"gray_combined_ood_h3":0.046984365612389604,"nls_id_h8":0.6406122822170737,"nls_spectral_ood_h3":0.3343407414434394,"nls_parameter_ood_h3":0.19086337181396087,"nls_combined_ood_h3":0.14669280341630106,"adv_id_h8":0.07201752050783332,"adv_spectral_ood_h3":0.0772215888363492,"adv_speed_ood_h3":0.02106996827222792,"adv_combined_ood_h3":0.009213780762971724},"all_fifteen_below_persistence":true,"passing_cells":15}
+  }
+}
