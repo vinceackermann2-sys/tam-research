@@ -1,0 +1,60 @@
+{
+  "experiment": "physics-token-phase13-context8-unseen-nls-v1",
+  "status": "PREREGISTERED_BEFORE_ANY_PHASE13_EXECUTION",
+  "parent_phase12_diagnostic_head": "52328884c7581e0ef953d40085ca567daab1ec77",
+  "hypothesis": "Phase-12 failed because three decoded/quantized frames provide too few independent transitions to estimate a slow unseen dispersive law when transition quantization error exceeds the one-step physical signal. Using eight context frames while freezing the representation, feature basis, ridge and NLS family will provide enough averaging for robust context-only identification.",
+  "frozen_representation": {
+    "training_families": ["wave", "gray_scott"],
+    "nls_used_in_representation_training": false,
+    "state_codec": "2048+128 residual VQ fit on the exact Phase-10/11 wave+Gray training mixture",
+    "innovation_statistics": "wave+Gray raw one-step differences only",
+    "primary_codec": "Phase-10/11 18-bit asinh compander",
+    "levels_per_channel": 512,
+    "zmax": 16.0,
+    "bits_per_cell_per_saved_frame": 18
+  },
+  "frozen_identifier": {
+    "context_frames": 8,
+    "observed_transitions_used": 7,
+    "target": "absolute next decoded physical state, identical functional form to Phase 12",
+    "features": "unchanged 16-feature Phase-7/10/11/12 generic local spatial+cubic basis",
+    "ridge": 0.001,
+    "feature_scaling": "per-sequence RMS over all seven observed transitions; constant scale fixed to 1",
+    "law_id_or_family_router": false,
+    "hidden_parameters_supplied": false,
+    "known_equation_or_integrator_supplied": false
+  },
+  "unseen_family": {
+    "name": "same Phase-12 2-D cubic nonlinear Schrodinger / Gross-Pitaevskii-like synthetic PDE",
+    "dt": 0.08,
+    "representation_training_exposure": "none"
+  },
+  "evaluations": {
+    "nls_id_h8": {"num_sequences": 48, "seq_len": 16, "alpha_range": [0.04,0.08], "g_range": [0.10,0.25], "max_mode": 3, "context": 8, "horizon": 8},
+    "nls_spectral_ood_h3": {"num_sequences": 48, "seq_len": 11, "alpha_range": [0.04,0.08], "g_range": [0.10,0.25], "max_mode": 6, "context": 8, "horizon": 3},
+    "nls_parameter_ood_h3": {"num_sequences": 48, "seq_len": 11, "alpha_range": [0.10,0.14], "g_range": [0.30,0.45], "max_mode": 3, "context": 8, "horizon": 3},
+    "nls_combined_ood_h3": {"num_sequences": 48, "seq_len": 11, "alpha_range": [0.10,0.14], "g_range": [0.30,0.45], "max_mode": 6, "context": 8, "horizon": 3},
+    "baseline": "raw-state persistence from final raw context frame",
+    "metric": "companded projected rollout MSE / raw-state persistence MSE"
+  },
+  "fresh_registered_replicates": [
+    {"replicate":1,"wave_train_seed":641390001,"gray_train_seed":641390002,"state_coarse_seed":641390003,"state_residual_seed":641390004,"plain_innovation_coarse_seed":641390005,"plain_innovation_residual_seed":641390006,"nls_id_seed":641390011,"nls_spectral_seed":641390012,"nls_parameter_seed":641390013,"nls_combined_seed":641390014},
+    {"replicate":2,"wave_train_seed":641390101,"gray_train_seed":641390102,"state_coarse_seed":641390103,"state_residual_seed":641390104,"plain_innovation_coarse_seed":641390105,"plain_innovation_residual_seed":641390106,"nls_id_seed":641390111,"nls_spectral_seed":641390112,"nls_parameter_seed":641390113,"nls_combined_seed":641390114},
+    {"replicate":3,"wave_train_seed":641390201,"gray_train_seed":641390202,"state_coarse_seed":641390203,"state_residual_seed":641390204,"plain_innovation_coarse_seed":641390205,"plain_innovation_residual_seed":641390206,"nls_id_seed":641390211,"nls_spectral_seed":641390212,"nls_parameter_seed":641390213,"nls_combined_seed":641390214}
+  ],
+  "execution_rule": "Each registered replicate executes exactly once and is persisted before the next. No retry, replacement seed, context change, ridge change, feature change, tokenizer refit on NLS, compander change, or threshold change after any registered attempt is consumed.",
+  "pass_rule": {
+    "required": "PASS only if the frozen companded arm has ratio < 1.0 versus raw persistence on all four NLS tests in all three fresh replicates (12/12 cells).",
+    "failure_policy": "Any registered ratio >= 1.0 makes Phase 13 FAIL; remaining registered replicates still run once for characterization if infrastructure permits."
+  },
+  "pre_execution_validation": [
+    "Phase-10 LEVELS=512 and ZMAX=16 unchanged",
+    "Phase-12 NLS generator unchanged",
+    "Phase-10 features unchanged and dimension 16",
+    "fit uses exactly 8 decoded context frames and all 7 transitions",
+    "no NLS trajectory enters normalization, state-codebook or innovation-codebook fitting",
+    "all registered seeds unique within Phase 13",
+    "only non-registered smoke seeds used before registered execution"
+  ],
+  "claim_limit": "A PASS would show that additional observed transitions rescue this fixed representation+identifier on this one unseen synthetic NLS family. It would not establish a universal scientific tokenizer, unrestricted law discovery, novel physics, AGI, or SSI."
+}
