@@ -22,6 +22,8 @@ def test_registered_seed_namespace_unique():
 
 def test_representation_training_excludes_nls():
     assert p14.run_rep.__name__=='run_rep'
+    src=p14.build_codecs.__doc__ or ''
+    # Functional invariant checked via returned metadata in smoke below.
     assert len(p14.REGISTERED)==3
 
 def test_smoke_returns_all_eleven_splits():
