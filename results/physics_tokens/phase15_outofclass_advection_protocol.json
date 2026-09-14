@@ -1,0 +1,52 @@
+{
+  "phase": 15,
+  "title": "Out-of-feature-class directional advection falsification",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent_phase14_head": "0e534261a68ab30428f668f269b9aac7a878f36c",
+  "frozen_components": {
+    "representation_training_families": ["wave", "gray_scott"],
+    "unseen_family_excluded_from_representation_training": "directional_advection_diffusion",
+    "state_representation": "Phase-10 RVQ initial state plus 18-bit companded innovation tokens",
+    "companded_levels_per_channel": 512,
+    "companded_zmax": 16.0,
+    "context_frames": 8,
+    "observed_transitions_used": 7,
+    "feature_library": "exact frozen Phase-10 16-feature symmetric spatial/polynomial basis",
+    "feature_dim": 16,
+    "ridge": 0.001,
+    "family_router": false
+  },
+  "unseen_law": {
+    "name": "periodic 2-D directional advection-diffusion",
+    "channels": 2,
+    "update": "x_next = x - dt*(vx*Dx(x)+vy*Dy(x)) + dt*nu*Laplacian(x), independently per channel",
+    "derivative": "centered periodic first derivative",
+    "dt": 0.18,
+    "nu": 0.01,
+    "reason_out_of_class": "the frozen 16-feature basis contains symmetric neighbor sums but no antisymmetric first-derivative/directional-gradient features, so the exact directional advection operator is not in the frozen linear feature span"
+  },
+  "registered_replicates": [
+    {"wave": 815150001, "gray": 815150002, "sc1": 815150003, "sc2": 815150004, "ic1": 815150005, "ic2": 815150006, "adv_id": 815150011, "adv_spectral": 815150012, "adv_speed": 815150013, "adv_combined": 815150014},
+    {"wave": 815150101, "gray": 815150102, "sc1": 815150103, "sc2": 815150104, "ic1": 815150105, "ic2": 815150106, "adv_id": 815150111, "adv_spectral": 815150112, "adv_speed": 815150113, "adv_combined": 815150114},
+    {"wave": 815150201, "gray": 815150202, "sc1": 815150203, "sc2": 815150204, "ic1": 815150205, "ic2": 815150206, "adv_id": 815150211, "adv_spectral": 815150212, "adv_speed": 815150213, "adv_combined": 815150214}
+  ],
+  "splits": {
+    "adv_id_h8": {"seq_len": 16, "horizon": 8, "speed": [0.18, 0.30], "angle_radians": [-0.20, 0.20], "max_mode": 3},
+    "adv_spectral_ood_h3": {"seq_len": 11, "horizon": 3, "speed": [0.18, 0.30], "angle_radians": [-0.20, 0.20], "max_mode": 6},
+    "adv_speed_ood_h3": {"seq_len": 11, "horizon": 3, "speed": [0.45, 0.60], "angle_radians": [-0.20, 0.20], "max_mode": 3},
+    "adv_combined_ood_h3": {"seq_len": 11, "horizon": 3, "speed": [0.45, 0.60], "angle_radians": [1.20, 1.50], "max_mode": 6}
+  },
+  "primary_gate": "PASS only if frozen 16-feature companded context-8 model has error/persistence < 1.0 on all 4 splits in all 3 registered replicates (12/12); otherwise FAIL",
+  "diagnostic_controls": {
+    "raw_frozen16": "same 16-feature estimator fit from raw context; diagnostic only",
+    "raw_directional20": "expanded raw-only control adding centered Dx,Dy for both channels; diagnostic only and cannot redefine PASS",
+    "purpose": "distinguish representation failure from frozen hypothesis-class failure"
+  },
+  "classification_rule": {
+    "frozen16_fails_directional20_passes": "evidence that the current bottleneck is the hand-designed feature/hypothesis class rather than state-token capacity",
+    "both_fail": "task/numerics or insufficient context remain plausible",
+    "frozen16_passes": "the frozen basis approximates this regime well enough; a harder out-of-class law is required"
+  },
+  "failure_policy": "No retries, replacement seeds, threshold changes, or rescue tuning. Persist unfavorable results.",
+  "claim_limit": "Synthetic known-law falsification only; no novel-physics or general scientific-discovery claim."
+}
