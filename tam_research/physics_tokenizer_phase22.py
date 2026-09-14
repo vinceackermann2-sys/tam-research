@@ -71,6 +71,7 @@ def prepare_split(raw,state,dm,ds,h):
     return qC,target,pm,diag
 
 
+
 @dataclass
 class Seeds:
     wave_train:int; gray_train:int; sc1:int; sc2:int; ic1:int; ic2:int
