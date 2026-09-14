@@ -1,0 +1,17 @@
+{
+  "seeds":{"wave_train":823230101,"gray_train":823230102,"sc1":823230103,"sc2":823230104,"ic1":823230105,"ic2":823230106,"wave_id":823230111,"wave_spectral":823230112,"wave_combined":823230113,"gray_id":823230121,"gray_sharp":823230122,"gray_parameter":823230123,"gray_combined":823230124,"nls_id":823230131,"nls_spectral":823230132,"nls_parameter":823230133,"nls_combined":823230134,"adv_id":823230141,"adv_spectral":823230142,"adv_speed":823230143,"adv_combined":823230144},
+  "basis":"fixed_geometry_symmetry_v1",
+  "rank4_terms":["center","axial_even","x_odd","y_odd"],
+  "rank5_extra_term":"diagonal_even",
+  "context_frames":8,
+  "ridge":0.001,
+  "representation_training_families":["wave","gray_scott"],
+  "nls_used_in_representation_training":false,
+  "advection_used_in_representation_training":false,
+  "rank4":{"spatial_rank_per_channel":4,"feature_dim":16,"primary_companded_ratios":{"wave_id_h8":0.01605666945629048,"wave_spectral_ood_h3":0.002828049584967237,"wave_combined_ood_h3":0.06461573923168129,"gray_id_h8":0.5611967575170081,"gray_sharp_ood_h3":0.1331473048673334,"gray_parameter_ood_h3":0.012524552151719232,"gray_combined_ood_h3":0.08750996556479738,"nls_id_h8":1.4251459773362651,"nls_spectral_ood_h3":0.6949383693088967,"nls_parameter_ood_h3":0.48738092719481085,"nls_combined_ood_h3":0.17414421432061136,"adv_id_h8":0.7782015996880784,"adv_spectral_ood_h3":0.2572688475843544,"adv_speed_ood_h3":0.1452672942760049,"adv_combined_ood_h3":0.08184879343934018},"all_fifteen_below_persistence":false,"passing_cells":14},
+  "rank5":{"spatial_rank_per_channel":5,"feature_dim":18,"primary_companded_ratios":{"wave_id_h8":0.014918251779155728,"wave_spectral_ood_h3":0.0026802000746802565,"wave_combined_ood_h3":0.06543999458399224,"gray_id_h8":0.36961502025884035,"gray_sharp_ood_h3":0.049379140086209354,"gray_parameter_ood_h3":0.008623959586095131,"gray_combined_ood_h3":0.03991769325309055,"nls_id_h8":1.17477775206908,"nls_spectral_ood_h3":0.7024467635421416,"nls_parameter_ood_h3":0.46400260431798307,"nls_combined_ood_h3":0.2274825267598741,"adv_id_h8":0.62186174910321,"adv_spectral_ood_h3":0.19753020559398043,"adv_speed_ood_h3":0.1372798182028501,"adv_combined_ood_h3":0.07241284880298202},"all_fifteen_below_persistence":false,"passing_cells":14},
+  "runtime_seconds":4.233377695083618,
+  "replicate":2,
+  "status":"PHASE23_GEOMETRY_BASIS_REGISTERED_CONFIRMATION",
+  "invariants":{"rank4_feature_dim":16,"rank5_feature_dim":18,"context_frames":8,"ridge":0.001,"basis_data_independent":true,"registered_seed_count":63}
+}
