@@ -1,0 +1,67 @@
+{
+  "experiment": "physics-token-phase14-unified-context8-three-family-v1",
+  "status": "PREREGISTERED_BEFORE_ANY_PHASE14_REGISTERED_EXECUTION",
+  "parent_phase13_head": "1af427e8405e77a0f147b7d16be472aa73c8ce86",
+  "hypothesis": "One fixed context-8 representation+identifier recipe can operate across wave, Gray-Scott, and an NLS family absent from representation training, without a family label/router or family-specific dynamics parameters.",
+  "frozen_representation": {
+    "training_families": ["wave", "gray_scott"],
+    "nls_used_in_representation_training": false,
+    "training_mixture": "64 low-mode wave sequences + 64 smooth Gray-Scott sequences, seq_len 8, grid 16",
+    "state_codec": "2048+128 residual VQ on joint physical state",
+    "innovation_statistics": "mean/std from raw one-step wave+Gray training-mixture differences only",
+    "primary_codec": "frozen Phase-10/11 asinh compander, 512 levels per channel, zmax 16, exactly 18 bits/cell/frame",
+    "compander_levels_per_channel": 512,
+    "compander_zmax": 16.0,
+    "nominal_bits": 18
+  },
+  "frozen_identifier": {
+    "context_frames": 8,
+    "observed_transitions_used": 7,
+    "coordinates": "decoded physical units",
+    "feature_dim": 16,
+    "features": "constant; per-channel center, D4 axial radius-1 sum, diagonal radius-1 sum, axial radius-2 sum; plus center u^2, uv, v^2, u^3, u^2v, uv^2, v^3",
+    "feature_scaling": "per-sequence RMS over all seven observed transitions; constant fixed to 1",
+    "ridge": 0.001,
+    "target": "absolute next decoded physical state",
+    "law_id_or_family_router": false,
+    "hidden_parameters_supplied": false,
+    "known_equation_or_integrator_supplied": false
+  },
+  "evaluations": {
+    "wave_id_h8": {"seq_len":16,"c_range":[0.6,1.0],"max_mode":3,"horizon":8},
+    "wave_spectral_ood_h3": {"seq_len":11,"c_range":[0.6,1.0],"max_mode":6,"horizon":3},
+    "wave_combined_ood_h3": {"seq_len":11,"c_range":[1.15,1.35],"max_mode":6,"horizon":3},
+    "gray_id_h8": {"seq_len":16,"F_range":[0.025,0.045],"k_range":[0.055,0.065],"sharp":false,"horizon":8},
+    "gray_sharp_ood_h3": {"seq_len":11,"F_range":[0.025,0.045],"k_range":[0.055,0.065],"sharp":true,"horizon":3},
+    "gray_parameter_ood_h3": {"seq_len":11,"F_range":[0.050,0.060],"k_range":[0.045,0.055],"sharp":false,"horizon":3},
+    "gray_combined_ood_h3": {"seq_len":11,"F_range":[0.050,0.060],"k_range":[0.045,0.055],"sharp":true,"horizon":3},
+    "nls_id_h8": {"seq_len":16,"alpha_range":[0.04,0.08],"g_range":[0.10,0.25],"max_mode":3,"horizon":8},
+    "nls_spectral_ood_h3": {"seq_len":11,"alpha_range":[0.04,0.08],"g_range":[0.10,0.25],"max_mode":6,"horizon":3},
+    "nls_parameter_ood_h3": {"seq_len":11,"alpha_range":[0.10,0.14],"g_range":[0.30,0.45],"max_mode":3,"horizon":3},
+    "nls_combined_ood_h3": {"seq_len":11,"alpha_range":[0.10,0.14],"g_range":[0.30,0.45],"max_mode":6,"horizon":3},
+    "num_sequences_per_split": 48,
+    "baseline": "raw-state persistence from final raw context frame",
+    "metric": "companded projected rollout MSE / raw-state persistence MSE"
+  },
+  "fresh_registered_replicates": [
+    {"replicate":1,"wave_train":514140001,"gray_train":514140002,"state_coarse":514140003,"state_residual":514140004,"innovation_coarse":514140005,"innovation_residual":514140006,"wave_id":514140011,"wave_spectral":514140012,"wave_combined":514140013,"gray_id":514140021,"gray_sharp":514140022,"gray_parameter":514140023,"gray_combined":514140024,"nls_id":514140031,"nls_spectral":514140032,"nls_parameter":514140033,"nls_combined":514140034},
+    {"replicate":2,"wave_train":514140101,"gray_train":514140102,"state_coarse":514140103,"state_residual":514140104,"innovation_coarse":514140105,"innovation_residual":514140106,"wave_id":514140111,"wave_spectral":514140112,"wave_combined":514140113,"gray_id":514140121,"gray_sharp":514140122,"gray_parameter":514140123,"gray_combined":514140124,"nls_id":514140131,"nls_spectral":514140132,"nls_parameter":514140133,"nls_combined":514140134},
+    {"replicate":3,"wave_train":514140201,"gray_train":514140202,"state_coarse":514140203,"state_residual":514140204,"innovation_coarse":514140205,"innovation_residual":514140206,"wave_id":514140211,"wave_spectral":514140212,"wave_combined":514140213,"gray_id":514140221,"gray_sharp":514140222,"gray_parameter":514140223,"gray_combined":514140224,"nls_id":514140231,"nls_spectral":514140232,"nls_parameter":514140233,"nls_combined":514140234}
+  ],
+  "execution_rule": "Each registered replicate executes exactly once in an independent process and is persisted before the next. No retry, replacement seed, family-specific routing, context change, ridge change, feature change, tokenizer refit on NLS, compander change, or threshold change after a registered attempt is consumed.",
+  "pass_rule": {
+    "required": "PASS only if the same frozen context-8 companded arm has ratio < 1.0 versus raw persistence on all 11 splits in all 3 fresh replicates (33/33 cells).",
+    "failure_policy": "Any registered ratio >= 1.0 makes Phase 14 FAIL. Remaining registered replicates should still run once for characterization if infrastructure permits."
+  },
+  "pre_execution_validation": [
+    "Phase-10 compander LEVELS=512 and ZMAX=16 unchanged",
+    "Phase-13 context=8, transitions=7, ridge=.001 unchanged",
+    "Phase-10 16-feature function unchanged",
+    "Gray smooth/sharp generators match Phase 11",
+    "NLS generator matches Phase 12",
+    "NLS never enters representation fitting",
+    "all registered Phase-14 seeds unique",
+    "only non-registered smoke seeds before registered execution"
+  ],
+  "claim_limit": "A PASS would show one fixed discrete representation+context-identifier recipe beating persistence across three known synthetic PDE families under these tests, with the third family absent from representation training. It would not establish a universal scientific tokenizer, unrestricted law discovery, novel physics, AGI, or SSI."
+}
