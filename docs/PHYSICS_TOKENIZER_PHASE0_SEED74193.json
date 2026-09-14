@@ -1,0 +1,64 @@
+{
+  "config": {
+    "seed": 74193,
+    "grid": 16,
+    "seq_len": 8,
+    "dt": 0.12,
+    "train_n": 128,
+    "val_n": 48,
+    "ood_n": 48,
+    "latent_dim": 24,
+    "codebook_size": 256,
+    "ae_epochs": 6,
+    "vq_epochs": 3,
+    "dyn_epochs": 20,
+    "batch": 64,
+    "context": 3,
+    "horizon": 3
+  },
+  "normalization": {
+    "means": [-4.740798864588669e-10, -1.1143086453557771e-10],
+    "stds": [0.745576798915863, 0.2758685350418091]
+  },
+  "tokenizer": {
+    "active_codes": 256,
+    "active_fraction": 1.0,
+    "perplexity": 198.65841674804688,
+    "reconstruction_normalized_mse": 0.06051173806190491,
+    "reconstruction_physical_mse": 0.019935430958867073,
+    "ae_loss_last": 0.053743480471894145,
+    "vq_loss_last": 0.0860025251749903
+  },
+  "dynamics": {
+    "train_ce_last": 0.6137542128562927,
+    "id": {
+      "split": "ID",
+      "token_accuracy_1step": 0.699951171875,
+      "mse_1step": 0.02244740165770054,
+      "persistence_mse_1step": 0.0014985031448304653,
+      "ratio_1step": 14.979882915254175,
+      "mse_rollout_h3": 0.028167283162474632,
+      "persistence_mse_h3": 0.01343230064958334,
+      "ratio_h3": 2.096981291387962,
+      "energy_relative_error_h": 0.15291652083396912
+    },
+    "ood": {
+      "split": "OOD-speed",
+      "token_accuracy_1step": 0.5513508915901184,
+      "mse_1step": 0.03003229759633541,
+      "persistence_mse_1step": 0.006571982055902481,
+      "ratio_1step": 4.569747351845333,
+      "mse_rollout_h3": 0.054499078541994095,
+      "persistence_mse_h3": 0.05276243016123772,
+      "ratio_h3": 1.0329144881206063,
+      "energy_relative_error_h": 0.18232965469360352
+    }
+  },
+  "gates": {
+    "tokenizer_usage_pass": true,
+    "tokenizer_reconstruction_pass": true,
+    "id_rollout_beats_persistence": false,
+    "phase0_pass": false
+  },
+  "runtime_seconds": 27.959242582321167
+}
