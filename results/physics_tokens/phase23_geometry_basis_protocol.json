@@ -1,0 +1,76 @@
+{
+  "phase": 23,
+  "experiment": "physics-token-phase23-compact-geometry-basis-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-22 structured Fourier rank-8 sufficiency",
+  "question": "Can a much smaller, fixed, data-independent geometry/symmetry basis preserve four-family transfer without named physical derivatives or law-specific routing?",
+  "representation": {
+    "unchanged_from_phase22": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false
+  },
+  "spatial_bases": {
+    "rank4_core": {
+      "features_per_channel": [
+        "center",
+        "axial_even = north + south + east + west",
+        "x_odd = east - west",
+        "y_odd = south - north"
+      ],
+      "spatial_rank_per_channel": 4,
+      "total_feature_dim": 16
+    },
+    "rank5_plus_diagonal_even": {
+      "features_per_channel": [
+        "center",
+        "axial_even = north + south + east + west",
+        "x_odd = east - west",
+        "y_odd = south - north",
+        "diagonal_even = northeast + northwest + southeast + southwest"
+      ],
+      "spatial_rank_per_channel": 5,
+      "total_feature_dim": 18
+    },
+    "shared_center_terms": "one constant plus seven degree-2/3 center monomials: u^2, uv, v^2, u^3, u^2v, uv^2, v^3",
+    "basis_fit_to_physics_data": false,
+    "named_derivatives_supplied": false,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false
+  },
+  "identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "fit_separately_from_context_for_each_evaluation_trajectory": true,
+    "recursive_state_projection": "same frozen Phase-10 18-bit companded token representation after every predicted step"
+  },
+  "registered_replicates": [
+    {"replicate": 1, "seed_prefix": 8232300},
+    {"replicate": 2, "seed_prefix": 8232301},
+    {"replicate": 3, "seed_prefix": 8232302}
+  ],
+  "evaluation": {
+    "wave": ["id_h8", "spectral_ood_h3", "combined_ood_h3"],
+    "gray_scott": ["id_h8", "sharp_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "nls": ["id_h8", "spectral_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "advection": ["id_h8", "spectral_ood_h3", "speed_ood_h3", "combined_ood_h3"]
+  },
+  "paired_design": "Within each replicate, rank4 and rank5 share exactly the same representation codebooks, physical evaluation trajectories, context, targets, ridge, and recursive token projection. Only inclusion of diagonal_even differs.",
+  "control_rule": "The rank5 geometry basis must beat raw-state persistence on all 45 registered cells. If rank5 does not pass 45/45, the experiment is CONTROL_FAIL and no rank4 sufficiency claim is made.",
+  "primary_rule": "Conditional on rank5 passing 45/45, rank4 is sufficient only if all 45 registered rank4 cells have companded rollout MSE / raw-state persistence MSE < 1.0. Any one rank4 cell >= 1.0 makes the rank4 sufficiency hypothesis FAIL. No retries or replacement seeds.",
+  "secondary_diagnostics": [
+    "per-split median ratio for rank4 and rank5",
+    "worst registered cell",
+    "rank4/rank5 paired ratio",
+    "context and rollout clipping",
+    "raw full-stencil Phase-17 control where practical"
+  ],
+  "failure_policy": "All registered outcomes are retained. No consumed replicate is rerun or replaced. No basis term is added or rotated after execution.",
+  "collision_policy": "If any 823230xxx registered seed is discovered to collide with a previously consumed registered seed before its execution, stop before consuming it and amend only the unconsumed namespace in a separately preregistered repair. Never replace an already consumed seed.",
+  "claim_limit": "Synthetic known-law systems under the fixed 3x3 periodic grid, tokenizer, context, polynomial terms, ridge identifier, and four-family simulator suite only. A pass would establish compact geometry-aligned sufficiency in this benchmark, not a universal minimal basis or discovery of new physics."
+}
