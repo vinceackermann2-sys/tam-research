@@ -3,13 +3,16 @@ from __future__ import annotations
 """Frozen CPU-only systems timing protocol for CHM-v1 issue #971.
 
 This module compares the generic frozen batched indexed path with the corrected
-#970 clipped batched path.  It is deliberately synthetic and CPU-only: no
-scientific corpus, training, CUDA/Modal execution, or scientific seed is
-reachable here.  Timing is descriptive systems evidence; correctness is gated
-before any timing sample is interpreted.
+#970 clipped batched path. It is synthetic and CPU-only: no scientific corpus,
+training, CUDA/Modal execution, or scientific seed is reachable here. Timing is
+systems evidence only, and correctness is gated before any timing sample is
+interpreted.
+
+The two frozen diagnostic seeds are never executed at import or by unit tests.
+``run_frozen_protocol`` is the explicit one-shot measurement entry point after
+exact-head correctness CI and merge authority are established externally.
 """
 
-from collections import defaultdict
 import platform
 import time
 from typing import Any, Literal
@@ -37,6 +40,7 @@ VALUE_WIDTH = 256
 QUERY_COUNT = 32
 NEAR_NOISE_STD = 0.05
 REPEATS = 7
+
 PathName = Literal["frozen", "corrected"]
 RegimeName = Literal["warm", "cold"]
 
@@ -72,6 +76,8 @@ def _correctness_gate(
     queries: torch.Tensor,
     label: str,
 ) -> dict[str, Any]:
+    """Untimed full-result/value/flat-answer gate required before timing."""
+
     frozen_state = _state(f"{label}-correctness-frozen", keys, values)
     corrected_state = _state(f"{label}-correctness-corrected", keys, values)
 
@@ -119,6 +125,7 @@ def _correctness_gate(
         "address_vector_reads": int(
             sum(result.address_vector_reads for result in corrected.results)
         ),
+        "flat_address_vector_reads": int(keys.shape[0] * queries.shape[0]),
         "directory_nodes_visited": int(
             sum(result.directory_nodes_visited for result in corrected.results)
         ),
@@ -130,6 +137,8 @@ def _measure_call(
     state: OptimizedEpisodicState,
     queries: torch.Tensor,
 ) -> dict[str, int]:
+    """Time one complete wrapper call with flat verification already disabled."""
+
     before_index_build = float(state.index_build_seconds_total)
     before_search = float(state.indexed_search_seconds_total)
     before_sidecar = float(state.optimized_sidecar_build_seconds_total)
@@ -165,14 +174,19 @@ def _measure_call(
     )
 
     if path == "corrected":
-        # The #970 wrapper counter includes sidecar construction on a cold call.
-        residual_wrapper_ns = max(0, optimized_wrapper_ns - sidecar_ns)
+        # #970 computes this counter as total - build_delta - search - verification.
+        # build_delta already includes the clipped-sidecar construction, so the
+        # wrapper counter already excludes sidecar time and must NOT subtract it
+        # a second time here.
+        residual_wrapper_ns = max(0, optimized_wrapper_ns)
     else:
         residual_wrapper_ns = max(0, wall_ns - index_build_ns - search_ns)
 
+    base_index_build_ns = max(0, index_build_ns - sidecar_ns)
     return {
         "wall_ns": int(wall_ns),
         "index_build_ns": int(index_build_ns),
+        "base_index_build_ns": int(base_index_build_ns),
         "sidecar_build_ns": int(sidecar_ns),
         "search_ns": int(search_ns),
         "wrapper_ns": int(residual_wrapper_ns),
@@ -184,7 +198,9 @@ def _median_components(samples: list[dict[str, int]]) -> dict[str, int]:
         raise AssertionError(f"expected {REPEATS} samples, got {len(samples)}")
     keys = samples[0].keys()
     return {
-        key: int(np.median(np.asarray([sample[key] for sample in samples], dtype=np.int64)))
+        key: int(
+            np.median(np.asarray([sample[key] for sample in samples], dtype=np.int64))
+        )
         for key in keys
     }
 
@@ -208,6 +224,8 @@ def _timing_regime(
             "frozen": _state(f"{label}-warm-frozen", keys, values),
             "corrected": _state(f"{label}-warm-corrected", keys, values),
         }
+        # Required by #971: both directory structures are fully prebuilt before
+        # the first warm wall-clock sample starts.
         warm_states["frozen"].index()
         warm_states["corrected"].optimized_index()
     elif regime != "cold":
@@ -222,6 +240,8 @@ def _timing_regime(
                 assert warm_states is not None
                 state = warm_states[path]
             else:
+                # Required by #971: a cold sample gets a fresh state so index and
+                # corrected sidecar construction are included in measured wall.
                 state = _state(f"{label}-cold-{path}-{repeat}", keys, values)
             samples[path].append(_measure_call(path, state, queries))
 
@@ -246,7 +266,7 @@ def benchmark_configuration(
     memory_size: int,
     geometry: QueryGeometry,
 ) -> dict[str, Any]:
-    """Run one frozen #971 configuration after an untimed correctness gate."""
+    """Run one #971 configuration after its untimed correctness gate."""
 
     seed = validate_systems_seed(seed)
     if memory_size not in MEMORY_SIZES:
@@ -313,6 +333,16 @@ def classify_protocol(rows: list[dict[str, Any]]) -> dict[str, Any]:
         (int(row["seed"]), int(row["memory_size"]), str(row["geometry"])): row
         for row in rows
     }
+
+    expected_keys = {
+        (seed, memory_size, geometry)
+        for seed in DIAGNOSTIC_SEEDS
+        for memory_size in MEMORY_SIZES
+        for geometry in GEOMETRIES
+    }
+    if set(by_key) != expected_keys:
+        raise ValueError("protocol rows do not exactly match frozen #971 cases")
+
     primary_checks: list[dict[str, Any]] = []
     for seed in DIAGNOSTIC_SEEDS:
         for memory_size in MEMORY_SIZES:
