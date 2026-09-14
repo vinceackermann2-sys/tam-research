@@ -70,11 +70,13 @@ def fit_frozen_representation(seeds, grid=16, train_n=64, code_sizes=(2048,128),
 
 def analytic_map(alpha, g, dt=DT):
     W = np.zeros((2,16), np.float64)
+    # u_next = u - dt*alpha*(axial(v)-4v) + dt*g*(u^2 v + v^3)
     W[0,1] = 1.0
     W[0,5] = 4.0*dt*alpha
     W[0,6] = -dt*alpha
     W[0,13] = dt*g
     W[0,15] = dt*g
+    # v_next = v + dt*alpha*(axial(u)-4u) - dt*g*(u^3 + u v^2)
     W[1,5] = 1.0
     W[1,1] = -4.0*dt*alpha
     W[1,2] = dt*alpha
