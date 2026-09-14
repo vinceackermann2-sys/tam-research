@@ -1,0 +1,30 @@
+{
+  "phase": 18,
+  "status": "FAIL",
+  "registered_replicates": 3,
+  "required_cells": 45,
+  "passing_cells": 25,
+  "failing_cells": 20,
+  "replicate_all_fifteen_pass": [false,false,false],
+  "per_split_median": {
+    "wave_id_h8":1.684346987675463,
+    "wave_spectral_ood_h3":0.9929313208016215,
+    "wave_combined_ood_h3":0.15790771459937988,
+    "gray_id_h8":0.1195982962900446,
+    "gray_sharp_ood_h3":0.04387675028530027,
+    "gray_parameter_ood_h3":0.013529356561609675,
+    "gray_combined_ood_h3":0.05049899369832654,
+    "nls_id_h8":26.912521811275596,
+    "nls_spectral_ood_h3":14.844565956310099,
+    "nls_parameter_ood_h3":1.299621084720747,
+    "nls_combined_ood_h3":5.626501477775733,
+    "adv_id_h8":0.7165592184101462,
+    "adv_spectral_ood_h3":4.378572087784208,
+    "adv_speed_ood_h3":0.119142872147073,
+    "adv_combined_ood_h3":0.5332406603177987
+  },
+  "basis_explained_variance": [[0.9958151437402836,0.991168559470433],[0.9949601594927362,0.9904814385083962],[0.9950701898483207,0.9889683727348949]],
+  "worst_registered_cell": 164.93662946081665,
+  "interpretation": "Five PCA patch components per channel retain about 99% of wave+Gray patch variance but fail to preserve dynamically essential low-variance directions needed for robust transfer to unseen NLS/advection. The full raw 3x3 stencil control remains near-exact on those unseen families, so the regression architecture/locality is viable; unsupervised variance compression is the failure.",
+  "claim_limit": "Synthetic known-law systems only; no unrestricted operator discovery or novel physics claim."
+}
