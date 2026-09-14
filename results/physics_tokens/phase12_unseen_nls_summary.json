@@ -1,0 +1,50 @@
+{
+  "experiment": "physics-token-phase12-unseen-cubic-nls-transfer-v1",
+  "status": "FAIL",
+  "pass_rule": "PASS only if the frozen companded arm has ratio < 1.0 versus raw persistence on all 4 NLS tests in all 3 fresh replicates (12/12 cells).",
+  "registered_replicates_completed": 3,
+  "retries_or_replacements": 0,
+  "nls_used_in_representation_training": false,
+  "per_split_companded_ratios": {
+    "nls_id_h8": [2.367789793833006, 1.253269374281031, 1.4726586593447937],
+    "nls_spectral_ood_h3": [1.5678120157070794, 0.6397434725315707, 0.7441385692280744],
+    "nls_parameter_ood_h3": [0.43788968921801014, 0.4876107199881666, 0.4387423710785944],
+    "nls_combined_ood_h3": [0.43564760446715617, 0.27992734948371495, 0.36150320196297403]
+  },
+  "median_companded_ratios": {
+    "nls_id_h8": 1.4726586593447937,
+    "nls_spectral_ood_h3": 0.7441385692280744,
+    "nls_parameter_ood_h3": 0.4387423710785944,
+    "nls_combined_ood_h3": 0.36150320196297403
+  },
+  "cell_pass_counts": {
+    "nls_id_h8": "0/3",
+    "nls_spectral_ood_h3": "2/3",
+    "nls_parameter_ood_h3": "3/3",
+    "nls_combined_ood_h3": "3/3",
+    "overall": "8/12"
+  },
+  "diagnostic_medians": {
+    "nls_id_h8": {
+      "raw_context_fit_then_companded_projection_ratio": 0.016531917111400056,
+      "companded_target_oracle_ratio": 0.000014497909023057607,
+      "companded_context_mse": 0.00022582703968510032,
+      "companded_context_delta_mse": 0.00033267299295403063
+    },
+    "nls_spectral_ood_h3": {
+      "raw_context_fit_then_companded_projection_ratio": 0.0025656684423526824,
+      "companded_target_oracle_ratio": 0.00003818136777491746
+    },
+    "nls_parameter_ood_h3": {
+      "raw_context_fit_then_companded_projection_ratio": 0.002223504611948858,
+      "companded_target_oracle_ratio": 0.00002288533142376751
+    },
+    "nls_combined_ood_h3": {
+      "raw_context_fit_then_companded_projection_ratio": 0.0004206765189789582,
+      "companded_target_oracle_ratio": 0.000009937733921955332
+    }
+  },
+  "representability_mse": 1.1599885665423927e-16,
+  "interpretation": "The unseen cubic NLS discrete update is representable by the frozen 16-feature library and the frozen 18-bit representation retains enough state information for extremely low target-token oracle error and very strong raw-context-fit projected rollouts. Phase 12 fails because fitting the generic absolute-next-state map from only three quantized context frames is not robust on the unseen slow/dispersive law, especially over the ID h8 rollout. This is a system-identification failure, not evidence that the token representation cannot encode NLS states or that the feature library cannot express the NLS update.",
+  "claim_limit": "Negative result on one known synthetic unseen PDE family under this exact short-context identifier. It is not evidence for or against universal law discovery, novel physics, AGI, or SSI."
+}
