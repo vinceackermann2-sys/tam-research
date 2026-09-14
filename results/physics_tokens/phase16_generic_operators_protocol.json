@@ -1,0 +1,67 @@
+{
+  "phase": 16,
+  "experiment": "physics-tokenizer-generic-operator-library-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": {
+    "branch": "experiment/physics-tokenizer-phase15-outofclass-advection-20260914",
+    "commit": "5a16cfed998cdbd1d1c358d0d522c499f802b3bc"
+  },
+  "motivation": "Phase 15 showed that the frozen symmetric 16-feature hypothesis class is a real limitation for directional advection. Phase 16 tests whether a generic differential-operator basis, rather than an advection-specific branch or law label, can recover advection while retaining the previously confirmed wave, Gray-Scott, and unseen NLS behavior.",
+  "frozen_representation": {
+    "state_representation": "same Phase-10/14 18-bit causal companded innovation representation",
+    "levels_per_channel": 512,
+    "zmax": 16.0,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_used_in_representation_training": false,
+    "advection_used_in_representation_training": false
+  },
+  "frozen_identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "family_router": false,
+    "family_specific_hyperparameters": false,
+    "feature_library_name": "generic_parity_complete_differential_v1",
+    "feature_dimension": 18,
+    "features": [
+      "1",
+      "u", "Dx(u)", "Dy(u)", "Lap(u)", "Lap2(u)",
+      "v", "Dx(v)", "Dy(v)", "Lap(v)", "Lap2(v)",
+      "u^2", "u*v", "v^2", "u^3", "u^2*v", "u*v^2", "v^3"
+    ],
+    "operator_definitions": {
+      "Dx": "centered first difference: 0.5*(roll(-1,x)-roll(+1,x))",
+      "Dy": "centered first difference: 0.5*(roll(-1,y)-roll(+1,y))",
+      "Lap": "same periodic 5-point Laplacian used in prior phases",
+      "Lap2": "Lap(Lap(x))"
+    }
+  },
+  "evaluation_splits": [
+    "wave_id_h8", "wave_spectral_ood_h3", "wave_combined_ood_h3",
+    "gray_id_h8", "gray_sharp_ood_h3", "gray_parameter_ood_h3", "gray_combined_ood_h3",
+    "nls_id_h8", "nls_spectral_ood_h3", "nls_parameter_ood_h3", "nls_combined_ood_h3",
+    "adv_id_h8", "adv_spectral_ood_h3", "adv_speed_ood_h3", "adv_combined_ood_h3"
+  ],
+  "registered_replicates": [
+    {
+      "replicate": 1,
+      "seeds": [816160001,816160002,816160003,816160004,816160005,816160006,816160011,816160012,816160013,816160021,816160022,816160023,816160024,816160031,816160032,816160033,816160034,816160041,816160042,816160043,816160044]
+    },
+    {
+      "replicate": 2,
+      "seeds": [816160101,816160102,816160103,816160104,816160105,816160106,816160111,816160112,816160113,816160121,816160122,816160123,816160124,816160131,816160132,816160133,816160134,816160141,816160142,816160143,816160144]
+    },
+    {
+      "replicate": 3,
+      "seeds": [816160201,816160202,816160203,816160204,816160205,816160206,816160211,816160212,816160213,816160221,816160222,816160223,816160224,816160231,816160232,816160233,816160234,816160241,816160242,816160243,816160244]
+    }
+  ],
+  "primary_gate": "PASS only if all 15 primary companded rollout ratios are < 1.0 versus raw-state persistence in every one of the 3 fresh registered replicates (45/45 cells). No failed or consumed replicate may be retried or replaced.",
+  "secondary_diagnostics": [
+    "raw-state rollout using the same 18-feature library",
+    "raw-state rollout using the old frozen 16-feature library",
+    "target-token oracle where useful"
+  ],
+  "failure_policy": "Any registered primary cell >= 1.0 makes Phase 16 FAIL. Keep unfavorable results. Infrastructure-incomplete runs are neither PASS nor FAIL and their consumed seeds are not reused.",
+  "claim_limit": "A PASS would show that one generic hand-designed differential operator library can cover these four synthetic PDE families under the tested regimes. It would not establish unrestricted law discovery or novel physics."
+}
