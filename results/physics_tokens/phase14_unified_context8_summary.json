@@ -1,0 +1,34 @@
+{
+  "experiment": "physics-token-phase14-unified-context8-three-family-v1",
+  "status": "PASS",
+  "registered_replicates_completed": 3,
+  "retries_or_replacements": 0,
+  "context_frames": 8,
+  "observed_transitions_used": 7,
+  "representation_training_families": ["wave", "gray_scott"],
+  "nls_used_in_representation_training": false,
+  "pass_rule": "PASS only if the same frozen context-8 companded arm has ratio < 1.0 versus raw persistence on all 11 splits in all 3 fresh replicates (33/33 cells).",
+  "median_companded_ratios": {
+    "wave_id_h8": 0.006785526409340816,
+    "wave_spectral_ood_h3": 0.0006146019714058337,
+    "wave_combined_ood_h3": 0.07369214691146991,
+    "gray_id_h8": 0.08593234351432023,
+    "gray_sharp_ood_h3": 0.018439427110786184,
+    "gray_parameter_ood_h3": 0.009421945285569312,
+    "gray_combined_ood_h3": 0.0346063404455857,
+    "nls_id_h8": 0.4210200555228177,
+    "nls_spectral_ood_h3": 0.4166463960663265,
+    "nls_parameter_ood_h3": 0.16391579723109295,
+    "nls_combined_ood_h3": 0.13913301454086208
+  },
+  "cell_pass_counts": {
+    "replicate_1": "11/11",
+    "replicate_2": "11/11",
+    "replicate_3": "11/11",
+    "overall": "33/33"
+  },
+  "worst_registered_cell_ratio": 0.4461939859935191,
+  "interpretation": "One frozen 18-bit causal companded representation plus one generic context-8, 16-feature ridge identifier beat raw-state persistence on every registered ID/OOD cell across wave, Gray-Scott and cubic NLS. No law-family router, family label, hidden dynamics parameter, or known equation/integrator was supplied to the identifier. The representation was fit only on wave+Gray data; NLS remained absent from representation training. This strengthens the evidence that the same discrete observation and context-identification recipe can transfer across these three synthetic PDE families under the tested regimes.",
+  "limitations": "All three families are known synthetic PDEs and all successful laws lie within the hand-specified generic local spatial+cubic feature library. This stage does not test laws outside that hypothesis class and therefore does not demonstrate unrestricted equation discovery or a universal scientific tokenizer.",
+  "claim_limit": "No novel-physics, AGI, SSI, or universal-law-discovery claim."
+}
