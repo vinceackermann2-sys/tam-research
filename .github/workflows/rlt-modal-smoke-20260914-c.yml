@@ -1,0 +1,204 @@
+name: RLT Modal smoke 20260914 C
+
+on:
+  push:
+    branches:
+      - exp/rlt-colab
+    paths:
+      - .github/workflows/rlt-modal-smoke-20260914-c.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-modal-smoke-20260914-c
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-publicspec-smoke-modal-20260914-c
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-publicspec-smoke-modal-20260914-c.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-preflight-20260914-c.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-publicspec-smoke-modal-20260914-c.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-publicspec-smoke-modal-20260914-c.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse any previously claimed or completed attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then
+            echo "::error::Claim already exists; refusing to rerun $JOB_ID"
+            exit 31
+          fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then
+            echo "::error::Terminal result already exists; refusing to rerun $JOB_ID"
+            exit 32
+          fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          python - <<'PY'
+          import json, os
+          job = json.load(open(os.environ['JOB_PATH']))
+          assert job == {
+              'schema': 1,
+              'job_id': 'rlt-publicspec-smoke-modal-20260914-c',
+              'task': 'smoke',
+              'seed': 20260918,
+          }, job
+          print('preregistered job verified:', job)
+          PY
+
+      - name: Verify Modal GitHub secrets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}" || { echo "::error::Missing repository secret MODAL_TOKEN_ID"; exit 2; }
+          test -n "${MODAL_TOKEN_SECRET:-}" || { echo "::error::Missing repository secret MODAL_TOKEN_SECRET"; exit 2; }
+
+      - name: Install Modal CLI
+        run: python -m pip install --disable-pip-version-check 'modal>=1.1,<2'
+
+      - name: Validate compute source packaging locally without GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py experiments/rlt/modal_compute.py
+          python - <<'PY'
+          import experiments.rlt.modal_compute as compute
+          assert compute.MODAL_JOB_MARKER == '-modal-'
+          print('compute source-packaging construction: pass')
+          PY
+
+      - name: Run standalone non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/rlt-modal-preflight.log
+          PREFLIGHT_B64="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/rlt-modal-preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$PREFLIGHT_B64" || { echo "::error::Modal preflight returned no durable payload"; exit 3; }
+          export PREFLIGHT_B64
+          python - <<'PY'
+          import base64, json, os, pathlib
+          raw = base64.urlsafe_b64decode(os.environ['PREFLIGHT_B64'].encode())
+          payload = json.loads(raw)
+          if payload.get('status') != 'pass' or payload.get('scientific_job_executed') is not False:
+              raise SystemExit(f'bad preflight payload: {payload}')
+          payload['branch'] = os.environ['BRANCH']
+          payload['trigger_sha'] = os.environ['GITHUB_SHA']
+          payload['job_id_checked'] = os.environ['JOB_ID']
+          payload['job_source_blob_sha'] = os.environ['JOB_BLOB_SHA']
+          payload['compute_source_packaging_local_check'] = True
+          path = pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+
+      - name: Commit durable preflight before any GPU request
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt modal: record Actions control-plane preflight c'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, pathlib, time
+          job = json.load(open(os.environ['JOB_PATH']))
+          payload = {
+              'schema': 1,
+              'job_id': os.environ['JOB_ID'],
+              'status': 'claimed',
+              'claimed_unix': time.time(),
+              'worker': 'github-actions-modal',
+              'branch': os.environ['BRANCH'],
+              'trigger_sha': os.environ['GITHUB_SHA'],
+              'job_source_blob_sha': os.environ['JOB_BLOB_SHA'],
+              'job': job,
+          }
+          path = pathlib.Path(os.environ['CLAIM_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt modal: claim $JOB_ID before GPU execution"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 smoke attempt
+        id: modal_gpu
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 65m modal run experiments/rlt/modal_compute.py::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/rlt-modal-result.log
+          MODAL_RC=${PIPESTATUS[0]}
+          set -e
+          echo "MODAL_RC=$MODAL_RC" >> "$GITHUB_ENV"
+          RESULT_B64="$(grep '^RLT_MODAL_RESULT_B64=' /tmp/rlt-modal-result.log | tail -1 | cut -d= -f2-)"
+          echo "RESULT_B64=$RESULT_B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize terminal result without retry
+        shell: bash
+        run: |
+          set -euo pipefail
+          export RESULT_B64="${RESULT_B64:-}"
+          python - <<'PY'
+          import base64, json, os, pathlib, time
+          result_b64 = os.environ.get('RESULT_B64', '')
+          rc = int(os.environ.get('MODAL_RC', '999'))
+          if rc == 0 and result_b64:
+              payload = json.loads(base64.urlsafe_b64decode(result_b64.encode()))
+          else:
+              log = pathlib.Path('/tmp/rlt-modal-result.log').read_text(errors='replace') if pathlib.Path('/tmp/rlt-modal-result.log').exists() else ''
+              payload = {
+                  'schema': 1,
+                  'job_id': os.environ['JOB_ID'],
+                  'status': 'failed',
+                  'finished_unix': time.time(),
+                  'worker': 'github-actions-modal',
+                  'error_type': 'ModalInvocationError',
+                  'error': f'Modal CLI exited {rc} without a parseable terminal payload',
+                  'log_tail': log[-4000:],
+              }
+          payload['branch'] = os.environ['BRANCH']
+          payload['trigger_sha'] = os.environ['GITHUB_SHA']
+          payload['job_source_blob_sha'] = os.environ['JOB_BLOB_SHA']
+          path = pathlib.Path(os.environ['RESULT_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt modal: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize durable outcome
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          result = json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(result, indent=2, sort_keys=True))
+          output = result.get('output') if isinstance(result.get('output'), dict) else {}
+          if result.get('status') == 'failed' or output.get('status') == 'fail':
+              raise SystemExit(1)
+          PY

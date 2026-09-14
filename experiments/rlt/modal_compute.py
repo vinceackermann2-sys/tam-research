@@ -3,21 +3,16 @@ from __future__ import annotations
 import base64
 import json
 from pathlib import Path
-import sys
 import time
 from typing import Any
 
 import modal
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-REMOTE_ROOT = "/root/tam-research"
 MODAL_JOB_MARKER = "-modal-"
 
-# Keep the control-plane check intentionally tiny. The previous version reused
-# the full Torch/Transformers image for preflight, which can spend many minutes
-# building packages before proving that Modal authentication works.
-preflight_image = modal.Image.debian_slim(python_version="3.11")
-
+# Modal 1.x does not automatically ship local packages. Package the two Python
+# package roots explicitly so imports resolve from /root on the remote worker,
+# independent of where Modal mounts this launcher module.
 compute_image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
@@ -28,16 +23,7 @@ compute_image = (
         "tokenizers>=0.21,<1",
         "huggingface-hub>=0.34,<1",
     )
-    .add_local_dir(
-        str(REPO_ROOT / "tam_research"),
-        remote_path=f"{REMOTE_ROOT}/tam_research",
-        copy=True,
-    )
-    .add_local_dir(
-        str(REPO_ROOT / "experiments"),
-        remote_path=f"{REMOTE_ROOT}/experiments",
-        copy=True,
-    )
+    .add_local_python_source("tam_research", "experiments")
 )
 
 app = modal.App("tam-rlt-publicspec-compute")
@@ -61,26 +47,6 @@ def _encode(value: dict[str, Any]) -> str:
 
 
 @app.function(
-    image=preflight_image,
-    timeout=5 * 60,
-    cpu=1.0,
-    memory=512,
-    retries=0,
-    max_containers=1,
-)
-def preflight_remote() -> dict[str, Any]:
-    """Non-GPU Modal control-plane check. It cannot consume a scientific attempt."""
-    return {
-        "schema": 1,
-        "status": "pass",
-        "worker": "modal-control",
-        "finished_unix": time.time(),
-        "scientific_job_executed": False,
-        "python_version": sys.version,
-    }
-
-
-@app.function(
     image=compute_image,
     gpu="A100",
     timeout=60 * 60,
@@ -90,9 +56,6 @@ def preflight_remote() -> dict[str, Any]:
     max_containers=1,
 )
 def run_job_remote(job_json: str) -> dict[str, Any]:
-    if REMOTE_ROOT not in sys.path:
-        sys.path.insert(0, REMOTE_ROOT)
-
     from experiments.rlt.bridge_worker import validate_job
     from experiments.rlt.smoke import run_smoke
     from experiments.rlt.train_rlt import train_rlt
@@ -170,11 +133,6 @@ def run_job_remote(job_json: str) -> dict[str, Any]:
                 "error": str(exc),
             },
         }
-
-
-@app.local_entrypoint()
-def preflight() -> None:
-    print("RLT_MODAL_PREFLIGHT_B64=" + _encode(preflight_remote.remote()))
 
 
 @app.local_entrypoint()
