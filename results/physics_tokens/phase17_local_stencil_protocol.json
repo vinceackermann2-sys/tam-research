@@ -1,0 +1,47 @@
+{
+  "phase": 17,
+  "experiment": "physics-token-phase17-raw-local-stencil-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-16 generic parity-complete differential PASS",
+  "question": "Can the same four-family transfer result be retained when named differential operators are removed and replaced by a generic local spatial stencil?",
+  "representation": {
+    "unchanged_from_phase16": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false
+  },
+  "identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "feature_library": "raw_3x3_stencil_plus_center_polynomial_v1",
+    "feature_definition": "constant + all 9 offsets in a centered periodic 3x3 neighborhood for channel 0 + all 9 offsets for channel 1 + seven degree-2/3 center monomials [u^2,uv,v^2,u^3,u^2v,uv^2,v^3]",
+    "feature_dim": 26,
+    "named_derivatives_supplied": false,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false
+  },
+  "registered_replicates": [
+    {"replicate":1,"seed_prefix":8171700},
+    {"replicate":2,"seed_prefix":8171701},
+    {"replicate":3,"seed_prefix":8171702}
+  ],
+  "evaluation": {
+    "wave": ["id_h8", "spectral_ood_h3", "combined_ood_h3"],
+    "gray_scott": ["id_h8", "sharp_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "nls": ["id_h8", "spectral_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "advection": ["id_h8", "spectral_ood_h3", "speed_ood_h3", "combined_ood_h3"]
+  },
+  "frozen_pass_rule": "PASS only if every one of 3 fresh registered replicates has companded rollout MSE / raw-state persistence MSE < 1.0 on all 15 splits (45/45 cells). Any single cell >= 1.0 makes Phase 17 FAIL. No retry or replacement of a consumed replicate.",
+  "diagnostics": [
+    "raw continuous 26-feature rollout",
+    "Phase-16 named-operator 18-feature raw rollout where practical",
+    "context reconstruction error",
+    "projection/clip diagnostics"
+  ],
+  "claim_limit": "A pass would show that named derivative operators are unnecessary for these four synthetic families when a local stencil prior is supplied. It would not establish unrestricted equation discovery, because locality, stencil radius, polynomial order, periodic topology, and the synthetic simulator families remain hand-specified."
+}
