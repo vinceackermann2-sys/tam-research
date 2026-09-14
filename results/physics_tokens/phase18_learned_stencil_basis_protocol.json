@@ -1,0 +1,56 @@
+{
+  "phase": 18,
+  "experiment": "physics-token-phase18-learned-stencil-basis-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-17 raw 3x3 local-stencil PASS",
+  "question": "Can a spatial basis learned only from wave+Gray training patches replace the full raw 3x3 stencil while preserving transfer to unseen NLS and advection?",
+  "representation": {
+    "unchanged_from_phase17": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false
+  },
+  "learned_spatial_basis": {
+    "source": "raw physical 3x3 patches from the same wave+Gray training trajectories used to fit the representation",
+    "method": "separate per-channel PCA/eigendecomposition of centered 9-dimensional patch covariance",
+    "components_per_channel": 5,
+    "determinism": "eigenvalues sorted descending; each eigenvector sign canonicalized by forcing its largest-magnitude coefficient positive",
+    "nls_seen_during_basis_fit": false,
+    "advection_seen_during_basis_fit": false
+  },
+  "identifier": {
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "feature_library": "learned_5x2_patch_components_plus_center_polynomial_v1",
+    "feature_dim": 18,
+    "features": "constant + 5 learned 3x3 patch projections for channel 0 + 5 learned projections for channel 1 + seven degree-2/3 center monomials",
+    "named_derivatives_supplied": false,
+    "raw_stencil_values_supplied_directly": false,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false
+  },
+  "registered_replicates": [
+    {"replicate":1,"seed_prefix":8181800},
+    {"replicate":2,"seed_prefix":8181801},
+    {"replicate":3,"seed_prefix":8181802}
+  ],
+  "evaluation": {
+    "wave": ["id_h8", "spectral_ood_h3", "combined_ood_h3"],
+    "gray_scott": ["id_h8", "sharp_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "nls": ["id_h8", "spectral_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "advection": ["id_h8", "spectral_ood_h3", "speed_ood_h3", "combined_ood_h3"]
+  },
+  "frozen_pass_rule": "PASS only if every one of 3 fresh registered replicates has companded rollout MSE / raw-state persistence MSE < 1.0 on all 15 splits (45/45 cells). Any single cell >= 1.0 makes Phase 18 FAIL. No retry or replacement of a consumed replicate.",
+  "diagnostics": [
+    "per-channel PCA explained variance for 5 components",
+    "raw learned-basis rollout",
+    "raw full-stencil Phase-17 rollout control where practical",
+    "context reconstruction and clip diagnostics"
+  ],
+  "claim_limit": "A pass would show that a compact spatial basis learned from seen training families can support transfer to two unseen synthetic law families. It would not establish unrestricted operator discovery or novel physics; locality, patch size, PCA rank, polynomial order, topology, and simulator families remain hand-specified."
+}
