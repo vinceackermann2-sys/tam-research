@@ -1,0 +1,29 @@
+{
+  "phase": 19,
+  "status": "FAIL",
+  "registered_replicates": 3,
+  "required_cells": 45,
+  "passing_cells": 19,
+  "failing_cells": 26,
+  "replicate_all_fifteen_pass": [false,false,false],
+  "per_split_median": {
+    "wave_id_h8":4.316938268032569,
+    "wave_spectral_ood_h3":0.7822625924967119,
+    "wave_combined_ood_h3":0.1359596751033942,
+    "gray_id_h8":0.17625972430008768,
+    "gray_sharp_ood_h3":0.0711145106988872,
+    "gray_parameter_ood_h3":0.041602711838331814,
+    "gray_combined_ood_h3":0.125440907983562,
+    "nls_id_h8":534.021322836285,
+    "nls_spectral_ood_h3":34.89681182519628,
+    "nls_parameter_ood_h3":31.091086805621412,
+    "nls_combined_ood_h3":13.618976088775016,
+    "adv_id_h8":54.16362732102605,
+    "adv_spectral_ood_h3":5.37123971263624,
+    "adv_speed_ood_h3":3.7728040559941087,
+    "adv_combined_ood_h3":1.1798811229825146
+  },
+  "worst_registered_cell": 578.566467890702,
+  "interpretation": "A five-dimensional per-channel spatial subspace optimized for transition predictiveness on wave+Gray still removes directions required by unseen NLS/advection operators. The full raw 3x3 stencil control remains highly accurate on the same unseen systems. Combined with Phase 18, this shows that both state-variance and seen-transition predictive compression are insufficient for operator-complete unseen-law transfer at this rank.",
+  "claim_limit": "Synthetic known-law benchmark only; no unrestricted operator discovery or novel-physics claim."
+}
