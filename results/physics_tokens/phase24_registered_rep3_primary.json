@@ -1,0 +1,25 @@
+{
+  "replicate":3,
+  "status":"PHASE24_FOURIER_SUBSET_LATTICE_REGISTERED_CONFIRMATION",
+  "runtime_seconds":31.67081594467163,
+  "seeds":{"wave_train":824240201,"gray_train":824240202,"sc1":824240203,"sc2":824240204,"ic1":824240205,"ic2":824240206,"wave_id":824240211,"wave_spectral":824240212,"wave_combined":824240213,"gray_id":824240221,"gray_sharp":824240222,"gray_parameter":824240223,"gray_combined":824240224,"nls_id":824240231,"nls_spectral":824240232,"nls_parameter":824240233,"nls_combined":824240234,"adv_id":824240241,"adv_spectral":824240242,"adv_speed":824240243,"adv_combined":824240244},
+  "variant_primary_summary":{
+    "none":{"rank":9,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5771841491963675},
+    "omit__sin_x":{"rank":8,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5664994761444869},
+    "omit__sin_y":{"rank":8,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5676381575376398},
+    "omit__sin_diag_plus":{"rank":8,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5721876069669093},
+    "omit__sin_diag_minus":{"rank":8,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5752440112841878},
+    "omit__sin_x__sin_y":{"rank":7,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5539913610566963},
+    "omit__sin_x__sin_diag_plus":{"rank":7,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5560091237967376},
+    "omit__sin_x__sin_diag_minus":{"rank":7,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5626534780095518},
+    "omit__sin_y__sin_diag_plus":{"rank":7,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5627657253728078},
+    "omit__sin_y__sin_diag_minus":{"rank":7,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5666997281993034},
+    "omit__sin_diag_plus__sin_diag_minus":{"rank":7,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5715238819283263},
+    "omit__sin_x__sin_y__sin_diag_plus":{"rank":6,"passing_cells":15,"worst_split":"adv_id_h8","worst_ratio":0.5739620828929666},
+    "omit__sin_x__sin_y__sin_diag_minus":{"rank":6,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5549489983155653},
+    "omit__sin_x__sin_diag_plus__sin_diag_minus":{"rank":6,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.5606117829591881},
+    "omit__sin_y__sin_diag_plus__sin_diag_minus":{"rank":6,"passing_cells":15,"worst_split":"nls_id_h8","worst_ratio":0.564617410293666},
+    "omit__sin_x__sin_y__sin_diag_plus__sin_diag_minus":{"rank":5,"passing_cells":15,"worst_split":"adv_id_h8","worst_ratio":0.9167439104026288}
+  },
+  "all_four_rank6_variants_passed_15_of_15":true
+}
