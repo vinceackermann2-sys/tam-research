@@ -13,6 +13,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 REMOTE_ROOT = "/root/tam-research"
 BRANCH = "exp/rlt-colab"
 MODAL_JOB_MARKER = "-modal-"
+MODAL_ROOT = "experiments/rlt/modal"
+JOBS_DIR = f"{MODAL_ROOT}/jobs"
+CLAIMS_DIR = f"{MODAL_ROOT}/claims"
+RESULTS_DIR = f"{MODAL_ROOT}/results"
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -67,16 +71,7 @@ def run_job(job_id: str) -> dict[str, Any]:
     if REMOTE_ROOT not in sys.path:
         sys.path.insert(0, REMOTE_ROOT)
 
-    import torch
-
-    from experiments.rlt.bridge_worker import (
-        CLAIMS_DIR,
-        JOBS_DIR,
-        RESULTS_DIR,
-        GitHubBridge,
-        prerequisite_passed,
-        validate_job,
-    )
+    from experiments.rlt.bridge_worker import GitHubBridge, validate_job
     from experiments.rlt.smoke import run_smoke
     from experiments.rlt.train_rlt import train_rlt
     from tam_research.data import prepare_fineweb
@@ -102,10 +97,21 @@ def run_job(job_id: str) -> dict[str, Any]:
     job = validate_job(raw, f"{job_id}.json")
     if job["job_id"] != job_id:
         raise ValueError("job_id mismatch")
-    if not prerequisite_passed(bridge, job):
-        raise RuntimeError(
-            f"prerequisite {job.get('requires_job_id')!r} has not durably passed"
+
+    prerequisite = job.get("requires_job_id")
+    if prerequisite:
+        prerequisite_path = f"{RESULTS_DIR}/{prerequisite}.json"
+        if not bridge.exists(prerequisite_path):
+            raise RuntimeError(f"prerequisite {prerequisite!r} has no durable Modal result")
+        prerequisite_result = bridge.read_json(prerequisite_path)
+        prerequisite_ok = (
+            prerequisite_result.get("status") == "complete"
+            and isinstance(prerequisite_result.get("output"), dict)
+            and prerequisite_result["output"].get("status") == "pass"
         )
+        if not prerequisite_ok:
+            raise RuntimeError(f"prerequisite {prerequisite!r} has not durably passed")
+
     if bridge.exists(claim_path):
         raise RuntimeError(
             f"{job_id} already has a claim but no terminal result; refusing to rerun"
@@ -135,8 +141,7 @@ def run_job(job_id: str) -> dict[str, Any]:
 
     try:
         if job["task"] == "smoke":
-            output = run_smoke("cuda", seed=job["seed"])
-            output = dict(output)
+            output = dict(run_smoke("cuda", seed=job["seed"]))
             output["runtime"] = runtime
         elif job["task"] == "train":
             data_dir = Path("/tmp/rlt-data")
@@ -200,7 +205,10 @@ def run_job(job_id: str) -> dict[str, Any]:
         payload,
         f"rlt modal: record {job_id} terminal result",
     )
-    print(json.dumps({"event": "terminal", "job_id": job_id, "status": payload["status"]}), flush=True)
+    print(
+        json.dumps({"event": "terminal", "job_id": job_id, "status": payload["status"]}),
+        flush=True,
+    )
     return payload
 
 
