@@ -1,0 +1,257 @@
+name: RLT Modal matched Transformer 64K 20260915 A
+
+on:
+  push:
+    branches:
+      - exp/rlt-colab
+    paths:
+      - .github/workflows/rlt-modal-transformer-control-64k-20260915-a.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-modal-transformer-control-64k-20260915-a
+  cancel-in-progress: false
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: transformer-control-64k-modal-20260915-a
+      JOB_PATH: experiments/rlt/modal/jobs/transformer-control-64k-modal-20260915-a.json
+      PREREQ_PATH: experiments/rlt/modal/results/rlt-tiny-64k-modal-20260915-a.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-preflight-transformer-control-64k-20260915-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/transformer-control-64k-modal-20260915-a.json
+      RESULT_PATH: experiments/rlt/modal/results/transformer-control-64k-modal-20260915-a.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse any previously claimed or completed control
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then
+            echo "::error::Claim already exists; refusing to rerun $JOB_ID"
+            exit 31
+          fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then
+            echo "::error::Terminal result already exists; refusing to rerun $JOB_ID"
+            exit 32
+          fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          python - <<'PY'
+          import json, os
+          job = json.load(open(os.environ['JOB_PATH']))
+          expected = {
+              'schema': 1,
+              'job_id': 'transformer-control-64k-modal-20260915-a',
+              'task': 'train_transformer_control',
+              'requires_job_id': 'rlt-tiny-64k-modal-20260915-a',
+              'seed': 20260921,
+              'token_budget': 65536,
+              'seq_len': 64,
+              'micro_batch_size': 2,
+              'grad_accum_steps': 4,
+              'train_tokens': 1000000,
+              'val_tokens': 100000,
+          }
+          assert job == expected, job
+          print('preregistered Transformer control verified:', job)
+          PY
+
+      - name: Require durable completed RLT 64K reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "origin/$BRANCH:$PREREQ_PATH"
+          git show "origin/$BRANCH:$PREREQ_PATH" > /tmp/rlt-reference.json
+          python - <<'PY'
+          import json
+          result = json.load(open('/tmp/rlt-reference.json'))
+          assert result.get('job_id') == 'rlt-tiny-64k-modal-20260915-a', result
+          assert result.get('status') == 'complete', result
+          training = result.get('output', {}).get('training', {})
+          assert training.get('status') == 'complete', result
+          assert training.get('parameters') == 7007616, result
+          assert training.get('tokens_seen') == 65536, result
+          print('durable RLT 64K reference: complete')
+          PY
+
+      - name: Verify Modal GitHub secrets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}" || { echo "::error::Missing repository secret MODAL_TOKEN_ID"; exit 2; }
+          test -n "${MODAL_TOKEN_SECRET:-}" || { echo "::error::Missing repository secret MODAL_TOKEN_SECRET"; exit 2; }
+
+      - name: Install Modal CLI
+        run: python -m pip install --disable-pip-version-check 'modal>=1.1,<2'
+
+      - name: Validate matched control source locally without GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/train_transformer_control.py experiments/rlt/modal_transformer_control.py experiments/rlt/modal_preflight.py
+          python - <<'PY'
+          from pathlib import Path
+          trainer = Path('experiments/rlt/train_transformer_control.py').read_text()
+          remote = Path('experiments/rlt/modal_transformer_control.py').read_text()
+          vocab, d, max_seq, layers, ff = 50257, 128, 128, 3, 4
+          params = vocab*d + max_seq*d + layers*(4*d*d + 2*ff*d*d + 4*d) + 2*d
+          assert params == 7040896, params
+          assert abs(params - 7007616) / 7007616 < 0.005
+          assert 'PAIRED_BATCH_SEED = 20_270_920' in trainer
+          assert 'PAIRED_EVAL_SEED = 20_290_920' in trainer
+          assert 'gpu="A100"' in remote
+          assert 'retries=0' in remote
+          assert 'return _encode(result)' in remote
+          print('matched Transformer control source: pass; params=', params)
+          PY
+
+      - name: Run standalone non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/rlt-modal-preflight.log
+          PREFLIGHT_B64="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/rlt-modal-preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$PREFLIGHT_B64" || { echo "::error::Modal preflight returned no durable payload"; exit 3; }
+          export PREFLIGHT_B64
+          python - <<'PY'
+          import base64, json, os, pathlib
+          payload = json.loads(base64.urlsafe_b64decode(os.environ['PREFLIGHT_B64'].encode()))
+          if payload.get('status') != 'pass' or payload.get('scientific_job_executed') is not False:
+              raise SystemExit(f'bad preflight payload: {payload}')
+          payload['branch'] = os.environ['BRANCH']
+          payload['trigger_sha'] = os.environ['GITHUB_SHA']
+          payload['job_id_checked'] = os.environ['JOB_ID']
+          payload['job_source_blob_sha'] = os.environ['JOB_BLOB_SHA']
+          payload['prerequisite_job_id'] = 'rlt-tiny-64k-modal-20260915-a'
+          payload['comparison_role'] = 'matched_transformer_control'
+          path = pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+
+      - name: Commit durable preflight before any GPU request
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt modal: record matched Transformer control preflight a'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot control claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, pathlib, time
+          job = json.load(open(os.environ['JOB_PATH']))
+          payload = {
+              'schema': 1,
+              'job_id': os.environ['JOB_ID'],
+              'status': 'claimed',
+              'claimed_unix': time.time(),
+              'worker': 'github-actions-modal',
+              'branch': os.environ['BRANCH'],
+              'trigger_sha': os.environ['GITHUB_SHA'],
+              'job_source_blob_sha': os.environ['JOB_BLOB_SHA'],
+              'prerequisite_job_id': 'rlt-tiny-64k-modal-20260915-a',
+              'comparison_role': 'matched_transformer_control',
+              'job': job,
+          }
+          path = pathlib.Path(os.environ['CLAIM_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt modal: claim $JOB_ID before GPU control"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 matched control
+        id: modal_gpu
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 75m modal run experiments/rlt/modal_transformer_control.py::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/rlt-control-result.log
+          MODAL_RC=${PIPESTATUS[0]}
+          RESULT_B64="$(grep '^RLT_TRANSFORMER_CONTROL_RESULT_B64=' /tmp/rlt-control-result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$MODAL_RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$RESULT_B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize terminal result without retry
+        shell: bash
+        run: |
+          set -euo pipefail
+          export RESULT_B64="${RESULT_B64:-}"
+          python - <<'PY'
+          import base64, json, os, pathlib, time
+          result_b64 = os.environ.get('RESULT_B64', '')
+          rc = int(os.environ.get('MODAL_RC', '999'))
+          payload = None
+          parse_error = None
+          if result_b64:
+              try:
+                  payload = json.loads(base64.urlsafe_b64decode(result_b64.encode()))
+              except Exception as exc:
+                  parse_error = f'{type(exc).__name__}: {exc}'
+          if not isinstance(payload, dict):
+              log_path = pathlib.Path('/tmp/rlt-control-result.log')
+              log = log_path.read_text(errors='replace') if log_path.exists() else ''
+              payload = {
+                  'schema': 1,
+                  'job_id': os.environ['JOB_ID'],
+                  'status': 'failed',
+                  'finished_unix': time.time(),
+                  'worker': 'github-actions-modal',
+                  'error_type': 'ModalInvocationOrTransportError',
+                  'error': f'Modal CLI rc={rc}; no parseable terminal payload',
+                  'parse_error': parse_error,
+                  'log_tail': log[-4000:],
+                  'scientific_conclusion': None,
+              }
+          payload['modal_cli_rc'] = rc
+          payload['branch'] = os.environ['BRANCH']
+          payload['trigger_sha'] = os.environ['GITHUB_SHA']
+          payload['job_source_blob_sha'] = os.environ['JOB_BLOB_SHA']
+          payload['prerequisite_job_id'] = 'rlt-tiny-64k-modal-20260915-a'
+          payload['comparison_role'] = 'matched_transformer_control'
+          path = pathlib.Path(os.environ['RESULT_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt modal: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize durable outcome
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          result = json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(result, indent=2, sort_keys=True))
+          if result.get('status') != 'complete':
+              raise SystemExit(1)
+          training = result.get('output', {}).get('training', {})
+          if training.get('status') != 'complete':
+              raise SystemExit(1)
+          if training.get('parameters') != 7040896:
+              raise SystemExit(1)
+          PY
