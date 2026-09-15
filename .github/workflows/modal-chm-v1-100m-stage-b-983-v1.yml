@@ -1,0 +1,355 @@
+name: CHM-v1 100M Stage-B L4 systems preflight v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-100m-stage-b-983-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+    steps:
+      - name: Resolve immutable Stage-B payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v1-100m-stage-b-983-v1",
+              "seed": 977201,
+              "research_issue": 977,
+              "systems_issue": 983,
+              "result_root": "/vol/chm-v1/100m-stage-b/issue-983/seed-977201-v1",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r}"
+          for key in ("source_sha", "source_tree", "harness_sha", "workflow_sha"):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
+              print(f"{key}={value}")
+          print("seed=977201")
+          PY
+
+      - name: Checkout exact paid boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on source, Stage-A core, and launcher blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor 118a743f7eb1c224af71bd97dac0f53b2e565d73 "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_scale.py")" = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_small_lm_protocol.py")" = "d5c2e405b5306f556e7fbe70aacd552867e69d3e"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/data.py")" = "f73e85ebfa861927827b59716a1f7152dd3bcfc6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_b_983_v1.py")" = "$HARNESS_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-b-983-v1.yml")" = "$WORKFLOW_SHA"
+
+      - name: Verify final launcher authority and trigger uniqueness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo = os.environ["GITHUB_REPOSITORY"]
+          owner = repo.split("/", 1)[0]
+          issue_number = int(os.environ["ISSUE_NUMBER"])
+          source_sha = os.environ["SOURCE_SHA"]
+          source_tree = os.environ["SOURCE_TREE"]
+          harness_sha = os.environ["HARNESS_SHA"]
+          workflow_sha = os.environ["WORKFLOW_SHA"]
+
+          def gh(path):
+              return json.loads(subprocess.check_output(["gh", "api", path], text=True))
+
+          control = gh(f"repos/{repo}/issues/983")
+          assert control["state"] == "open"
+          assert control["user"]["login"] == owner
+          assert control["title"] == "[chm-v1-systems] 100M matched-LM L4 training preflight — non-scientific"
+          comments = gh(f"repos/{repo}/issues/983/comments?per_page=100")
+          markers = [
+              c for c in comments
+              if c["user"]["login"] == owner
+              and "CHM_V1_983_FINAL_LAUNCHER_AUTHORITY_V1" in c["body"]
+          ]
+          assert len(markers) == 1, f"need exactly one #983 final launcher marker, got {len(markers)}"
+          authority = markers[0]
+          for needle in (
+              f"source_sha={source_sha}",
+              f"source_tree={source_tree}",
+              f"harness_blob={harness_sha}",
+              f"workflow_blob={workflow_sha}",
+              "ci_status=PASS",
+              "engineering_seed=977201",
+              "gpu=1x NVIDIA L4",
+              "max_gpu_seconds=1200",
+              "max_stage_b_compute_usd=0.50",
+              "scientific_seed_977001_authorized=false",
+          ):
+              assert needle in authority["body"], needle
+
+          trigger = gh(f"repos/{repo}/issues/{issue_number}")
+          assert trigger["user"]["login"] == owner
+          assert trigger["created_at"] > authority["created_at"]
+          query = f'repo:{repo} in:title "[modal-chm-v1-100m-stage-b-983-v1]"'
+          found = json.loads(subprocess.check_output(
+              ["gh", "api", "-X", "GET", "search/issues", "-f", f"q={query}"], text=True
+          ))
+          assert found["total_count"] == 1, found["total_count"]
+          assert found["items"][0]["number"] == issue_number
+          PY
+
+      - name: Run setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Fail closed on live Modal rates and Stage-B cap
+        id: rates
+        run: |
+          modal billing rates --json > modal-rates.json
+          cat modal-rates.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          rates = json.load(open("modal-rates.json", encoding="utf-8"))
+          l4 = float(rates["gpu_hour_cost_l4"])
+          cpu = float(rates["cpu_hour_cost"])
+          ram = float(rates["mem_gib_hour_cost"])
+          for name, value in (("l4", l4), ("cpu", cpu), ("ram", ram)):
+              assert value > 0.0, f"invalid {name} hourly rate: {value}"
+          hourly = l4 + 4 * cpu + 16 * ram
+          worst = hourly * (1200 / 3600)
+          assert worst <= 0.50, f"live 1200s Stage-B bound ${worst:.6f} exceeds $0.50 cap"
+          print(f"hourly_resource_usd={hourly:.12f}")
+          print(f"worst_case_stage_b_usd={worst:.12f}")
+          PY
+
+      - name: Run zero-GPU corpus and protocol preflight
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_b_983_v1.py \
+            --phase preflight \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" \
+            --workflow-sha "$WORKFLOW_SHA" | tee ../zero-gpu.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("zero-gpu.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_100M_STAGE_B_ZERO_GPU=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_B_ZERO_GPU=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "PASS"
+          assert payload["engineering_seed"] == 977201
+          assert payload["gpu_allocated"] is False
+          assert payload["engineering_attempt_consumed"] is False
+          assert payload["scientific_execution"] is False
+          assert payload["stage_a"]["parameter_accounting"]["local_trainable_parameters"] == 101803520
+          assert payload["stage_a"]["parameter_accounting"]["eiem_trainable_parameters"] == 101836800
+          Path("zero-gpu.json").write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+          PY
+
+      - name: Record zero-GPU evidence before allocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > preflight-comment.md
+          import json
+          p = json.load(open("zero-gpu.json", encoding="utf-8"))
+          print("🟨 **CHM-v1 #983 100M Stage-B zero-GPU preflight PASS**")
+          print()
+          print(f"- execution: `{p['execution_code_sha']}`")
+          print(f"- tree: `{p['execution_tree_sha']}`")
+          print(f"- harness blob: `{p['harness_blob_sha']}`")
+          print(f"- workflow blob: `{p['workflow_blob_sha']}`")
+          print("- exact Stage-A parameter counts reconfirmed: `101,803,520` LOCAL / `101,836,800` EIEM-FLAT")
+          print("- GPU allocated: **false**; engineering attempt consumed: **false**; scientific seed `977001` untouched.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/983/comments" -f body="$(cat preflight-comment.md)"
+
+      - name: Write durable dispatch marker before L4 allocation
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_b_983_v1.py \
+            --phase reserve \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" \
+            --workflow-sha "$WORKFLOW_SHA" | tee ../dispatch.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("dispatch.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_100M_STAGE_B_DISPATCH=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_B_DISPATCH=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "DISPATCH_RESERVED"
+          assert payload["engineering_seed"] == 977201
+          assert payload["gpu_allocation_started"] is False
+          assert payload["engineering_attempt_consumed"] is False
+          assert payload["automatic_retry_authorized"] is False
+          PY
+
+      - name: Record dispatch reservation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/983/comments" -f body="🟧 **CHM-v1 #983 Stage-B dispatch reserved.** Durable marker exists before allocation. The next step is the single authorized L4 systems allocation. Once the GPU function begins, engineering seed 977201 is permanently consumed; no retry or redispatch is authorized. Scientific seed 977001 remains unauthorized."
+
+      - name: Launch Stage-B L4 systems attempt exactly once
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_b_983_v1.py \
+            --phase run \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" \
+            --workflow-sha "$WORKFLOW_SHA" \
+            --live-hourly-resource-usd "$LIVE_HOURLY_RESOURCE_USD" | tee ../result.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("result.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_100M_STAGE_B_RESULT=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_B_RESULT=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "COMPLETE"
+          assert payload["engineering_seed"] == 977201
+          assert payload["engineering_attempt_consumed"] is True
+          assert payload["scientific_execution"] is False
+          assert payload["stage_c_authorized_automatically"] is False
+          assert payload["classification"] in {
+              "CHM_V1_100M_STAGE_B_SYSTEMS_PASS",
+              "CHM_V1_100M_STAGE_B_SYSTEMS_STOP",
+          }
+          Path("result.json").write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+          PY
+
+      - name: Record authoritative Stage-B result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY' > result-comment.md
+          import json
+          p = json.load(open("result.json", encoding="utf-8"))
+          local = p["measurements"]["local"]
+          eiem = p["measurements"]["eiem_flat"]
+          proj = p["projection"]
+          print("🟩 **CHM-v1 #983 100M Stage-B attempt COMPLETE**")
+          print()
+          print(f"- classification: `{p['classification']}`")
+          print(f"- PASS: `{p['passed']}`")
+          print(f"- stop reasons: `{p['stop_reasons']}`")
+          print(f"- LOCAL throughput: `{local['tokens_per_second']:.3f} tok/s`; peak VRAM: `{local['peak_vram_bytes'] / 1024**3:.3f} GiB`")
+          print(f"- EIEM-FLAT throughput: `{eiem['tokens_per_second']:.3f} tok/s`; peak VRAM: `{eiem['peak_vram_bytes'] / 1024**3:.3f} GiB`")
+          print(f"- EIEM/LOCAL throughput ratio: `{proj['eiem_local_throughput_ratio']:.6f}`")
+          print(f"- projected frozen-screen pair wall time: `{proj['pair_projected_seconds']:.3f} s`")
+          print(f"- projected frozen-screen pair compute: `${proj['pair_projected_compute_usd']:.4f}` at live rate")
+          print("- engineering attempt consumed: **true**; automatic retry: **false**; Stage C automatically authorized: **false**.")
+          print("- scientific seed `977001` remains untouched and unauthorized.")
+          print()
+          print("Interpretation: systems feasibility only; no scientific/modeling claim.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/983/comments" -f body="$(cat result-comment.md)"
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/983" -f state=closed -f state_reason=completed >/dev/null
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$TRIGGER_ISSUE" -f state=closed -f state_reason=completed >/dev/null
+
+      - name: Inspect durable state after any failure
+        if: failure()
+        continue-on-error: true
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_b_983_v1.py \
+            --phase inspect \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" \
+            --workflow-sha "$WORKFLOW_SHA" | tee ../inspect.log
+          cd ..
+          python - <<'PY' > failure-comment.md
+          import json
+          from pathlib import Path
+          lines = Path("inspect.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_100M_STAGE_B_STATE=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_B_STATE=" in line]
+          if len(matches) != 1:
+              print("🟥 **CHM-v1 #983 workflow failed and durable-state inspection was unavailable.** No retry is authorized. Inspect the workflow and Modal namespace manually before any further action.")
+          else:
+              state = json.loads(matches[0])
+              files = state["files"]
+              consumed = files.get("ATTEMPT_CONSUMED.json") is not None
+              failure = files.get("ATTEMPT_FAILURE.json")
+              result = files.get("RESULT.json")
+              print("🟥 **CHM-v1 #983 workflow failed. Durable state inspected.**")
+              print()
+              print(f"- engineering attempt consumed: `{consumed}`")
+              print(f"- durable RESULT present: `{result is not None}`")
+              print(f"- durable FAILURE present: `{failure is not None}`")
+              if failure:
+                  print(f"- failure type: `{failure.get('error_type')}`")
+                  print(f"- failure: `{failure.get('error')}`")
+              print("- no retry/rerun/redispatch is authorized; this is not scientific evidence.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/983/comments" -f body="$(cat failure-comment.md)"
