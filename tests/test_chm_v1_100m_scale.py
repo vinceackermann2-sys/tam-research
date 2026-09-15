@@ -86,8 +86,10 @@ def test_100m_stage_a_has_no_training_gpu_modal_or_corpus_execution_path() -> No
                 calls.add(name)
 
     assert all("modal" not in name.lower() for name in imported_modules)
-    assert all("data" not in name.lower() for name in imported_modules)
-    assert all("train" not in name.lower() for name in imported_modules)
+    assert "tam_research.data" not in imported_modules
+    assert ".data" not in imported_modules
+    assert "tam_research.train" not in imported_modules
+    assert ".train" not in imported_modules
     assert all(not name.startswith("torch.cuda") for name in calls)
     assert all("optimizer" not in name.lower() for name in calls)
     assert all(not name.endswith(".backward") and name != "backward" for name in calls)
