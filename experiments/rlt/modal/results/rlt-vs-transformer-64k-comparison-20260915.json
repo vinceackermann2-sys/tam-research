@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "comparison_id": "rlt-vs-transformer-64k-comparison-20260915",
+  "status": "complete",
+  "classification": "matched_64k_control_no_breakthrough_signal",
+  "rlt_job_id": "rlt-tiny-64k-modal-20260915-a",
+  "transformer_job_id": "transformer-control-64k-modal-20260915-a",
+  "matched_conditions": {
+    "dataset": "HuggingFaceFW/fineweb-edu sample-10BT",
+    "tokenizer": "gpt2",
+    "data_seed": 1234,
+    "token_budget": 65536,
+    "seq_len": 64,
+    "micro_batch_size": 2,
+    "grad_accum_steps": 4,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.1,
+    "precision": "bfloat16",
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "paired_batch_seed": 20270920,
+    "paired_eval_seed": 20290920
+  },
+  "rlt": {
+    "parameters": 7007616,
+    "final_eval_nll": 8.563246726989746,
+    "final_eval_perplexity": 5235.652340932743,
+    "last_train_loss": 8.567697048187256,
+    "tokens_per_second": 287.8440747622412,
+    "train_seconds": 227.678822481,
+    "peak_vram_gb": 0.2283496856689453
+  },
+  "transformer": {
+    "parameters": 7040896,
+    "parameter_delta_vs_rlt_fraction": 0.004749118673169306,
+    "final_eval_nll": 8.4793212890625,
+    "final_eval_perplexity": 4814.1813502593695,
+    "last_train_loss": 8.472769975662231,
+    "tokens_per_second": 11456.726299488219,
+    "train_seconds": 5.720307728999998,
+    "peak_vram_gb": 0.22323989868164062
+  },
+  "derived": {
+    "rlt_minus_transformer_nll": 0.08392543792724538,
+    "rlt_minus_transformer_perplexity": 421.4709906733733,
+    "rlt_perplexity_percent_higher": 8.754780096737868,
+    "transformer_throughput_multiple_vs_rlt": 39.801848653481784,
+    "rlt_training_time_multiple_vs_transformer": 39.80184865348178,
+    "transformer_parameter_percent_more": 0.4749118673169406,
+    "rlt_peak_vram_percent_more": 2.2889219254626614
+  },
+  "interpretation": {
+    "breakthrough_claim_supported": false,
+    "rlt_quality_advantage_observed": false,
+    "rlt_systems_advantage_observed": false,
+    "note": "At this 64K-token scale the matched Transformer has lower validation NLL/perplexity and is about 39.8x faster. This is evidence against a breakthrough claim at this scale, but does not isolate architectural potential from the prototype's explicitly sequential token-by-token decoder implementation. A larger scientific run is not authorized by this comparison alone; first optimize or profile the RLT execution path while preserving semantics."
+  }
+}
