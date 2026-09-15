@@ -1,0 +1,62 @@
+{
+  "benchmark": {
+    "batched_head_compiled_last_loss": 10.843294382095337,
+    "batched_head_compiled_peak_vram_gb": 0.3282599449157715,
+    "batched_head_compiled_seconds": 7.47067684000001,
+    "batched_head_compiled_speedup_vs_prior_d": 0.5938517938891378,
+    "batched_head_compiled_speedup_vs_reference_eager": 1.7265299857355336,
+    "batched_head_compiled_tokens_per_second": 548.2769617431336,
+    "batched_head_eager_last_loss": 10.855704069137573,
+    "batched_head_eager_peak_vram_gb": 0.3291144371032715,
+    "batched_head_eager_seconds": 11.613569008999999,
+    "batched_head_eager_speedup_vs_reference_eager": 1.1106273676941476,
+    "batched_head_eager_tokens_per_second": 352.6908908730626,
+    "measured_tokens": 4096,
+    "prior_d_compiled_tokens_per_second": 923.2555452135044,
+    "reference_eager_last_loss": 10.855750799179077,
+    "reference_eager_peak_vram_gb": 0.3291444778442383,
+    "reference_eager_seconds": 12.898347578,
+    "reference_eager_tokens_per_second": 317.56005761438166,
+    "synthetic_fixed_batches": true
+  },
+  "branch": "exp/rlt-colab",
+  "classification": "FAIL_SEMANTIC_EQUIVALENCE",
+  "compile": {
+    "cuda_graphs_requested": false,
+    "dynamic": false,
+    "first_step_seconds_including_compile": 503.66023107899997,
+    "fullgraph": true,
+    "mode": "default"
+  },
+  "engineering_only": true,
+  "engineering_seed": 20260927,
+  "finished_unix": 1789503934.2943842,
+  "job_id": "rlt-systems-batched-head-modal-20260915-e",
+  "job_source_blob_sha": "7219d91380c33aa681b19037e95dcfdd8a637fbf",
+  "modal_cli_rc": 0,
+  "model": {
+    "grad_accum_steps": 4,
+    "micro_batch_size": 2,
+    "parameters": 7007616,
+    "seq_len": 64
+  },
+  "profile_blob_sha": "4c2499141cd8114424c864403749114f6852a5e2",
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "semantic_equivalence": {
+    "candidate_change": "deferred batched output_norm + tied lm_head only",
+    "grad_max_abs": 0.00048828125,
+    "logits_max_abs": 0.00390625,
+    "loss_abs": 0.0,
+    "passed": false
+  },
+  "started_unix": 1789503390.0324075,
+  "status": "complete",
+  "trigger_sha": "a076fd3cd99835ecfbec326c895dc70a63a28455"
+}
