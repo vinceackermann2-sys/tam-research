@@ -1,0 +1,39 @@
+{
+  "phase": 26,
+  "experiment": "physics-token-phase26-burgers-interaction-confirm-v1",
+  "status": "PASS",
+  "primary_rule": "12/12 registered token-62 Burgers cells must beat raw-state persistence",
+  "primary_pass_cells": 12,
+  "primary_total_cells": 12,
+  "secondary_control26_pass_cells": 6,
+  "secondary_control26_total_cells": 12,
+  "per_split": {
+    "burgers_id_h8": {
+      "token62_values": [0.13665016878703984, 0.19975866642853685, 0.1865963721186263],
+      "token62_median": 0.1865963721186263,
+      "control26_values": [3.342997025357662, 6.887051598998429, 9.28867771385064],
+      "control26_median": 6.887051598998429
+    },
+    "burgers_spectral_ood_h3": {
+      "token62_values": [0.09818232848025253, 0.12232842002823473, 0.15453909854801182],
+      "token62_median": 0.12232842002823473,
+      "control26_values": [0.8403161503697542, 0.8097369564103812, 0.7741504680335866],
+      "control26_median": 0.8097369564103812
+    },
+    "burgers_parameter_ood_h3": {
+      "token62_values": [0.10912965412733953, 0.15366470492363668, 0.14321768099103008],
+      "token62_median": 0.14321768099103008,
+      "control26_values": [0.6686349340196108, 0.7305289408275638, 0.7748539235263099],
+      "control26_median": 0.7305289408275638
+    },
+    "burgers_combined_ood_h3": {
+      "token62_values": [0.6207649695225754, 0.32865467008653615, 0.5518512534599134],
+      "token62_median": 0.5518512534599134,
+      "control26_values": [1.2287255586887367, 1.0612174863558703, 1.184523722096416],
+      "control26_median": 1.184523722096416
+    }
+  },
+  "worst_primary_registered_ratio": 0.6207649695225754,
+  "interpretation": "The generic center-times-spatial interaction class replicates as a primary token-space Burgers identifier on three fresh registered codebook/data seeds. This supports Phase-25's hypothesis-class diagnosis. It does not yet establish that the 62-feature class is a unified upgrade across the earlier four families.",
+  "next_required_test": "Separately preregister a cross-family regression phase using the unchanged 62-feature primary library on wave, Gray-Scott, NLS, advection, and Burgers with fresh seeds."
+}
