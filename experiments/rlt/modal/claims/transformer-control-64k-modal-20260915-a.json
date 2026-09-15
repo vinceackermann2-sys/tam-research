@@ -1,0 +1,25 @@
+{
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789468656.0727909,
+  "comparison_role": "matched_transformer_control",
+  "job": {
+    "grad_accum_steps": 4,
+    "job_id": "transformer-control-64k-modal-20260915-a",
+    "micro_batch_size": 2,
+    "requires_job_id": "rlt-tiny-64k-modal-20260915-a",
+    "schema": 1,
+    "seed": 20260921,
+    "seq_len": 64,
+    "task": "train_transformer_control",
+    "token_budget": 65536,
+    "train_tokens": 1000000,
+    "val_tokens": 100000
+  },
+  "job_id": "transformer-control-64k-modal-20260915-a",
+  "job_source_blob_sha": "f6c9104cfc0aaea3e8ba3e579d26b5777582872e",
+  "prerequisite_job_id": "rlt-tiny-64k-modal-20260915-a",
+  "schema": 1,
+  "status": "claimed",
+  "trigger_sha": "ac8299c0eff158e74c9b832dce82d440cc71a92b",
+  "worker": "github-actions-modal"
+}
