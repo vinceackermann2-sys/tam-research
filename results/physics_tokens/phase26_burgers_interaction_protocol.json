@@ -1,0 +1,20 @@
+{
+  "phase":26,
+  "experiment":"physics-token-phase26-burgers-interaction-confirm-v1",
+  "status":"PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent":"Phase-25 primary 26-feature Burgers transfer FAIL; preregistered 62-feature interaction diagnostic passed 12/12 registered token rollouts",
+  "question":"Does the generic center-times-spatial interaction library replicate as a primary token-space identifier on fresh Burgers seeds?",
+  "representation":{"unchanged_from_phase25":true,"nominal_bits":18,"compander":"asinh","zmax":16.0,"levels_per_channel":512,"representation_training_families":["wave","gray_scott"],"burgers_seen_during_representation_fit":false},
+  "primary_identifier":{"feature_dim":62,"construction":"constant + 18 full fixed real 3x3 Fourier spatial coordinates + seven center degree-2/3 monomials + every product between center u or v and each of the 18 spatial coordinates (36 interaction terms)","context_frames":8,"observed_transitions":7,"ridge":0.001,"law_family_id_supplied":false,"hidden_viscosity_supplied":false,"recursive_projection":"same frozen Phase-10 18-bit companded token projection after every step"},
+  "secondary_control":{"feature_dim":26,"construction":"Phase-25 primary linear-spatial plus center-polynomial identifier","purpose":"report only; cannot rescue or redefine Phase-26 gate"},
+  "registered_replicates":[
+    {"replicate":1,"seeds":{"wave_train":826260001,"gray_train":826260002,"sc1":826260003,"sc2":826260004,"ic1":826260005,"ic2":826260006,"burg_id":826260011,"burg_spectral":826260012,"burg_parameter":826260013,"burg_combined":826260014}},
+    {"replicate":2,"seeds":{"wave_train":826260101,"gray_train":826260102,"sc1":826260103,"sc2":826260104,"ic1":826260105,"ic2":826260106,"burg_id":826260111,"burg_spectral":826260112,"burg_parameter":826260113,"burg_combined":826260114}},
+    {"replicate":3,"seeds":{"wave_train":826260201,"gray_train":826260202,"sc1":826260203,"sc2":826260204,"ic1":826260205,"ic2":826260206,"burg_id":826260211,"burg_spectral":826260212,"burg_parameter":826260213,"burg_combined":826260214}}
+  ],
+  "evaluation":{"id_h8":{"seq_len":16,"max_mode":3,"nu":[0.01,0.03],"amplitude":[0.15,0.35]},"spectral_ood_h3":{"seq_len":11,"max_mode":6,"nu":[0.01,0.03],"amplitude":[0.15,0.35]},"parameter_ood_h3":{"seq_len":11,"max_mode":3,"nu":[0.04,0.06],"amplitude":[0.15,0.35]},"combined_ood_h3":{"seq_len":11,"max_mode":6,"nu":[0.04,0.06],"amplitude":[0.35,0.55]}},
+  "primary_rule":"PASS only if the 62-feature token model beats raw-state persistence on all four Burgers tests in all three fresh registered replicates (12/12 cells). Any ratio >=1.0 is Phase-26 FAIL. No retries or replacement seeds.",
+  "failure_policy":"All registered outcomes are retained. No posthoc feature pruning, basis rotation, context change, ridge change, or seed replacement.",
+  "next_if_pass":"A separate preregistered cross-family phase must verify that the richer 62-feature identifier does not regress wave, Gray-Scott, NLS, and advection before calling it a unified upgrade.",
+  "claim_limit":"Known synthetic dynamics only; this confirms a hypothesis class under a fixed benchmark and is not discovery of new physics or unrestricted scientific-law discovery."
+}
