@@ -1,0 +1,9 @@
+{
+  "status":"INVALID_ENGINEERING_PREPARATION_NOT_SCIENTIFIC_EVIDENCE",
+  "event":"Before registered repair replicate 2 family evaluation, the local runner was found modified relative to the sealed GitHub blob: REPAIR_BASES had changed from preregistered 830301000/100/200 to unregistered 830310000/100/200.",
+  "invalid_consumed_local_seed_base":830310100,
+  "family_results_produced":false,
+  "scientific_evidence":false,
+  "registered_repair_rep2_seed_base_830301100_consumed":false,
+  "action":"Discard invalid preparation, restore exact sealed GitHub runner blob d828037e4cc88e033a8dfb950109e3338cdff88f, rerun invariants/hash gate, then continue with preregistered seed base 830301100."
+}
