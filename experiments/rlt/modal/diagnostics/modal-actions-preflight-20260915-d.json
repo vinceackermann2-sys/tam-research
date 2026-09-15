@@ -1,0 +1,13 @@
+{
+  "branch": "exp/rlt-colab",
+  "finished_unix": 1789462372.6445816,
+  "job_id_checked": "rlt-publicspec-smoke-modal-20260915-d",
+  "job_source_blob_sha": "3ed74c99a3e201b8ed062c31b8cbf0e55dd1eaf7",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "transport_safe_result_check": true,
+  "trigger_sha": "8050482b28d8a6abcbfe4f5c908bae14f15ba21a",
+  "worker": "modal-control"
+}
