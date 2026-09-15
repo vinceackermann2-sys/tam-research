@@ -1,0 +1,13 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_COMPILE_SYSTEMS_C_ZERO_GPU_PREFLIGHT_PASS",
+  "finished_unix": 1789471656.512406,
+  "job_id_checked": "rlt-systems-compile-modal-20260915-c",
+  "job_source_blob_sha": "5b62f71db42f09e3b511da8f38a206d44733bc21",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "04cc226ff6447aa3ab6ea3eb3b5d7efc977be613",
+  "worker": "modal-control"
+}
