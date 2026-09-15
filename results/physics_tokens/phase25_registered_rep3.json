@@ -1,0 +1,15 @@
+{
+  "seeds": {"wave_train":825250201,"gray_train":825250202,"sc1":825250203,"sc2":825250204,"ic1":825250205,"ic2":825250206,"burg_id":825250211,"burg_spectral":825250212,"burg_parameter":825250213,"burg_combined":825250214},
+  "family":"two_component_viscous_burgers_2d","dt":0.05,
+  "primary_feature_library":"full_fourier_linear_plus_center_polynomial_26","diagnostic_feature_library":"plus_center_times_spatial_62",
+  "context_frames":8,"ridge":0.001,"representation_training_families":["wave","gray_scott"],"burgers_used_in_representation_training":false,
+  "primary_ratios":{"burgers_id_h8":7.392035701992986,"burgers_spectral_ood_h3":0.7671556480027312,"burgers_parameter_ood_h3":0.7631832575973783,"burgers_combined_ood_h3":1.6286106917846166},
+  "primary_all_four_below_persistence":false,
+  "splits":{
+    "burgers_id_h8":{"persistence_mse":0.0003082062175963074,"primary_token26_mse":0.0022782713640481234,"primary_token26_ratio":7.392035701992986,"raw26_rollout_ratio":null,"raw62_rollout_ratio":null,"token62_rollout_ratio":0.18565593488503415,"raw26_one_step_ratio":0.47884538031832913,"raw62_one_step_ratio":7.507620315455965e-05,"context_mse":3.7593356410070555e-06,"context_clip_fraction":0.0,"primary_rollout_clip_fraction":0.0,"token62_rollout_clip_fraction":0.0},
+    "burgers_spectral_ood_h3":{"persistence_mse":6.888169446028769e-05,"primary_token26_mse":5.284298094920814e-05,"primary_token26_ratio":0.7671556480027312,"raw26_rollout_ratio":1.0079581469496024,"raw62_rollout_ratio":4.100640034384339e-05,"token62_rollout_ratio":0.09547824169316918,"raw26_one_step_ratio":0.49121687961132227,"raw62_one_step_ratio":2.107345285263032e-05,"context_mse":4.506276582105784e-06,"context_clip_fraction":0.0,"primary_rollout_clip_fraction":0.0,"token62_rollout_clip_fraction":0.0},
+    "burgers_parameter_ood_h3":{"persistence_mse":5.1792168960673735e-05,"primary_token26_mse":3.95269162254408e-05,"primary_token26_ratio":0.7631832575973783,"raw26_rollout_ratio":337139155945726.56,"raw62_rollout_ratio":0.00040555066343490263,"token62_rollout_ratio":0.14101412788782766,"raw26_one_step_ratio":0.45896616756838465,"raw62_one_step_ratio":0.0001291751958061676,"context_mse":4.418427124619484e-06,"context_clip_fraction":0.0,"primary_rollout_clip_fraction":0.0,"token62_rollout_clip_fraction":0.0},
+    "burgers_combined_ood_h3":{"persistence_mse":0.000574065838009119,"primary_token26_mse":0.000934929761569947,"primary_token26_ratio":1.6286106917846166,"raw26_rollout_ratio":0.978468373138481,"raw62_rollout_ratio":7.008569451799619e-06,"token62_rollout_ratio":0.9438490278610348,"raw26_one_step_ratio":0.5421580729537416,"raw62_one_step_ratio":4.445724590172354e-06,"context_mse":0.00043408689089119434,"context_clip_fraction":0.00037783668154761906,"primary_rollout_clip_fraction":0.0,"token62_rollout_clip_fraction":0.0}},
+  "runtime_seconds":6.169903516769409,"replicate":3,"status":"PHASE25_BURGERS_TRANSFER_REGISTERED_CONFIRMATION",
+  "invariants":{"base_feature_dim":26,"interaction_feature_dim":62,"context_frames":8,"ridge":0.001,"burgers_dt":0.05,"registered_seed_count":30,"simulator_finite_smoke":true}
+}
