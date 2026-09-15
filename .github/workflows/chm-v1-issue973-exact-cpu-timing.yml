@@ -1,0 +1,85 @@
+name: CHM-v1 issue 973 exact CPU timing
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  exact-cpu-timing:
+    if: github.event.issue.title == '[chm-v1-exact-cpu-timing-973-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate one-shot authority payload
+        id: authority
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          if os.environ["RUN_ATTEMPT"] != "1":
+              raise SystemExit("#973 refuses GitHub Actions rerun attempts")
+
+          body = os.environ.get("ISSUE_BODY", "")
+          expected = {
+              "research_issue": "973",
+              "dispatch_id": "chm-v1-973-exact-cpu-v1",
+          }
+          for key, value in expected.items():
+              match = re.search(rf"^{key}:\s*(\S+)\s*$", body, flags=re.MULTILINE)
+              if match is None or match.group(1) != value:
+                  raise SystemExit(f"authority payload mismatch for {key}")
+
+          match = re.search(r"^source_sha:\s*([0-9a-f]{40})\s*$", body, flags=re.MULTILINE)
+          if match is None:
+              raise SystemExit("authority payload is missing exact source_sha")
+          source_sha = match.group(1)
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
+              handle.write(f"source_sha={source_sha}\n")
+          PY
+
+      - name: Check out exact authorized source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.authority.outputs.source_sha }}
+
+      - name: Verify exact checkout
+        env:
+          EXPECTED_SHA: ${{ steps.authority.outputs.source_sha }}
+        run: |
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$EXPECTED_SHA"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU PyTorch
+        run: pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install repository dependencies
+        run: pip install -e '.[test]'
+
+      - name: Execute frozen #973 protocol once
+        env:
+          EXPECTED_SHA: ${{ steps.authority.outputs.source_sha }}
+        run: |
+          python -m tam_research.chm_v1_exact_repo_timing_973 \
+            --source-sha "$EXPECTED_SHA" \
+            --output chm_v1_973_result.json
+
+      - name: Upload complete result
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v1-issue973-exact-cpu-result
+          path: chm_v1_973_result.json
+          if-no-files-found: error
+          retention-days: 30
