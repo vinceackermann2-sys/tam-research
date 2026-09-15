@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "job_id": "rlt-publicspec-smoke-modal-20260914-c",
+  "status": "abandoned_infrastructure",
+  "consumed": true,
+  "scientific_conclusion": null,
+  "execution_state": "claimed and Modal A100 invocation started; exact remote smoke outcome is unavailable",
+  "failure_stage": "post_remote_return_deserialization",
+  "error_type": "ModalDeserializationError",
+  "error": "Deserialization failed because the 'torch' module is not available in the GitHub Actions local environment.",
+  "workflow_run_id": 34894325473,
+  "workflow_job_id": 104144411062,
+  "trigger_sha": "59d2dd5458dccd34b83f3be9bab6cff726618b8e",
+  "job_source_blob_sha": "6b553d4740a379219ddb8fcf2d5dc44d7c227d2f",
+  "claim_blob_sha": "a84dc5989d67fa402ff2c381103c2bfd7d2d400f",
+  "note": "This attempt must never be rerun or reused. The failure is infrastructure/result-transport only and is not scientific evidence. A fresh job id and seed are required for any successor attempt."
+}

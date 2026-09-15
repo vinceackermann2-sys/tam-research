@@ -11,8 +11,7 @@ import modal
 MODAL_JOB_MARKER = "-modal-"
 
 # Modal 1.x does not automatically ship local packages. Package the two Python
-# package roots explicitly so imports resolve from /root on the remote worker,
-# independent of where Modal mounts this launcher module.
+# package roots explicitly so imports resolve from /root on the remote worker.
 compute_image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
@@ -33,10 +32,10 @@ def _runtime_metadata() -> dict[str, Any]:
     import torch
 
     return {
-        "torch_version": torch.__version__,
-        "cuda_available": torch.cuda.is_available(),
-        "cuda_runtime": torch.version.cuda,
-        "gpu_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+        "torch_version": str(torch.__version__),
+        "cuda_available": bool(torch.cuda.is_available()),
+        "cuda_runtime": None if torch.version.cuda is None else str(torch.version.cuda),
+        "gpu_name": str(torch.cuda.get_device_name(0)) if torch.cuda.is_available() else None,
         "bf16_supported": bool(torch.cuda.is_available() and torch.cuda.is_bf16_supported()),
     }
 
@@ -55,26 +54,30 @@ def _encode(value: dict[str, Any]) -> str:
     retries=0,
     max_containers=1,
 )
-def run_job_remote(job_json: str) -> dict[str, Any]:
+def run_job_remote(job_json: str) -> str:
+    """Execute exactly one job and return only transport-safe base64 text."""
     from experiments.rlt.bridge_worker import validate_job
     from experiments.rlt.smoke import run_smoke
     from experiments.rlt.train_rlt import train_rlt
     from tam_research.data import prepare_fineweb
 
-    raw = json.loads(job_json)
-    if not isinstance(raw, dict):
-        raise ValueError("job JSON must be an object")
-    job_id = str(raw.get("job_id", ""))
-    if MODAL_JOB_MARKER not in job_id:
-        raise ValueError("refusing a non-Modal job id")
-    job = validate_job(raw, f"{job_id}.json")
-
-    runtime = _runtime_metadata()
-    if not runtime["cuda_available"]:
-        raise RuntimeError("Modal allocated the function without a usable CUDA runtime")
-
     started = time.time()
+    job_id = "unknown"
+    job: dict[str, Any] | None = None
+    runtime: dict[str, Any] | None = None
     try:
+        raw = json.loads(job_json)
+        if not isinstance(raw, dict):
+            raise ValueError("job JSON must be an object")
+        job_id = str(raw.get("job_id", ""))
+        if MODAL_JOB_MARKER not in job_id:
+            raise ValueError("refusing a non-Modal job id")
+        job = validate_job(raw, f"{job_id}.json")
+
+        runtime = _runtime_metadata()
+        if not runtime["cuda_available"]:
+            raise RuntimeError("Modal allocated the function without a usable CUDA runtime")
+
         if job["task"] == "smoke":
             output = dict(run_smoke("cuda", seed=job["seed"]))
             output["runtime"] = runtime
@@ -107,7 +110,8 @@ def run_job_remote(job_json: str) -> dict[str, Any]:
             }
         else:
             raise ValueError(f"unsupported task {job['task']!r}")
-        return {
+
+        result = {
             "schema": 1,
             "job_id": job_id,
             "status": "complete",
@@ -118,7 +122,7 @@ def run_job_remote(job_json: str) -> dict[str, Any]:
             "output": output,
         }
     except AssertionError as exc:
-        return {
+        result = {
             "schema": 1,
             "job_id": job_id,
             "status": "complete",
@@ -133,10 +137,30 @@ def run_job_remote(job_json: str) -> dict[str, Any]:
                 "error": str(exc),
             },
         }
+    except Exception as exc:
+        result = {
+            "schema": 1,
+            "job_id": job_id,
+            "status": "failed",
+            "started_unix": started,
+            "finished_unix": time.time(),
+            "worker": "modal",
+            "job": job,
+            "runtime": runtime,
+            "error_type": type(exc).__name__,
+            "error": str(exc),
+            "scientific_conclusion": None,
+        }
+
+    # Returning a plain string prevents the local runner from needing Torch or
+    # any other remote-only Python class to deserialize the result.
+    return _encode(result)
 
 
 @app.local_entrypoint()
 def main(job_path: str) -> None:
     raw = Path(job_path).read_text()
-    result = run_job_remote.remote(raw)
-    print("RLT_MODAL_RESULT_B64=" + _encode(result))
+    result_b64 = run_job_remote.remote(raw)
+    if not isinstance(result_b64, str):
+        raise TypeError("remote result transport must be a base64 string")
+    print("RLT_MODAL_RESULT_B64=" + result_b64)
