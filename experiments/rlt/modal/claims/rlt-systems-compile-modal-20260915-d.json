@@ -1,0 +1,24 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789481819.460801,
+  "engineering_only": true,
+  "job": {
+    "automatic_retry": false,
+    "compile_mode": "default",
+    "cuda_graphs_requested": false,
+    "engineering_seed": 20260925,
+    "job_id": "rlt-systems-compile-modal-20260915-d",
+    "prior_attempt": "rlt-systems-compile-modal-20260915-c",
+    "schema": 1,
+    "scientific_execution": false,
+    "task": "systems_compile_profile"
+  },
+  "job_id": "rlt-systems-compile-modal-20260915-d",
+  "job_source_blob_sha": "1989719a00bca358a35776fd5156c0ccb8726be2",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "trigger_sha": "998dccd2be07e5b9028ec0adbb807de8566e9e53",
+  "worker": "github-actions-modal"
+}
