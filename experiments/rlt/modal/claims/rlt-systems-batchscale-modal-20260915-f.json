@@ -1,0 +1,25 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789505318.9956923,
+  "engineering_only": true,
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 16,
+    "engineering_seed": 20260928,
+    "job_id": "rlt-systems-batchscale-modal-20260915-f",
+    "prior_batched_head_job_id": "rlt-systems-batched-head-modal-20260915-e",
+    "prior_systems_job_id": "rlt-systems-compile-modal-20260915-d",
+    "schema": 1,
+    "scientific_execution": false,
+    "seq_len": 64,
+    "task": "systems_batchscale_profile"
+  },
+  "job_id": "rlt-systems-batchscale-modal-20260915-f",
+  "job_source_blob_sha": "da1dd5de1b3a0e4525193afe0262494285fe00c8",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "trigger_sha": "bfbbd39d4baa766d851a1efe25814402addeb0cf",
+  "worker": "github-actions-modal"
+}
