@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-compile-modal-20260915-c",
+  "task": "systems_compile_profile",
+  "engineering_seed": 20260924,
+  "scientific_execution": false,
+  "reference_comparison": "rlt-vs-transformer-64k-comparison-20260915",
+  "prior_attempt": "rlt-systems-compile-modal-20260915-b",
+  "gpu": "A100",
+  "seq_len": 64,
+  "micro_batch_size": 2,
+  "grad_accum_steps": 4,
+  "measured_steps": 8,
+  "cudagraph_mark_step_begin_each_microbatch": true,
+  "automatic_retry": false
+}
