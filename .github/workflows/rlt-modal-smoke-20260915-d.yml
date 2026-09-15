@@ -78,12 +78,11 @@ jobs:
           set -euo pipefail
           python -m py_compile experiments/rlt/modal_preflight.py experiments/rlt/modal_compute.py
           python - <<'PY'
-          import inspect
-          import experiments.rlt.modal_compute as compute
-          source = inspect.getsource(compute.run_job_remote)
-          assert compute.MODAL_JOB_MARKER == '-modal-'
+          from pathlib import Path
+          source = Path('experiments/rlt/modal_compute.py').read_text()
+          assert 'MODAL_JOB_MARKER = "-modal-"' in source
+          assert 'def run_job_remote(job_json: str) -> str:' in source
           assert 'return _encode(result)' in source
-          assert '-> str' in source
           print('transport-safe compute source: pass')
           PY
 
