@@ -1,0 +1,18 @@
+{
+  "phase":29,
+  "status":"FAIL",
+  "registered_replicates":3,
+  "primary_cells_passing":7,
+  "primary_cells_total":12,
+  "diagnostic_token82_cells_passing":8,
+  "diagnostic_token82_cells_total":12,
+  "split_summary":{
+    "hj_id_h8":{"primary_values":[1.5267834453319404,1.1296835341721547,4.512340148233191],"primary_median":1.5267834453319404,"primary_passes":0,"token82_values":[2.7784326735939335,0.883077814678894,4.020853992910145],"token82_median":2.7784326735939335,"token82_passes":1,"raw82_one_step_values":[0.0019243348975919441,0.0025238982438773195,0.001403279298042932],"raw82_one_step_median":0.0019243348975919441,"mean_phase28_interaction_selection_fraction":0.0763888888888889},
+    "hj_spectral_ood_h3":{"primary_values":[0.6585112596592549,0.9457079313561688,0.8082442024879258],"primary_median":0.8082442024879258,"primary_passes":3,"token82_values":[0.4291547734269054,0.8056763610564558,0.5452475489881117],"token82_median":0.5452475489881117,"token82_passes":3,"raw82_one_step_values":[0.00022184101822938146,0.00029764138607136175,0.00020057203697659303],"raw82_one_step_median":0.00022184101822938146,"mean_phase28_interaction_selection_fraction":0.041666666666666664},
+    "hj_parameter_ood_h3":{"primary_values":[0.5454689363445923,0.6701915528471951,0.7073911294407131],"primary_median":0.6701915528471951,"primary_passes":3,"token82_values":[0.29801374653319024,0.31226587776741116,0.31658676342491715],"token82_median":0.31226587776741116,"token82_passes":3,"raw82_one_step_values":[0.00018838336178877282,0.00015112807447121538,0.0001957514895781946],"raw82_one_step_median":0.00018838336178877282,"mean_phase28_interaction_selection_fraction":0.17361111111111113},
+    "hj_combined_ood_h3":{"primary_values":[0.825854880175786,1.3142917878464848,1.461733980863963],"primary_median":1.3142917878464848,"primary_passes":1,"token82_values":[0.6339286099643067,1.224390384722728,1.1426042103587728],"token82_median":1.1426042103587728,"token82_passes":1,"raw82_one_step_values":[1.3585128209969366e-05,1.516828222570803e-05,2.7034706579357228e-05],"raw82_one_step_median":1.516828222570803e-05,"mean_phase28_interaction_selection_fraction":0.04861111111111111}
+  },
+  "frozen_gate":"12/12 primary cells below persistence; any selected ratio >=1 is FAIL",
+  "interpretation":"The frozen Phase-28 26-vs-62 selector does not transfer to Hamilton-Jacobi gradient-square dynamics. Raw 82-feature one-step fits are near-exact, but token-context 82-feature recursive identification is also unstable on long-horizon ID and some combined OOD cells. The boundary is therefore not only missing candidate terms but reliable rich-law estimation from quantized short context.",
+  "claim_limit":"Known synthetic dynamics only; not new physics or unrestricted scientific-law discovery."
+}
