@@ -1,0 +1,13 @@
+{
+  "experiment":"physics-token-phase30-shared-support-six-family-v1-repair1",
+  "status":"PREREGISTERED_BEFORE_REPAIR1_REGISTERED_EXECUTION",
+  "parent_scientific_configuration":"Identical to Phase-30 protocol c67cf4c2c7e43b2ba176c465d3943ca2d704e388",
+  "reason":"Attempt 1 replicate 1 exceeded the local execution ceiling before writing a durable result. Its seed namespace is consumed and will not be reused.",
+  "scientific_changes":"NONE",
+  "execution_change":"Each fresh replicate is partitioned into one prepare step that persists tokenizer/codebook/evaluation trajectories, followed by six independent family evaluation processes. Family outputs are persisted immediately. Aggregate only after all six family files exist.",
+  "fresh_seed_bases":[830301000,830301100,830301200],
+  "seed_convention":"Same offsets as original Phase 30: +1/+2 training, +3..+6 codec, +11..+64 evaluation by family.",
+  "frozen_selector":"Phase-28 parent 26-vs-62 selector unchanged. 82 support enabled per split only if batch-median held-out gain over 62 exceeds 0.10. 82 fitting excludes reset transition t=0->1 and uses clean transitions exactly as original Phase 30.",
+  "frozen_pass_rule":"PASS only if all 23 splits beat persistence in all 3 fresh repair replicates: 69/69 cells. No retry or replacement of a failed or consumed replicate/family chunk.",
+  "claim_limit":"Synthetic benchmark evidence only; not unrestricted scientific-law discovery or new physics."
+}
