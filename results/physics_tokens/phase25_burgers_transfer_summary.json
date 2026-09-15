@@ -1,0 +1,20 @@
+{
+  "phase":25,
+  "experiment":"physics-token-phase25-unseen-burgers-transfer-v1",
+  "status":"FAIL",
+  "registered_replicates":3,
+  "primary_rule":"all 12 primary token-26 cells below raw-state persistence",
+  "primary_passing_cells":6,
+  "primary_total_cells":12,
+  "token62_diagnostic_passing_cells":12,
+  "token62_diagnostic_total_cells":12,
+  "median_ratios":{
+    "burgers_id_h8":{"primary_token26":7.392035701992986,"token62":0.20812277719310293,"raw62_one_step":7.780597469941945e-05},
+    "burgers_spectral_ood_h3":{"primary_token26":0.7790685923414183,"token62":0.12406029679335256,"raw62_one_step":1.9576156345568057e-05},
+    "burgers_parameter_ood_h3":{"primary_token26":0.7631832575973783,"token62":0.1674607975259872,"raw62_one_step":8.957629039333813e-05},
+    "burgers_combined_ood_h3":{"primary_token26":1.4059892677107513,"token62":0.7108860038181242,"raw62_one_step":1.941873363756196e-06}
+  },
+  "replicate_primary_passes":[false,false,false],
+  "interpretation":"The frozen 26-feature linear-spatial plus center-polynomial identifier does not transfer robustly to unseen nonlinear-flux Burgers dynamics. The 62-feature generic center-times-spatial interaction diagnostic beats persistence in all 12 registered token rollouts and fits one-step raw dynamics orders of magnitude better, supporting hypothesis-class insufficiency rather than loss of state information in the frozen tokenizer.",
+  "claim_limit":"Known synthetic dynamics only; this is not discovery of new physics or unrestricted scientific-law discovery."
+}
