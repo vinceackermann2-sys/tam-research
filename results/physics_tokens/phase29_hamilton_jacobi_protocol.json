@@ -1,0 +1,59 @@
+{
+  "phase": 29,
+  "experiment": "physics-token-phase29-hamilton-jacobi-boundary-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-28 context-only 26-vs-62 MDL selector PASS, 57/57 across wave, Gray-Scott, NLS, advection, and Burgers",
+  "question": "Does the frozen Phase-28 selector transfer to a sixth unseen law whose dynamics require quadratic products of spatial derivatives, which are absent from both candidate libraries?",
+  "new_family": {
+    "name": "two_component_viscous_hamilton_jacobi_2d",
+    "discrete_update": "For each channel z independently: dz/dt = nu*Laplacian(z) - 0.5*lambda*((Dx z)^2 + (Dy z)^2), using centered periodic finite differences and four Euler substeps per observed frame.",
+    "frame_dt": 0.08,
+    "substeps": 4,
+    "family_label_supplied": false,
+    "hidden_nu_or_lambda_supplied": false
+  },
+  "representation": {
+    "unchanged_from_phase28": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "hamilton_jacobi_seen_during_representation_fit": false
+  },
+  "primary_model": {
+    "unchanged_phase28_selector": true,
+    "candidates": [
+      {"name": "base26", "feature_dim": 26},
+      {"name": "interaction62", "feature_dim": 62}
+    ],
+    "context_frames": 8,
+    "prefix_fit_frames": 6,
+    "validation_pairs": [[5,6],[6,7]],
+    "selector": "BIC-like held-out score N*log(validation_MSE+1e-12)+K*log(N); ties choose base26",
+    "ridge": 0.001,
+    "recursive_projection": "unchanged Phase-10 18-bit companded token projection after every step"
+  },
+  "secondary_diagnostic": {
+    "name": "odd_spatial_quadratic82",
+    "feature_dim": 82,
+    "construction": "interaction62 plus, separately for each physical channel, all 10 unique degree-2 products among the four parity-odd 3x3 real-Fourier spatial coordinates {sin_x, sin_y, sin_diag_plus, sin_diag_minus}; 20 added features total",
+    "purpose": "Test whether any primary failure is caused by missing spatial-gradient quadratic terms rather than token-state capacity. Report raw one-step and token recursive rollout. Cannot rescue or redefine Phase-29 gate."
+  },
+  "registered_replicates": [
+    {"replicate":1,"seeds":{"wave_train":829290001,"gray_train":829290002,"sc1":829290003,"sc2":829290004,"ic1":829290005,"ic2":829290006,"hj_id":829290011,"hj_spectral":829290012,"hj_parameter":829290013,"hj_combined":829290014}},
+    {"replicate":2,"seeds":{"wave_train":829290101,"gray_train":829290102,"sc1":829290103,"sc2":829290104,"ic1":829290105,"ic2":829290106,"hj_id":829290111,"hj_spectral":829290112,"hj_parameter":829290113,"hj_combined":829290114}},
+    {"replicate":3,"seeds":{"wave_train":829290201,"gray_train":829290202,"sc1":829290203,"sc2":829290204,"ic1":829290205,"ic2":829290206,"hj_id":829290211,"hj_spectral":829290212,"hj_parameter":829290213,"hj_combined":829290214}}
+  ],
+  "evaluation": {
+    "hj_id_h8": {"seq_len":16,"max_mode":3,"nu":[0.015,0.035],"lambda":[0.20,0.40],"amplitude":[0.25,0.50]},
+    "hj_spectral_ood_h3": {"seq_len":11,"max_mode":6,"nu":[0.015,0.035],"lambda":[0.20,0.40],"amplitude":[0.25,0.50]},
+    "hj_parameter_ood_h3": {"seq_len":11,"max_mode":3,"nu":[0.05,0.08],"lambda":[0.50,0.80],"amplitude":[0.25,0.50]},
+    "hj_combined_ood_h3": {"seq_len":11,"max_mode":6,"nu":[0.05,0.08],"lambda":[0.50,0.80],"amplitude":[0.45,0.70]}
+  },
+  "primary_rule": "PASS only if the unchanged Phase-28 context selector beats raw-state persistence on all four Hamilton-Jacobi tests in all three fresh registered replicates (12/12 cells). Any selected ratio >=1.0 is Phase-29 FAIL. No retries or replacement seeds.",
+  "diagnostic_interpretation": "If primary fails while raw/token 82-feature diagnostics succeed, interpret as candidate-hypothesis-class insufficiency, not as evidence that the tokenizer cannot encode the state. Diagnostic success cannot convert Phase-29 into PASS.",
+  "failure_policy": "All registered outcomes retained. No posthoc candidate addition, selector penalty change, ridge change, context change, simulator-range change, or seed replacement.",
+  "next_if_primary_fail_and_82_succeeds": "A separate preregistered phase may promote the 82-feature spatial-quadratic library as a third candidate in context-only complexity selection and must re-test all six families.",
+  "claim_limit": "Known synthetic dynamics only; not new physics or unrestricted scientific-law discovery."
+}
