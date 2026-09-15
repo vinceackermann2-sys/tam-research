@@ -1,0 +1,45 @@
+{
+  "phase": 28,
+  "experiment": "physics-token-phase28-context-mdl-selector-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-27 unified 62-feature primary FAIL (53/57); 26-feature model is better on simple long-horizon ID while 62 is required for Burgers",
+  "question": "Can a family-agnostic complexity selector choose between nested 26- and 62-feature identifiers using only held-out transitions inside the observed context and recover one unified five-family recipe?",
+  "representation": {
+    "unchanged": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_advection_burgers_seen_during_representation_fit": false
+  },
+  "candidate_models": {
+    "simple": {"feature_dim": 26, "library": "full_fourier_linear_plus_center_polynomial_26", "ridge": 0.001},
+    "interaction": {"feature_dim": 62, "library": "plus_center_times_spatial_62", "ridge": 0.001}
+  },
+  "selector": {
+    "scope": "per trajectory; no family label",
+    "context_frames": 8,
+    "prefix_fit_frames": 6,
+    "prefix_fit_transitions": 5,
+    "validation_transitions": [[5,6],[6,7]],
+    "validation_uses_observed_quantized_inputs": true,
+    "score": "BIC-like held-out score = N*log(validation_MSE + 1e-12) + K*log(N)",
+    "N": "2 validation transitions * 2 output channels * grid * grid",
+    "K_simple": 52,
+    "K_interaction": 124,
+    "tie_break": "simple",
+    "after_selection": "refit selected model on all 7 observed context transitions, then recursively roll out with the unchanged Phase-10 companded token projection",
+    "future_leakage": false
+  },
+  "registered_replicates": [
+    {"replicate":1,"seeds":{"wave_train":828280001,"gray_train":828280002,"sc1":828280003,"sc2":828280004,"ic1":828280005,"ic2":828280006,"wave_id":828280011,"wave_spectral":828280012,"wave_combined":828280013,"gray_id":828280021,"gray_sharp":828280022,"gray_parameter":828280023,"gray_combined":828280024,"nls_id":828280031,"nls_spectral":828280032,"nls_parameter":828280033,"nls_combined":828280034,"adv_id":828280041,"adv_spectral":828280042,"adv_speed":828280043,"adv_combined":828280044,"burg_id":828280051,"burg_spectral":828280052,"burg_parameter":828280053,"burg_combined":828280054}},
+    {"replicate":2,"seeds":{"wave_train":828280101,"gray_train":828280102,"sc1":828280103,"sc2":828280104,"ic1":828280105,"ic2":828280106,"wave_id":828280111,"wave_spectral":828280112,"wave_combined":828280113,"gray_id":828280121,"gray_sharp":828280122,"gray_parameter":828280123,"gray_combined":828280124,"nls_id":828280131,"nls_spectral":828280132,"nls_parameter":828280133,"nls_combined":828280134,"adv_id":828280141,"adv_spectral":828280142,"adv_speed":828280143,"adv_combined":828280144,"burg_id":828280151,"burg_spectral":828280152,"burg_parameter":828280153,"burg_combined":828280154}},
+    {"replicate":3,"seeds":{"wave_train":828280201,"gray_train":828280202,"sc1":828280203,"sc2":828280204,"ic1":828280205,"ic2":828280206,"wave_id":828280211,"wave_spectral":828280212,"wave_combined":828280213,"gray_id":828280221,"gray_sharp":828280222,"gray_parameter":828280223,"gray_combined":828280224,"nls_id":828280231,"nls_spectral":828280232,"nls_parameter":828280233,"nls_combined":828280234,"adv_id":828280241,"adv_spectral":828280242,"adv_speed":828280243,"adv_combined":828280244,"burg_id":828280251,"burg_spectral":828280252,"burg_parameter":828280253,"burg_combined":828280254}}
+  ],
+  "evaluation": "Same 19 split definitions as Phase 27, unchanged",
+  "primary_rule": "PASS only if the selected model beats raw-state persistence on all 19 tests in all 3 fresh registered replicates (57/57). Any ratio >=1.0 is Phase-28 FAIL. No retries or replacement seeds.",
+  "secondary_reporting": ["simple-only ratios", "interaction-only ratios", "selection fraction per family/split", "held-out validation scores"],
+  "failure_policy": "All registered outcomes retained. No posthoc threshold, penalty, ridge, validation-window, feature, context, or seed changes.",
+  "claim_limit": "Known synthetic dynamics only; this tests context-only complexity control inside a fixed benchmark, not unrestricted law discovery or new physics."
+}
