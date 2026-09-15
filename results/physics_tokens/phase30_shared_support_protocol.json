@@ -1,0 +1,25 @@
+{
+  "experiment": "physics-token-phase30-shared-support-six-family-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase 29 sealed FAIL at 892dfbcb7323f6169c04b8fdb52a46c457cfdc80",
+  "representation": "unchanged 18-bit companded token representation; codebooks fit only on wave+Gray-Scott training mixture",
+  "context_frames": 8,
+  "ridge": 0.001,
+  "families": ["wave","gray_scott","nls","advection","burgers","hamilton_jacobi"],
+  "splits_per_replicate": 23,
+  "parent_selector": "Phase-28 per-trajectory held-out BIC selector between 26-feature and 62-feature libraries, unchanged",
+  "new_candidate": "82-feature library = Phase-29 62 features plus 20 within-channel quadratic products among the four parity-odd 3x3 Fourier coordinates",
+  "reset_handling": "26/62 parent fitting remains exactly Phase 28. The 82 candidate is fit only on clean decoded transitions t=1->2 through t=6->7; decoded transition t=0->1 is excluded because it contains initial-state RVQ reset correction.",
+  "shared_support_rule": "For each evaluation split, fit 62 and 82 candidates on clean prefix transitions t=1->2 through t=4->5. Evaluate both on held-out observed transitions t=5->6 and t=6->7. Compute per-trajectory gain = 1 - MSE82/MSE62, then take the batch median. Enable 82 for the entire split iff median gain > 0.10. Otherwise use the unchanged Phase-28 26-vs-62 selector per trajectory. If 82 is enabled, refit 82 on clean transitions t=1->2 through t=6->7 before recursive token rollout.",
+  "no_family_labels": true,
+  "no_future_targets": true,
+  "exploratory_support": "Two untouched nonregistered codebook/data draws passed 23/23 each under this exact 0.10 median-gain rule.",
+  "registered_replicates": [
+    {"replicate":1,"seed_base":830300000},
+    {"replicate":2,"seed_base":830300100},
+    {"replicate":3,"seed_base":830300200}
+  ],
+  "seed_convention": "Within each replicate: +1 wave_train, +2 gray_train, +3/+4 state codebook seeds, +5/+6 innovation codebook seeds, +11..+13 wave eval, +21..+24 Gray eval, +31..+34 NLS eval, +41..+44 advection eval, +51..+54 Burgers eval, +61..+64 Hamilton-Jacobi eval.",
+  "frozen_pass_rule": "PASS only if every one of 3 fresh registered replicates beats raw-state persistence on all 23 primary splits: 69/69 cells. Any ratio >= 1.0 is FAIL. No retries or replacement seeds.",
+  "claim_limit": "Synthetic benchmark evidence only; not unrestricted scientific-law discovery or new physics."
+}
