@@ -1,0 +1,36 @@
+{
+  "experiment": "physics-token-phase30-shared-support-six-family-v1-repair1",
+  "status": "FAIL_DECISIVE_REGISTERED_REPLICATE1",
+  "scientific_configuration": "phase30_exact",
+  "frozen_pass_rule": "PASS only if all 3 fresh repair1 replicates beat raw-state persistence on all 23 primary splits: 69/69 cells; any ratio >=1.0 is FAIL.",
+  "registered_replicate_1_seed_base": 830301000,
+  "replicate_1_cells_passed": 22,
+  "replicate_1_cells_total": 23,
+  "failed_cells": {
+    "nls_id_h8": {
+      "selected_ratio_to_persistence": 5.549163911766668,
+      "selected_mse": 0.009994137100875378,
+      "persistence_mse": 0.001801016740500927
+    }
+  },
+  "family_cell_counts": {
+    "wave": "3/3",
+    "gray_scott": "4/4",
+    "nls": "3/4",
+    "advection": "4/4",
+    "burgers": "4/4",
+    "hamilton_jacobi": "4/4"
+  },
+  "decision": "FAIL",
+  "stopping_reason": "The frozen all-cells gate is irreversibly false after the registered replicate-1 NLS ID h8 cell exceeded persistence. Additional registered replicates cannot convert the preregistered Phase-30 gate to PASS, so they are not executed for this confirmation.",
+  "remaining_registered_bases": [830301100, 830301200],
+  "remaining_bases_action": "Do not consume for Phase-30 after decisive failure; preserve their status rather than running an already-failed confirmation.",
+  "provenance_anomaly": {
+    "invalid_engineering_seed_base": 830310100,
+    "family_results_produced": false,
+    "scientific_evidence": false,
+    "note": "This unregistered local preparation is excluded from scientific evidence and its engineering seed remains consumed."
+  },
+  "excluded_sibling_lineage": "experiment/physics-tokenizer-phase30-repair1-split-execution-20260915 uses the 830310000/100/200 namespace, which collides with the consumed invalid engineering seed 830310100 and is not used to rescue or redefine this result.",
+  "claim_limit": "Synthetic benchmark evidence only; not unrestricted scientific-law discovery or new physics."
+}
