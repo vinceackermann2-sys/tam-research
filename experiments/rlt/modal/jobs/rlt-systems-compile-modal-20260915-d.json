@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-compile-modal-20260915-d",
+  "task": "systems_compile_profile",
+  "engineering_seed": 20260925,
+  "prior_attempt": "rlt-systems-compile-modal-20260915-c",
+  "compile_mode": "default",
+  "cuda_graphs_requested": false,
+  "scientific_execution": false,
+  "automatic_retry": false
+}
