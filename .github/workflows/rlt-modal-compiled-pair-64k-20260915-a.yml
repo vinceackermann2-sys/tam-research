@@ -1,0 +1,284 @@
+name: RLT Modal compiled paired 64K 20260915 A
+
+on:
+  push:
+    branches:
+      - exp/rlt-colab
+    paths:
+      - .github/workflows/rlt-modal-compiled-pair-64k-20260915-a.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-modal-compiled-pair-64k-20260915-a
+  cancel-in-progress: false
+
+jobs:
+  paired:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-compiled-paired-64k-modal-20260915-a
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-compiled-paired-64k-modal-20260915-a.json
+      SYSTEMS_PATH: experiments/rlt/modal/results/rlt-systems-compile-modal-20260915-d.json
+      BASELINE_PATH: experiments/rlt/modal/results/rlt-vs-transformer-64k-comparison-20260915.json
+      TRAINER_PATH: experiments/rlt/train_compiled_pair.py
+      LAUNCHER_PATH: experiments/rlt/modal_compiled_pair.py
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-compiled-pair-64k-20260915-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-compiled-paired-64k-modal-20260915-a.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-compiled-paired-64k-modal-20260915-a.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse any previously claimed or completed paired attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then
+            echo "::error::Paired claim already exists; refusing to rerun $JOB_ID"
+            exit 31
+          fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then
+            echo "::error::Paired result already exists; refusing to rerun $JOB_ID"
+            exit 32
+          fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          TRAINER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$TRAINER_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "TRAINER_BLOB_SHA=$TRAINER_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA" >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/paired-job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/paired-job.json'))
+          expected={
+            'schema':1,
+            'job_id':'rlt-compiled-paired-64k-modal-20260915-a',
+            'task':'compiled_paired_64k',
+            'scientific_seed':20260926,
+            'requires_systems_job_id':'rlt-systems-compile-modal-20260915-d',
+            'requires_baseline_comparison_id':'rlt-vs-transformer-64k-comparison-20260915',
+            'token_budget':65536,
+            'seq_len':64,
+            'micro_batch_size':2,
+            'grad_accum_steps':4,
+            'train_tokens':1000000,
+            'val_tokens':100000,
+            'automatic_retry':False,
+          }
+          assert j==expected, j
+          print('paired preregistration verified:', j)
+          PY
+
+      - name: Require durable D systems PASS and frozen baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$SYSTEMS_PATH" > /tmp/systems.json
+          git show "origin/$BRANCH:$BASELINE_PATH" > /tmp/baseline.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/systems.json'))
+          b=json.load(open('/tmp/baseline.json'))
+          assert d.get('status')=='complete', d
+          assert d.get('classification')=='PASS_MATERIAL_COMPILE_SPEEDUP', d
+          assert d.get('scientific_execution') is False, d
+          assert d['semantic_equivalence']['passed'] is True, d
+          assert d['semantic_equivalence']['logits_max_abs']==0.0, d
+          assert d['semantic_equivalence']['loss_abs']==0.0, d
+          assert d['semantic_equivalence']['grad_max_abs']==0.0, d
+          assert float(d['benchmark']['compiled_speedup_multiple']) >= 1.25, d
+          assert d['compile']['mode']=='default' and d['compile']['cuda_graphs_requested'] is False, d
+          assert b.get('status')=='complete', b
+          assert b.get('classification')=='matched_64k_control_no_breakthrough_signal', b
+          assert b['interpretation']['breakthrough_claim_supported'] is False, b
+          print('D systems gate and frozen baseline: PASS')
+          PY
+
+      - name: Verify Modal GitHub secrets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}" || { echo "::error::Missing MODAL_TOKEN_ID"; exit 2; }
+          test -n "${MODAL_TOKEN_SECRET:-}" || { echo "::error::Missing MODAL_TOKEN_SECRET"; exit 2; }
+
+      - name: Install pinned Modal CLI
+        run: python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+
+      - name: Validate compiled paired source locally without GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py "$TRAINER_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          t=Path('experiments/rlt/train_compiled_pair.py').read_text()
+          m=Path('experiments/rlt/modal_compiled_pair.py').read_text()
+          assert 'SCIENTIFIC_SEED = 20_260_926' in t
+          assert 'PAIRED_BATCH_SEED = 20_270_926' in t
+          assert 'PAIRED_EVAL_SEED = 20_290_926' in t
+          assert 'torch.compile(rlt_wrapper, fullgraph=True, dynamic=False, mode="default")' in t
+          assert 'torch.compile(transformer, fullgraph=True, dynamic=False, mode="default")' in t
+          assert 'optimizer.step()' not in t.split('def _compile_probe',1)[1].split('def _evaluate',1)[0]
+          assert 'breakthrough_claim_supported": False' in t
+          assert 'retries=0' in m and 'gpu="A100"' in m
+          assert 'prepare_fineweb(' in m and 'train_compiled_pair(' in m
+          print('compiled paired source validation: PASS')
+          PY
+
+      - name: Run standalone non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          PREFLIGHT_B64="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$PREFLIGHT_B64" || { echo "::error::No Modal preflight payload"; exit 3; }
+          export PREFLIGHT_B64
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False, p
+          p.update({
+            'classification':'RLT_COMPILED_PAIRED_64K_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Commit durable preflight before any GPU request
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt compiled pair: record zero-GPU preflight a'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot paired scientific claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          job=json.load(open(os.environ['JOB_PATH']))
+          payload={
+            'schema':1,
+            'job_id':os.environ['JOB_ID'],
+            'status':'claimed',
+            'claimed_unix':time.time(),
+            'worker':'github-actions-modal',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_seed':20260926,
+            'automatic_retry_authorized':False,
+            'job':job,
+          }
+          path=pathlib.Path(os.environ['CLAIM_PATH'])
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt compiled pair: claim $JOB_ID before A100 execution"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 compiled paired 64K attempt
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 42m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_COMPILED_PAIR_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize terminal paired result without retry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64','')
+          rc=int(os.environ.get('MODAL_RC','999'))
+          payload=None
+          parse_error=None
+          if b:
+            try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+            except Exception as exc: parse_error=f'{type(exc).__name__}: {exc}'
+          if not isinstance(payload,dict):
+            log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+            payload={
+              'schema':1,
+              'job_id':os.environ['JOB_ID'],
+              'status':'failed',
+              'finished_unix':time.time(),
+              'worker':'github-actions-modal',
+              'error_type':'ModalInvocationOrTransportError',
+              'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+              'parse_error':parse_error,
+              'log_tail':log[-6000:],
+              'scientific_conclusion':None,
+            }
+          payload.update({
+            'modal_cli_rc':rc,
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+          })
+          path=pathlib.Path(os.environ['RESULT_PATH'])
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt compiled pair: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize durable paired outcome
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          c=r.get('comparison')
+          if not isinstance(c,dict) or c.get('status')!='complete': raise SystemExit(1)
+          if c.get('breakthrough_claim_supported') is not False: raise SystemExit(1)
+          if c.get('classification') not in {
+            'COMPILED_64K_RLT_LOWER_NLL_SINGLE_RUN_HINT',
+            'COMPILED_64K_NO_RLT_QUALITY_ADVANTAGE',
+          }: raise SystemExit(1)
+          print('paired classification:', c['classification'])
+          print('RLT NLL:', c['rlt']['final_eval']['nll'])
+          print('Transformer NLL:', c['transformer']['final_eval']['nll'])
+          print('RLT steady-state tok/s:', c['rlt']['tokens_per_second_excluding_compile'])
+          print('Transformer steady-state tok/s:', c['transformer']['tokens_per_second_excluding_compile'])
+          print('RLT effective tok/s incl compile:', c['rlt']['effective_tokens_per_second_including_compile'])
+          print('Transformer effective tok/s incl compile:', c['transformer']['effective_tokens_per_second_including_compile'])
+          PY
