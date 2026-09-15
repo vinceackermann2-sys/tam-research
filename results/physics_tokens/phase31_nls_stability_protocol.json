@@ -1,0 +1,57 @@
+{
+  "experiment": "physics-token-phase31-nls-stability-diagnostic-v1",
+  "status": "PREREGISTERED_BEFORE_EXECUTION",
+  "parent_phase": {
+    "branch": "experiment/physics-tokenizer-phase30-repair1-split-20260915",
+    "sealed_commit": "faebc8bce02948e245bce7721f5d54e873466319",
+    "phase30_outcome": "FAIL_DECISIVE_REGISTERED_REPLICATE1",
+    "trigger": "Phase-30 registered rep1 failed only NLS ID h8 at 5.549163911766668x persistence."
+  },
+  "question": "Is the NLS long-horizon failure caused primarily by the existing short-horizon parent selector, by both available parent dynamics being unstable/inaccurate at long horizon, or by replicate/sample sensitivity?",
+  "scope": "mechanism diagnostic only; not a rescue or redefinition of Phase-30",
+  "frozen_model": {
+    "representation": "same Phase-30/Phase-28 18-bit companded token representation and representation-training recipe",
+    "context_frames": 8,
+    "ridge": 0.001,
+    "simple_parent": "base26_features",
+    "interaction_parent": "interaction62_features",
+    "selector": "Phase-28 heldout-context BIC selector: fit frames 0..5, validate transitions 5->6 and 6->7, fixed parent choice per sequence",
+    "family": "nonlinear_schrodinger",
+    "split": "ID only",
+    "rollout_horizons": [1,2,3,4,5,6,7,8]
+  },
+  "registered_replicate_bases": [831315000, 831315100, 831315200],
+  "seed_derivation": "Use the existing Phase-28 Seeds offset layout from each base. All derived seeds supplied to representation/data builders are considered reserved/consumed if execution starts, whether or not a generated non-NLS family is later evaluated.",
+  "seed_freshness_note": "These bases are outside the known Phase-28 (828280xxx), valid Phase-30 repair (830301xxx), and invalid Phase-30 engineering/sibling (830310xxx) namespaces. A Phase-31 branch-name search found no pre-existing Phase-31 branch. GitHub code-search returned upstream 502 during preregistration, so global code-index uniqueness could not be independently proven. If any prior use of a registered Phase-31 seed is later discovered, that affected replicate is invalidated and is not replaced or rerun.",
+  "per_horizon_metrics": [
+    "persistence_mse",
+    "selected_mse",
+    "selected_ratio_to_persistence",
+    "simple26_mse",
+    "simple26_ratio_to_persistence",
+    "interaction62_mse",
+    "interaction62_ratio_to_persistence",
+    "aggregate_oracle_parent_mse=min(simple26_mse,interaction62_mse)",
+    "aggregate_oracle_parent_ratio_to_persistence",
+    "per_sequence_oracle_parent_mse",
+    "per_sequence_oracle_parent_ratio_to_persistence",
+    "selected_interaction_fraction",
+    "rollout_clip_fractions"
+  ],
+  "fixed_primary_diagnostic_horizon": 8,
+  "replicate_classification": {
+    "PASS_STABLE": "selected h8 ratio < 1.0",
+    "SELECTOR_LIMIT": "selected h8 ratio >= 1.0 while at least one aggregate parent h8 ratio < 1.0",
+    "MODEL_LIMIT": "selected h8 ratio >= 1.0 and both aggregate parent h8 ratios >= 1.0",
+    "note": "per-sequence oracle is reported as non-deployable diagnostic evidence and cannot determine PASS_STABLE"
+  },
+  "cross_replicate_classification": {
+    "STABLE": "all 3 registered fresh replicates are PASS_STABLE",
+    "SELECTOR_LIMIT": "all failing replicates are SELECTOR_LIMIT and at least one replicate fails",
+    "MODEL_LIMIT": "all failing replicates are MODEL_LIMIT and at least one replicate fails",
+    "MIXED": "failing replicates disagree in mechanism or pass/fail behavior is materially inconsistent"
+  },
+  "stopping_policy": "Run each registered replicate at most once. Persist each result immediately. Infrastructure failure consumes that replicate and is not scientific evidence; no replacement seed. Do not modify metrics/classification after seeing results.",
+  "next_phase_policy": "No intervention is authorized by this protocol. Any stability-aware selector or structure-preserving NLS dynamics change requires a separately preregistered later phase after Phase-31 results are sealed.",
+  "claim_limit": "Synthetic NLS benchmark mechanism diagnosis only; not evidence of new physics, unrestricted scientific-law discovery, AGI, or SSI."
+}
