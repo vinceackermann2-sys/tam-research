@@ -1,0 +1,59 @@
+{
+  "benchmark": {
+    "compiled_last_loss": 10.83776569366455,
+    "compiled_peak_vram_gb": 1.095235824584961,
+    "compiled_seconds": 4.436474843000042,
+    "compiled_speedup_multiple": 2.9769578490540938,
+    "compiled_tokens_per_second": 923.2555452135044,
+    "eager_last_loss": 10.858360290527344,
+    "eager_peak_vram_gb": 0.32913684844970703,
+    "eager_seconds": 13.207198606000002,
+    "eager_tokens_per_second": 310.13389911008045,
+    "measured_steps": 8,
+    "measured_tokens": 4096,
+    "synthetic_fixed_batches": true,
+    "warmup_steps": 1
+  },
+  "branch": "exp/rlt-colab",
+  "classification": "PASS_MATERIAL_COMPILE_SPEEDUP",
+  "compile": {
+    "cuda_graphs_requested": false,
+    "dynamic": false,
+    "fallback_error": null,
+    "first_step_seconds_including_compile": 470.11332007100003,
+    "fullgraph_error": null,
+    "mode": "default",
+    "strategy": "fullgraph"
+  },
+  "engineering_only": true,
+  "engineering_seed": 20260925,
+  "finished_unix": 1789482326.1249933,
+  "job_id": "rlt-systems-compile-modal-20260915-d",
+  "job_source_blob_sha": "1989719a00bca358a35776fd5156c0ccb8726be2",
+  "modal_cli_rc": 0,
+  "model": {
+    "grad_accum_steps": 4,
+    "micro_batch_size": 2,
+    "parameters": 7007616,
+    "profile": "tiny",
+    "seq_len": 64
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "semantic_equivalence": {
+    "candidate_difference": "diagnostic last_cache_lengths side effect omitted only",
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  },
+  "started_unix": 1789481831.1467707,
+  "status": "complete",
+  "trigger_sha": "998dccd2be07e5b9028ec0adbb807de8566e9e53"
+}
