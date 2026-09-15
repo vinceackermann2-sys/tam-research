@@ -1,0 +1,46 @@
+{
+  "branch": "exp/rlt-colab",
+  "finished_unix": 1789462391.3023303,
+  "job": {
+    "job_id": "rlt-publicspec-smoke-modal-20260915-d",
+    "schema": 1,
+    "seed": 20260919,
+    "task": "smoke"
+  },
+  "job_id": "rlt-publicspec-smoke-modal-20260915-d",
+  "job_source_blob_sha": "3ed74c99a3e201b8ed062c31b8cbf0e55dd1eaf7",
+  "modal_cli_rc": 0,
+  "output": {
+    "architecture": "causal encoder + token-recurrent decoder",
+    "causal_max_diff": 0.0,
+    "decoder_cache_lengths": [
+      4,
+      4
+    ],
+    "decoder_stages": 2,
+    "device": "cuda",
+    "encoder_stages": 2,
+    "optimization_final_nll": 0.23667706549167633,
+    "optimization_initial_nll": 2.8137996196746826,
+    "paper_depth_probe_parameters": 794368,
+    "paper_depth_probe_stages": 48,
+    "parameters_smoke_model": 158400,
+    "recurrent_start_state_grad_l1": 0.02397020161151886,
+    "runtime": {
+      "bf16_supported": true,
+      "cuda_available": true,
+      "cuda_runtime": "12.8",
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "torch_version": "2.10.0+cu128"
+    },
+    "seed": 20260919,
+    "stage_weights_shared_across_encoder_decoder": true,
+    "status": "pass",
+    "swa_window": 4
+  },
+  "schema": 1,
+  "started_unix": 1789462385.0392926,
+  "status": "complete",
+  "trigger_sha": "8050482b28d8a6abcbfe4f5c908bae14f15ba21a",
+  "worker": "modal"
+}
