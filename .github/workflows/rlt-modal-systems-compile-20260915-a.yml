@@ -1,0 +1,260 @@
+name: RLT Modal systems compile 20260915 A
+
+on:
+  push:
+    branches:
+      - exp/rlt-colab
+    paths:
+      - .github/workflows/rlt-modal-systems-compile-20260915-a.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-modal-systems-compile-20260915-a
+  cancel-in-progress: false
+
+jobs:
+  systems:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-systems-compile-modal-20260915-a
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-systems-compile-modal-20260915-a.json
+      REFERENCE_PATH: experiments/rlt/modal/results/rlt-vs-transformer-64k-comparison-20260915.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-compile-20260915-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-compile-modal-20260915-a.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-systems-compile-modal-20260915-a.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse any previously claimed or completed systems attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then
+            echo "::error::Claim already exists; refusing to rerun $JOB_ID"
+            exit 31
+          fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then
+            echo "::error::Terminal result already exists; refusing to rerun $JOB_ID"
+            exit 32
+          fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/rlt-systems-job.json
+          python - <<'PY'
+          import json
+          job = json.load(open('/tmp/rlt-systems-job.json'))
+          expected = {
+              'schema': 1,
+              'job_id': 'rlt-systems-compile-modal-20260915-a',
+              'task': 'systems_compile_profile',
+              'engineering_seed': 20260922,
+              'scientific_execution': False,
+              'reference_comparison': 'rlt-vs-transformer-64k-comparison-20260915',
+              'gpu': 'A100',
+              'seq_len': 64,
+              'micro_batch_size': 2,
+              'grad_accum_steps': 4,
+              'measured_steps': 8,
+              'automatic_retry': False,
+          }
+          assert job == expected, job
+          print('systems job preregistration verified:', job)
+          PY
+
+      - name: Require frozen matched-control evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "origin/$BRANCH:$REFERENCE_PATH"
+          git show "origin/$BRANCH:$REFERENCE_PATH" > /tmp/rlt-reference.json
+          python - <<'PY'
+          import json
+          p = json.load(open('/tmp/rlt-reference.json'))
+          assert p.get('status') == 'complete', p
+          assert p.get('classification') == 'matched_64k_control_no_breakthrough_signal', p
+          interp = p.get('interpretation') or {}
+          assert interp.get('breakthrough_claim_supported') is False, p
+          assert interp.get('rlt_quality_advantage_observed') is False, p
+          assert interp.get('rlt_systems_advantage_observed') is False, p
+          print('matched-control evidence frozen: systems optimization only')
+          PY
+
+      - name: Verify Modal GitHub secrets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}" || { echo "::error::Missing repository secret MODAL_TOKEN_ID"; exit 2; }
+          test -n "${MODAL_TOKEN_SECRET:-}" || { echo "::error::Missing repository secret MODAL_TOKEN_SECRET"; exit 2; }
+
+      - name: Install pinned Modal CLI
+        run: python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+
+      - name: Validate systems source locally without GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py experiments/rlt/modal_compile_profile.py
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('experiments/rlt/modal_compile_profile.py').read_text()
+          for needle in (
+              'ENGINEERING_SEED = 20260922',
+              'scientific_execution',
+              'torch.compile(',
+              'fullgraph=True',
+              'retries=0',
+              'RLT_SYSTEMS_RESULT_B64=',
+          ):
+              assert needle in source, needle
+          assert 'HuggingFaceFW' not in source
+          assert 'prepare_fineweb' not in source
+          print('engineering-only compile profiler source: pass')
+          PY
+
+      - name: Run standalone non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/rlt-modal-preflight.log
+          PREFLIGHT_B64="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/rlt-modal-preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$PREFLIGHT_B64" || { echo "::error::Modal preflight returned no durable payload"; exit 3; }
+          export PREFLIGHT_B64
+          python - <<'PY'
+          import base64, json, os, pathlib
+          payload = json.loads(base64.urlsafe_b64decode(os.environ['PREFLIGHT_B64'].encode()))
+          assert payload.get('status') == 'pass', payload
+          assert payload.get('scientific_job_executed') is False, payload
+          payload['branch'] = os.environ['BRANCH']
+          payload['trigger_sha'] = os.environ['GITHUB_SHA']
+          payload['job_id_checked'] = os.environ['JOB_ID']
+          payload['job_source_blob_sha'] = os.environ['JOB_BLOB_SHA']
+          payload['classification'] = 'RLT_COMPILE_SYSTEMS_ZERO_GPU_PREFLIGHT_PASS'
+          path = pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+
+      - name: Commit durable preflight before any GPU request
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt systems: record compile preflight a'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot engineering claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, pathlib, time
+          job = json.load(open(os.environ['JOB_PATH']))
+          payload = {
+              'schema': 1,
+              'job_id': os.environ['JOB_ID'],
+              'status': 'claimed',
+              'claimed_unix': time.time(),
+              'worker': 'github-actions-modal',
+              'branch': os.environ['BRANCH'],
+              'trigger_sha': os.environ['GITHUB_SHA'],
+              'job_source_blob_sha': os.environ['JOB_BLOB_SHA'],
+              'engineering_only': True,
+              'scientific_execution': False,
+              'automatic_retry_authorized': False,
+              'job': job,
+          }
+          path = pathlib.Path(os.environ['CLAIM_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt systems: claim $JOB_ID before A100 profiling"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 compile systems attempt
+        id: modal_gpu
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 20m modal run experiments/rlt/modal_compile_profile.py::main 2>&1 | tee /tmp/rlt-systems-result.log
+          MODAL_RC=${PIPESTATUS[0]}
+          RESULT_B64="$(grep '^RLT_SYSTEMS_RESULT_B64=' /tmp/rlt-systems-result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$MODAL_RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$RESULT_B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize terminal systems result without retry
+        shell: bash
+        run: |
+          set -euo pipefail
+          export RESULT_B64="${RESULT_B64:-}"
+          python - <<'PY'
+          import base64, json, os, pathlib, time
+          result_b64 = os.environ.get('RESULT_B64', '')
+          rc = int(os.environ.get('MODAL_RC', '999'))
+          payload = None
+          parse_error = None
+          if result_b64:
+              try:
+                  payload = json.loads(base64.urlsafe_b64decode(result_b64.encode()))
+              except Exception as exc:
+                  parse_error = f'{type(exc).__name__}: {exc}'
+          if not isinstance(payload, dict):
+              log_path = pathlib.Path('/tmp/rlt-systems-result.log')
+              log = log_path.read_text(errors='replace') if log_path.exists() else ''
+              payload = {
+                  'schema': 1,
+                  'job_id': os.environ['JOB_ID'],
+                  'status': 'failed',
+                  'finished_unix': time.time(),
+                  'worker': 'github-actions-modal',
+                  'engineering_only': True,
+                  'scientific_execution': False,
+                  'error_type': 'ModalInvocationOrTransportError',
+                  'error': f'Modal CLI rc={rc}; no parseable terminal payload',
+                  'parse_error': parse_error,
+                  'log_tail': log[-4000:],
+                  'scientific_conclusion': None,
+              }
+          payload['job_id'] = os.environ['JOB_ID']
+          payload['modal_cli_rc'] = rc
+          payload['branch'] = os.environ['BRANCH']
+          payload['trigger_sha'] = os.environ['GITHUB_SHA']
+          payload['job_source_blob_sha'] = os.environ['JOB_BLOB_SHA']
+          path = pathlib.Path(os.environ['RESULT_PATH'])
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt systems: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize systems outcome
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          result = json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(result, indent=2, sort_keys=True))
+          assert result.get('scientific_execution') is False, result
+          if result.get('status') != 'complete':
+              raise SystemExit(1)
+          classification = str(result.get('classification', ''))
+          if not classification.startswith('PASS_'):
+              raise SystemExit(1)
+          PY
