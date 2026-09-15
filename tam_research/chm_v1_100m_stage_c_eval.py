@@ -2,9 +2,9 @@ from __future__ import annotations
 
 """Pre-result CHM-v1 ~100M Stage-C evaluator contract (#986).
 
-CPU/CI evaluation engineering only.  This module freezes the aligned v4 probe
+CPU/CI evaluation engineering only. This module freezes the aligned v4 probe
 view, candidate-set scoring, exact flat final-token EIEM scoring, deterministic
-stratified bootstrap, and the pure Stage-C PASS/STOP classifier.  It contains no
+stratified bootstrap, and the pure Stage-C PASS/STOP classifier. It contains no
 training launcher, paid-compute trigger, or scientific-seed execution authority.
 """
 
@@ -101,7 +101,7 @@ def validate_protocol_manifest() -> dict[str, Any]:
         raise RuntimeError("#986 probe envelope drift")
     if EXPECTED_PER_CANDIDATE_PER_FAMILY != 16:
         raise RuntimeError("#986 candidate balance drift")
-    if (VALIDATION_BATCHES * VALIDATION_BATCH_SIZE * VALIDATION_SESSION_LEN) != VALIDATION_TOKENS:
+    if VALIDATION_BATCHES * VALIDATION_BATCH_SIZE * VALIDATION_SESSION_LEN != VALIDATION_TOKENS:
         raise RuntimeError("#986 validation-token accounting drift")
     if BOOTSTRAP_RESAMPLES != 10_000:
         raise RuntimeError("#986 bootstrap count drift")
@@ -187,9 +187,9 @@ def eiem_flat_final_logits(model: torch.nn.Module, prompt_ids: Sequence[int]) ->
     """Exact final-token flat scorer with no indexed/clipped retrieval.
 
     Earlier chunks only need to write raw keys/hidden values: retrieval does not
-    alter those writes in CHM-v1.  Therefore final-token-only scoring is exactly
-    equivalent to the full flat evaluator at the scored query while avoiding
-    unnecessary retrieval for unscored tokens.
+    alter those writes in CHM-v1. The final LM head is evaluated on the same
+    full-chunk tensor shape as the reference evaluator so parity is bit-exact,
+    while retrieval is skipped for unscored final-chunk tokens.
     """
     ids = tuple(int(token) for token in prompt_ids)
     if not ids:
@@ -217,7 +217,12 @@ def eiem_flat_final_logits(model: torch.nn.Module, prompt_ids: Sequence[int]) ->
                     verify_indexed_exactness=False,
                 )
                 query_state = model._integrate(query_state, value)
-        return model.backbone.lm_head(query_state)
+
+        # Preserve the reference LM-head matrix shape. The head is token-wise,
+        # so unscored rows may stay raw; only the scored final row is replaced.
+        fused = hidden.clone()
+        fused[0, -1] = query_state
+        return model.backbone.lm_head(fused)[0, -1]
 
     raise RuntimeError("final EIEM chunk was not reached")
 
@@ -305,7 +310,12 @@ def _validated_rows(rows: Sequence[Mapping[str, Any]]) -> dict[str, list[Mapping
             value = float(row[field])
             if not np.isfinite(value):
                 raise ValueError(f"non-finite #986 score {field}")
-        for field in ("local_correct", "eiem_correct", "local_stale_choice", "eiem_stale_choice"):
+        for field in (
+            "local_correct",
+            "eiem_correct",
+            "local_stale_choice",
+            "eiem_stale_choice",
+        ):
             if not isinstance(row.get(field), (bool, np.bool_)):
                 raise ValueError(f"#986 {field} must be boolean")
         by_family[family].append(row)
@@ -341,7 +351,11 @@ def stratified_paired_bootstrap(
         family_rows = by_family[family]
         acc = np.asarray([_row_accuracy_gain(row) for row in family_rows], dtype=np.float64)
         nll = np.asarray([_row_nll_benefit(row) for row in family_rows], dtype=np.float64)
-        indices = rng.integers(0, CASES_PER_FAMILY, size=(BOOTSTRAP_RESAMPLES, CASES_PER_FAMILY))
+        indices = rng.integers(
+            0,
+            CASES_PER_FAMILY,
+            size=(BOOTSTRAP_RESAMPLES, CASES_PER_FAMILY),
+        )
         acc_means.append(acc[indices].mean(axis=1))
         nll_means.append(nll[indices].mean(axis=1))
     aggregate_acc = np.stack(acc_means, axis=0).mean(axis=0)
@@ -365,7 +379,10 @@ def _integrity_stop_reasons(integrity: Mapping[str, Any]) -> list[str]:
         reasons.append("local_parameter_count_mismatch")
     if eiem_params != EXPECTED_EIEM_PARAMETERS:
         reasons.append("eiem_parameter_count_mismatch")
-    if local_params > 0 and abs((eiem_params - local_params) / local_params) > PARAMETER_MISMATCH_LIMIT:
+    if (
+        local_params > 0
+        and abs((eiem_params - local_params) / local_params) > PARAMETER_MISMATCH_LIMIT
+    ):
         reasons.append("parameter_mismatch_above_point_one_percent")
     if int(integrity.get("training_tokens_per_model", -1)) != FIRST_SCREEN_TOKEN_BUDGET:
         reasons.append("training_token_count_mismatch")
@@ -402,24 +419,45 @@ def classify_stage_c(
     for family in ALL_FAMILIES:
         family_rows = by_family[family]
         family_metrics[family] = {
-            "accuracy_gain": float(np.mean([_row_accuracy_gain(row) for row in family_rows])),
-            "candidate_nll_benefit": float(np.mean([_row_nll_benefit(row) for row in family_rows])),
+            "accuracy_gain": float(
+                np.mean([_row_accuracy_gain(row) for row in family_rows])
+            ),
+            "candidate_nll_benefit": float(
+                np.mean([_row_nll_benefit(row) for row in family_rows])
+            ),
         }
 
     long_rows = [row for family in LONG_RANGE_FAMILIES for row in by_family[family]]
-    aggregate_accuracy_gain = float(np.mean([_row_accuracy_gain(row) for row in long_rows]))
-    aggregate_nll_benefit = float(np.mean([_row_nll_benefit(row) for row in long_rows]))
+    aggregate_accuracy_gain = float(
+        np.mean([_row_accuracy_gain(row) for row in long_rows])
+    )
+    aggregate_nll_benefit = float(
+        np.mean([_row_nll_benefit(row) for row in long_rows])
+    )
     if aggregate_accuracy_gain < MIN_AGGREGATE_ACCURACY_GAIN:
         reasons.append("aggregate_long_range_accuracy_gain_below_gate")
     if aggregate_nll_benefit < MIN_AGGREGATE_CANDIDATE_NLL_BENEFIT:
         reasons.append("aggregate_long_range_candidate_nll_benefit_below_gate")
-    family_acc_gains = [family_metrics[family]["accuracy_gain"] for family in LONG_RANGE_FAMILIES]
-    if sum(gain >= MIN_FAMILY_ACCURACY_GAIN for gain in family_acc_gains) < MIN_LONG_RANGE_FAMILIES_AT_GAIN:
+
+    family_acc_gains = [
+        family_metrics[family]["accuracy_gain"] for family in LONG_RANGE_FAMILIES
+    ]
+    if (
+        sum(gain >= MIN_FAMILY_ACCURACY_GAIN for gain in family_acc_gains)
+        < MIN_LONG_RANGE_FAMILIES_AT_GAIN
+    ):
         reasons.append("fewer_than_two_long_range_families_meet_accuracy_gain")
     if any(gain < MIN_ANY_FAMILY_ACCURACY_GAIN for gain in family_acc_gains):
         reasons.append("long_range_family_accuracy_regression")
-    family_nll = [family_metrics[family]["candidate_nll_benefit"] for family in LONG_RANGE_FAMILIES]
-    if sum(benefit > 0.0 for benefit in family_nll) < MIN_LONG_RANGE_FAMILIES_POSITIVE_NLL:
+
+    family_nll = [
+        family_metrics[family]["candidate_nll_benefit"]
+        for family in LONG_RANGE_FAMILIES
+    ]
+    if (
+        sum(benefit > 0.0 for benefit in family_nll)
+        < MIN_LONG_RANGE_FAMILIES_POSITIVE_NLL
+    ):
         reasons.append("fewer_than_two_long_range_families_have_positive_nll_benefit")
 
     bootstrap = stratified_paired_bootstrap(rows)
@@ -444,8 +482,12 @@ def classify_stage_c(
         reasons.append("local_negative_candidate_nll_regression_above_gate")
 
     overwrite = by_family["overwrite"]
-    local_stale = float(np.mean([float(bool(row["local_stale_choice"])) for row in overwrite]))
-    eiem_stale = float(np.mean([float(bool(row["eiem_stale_choice"])) for row in overwrite]))
+    local_stale = float(
+        np.mean([float(bool(row["local_stale_choice"])) for row in overwrite])
+    )
+    eiem_stale = float(
+        np.mean([float(bool(row["eiem_stale_choice"])) for row in overwrite])
+    )
     if local_stale < 0.01:
         stale_pass = eiem_stale <= local_stale + 0.01
         stale_rule = "eiem<=local+0.01_when_local<0.01"
