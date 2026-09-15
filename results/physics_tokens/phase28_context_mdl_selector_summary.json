@@ -1,0 +1,34 @@
+{
+  "phase": 28,
+  "status": "PASS",
+  "registered_replicates": 3,
+  "primary_cells_passing": 57,
+  "primary_cells_total": 57,
+  "replicate_pass_counts": [19,19,19],
+  "frozen_gate": "57/57 required",
+  "selector": "heldout context BIC-like per-trajectory selection between nested 26- and 62-feature models; no family label",
+  "family_summary": {
+    "wave": {"passing_cells":9,"total_cells":9,"median_ratio":0.002295013750588849,"worst_ratio":0.03430799912129509,"mean_interaction_selection_fraction":0.006944444444444444},
+    "gray_scott": {"passing_cells":12,"total_cells":12,"median_ratio":0.04972084769516689,"worst_ratio":0.9123463806077967,"mean_interaction_selection_fraction":0.1111111111111111},
+    "nls": {"passing_cells":12,"total_cells":12,"median_ratio":0.26264907733011056,"worst_ratio":0.8532302635902106,"mean_interaction_selection_fraction":0.005208333333333333},
+    "advection": {"passing_cells":12,"total_cells":12,"median_ratio":0.05595073747492814,"worst_ratio":0.6937048274621396,"mean_interaction_selection_fraction":0.1111111111111111},
+    "burgers": {"passing_cells":12,"total_cells":12,"median_ratio":0.20520671944169327,"worst_ratio":0.8154619676919519,"mean_interaction_selection_fraction":0.8611111111111112}
+  },
+  "key_split_medians": {
+    "wave_id_h8": 0.002295013750588849,
+    "gray_id_h8": 0.2444049752260184,
+    "nls_id_h8": 0.4627365584862326,
+    "advection_id_h8": 0.18688257268434302,
+    "burgers_id_h8": 0.20524951308272404,
+    "burgers_combined_ood_h3": 0.7542799097602819
+  },
+  "selection_pattern": {
+    "wave_mean_interaction_fraction": 0.006944444444444444,
+    "gray_mean_interaction_fraction": 0.1111111111111111,
+    "nls_mean_interaction_fraction": 0.005208333333333333,
+    "advection_mean_interaction_fraction": 0.1111111111111111,
+    "burgers_mean_interaction_fraction": 0.8611111111111112
+  },
+  "interpretation": "Context-only complexity control resolves Phase-27 overflexibility while retaining Burgers interaction capacity. The selector strongly favors 62 features on Burgers and mostly 26 features on wave, Gray-Scott, NLS, and advection, without family labels or future leakage.",
+  "claim_limit": "Known synthetic dynamics only; this is not unrestricted law discovery or new physics."
+}
