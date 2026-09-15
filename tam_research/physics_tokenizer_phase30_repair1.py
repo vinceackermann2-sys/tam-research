@@ -55,6 +55,7 @@ def main():
     z=ap.parse_args(); inv=validate_invariants()
     if z.cmd=='prepare':
         if z.smoke:
+            # throwaway path only; registered seeds untouched
             s=p30._seedset(999302000); t=time.time(); state,dm,ds,basis=p30.build_all(s,8,8,(16,4),2,1200); raw=p30.build_eval(s,8,3)
             obj={'replicate':0,'seed_base':999302000,'seeds':asdict(s),'state':state,'dm':dm,'ds':ds,'basis':basis,'raw':raw,'scientific_config':'smoke','runtime_seconds':time.time()-t}
             Path(z.out).write_bytes(pickle.dumps(obj,protocol=pickle.HIGHEST_PROTOCOL)); print(json.dumps({'status':'SMOKE','split_count':len(raw),'invariants':inv}))
