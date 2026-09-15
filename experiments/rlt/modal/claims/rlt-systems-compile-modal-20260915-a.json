@@ -1,0 +1,27 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789470668.5263436,
+  "engineering_only": true,
+  "job": {
+    "automatic_retry": false,
+    "engineering_seed": 20260922,
+    "gpu": "A100",
+    "grad_accum_steps": 4,
+    "job_id": "rlt-systems-compile-modal-20260915-a",
+    "measured_steps": 8,
+    "micro_batch_size": 2,
+    "reference_comparison": "rlt-vs-transformer-64k-comparison-20260915",
+    "schema": 1,
+    "scientific_execution": false,
+    "seq_len": 64,
+    "task": "systems_compile_profile"
+  },
+  "job_id": "rlt-systems-compile-modal-20260915-a",
+  "job_source_blob_sha": "17e36fe491872e1b49268b2923ddcccfc7c6232f",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "trigger_sha": "99e1de4bf073bee383e96f9a94efc1dc579da693",
+  "worker": "github-actions-modal"
+}
