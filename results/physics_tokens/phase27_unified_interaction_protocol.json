@@ -1,0 +1,65 @@
+{
+  "phase": 27,
+  "experiment": "physics-token-phase27-unified-interaction-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-26 confirmed the 62-feature interaction identifier on fresh Burgers seeds; Phase-14 previously established unified transfer with the smaller identifier on wave, Gray-Scott, NLS, and advection",
+  "question": "Can the same 62-feature token-space interaction identifier serve as one unified context-only model across wave, Gray-Scott, NLS, advection, and Burgers without regressing any previously solved family?",
+  "representation": {
+    "unchanged_from_phase26": true,
+    "nominal_bits": 18,
+    "compander": "asinh",
+    "zmax": 16.0,
+    "levels_per_channel": 512,
+    "representation_training_families": ["wave", "gray_scott"],
+    "nls_seen_during_representation_fit": false,
+    "advection_seen_during_representation_fit": false,
+    "burgers_seen_during_representation_fit": false
+  },
+  "primary_identifier": {
+    "feature_dim": 62,
+    "construction": "constant + 18 full fixed real 3x3 Fourier spatial coordinates + seven center degree-2/3 monomials + every product between center u or v and each of the 18 spatial coordinates",
+    "context_frames": 8,
+    "observed_transitions": 7,
+    "ridge": 0.001,
+    "same_feature_library_for_all_families": true,
+    "law_family_id_supplied": false,
+    "hidden_simulator_parameters_supplied": false,
+    "recursive_projection": "same frozen Phase-10 18-bit companded token projection after every predicted step"
+  },
+  "secondary_control": {
+    "feature_dim": 26,
+    "construction": "linear full-Fourier spatial plus center polynomial library used as the Phase-25 control",
+    "purpose": "paired diagnostic only; cannot rescue or redefine the primary gate"
+  },
+  "registered_replicates": [
+    {"replicate":1,"seed_prefix":8272700},
+    {"replicate":2,"seed_prefix":8272701},
+    {"replicate":3,"seed_prefix":8272702}
+  ],
+  "seed_layout_per_replicate": {
+    "representation": ["wave_train", "gray_train", "sc1", "sc2", "ic1", "ic2"],
+    "wave": ["id", "spectral", "combined"],
+    "gray_scott": ["id", "sharp", "parameter", "combined"],
+    "nls": ["id", "spectral", "parameter", "combined"],
+    "advection": ["id", "spectral", "speed", "combined"],
+    "burgers": ["id", "spectral", "parameter", "combined"]
+  },
+  "evaluation": {
+    "wave": ["id_h8", "spectral_ood_h3", "combined_ood_h3"],
+    "gray_scott": ["id_h8", "sharp_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "nls": ["id_h8", "spectral_ood_h3", "parameter_ood_h3", "combined_ood_h3"],
+    "advection": ["id_h8", "spectral_ood_h3", "speed_ood_h3", "combined_ood_h3"],
+    "burgers": ["id_h8", "spectral_ood_h3", "parameter_ood_h3", "combined_ood_h3"]
+  },
+  "primary_rule": "PASS only if the unchanged 62-feature token model has rollout MSE / raw-state persistence MSE < 1.0 on every one of the 19 splits in every one of the 3 fresh registered replicates: 57/57 cells. Any single ratio >= 1.0 is Phase-27 FAIL. No retries or replacement seeds.",
+  "secondary_reporting": [
+    "per-family and per-split median ratios",
+    "worst registered primary cell",
+    "paired 26-feature control ratios",
+    "context and rollout clipping",
+    "per-replicate pass counts"
+  ],
+  "failure_policy": "All registered outcomes are retained. No family-specific feature pruning, ridge change, context change, routing, posthoc stabilization, or seed replacement.",
+  "collision_policy": "If any 827270xxx registered seed is discovered to collide with a previously consumed registered seed before execution, stop before consuming it and preregister a repair namespace only for unconsumed seeds.",
+  "claim_limit": "Known synthetic dynamics under the fixed local 3x3 support and benchmark distributions only. A pass establishes unified benchmark compatibility of this fixed hypothesis class; it is not new-physics discovery or unrestricted scientific-law discovery."
+}
