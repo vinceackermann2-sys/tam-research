@@ -1,0 +1,244 @@
+name: CHM-v1 100M Stage B systems preflight v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-100m-stage-b-981-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+    steps:
+      - name: Validate one-shot authority payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          if os.environ["RUN_ATTEMPT"] != "1":
+              raise SystemExit("#981 refuses workflow reruns")
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v1-100m-stage-b-981-v1",
+              "research_issue": 977,
+              "run_control_issue": 981,
+              "systems_seed": 981001,
+              "result_root": "/vol/chm-v1/100m-stage-b/issue-981/seed-981001-v1",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r}"
+          for key in ("source_sha", "source_tree", "harness_sha"):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full SHA"
+              print(f"{key}={value}")
+          print("systems_seed=981001")
+          PY
+
+      - name: Checkout exact Stage B source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Verify exact source tree and launcher blob
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_b_981_v1.py")" = "$HARNESS_SHA"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify Modal authentication and live bounded cost
+        run: |
+          modal token info
+          modal billing rates --json > modal-rates.json
+          cat modal-rates.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rates = json.loads(Path("modal-rates.json").read_text())
+          l4 = float(rates["gpu_hour_cost_l4"])
+          cpu = float(rates["cpu_hour_cost"])
+          ram = float(rates["mem_gib_hour_cost"])
+          hourly = l4 + 4 * cpu + 16 * ram
+          bound = hourly * 0.25
+          assert l4 > 0 and cpu > 0 and ram > 0
+          assert bound <= 0.35, f"15-minute Stage B bound ${bound:.6f} exceeds $0.35 cap"
+          payload = {
+              "gpu_hour_cost_l4": l4,
+              "cpu_hour_cost_per_core": cpu,
+              "mem_gib_hour_cost": ram,
+              "hourly_resource_cost_usd": hourly,
+              "max_gpu_seconds": 900,
+              "stage_b_bound_usd": bound,
+              "authorized_cap_usd": 0.35,
+          }
+          Path("modal-rate-envelope.json").write_text(json.dumps(payload, indent=2, sort_keys=True))
+          print(f"Stage B live 15-minute bound=${bound:.6f} <= $0.35")
+          PY
+
+      - name: Run zero-GPU Stage B preflight
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_b_981_v1.py \
+            --phase preflight \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" | tee ../zero-gpu.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rows = [x.split("CHM_V1_100M_STAGE_B_ZERO_GPU=",1)[1] for x in Path("zero-gpu.log").read_text().splitlines() if "CHM_V1_100M_STAGE_B_ZERO_GPU=" in x]
+          assert len(rows) == 1
+          p = json.loads(rows[0])
+          assert p["status"] == "PASS"
+          assert p["systems_seed"] == 981001
+          assert p["gpu_allocated"] is False
+          assert p["systems_seed_consumed"] is False
+          Path("zero-gpu.json").write_text(json.dumps(p, indent=2, sort_keys=True))
+          PY
+
+      - name: Record pre-allocation preflight evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > preflight.md
+          import json
+          z=json.load(open("zero-gpu.json")); r=json.load(open("modal-rate-envelope.json"))
+          print("🟨 **CHM-v1 100M Stage B zero-GPU preflight PASS**")
+          print()
+          print(f"- source: `{z['source_sha']}`")
+          print(f"- tree: `{z['source_tree']}`")
+          print(f"- harness: `{z['harness_sha']}`")
+          print(f"- systems seed: `{z['systems_seed']}` (not consumed yet)")
+          print(f"- live 15-minute bound: `${r['stage_b_bound_usd']:.6f}` <= `$0.35`")
+          print("- GPU allocated: **false**; scientific credit: **none**.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/981/comments" -f body="$(cat preflight.md)"
+
+      - name: Reserve dispatch before L4 allocation
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_b_981_v1.py \
+            --phase reserve \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" | tee ../dispatch.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rows=[x.split("CHM_V1_100M_STAGE_B_DISPATCH=",1)[1] for x in Path("dispatch.log").read_text().splitlines() if "CHM_V1_100M_STAGE_B_DISPATCH=" in x]
+          assert len(rows)==1
+          p=json.loads(rows[0])
+          assert p["status"]=="DISPATCH_RESERVED"
+          assert p["systems_seed"]==981001
+          assert p["gpu_allocation_started"] is False
+          assert p["systems_seed_consumed"] is False
+          PY
+
+      - name: Record consumed-next-step warning
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/981/comments" -f body='🟧 **Stage B dispatch reserved.** The next step is the sole authorized L4 allocation. Once the GPU function begins, systems seed `981001` is permanently consumed; no retry/rescue/redispatch is authorized.'
+
+      - name: Launch Stage B systems seed exactly once
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
+        run: |
+          HOURLY="$(python -c 'import json; print(json.load(open("modal-rate-envelope.json"))["hourly_resource_cost_usd"])')"
+          cd source
+          modal run modal_chm_v1_100m_stage_b_981_v1.py \
+            --phase run \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" \
+            --live-hourly-resource-cost-usd "$HOURLY" | tee ../result.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rows=[x.split("CHM_V1_100M_STAGE_B_RESULT=",1)[1] for x in Path("result.log").read_text().splitlines() if "CHM_V1_100M_STAGE_B_RESULT=" in x]
+          assert len(rows)==1
+          p=json.loads(rows[0])
+          assert p["status"]=="COMPLETE"
+          assert p["systems_seed"]==981001
+          assert p["systems_seed_consumed"] is True
+          assert p["automatic_retry_authorized"] is False
+          assert p["scientific_credit"] is False
+          Path("result.json").write_text(json.dumps(p, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload authoritative Stage B result
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v1-100m-stage-b-981-result
+          path: result.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record authoritative Stage B result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > result.md
+          import json
+          p=json.load(open("result.json")); l=p["training"]["local"]; e=p["training"]["eiem"]; q=p["projection"]; i=p["inference"]
+          print("🟩 **CHM-v1 100M Stage B attempt COMPLETE**")
+          print()
+          print(f"- classification: `{p['classification']}`")
+          print(f"- systems seed consumed: `{p['systems_seed_consumed']}`")
+          print(f"- LOCAL: `{l['tokens_per_second']:.2f}` tok/s, peak `{l['peak_allocated_vram_bytes']/2**30:.3f}` GiB")
+          print(f"- EIEM: `{e['tokens_per_second']:.2f}` tok/s, peak `{e['peak_allocated_vram_bytes']/2**30:.3f}` GiB")
+          print(f"- projected combined screen: `{q['combined_projected_hours']:.3f}` h, `${q['combined_projected_cost_usd']:.3f}`")
+          print(f"- practical optimized/flat inference wall ratio: `{i['optimized_over_flat_wall_ratio']:.6f}`")
+          print(f"- flat/indexed parity: `{i['logits_within_tolerance']}`; max abs logit delta `{i['max_abs_logit_delta']}`")
+          print("- scientific/modeling credit: **none**; Stage C is not automatically authorized.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/981/comments" -f body="$(cat result.md)"
+
+      - name: Record terminal infrastructure failure without rerun
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/981/comments" -f body='🟥 **Stage B first attempt did not complete successfully.** Do not rerun/retry/rescue/redispatch workflow or systems seed `981001`. Treat this as infrastructure/runtime evidence only unless a durable RESULT already exists; it is not scientific evidence.'
