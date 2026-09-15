@@ -1,0 +1,88 @@
+{
+  "branch": "exp/rlt-colab",
+  "comparison_role": "matched_transformer_control",
+  "finished_unix": 1789468715.42927,
+  "job": {
+    "grad_accum_steps": 4,
+    "job_id": "transformer-control-64k-modal-20260915-a",
+    "micro_batch_size": 2,
+    "requires_job_id": "rlt-tiny-64k-modal-20260915-a",
+    "schema": 1,
+    "seed": 20260921,
+    "seq_len": 64,
+    "task": "train_transformer_control",
+    "token_budget": 65536,
+    "train_tokens": 1000000,
+    "val_tokens": 100000
+  },
+  "job_id": "transformer-control-64k-modal-20260915-a",
+  "job_source_blob_sha": "f6c9104cfc0aaea3e8ba3e579d26b5777582872e",
+  "modal_cli_rc": 0,
+  "output": {
+    "data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 1234,
+      "tokenizer": "gpt2",
+      "train_tokens": 1000000,
+      "val_tokens": 100000
+    },
+    "runtime": {
+      "bf16_supported": true,
+      "cuda_available": true,
+      "cuda_runtime": "12.8",
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "torch_version": "2.10.0+cu128"
+    },
+    "status": "complete",
+    "training": {
+      "amp_dtype": "torch.bfloat16",
+      "architecture": "matched-decoder-only-transformer-control",
+      "config": {
+        "architecture": "transformer",
+        "d_model": 128,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 4,
+        "n_layers": 3,
+        "tamv2_branch_inner": 104,
+        "tamv2_state_size": 64,
+        "tamv3_attn_inner": 208,
+        "vocab_size": 50257
+      },
+      "final_eval": {
+        "nll": 8.4793212890625,
+        "perplexity": 4814.1813502593695
+      },
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "last_train_loss": 8.472769975662231,
+      "paired_batch_seed": 20270920,
+      "paired_eval_seed": 20290920,
+      "parameter_delta_fraction": 0.004749118673169306,
+      "parameters": 7040896,
+      "peak_vram_gb": 0.22323989868164062,
+      "rlt_reference_parameters": 7007616,
+      "seed": 20260921,
+      "status": "complete",
+      "steps": 128,
+      "tokens_per_second": 11456.726299488219,
+      "tokens_seen": 65536,
+      "train_seconds": 5.720307728999998,
+      "training": {
+        "grad_accum_steps": 4,
+        "learning_rate": 0.0003,
+        "micro_batch_size": 2,
+        "seq_len": 64,
+        "token_budget": 65536,
+        "weight_decay": 0.1
+      }
+    }
+  },
+  "prerequisite_job_id": "rlt-tiny-64k-modal-20260915-a",
+  "schema": 1,
+  "started_unix": 1789468684.6972458,
+  "status": "complete",
+  "trigger_sha": "ac8299c0eff158e74c9b832dce82d440cc71a92b",
+  "worker": "modal"
+}
