@@ -1,0 +1,13 @@
+{
+  "experiment":"physics-token-phase30-shared-support-six-family-v1",
+  "attempt":"registered-confirmation-attempt-1",
+  "status":"INFRASTRUCTURE_INCOMPLETE",
+  "cause":"The single-process 23-split registered replicate 1 exceeded the local 45-second execution ceiling before writing its output JSON.",
+  "consumed_seed_base":830300000,
+  "consumed_seed_namespace":"830300001..830300064 according to preregistered sparse offset convention",
+  "durable_scientific_result":false,
+  "scientific_gate_status":"UNRESOLVED",
+  "same_seeds_must_not_be_reused":true,
+  "registered_replicates_2_and_3_from_attempt1":"UNCONSUMED",
+  "repair_policy":"Use a fresh seed namespace and alter execution partitioning only; preserve every scientific setting and frozen pass criterion."
+}
