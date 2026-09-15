@@ -1,0 +1,59 @@
+{
+  "benchmark": {
+    "compiled_last_loss": null,
+    "compiled_peak_vram_gb": null,
+    "compiled_seconds": null,
+    "compiled_speedup_multiple": null,
+    "compiled_tokens_per_second": null,
+    "eager_last_loss": 10.849471807479858,
+    "eager_peak_vram_gb": 0.32913684844970703,
+    "eager_seconds": 20.138171253999996,
+    "eager_tokens_per_second": 203.39483403620483,
+    "measured_steps": 8,
+    "measured_tokens": 4096,
+    "synthetic_fixed_batches": true,
+    "warmup_steps": 1
+  },
+  "branch": "exp/rlt-colab",
+  "classification": "FAIL_COMPILE_EXECUTION",
+  "compile": {
+    "cudagraph_mark_step_begin_each_microbatch": true,
+    "dynamic": false,
+    "fallback_error": "RuntimeError: Error: accessing tensor output of CUDAGraphs that has been overwritten by a subsequent run. Stack trace: File \"/root/modal_compile_profile_c.py\", line 76, in forward\n    memory = model.encode(tokens)\n  File \"/root/experiments/rlt/model.py\", line 200, in encode\n    hidden = self.token_emb(tokens) + self.pos_emb(pos)[None]\nGradient addition node due to multiple use of tensor around:. To prevent overwriting, clone the tensor outside of torch.compile() or call torch.compiler.cudagraph_mark_step_begin() before each model invocation.",
+    "first_step_seconds_including_compile": null,
+    "fullgraph_error": "RuntimeError: Error: accessing tensor output of CUDAGraphs that has been overwritten by a subsequent run. Stack trace: File \"/root/modal_compile_profile_c.py\", line 76, in forward\n    memory = model.encode(tokens)\n  File \"/root/experiments/rlt/model.py\", line 200, in encode\n    hidden = self.token_emb(tokens) + self.pos_emb(pos)[None]\nGradient addition node due to multiple use of tensor around:. To prevent overwriting, clone the tensor outside of torch.compile() or call torch.compiler.cudagraph_mark_step_begin() before each model invocation.",
+    "mode": "reduce-overhead",
+    "strategy": "graph-break-tolerant"
+  },
+  "engineering_only": true,
+  "engineering_seed": 20260924,
+  "finished_unix": 1789472304.8382816,
+  "job_id": "rlt-systems-compile-modal-20260915-c",
+  "job_source_blob_sha": "5b62f71db42f09e3b511da8f38a206d44733bc21",
+  "modal_cli_rc": 0,
+  "model": {
+    "grad_accum_steps": 4,
+    "micro_batch_size": 2,
+    "parameters": 7007616,
+    "profile": "tiny",
+    "seq_len": 64
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "semantic_equivalence": {
+    "candidate_difference": "diagnostic last_cache_lengths side effect omitted only",
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  },
+  "started_unix": 1789471680.8116705,
+  "status": "complete",
+  "trigger_sha": "04cc226ff6447aa3ab6ea3eb3b5d7efc977be613"
+}
