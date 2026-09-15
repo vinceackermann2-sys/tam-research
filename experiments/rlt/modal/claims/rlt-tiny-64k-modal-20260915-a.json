@@ -1,0 +1,25 @@
+{
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789462606.3499653,
+  "job": {
+    "grad_accum_steps": 4,
+    "job_id": "rlt-tiny-64k-modal-20260915-a",
+    "micro_batch_size": 2,
+    "profile": "tiny",
+    "requires_job_id": "rlt-publicspec-smoke-modal-20260915-d",
+    "schema": 1,
+    "seed": 20260920,
+    "seq_len": 64,
+    "task": "train",
+    "token_budget": 65536,
+    "train_tokens": 1000000,
+    "val_tokens": 100000
+  },
+  "job_id": "rlt-tiny-64k-modal-20260915-a",
+  "job_source_blob_sha": "f9f4734c9a4de6c3991806ec990c5a89c23dddf3",
+  "prerequisite_job_id": "rlt-publicspec-smoke-modal-20260915-d",
+  "schema": 1,
+  "status": "claimed",
+  "trigger_sha": "fb761077e2b5ca251843e235dcb6de0110bf3331",
+  "worker": "github-actions-modal"
+}
