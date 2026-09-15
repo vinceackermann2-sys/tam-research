@@ -1,0 +1,12 @@
+{
+  "experiment": "physics-token-phase30-shared-support-six-family-v1-repair1",
+  "status": "PREREGISTERED_BEFORE_REPAIR1_EXECUTION",
+  "parent_phase30_status": "ATTEMPT1_INFRASTRUCTURE_INCOMPLETE",
+  "repair_reason": "Original registered replicate 1 exceeded the local single-process execution ceiling before writing durable output. Its 830300000 seed namespace is consumed and will not be reused.",
+  "scientific_configuration": "IDENTICAL to Phase-30 protocol: unchanged 18-bit companded representation; context 8; ridge 0.001; Phase-28 26-vs-62 parent selector; 82-feature candidate; reset transition excluded only for 82; shared-support median held-out gain threshold >0.10; same six families and 23 split definitions.",
+  "execution_only_change": "Each fresh replicate is prepared once, then the six family groups are evaluated in separate short processes and persisted independently before aggregation.",
+  "fresh_replicate_seed_bases": [830310000, 830310100, 830310200],
+  "seed_convention": "Same sparse offsets as Phase 30: +1/+2 training, +3..+6 codebook, +11..+13 wave, +21..+24 Gray, +31..+34 NLS, +41..+44 advection, +51..+54 Burgers, +61..+64 Hamilton-Jacobi.",
+  "frozen_pass_rule": "PASS only if all 3 fresh repair1 replicates beat raw-state persistence on all 23 primary splits: 69/69 cells. Any ratio >=1.0 is FAIL. No retry or replacement of any consumed seed namespace.",
+  "claim_limit": "Synthetic benchmark evidence only; not unrestricted scientific-law discovery or new physics."
+}
