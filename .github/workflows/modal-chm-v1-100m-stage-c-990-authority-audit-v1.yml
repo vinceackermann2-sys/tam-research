@@ -1,0 +1,181 @@
+name: CHM-v1 100M Stage-C pre-authority audit v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-100m-stage-c-990-authority-audit-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+    steps:
+      - name: Resolve immutable audit payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v1-100m-stage-c-990-authority-audit-v1",
+              "seed": 977001,
+              "control_issue": 990,
+              "result_root": "/vol/chm-v1/100m-stage-c/issue-988/seed-977001-v1",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch"
+          for key in (
+              "source_sha", "source_tree", "model_sha", "evaluator_sha", "prep_sha",
+              "core_sha", "runner_sha", "scientific_workflow_sha", "audit_workflow_sha",
+          ):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
+              print(f"{key}={value}")
+          PY
+
+      - name: Checkout exact merged scientific boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Verify current main and all immutable blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
+          AUDIT_WORKFLOW_SHA: ${{ steps.cfg.outputs.audit_workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_scale.py")" = "$MODEL_SHA"
+          test "$MODEL_SHA" = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_eval.py")" = "$EVALUATOR_SHA"
+          test "$EVALUATOR_SHA" = "863bd038e60da5511503adb0c8e1046a680ed3bd"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_run_control_prep.py")" = "$PREP_SHA"
+          test "$PREP_SHA" = "bc4ed60885aaf991a2d6b9fe8f634ff973f3f722"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_execution.py")" = "$CORE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_990_v1.py")" = "$RUNNER_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-990-v1.yml")" = "$SCIENTIFIC_WORKFLOW_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-990-authority-audit-v1.yml")" = "$AUDIT_WORKFLOW_SHA"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Read live rates and fail closed on 12-hour cap
+        id: rates
+        run: |
+          modal billing rates --json > modal-rates.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          rates = json.load(open("modal-rates.json", encoding="utf-8"))
+          l4 = float(rates["gpu_hour_cost_l4"])
+          cpu = float(rates["cpu_hour_cost"])
+          ram = float(rates["mem_gib_hour_cost"])
+          for name, value in (("l4", l4), ("cpu", cpu), ("ram", ram)):
+              assert value > 0.0, f"invalid {name} rate"
+          hourly = l4 + 4 * cpu + 16 * ram
+          worst = hourly * 12.0
+          assert worst <= 25.00, f"live worst-case ${worst:.6f} exceeds $25 cap"
+          print(f"hourly_resource_usd={hourly:.12f}")
+          print(f"worst_case_stage_c_usd={worst:.12f}")
+          PY
+
+      - name: Inspect reserved result namespace without creating it
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_990_v1.py \
+            --phase inspect --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --prep-sha "$PREP_SHA" \
+            --core-sha "$CORE_SHA" --runner-sha "$RUNNER_SHA" --workflow-sha "$SCIENTIFIC_WORKFLOW_SHA" \
+            --authority-comment-id 0 | tee ../inspect.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("inspect.log").read_text(encoding="utf-8").splitlines()
+          matches = [x.split("CHM_V1_100M_STAGE_C_STATE=", 1)[1] for x in lines if "CHM_V1_100M_STAGE_C_STATE=" in x]
+          assert len(matches) == 1
+          state = json.loads(matches[0])
+          assert state["root_exists"] is False, "reserved Stage-C result namespace is already present"
+          assert all(value is None for value in state["files"].values())
+          Path("audit-state.json").write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+          PY
+
+      - name: Record immutable pre-authority audit on control issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
+          AUDIT_WORKFLOW_SHA: ${{ steps.cfg.outputs.audit_workflow_sha }}
+          LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
+          LIVE_WORST_CASE_USD: ${{ steps.rates.outputs.worst_case_stage_c_usd }}
+        run: |
+          cat > audit-comment.md <<EOF
+          CHM_V1_990_AUTHORITY_AUDIT_V1
+
+          source_sha=$SOURCE_SHA
+          source_tree=$SOURCE_TREE
+          model_blob=$MODEL_SHA
+          evaluator_blob=$EVALUATOR_SHA
+          prep_blob=$PREP_SHA
+          core_blob=$CORE_SHA
+          runner_blob=$RUNNER_SHA
+          workflow_blob=$SCIENTIFIC_WORKFLOW_SHA
+          audit_workflow_blob=$AUDIT_WORKFLOW_SHA
+          scientific_seed=977001
+          result_namespace_unused=true
+          scientific_seed_consumed=false
+          gpu_allocated=false
+          live_hourly_resource_usd=$LIVE_HOURLY_RESOURCE_USD
+          live_12h_worst_case_usd=$LIVE_WORST_CASE_USD
+          live_cost_cap_pass=true
+          trigger_authorized=false
+          EOF
+          gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="$(cat audit-comment.md)"
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/${{ github.event.issue.number }}" -f state=closed -f state_reason=completed >/dev/null
