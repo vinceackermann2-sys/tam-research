@@ -1,0 +1,29 @@
+{
+  "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
+  "status": "ENGINEERING_SEED_REUSE_INCIDENT_NO_SCIENTIFIC_EVIDENCE",
+  "branch": "experiment/physics-tokenizer-phase31-recursive-damping-20260916",
+  "engineering_seed_base": 999311000,
+  "disposition": "PERMANENTLY_RETIRED_DO_NOT_REUSE",
+  "first_valid_smoke": {
+    "workflow_run_id": 35138815201,
+    "job_id": 104937865638,
+    "validated_commit": "b49289504ba6f1af82f0ccc4ba9aec56333824e2",
+    "result": "PASS"
+  },
+  "unintended_duplicate_smoke": {
+    "workflow_run_id": 35139085784,
+    "job_id": 104938780039,
+    "trigger_commit": "ea430183aeb62689d01465773d2da1232d0b3c8f",
+    "cause": "Committing the durable engineering PASS record retriggered the then-broad push workflow before automatic smoke execution had been disabled.",
+    "result": "PASS_BUT_INVALID_AS_NEW_ENGINEERING_EVIDENCE_BECAUSE_SEED_WAS_REUSED"
+  },
+  "registered_scientific_seed_bases": [831310000, 831310100, 831310200],
+  "registered_scientific_seeds_consumed": false,
+  "scientific_evidence": false,
+  "scientific_gate_status": "UNRUN",
+  "mitigation": {
+    "commit": "8a74f7700681ff6d0ee9a37f69f5abbdc560af27",
+    "change": "Removed automatic smoke execution and restricted the Phase-31 push workflow to seedless invariant tests when the Phase-31 implementation, tests, or preregistered protocol change. Result and workflow-only commits no longer trigger the Phase-31 validation job."
+  },
+  "governance_note": "Only the first smoke run may be used as the engineering smoke validation. The duplicate run is retained as durable infrastructure history and must never be counted as replication, confirmation, or scientific evidence."
+}
