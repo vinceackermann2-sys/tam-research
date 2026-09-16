@@ -1,0 +1,98 @@
+name: Phase-31 registered rep1 attempt1
+
+on:
+  push:
+    branches:
+      - experiment/physics-tokenizer-phase31-recursive-damping-20260916
+    paths:
+      - .github/workflows/phase31-rep1-registered-attempt1.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase31-registered-rep1-attempt1
+  cancel-in-progress: false
+
+jobs:
+  registered-rep1-attempt1:
+    if: ${{ github.run_attempt == 1 && github.event_name == 'push' && github.event.head_commit.message == 'research: dispatch Phase-31 registered replicate 1 attempt1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout authorized branch
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install CPU scientific dependencies
+        run: |
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.7,<2.11'
+          python -m pip install 'numpy>=2.0,<3' 'pytest>=8,<9' 'scipy>=1.10,<2'
+          python -m pip install -e . --no-deps
+
+      - name: Verify frozen authorization and one-shot invariants
+        run: |
+          python -m pytest -q tests/test_physics_tokenizer_phase31.py
+          python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 validate
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          auth = json.loads(Path('results/physics_tokens/phase31_rep1_execution_authorization.json').read_text())
+          assert auth['status'] == 'AUTHORIZED_FOR_REGISTERED_EXECUTION'
+          assert auth['authorization_scope']['replicate'] == 1
+          assert auth['authorization_scope']['seed_base'] == 831310000
+          assert auth['authorization_scope']['attempt_id'] == 'phase31-registered-rep1-attempt1'
+          assert auth['registered_seed_bases']['replicate_2']['status'] == 'LOCKED_UNCONSUMED'
+          assert auth['registered_seed_bases']['replicate_3']['status'] == 'LOCKED_UNCONSUMED'
+          assert not Path('results/physics_tokens/phase31_registered_rep1_summary.json').exists()
+          print('PHASE31_REP1_AUTHORIZATION_PREFLIGHT_PASS')
+          PY
+
+      - name: Consume registered rep1 and prepare frozen data
+        run: |
+          mkdir -p artifacts work
+          python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 prepare \
+            --out work/phase31_rep1_prepared.pkl \
+            --marker artifacts/phase31_rep1_consumption.json
+
+      - name: Evaluate wave family
+        run: python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 eval-family --prep work/phase31_rep1_prepared.pkl --family wave --out artifacts/phase31_rep1_wave.json
+
+      - name: Evaluate Gray-Scott family
+        run: python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 eval-family --prep work/phase31_rep1_prepared.pkl --family gray_scott --out artifacts/phase31_rep1_gray_scott.json
+
+      - name: Evaluate NLS family
+        run: python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 eval-family --prep work/phase31_rep1_prepared.pkl --family nls --out artifacts/phase31_rep1_nls.json
+
+      - name: Evaluate advection family
+        run: python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 eval-family --prep work/phase31_rep1_prepared.pkl --family advection --out artifacts/phase31_rep1_advection.json
+
+      - name: Evaluate Burgers family
+        run: python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 eval-family --prep work/phase31_rep1_prepared.pkl --family burgers --out artifacts/phase31_rep1_burgers.json
+
+      - name: Evaluate Hamilton-Jacobi family
+        run: python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 eval-family --prep work/phase31_rep1_prepared.pkl --family hamilton_jacobi --out artifacts/phase31_rep1_hamilton_jacobi.json
+
+      - name: Aggregate frozen registered result
+        run: |
+          python -m tam_research.physics_tokenizer_phase31_rep1_attempt1 aggregate \
+            --family-file artifacts/phase31_rep1_wave.json \
+            --family-file artifacts/phase31_rep1_gray_scott.json \
+            --family-file artifacts/phase31_rep1_nls.json \
+            --family-file artifacts/phase31_rep1_advection.json \
+            --family-file artifacts/phase31_rep1_burgers.json \
+            --family-file artifacts/phase31_rep1_hamilton_jacobi.json \
+            --out artifacts/phase31_registered_rep1_summary.json
+
+      - name: Upload durable attempt artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase31-registered-rep1-attempt1-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
