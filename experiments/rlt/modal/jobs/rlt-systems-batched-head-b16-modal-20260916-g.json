@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-batched-head-b16-modal-20260916-g",
+  "task": "systems_batched_head_b16_profile",
+  "engineering_seed": 20260929,
+  "prior_attempt": "rlt-systems-batchscale-modal-20260915-f",
+  "prior_batched_head_attempt": "rlt-systems-batched-head-modal-20260915-e",
+  "seq_len": 64,
+  "batch_size": 16,
+  "compile_mode": "default",
+  "cuda_graphs_requested": false,
+  "numerical_equivalence_not_bit_identity": true,
+  "scientific_execution": false,
+  "automatic_retry": false
+}
