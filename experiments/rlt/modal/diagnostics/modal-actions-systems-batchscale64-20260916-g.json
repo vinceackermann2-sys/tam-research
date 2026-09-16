@@ -1,0 +1,13 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_BATCHSCALE64_SYSTEMS_G_ZERO_GPU_PREFLIGHT_PASS",
+  "finished_unix": 1789549245.5318713,
+  "job_id_checked": "rlt-systems-batchscale64-modal-20260916-g",
+  "job_source_blob_sha": "f66338a384ba386292a03887738fed7e8d84cd00",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "1051975a20c410cde956b47a3a9b2738a61627fd",
+  "worker": "modal-control"
+}
