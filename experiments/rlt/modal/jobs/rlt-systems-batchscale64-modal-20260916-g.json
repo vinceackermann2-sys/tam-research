@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-batchscale64-modal-20260916-g",
+  "task": "systems_batchscale64_profile",
+  "engineering_seed": 20260929,
+  "seq_len": 64,
+  "batch_size": 64,
+  "prior_batchscale_job_id": "rlt-systems-batchscale-modal-20260915-f",
+  "scientific_execution": false,
+  "automatic_retry": false
+}
