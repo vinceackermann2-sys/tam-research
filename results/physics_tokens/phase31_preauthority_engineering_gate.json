@@ -1,0 +1,38 @@
+{
+  "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
+  "status": "ENGINEERING_GATE_PASS_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
+  "branch": "experiment/physics-tokenizer-phase31-recursive-damping-20260916",
+  "validated_commit": "b49289504ba6f1af82f0ccc4ba9aec56333824e2",
+  "preauthority_workflow_run_id": 35138815201,
+  "preauthority_job_id": 104937865638,
+  "cpu_only": true,
+  "registered_execution_enabled": false,
+  "registered_seed_bases": [831310000, 831310100, 831310200],
+  "registered_seed_status": "UNTOUCHED",
+  "unit_test_result": {
+    "status": "PASS",
+    "tests_passed": 6,
+    "tests_failed": 0
+  },
+  "smoke_result": {
+    "status": "PASS",
+    "seed_base": 999311000,
+    "primary_cells": 23,
+    "registered_seed_count_in_invariants": 87,
+    "guard_context_only": true,
+    "phase30_selector_unchanged": true,
+    "family_label_used": false
+  },
+  "preceding_infrastructure_attempt": {
+    "workflow_run_id": 35138543348,
+    "job_id": 104936934146,
+    "status": "INFRASTRUCTURE_INCOMPLETE",
+    "cause": "Inherited physics_tokenizer_phase10 imports scipy.spatial.cKDTree, but SciPy was absent from the branch CI environment. Test collection failed before smoke execution.",
+    "scientific_evidence": false,
+    "registered_seeds_consumed": false,
+    "repair": "Branch-scoped pre-authority workflow explicitly installed scipy>=1.10,<2; no scientific code, protocol, seed, or project dependency was changed."
+  },
+  "scientific_gate_status": "UNRUN",
+  "next_boundary": "A separate explicit scientific-execution authorization is required before enabling or consuming registered Phase-31 seed base 831310000. Replicates 2 and 3 remain untouched unless the frozen protocol still requires them after prior registered outcomes.",
+  "claim_limit": "Engineering validation only. This record contains no registered scientific result and provides no evidence for or against the Phase-31 hypothesis."
+}
