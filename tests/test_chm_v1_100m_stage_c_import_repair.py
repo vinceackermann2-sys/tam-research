@@ -106,6 +106,7 @@ def test_v2_audit_is_fresh_read_only_pre_authority_surface() -> None:
     assert "[modal-chm-v1-100m-stage-c-990-authority-audit-v2]" in source
     assert "chm-v1-100m-stage-c-990-authority-audit-v2" in source
     assert "github.run_attempt" in source
+    assert "actions: read" in source
     assert "35080849066" in source
     assert "supersedes_failed_audit_issue" in source
     assert "modal billing rates --json" in source
