@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-"""Lazy host-import boundary for the frozen CHM-v1 Stage-C runner (#993).
+"""Lazy host-import boundary for the frozen CHM-v1 Stage-C runner (#996).
 
-The scientific implementation is preserved byte-for-byte in the sibling
-``_impl.py`` blob.  This shim exists only because Modal evaluates launcher
-modules on the host before entering the image where PyTorch is installed.
-It binds the implementation cryptographically and defers all real ``torch``
-resolution until a decorated helper is actually called inside that image.
+The scientific implementation remains preserved byte-for-byte as Git blob
+``fb7fe5f8c2a597f7de9e4d03c6908dc0db9558ac``. The root-level copy is used
+when present; Modal runtime containers may instead resolve the exact same blob
+from the already-mounted ``tam_research`` package. In either location, the
+bytes are re-hashed before execution.
 
 Frozen governance mirror for static guards only:
 SCIENTIFIC_SEED = 977_001
@@ -24,6 +24,7 @@ from typing import Any
 
 IMPLEMENTATION_BLOB_SHA = "fb7fe5f8c2a597f7de9e4d03c6908dc0db9558ac"
 IMPLEMENTATION_FILENAME = "modal_chm_v1_100m_stage_c_990_v1_impl.py"
+PACKAGED_IMPLEMENTATION_MODULE = "tam_research"
 
 
 class _LazyTorchProxy:
@@ -54,12 +55,33 @@ def _git_blob_sha(data: bytes) -> str:
     return hashlib.sha1(header + data).hexdigest()
 
 
-_impl_path = Path(__file__).with_name(IMPLEMENTATION_FILENAME)
+def _resolve_implementation_path() -> Path:
+    sibling = Path(__file__).with_name(IMPLEMENTATION_FILENAME)
+    if sibling.is_file():
+        return sibling
+
+    package = importlib.import_module(PACKAGED_IMPLEMENTATION_MODULE)
+    package_file = getattr(package, "__file__", None)
+    if package_file is None:
+        raise FileNotFoundError(
+            "#996 Stage-C packaged implementation package has no __file__"
+        )
+    packaged = Path(package_file).resolve().with_name(IMPLEMENTATION_FILENAME)
+    if packaged.is_file():
+        return packaged
+
+    raise FileNotFoundError(
+        "#996 Stage-C implementation missing from both root sibling and "
+        f"packaged fallback: {sibling} / {packaged}"
+    )
+
+
+_impl_path = _resolve_implementation_path()
 _impl_bytes = _impl_path.read_bytes()
 _actual_impl_sha = _git_blob_sha(_impl_bytes)
 if _actual_impl_sha != IMPLEMENTATION_BLOB_SHA:
     raise RuntimeError(
-        "#993 Stage-C implementation blob mismatch: "
+        "#996 Stage-C implementation blob mismatch: "
         f"{_actual_impl_sha} != {IMPLEMENTATION_BLOB_SHA}"
     )
 
