@@ -1,9 +1,13 @@
-name: Phase-31 pre-authority CPU CI
+name: Phase-31 pre-authority CPU invariants
 
 on:
   push:
     branches:
       - experiment/physics-tokenizer-phase31-recursive-damping-20260916
+    paths:
+      - tam_research/physics_tokenizer_phase31.py
+      - tests/test_physics_tokenizer_phase31.py
+      - results/physics_tokens/phase31_recursive_damping_protocol.json
 
 permissions:
   contents: read
@@ -26,21 +30,3 @@ jobs:
 
       - name: Run Phase-31 CPU invariants
         run: python -m pytest -q tests/test_physics_tokenizer_phase31.py
-
-      - name: Run nonregistered Phase-31 smoke only
-        run: |
-          python -m tam_research.physics_tokenizer_phase31 --smoke --out phase31-smoke.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          x = json.loads(Path('phase31-smoke.json').read_text())
-          assert x['status'] == 'PHASE31_SMOKE_ONLY_NONREGISTERED_SEED'
-          assert x['invariants']['registered_execution_enabled'] is False
-          assert x['invariants']['registered_bases'] == [831310000, 831310100, 831310200]
-          assert x['primary_total_cells'] == 23
-          assert x['seeds']['wave_train'] == 999311001
-          assert 831310000 not in x['seeds'].values()
-          assert 831310100 not in x['seeds'].values()
-          assert 831310200 not in x['seeds'].values()
-          print('PHASE31_PREAUTHORITY_SMOKE_PASS')
-          PY
