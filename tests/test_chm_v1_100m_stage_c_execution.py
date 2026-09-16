@@ -36,6 +36,7 @@ from tam_research.models import ModelConfig, ResearchLM
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "modal_chm_v1_100m_stage_c_990_v1.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-990-v1.yml"
+AUDIT_WORKFLOW = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-990-authority-audit-v1.yml"
 
 
 def test_execution_contract_is_frozen_but_does_not_self_authorize() -> None:
@@ -220,7 +221,7 @@ def test_runner_is_one_shot_and_has_no_checkpoint_resume_surface() -> None:
     assert "stage_d_automatically_authorized" in source
 
 
-def test_workflow_requires_final_authority_and_has_no_manual_dispatch() -> None:
+def test_scientific_workflow_requires_final_authority_and_no_manual_dispatch() -> None:
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "issues:" in source
     assert "types: [opened]" in source
@@ -238,7 +239,23 @@ def test_workflow_requires_final_authority_and_has_no_manual_dispatch() -> None:
     assert "--phase reserve" in source
     assert "--phase run" in source
     assert "--phase inspect" in source
+    assert "steps.reserve.outcome == 'success'" in source
     assert "scientific_seed=977001" in source
     assert "trigger_authorized=true" in source
     assert "automatic_retry_authorized=false" in source
     assert "checkpoint_resume_authorized=false" in source
+
+
+def test_authority_audit_workflow_is_cpu_inspect_only() -> None:
+    source = AUDIT_WORKFLOW.read_text(encoding="utf-8")
+    assert "[modal-chm-v1-100m-stage-c-990-authority-audit-v1]" in source
+    assert "workflow_dispatch" not in source
+    assert "modal billing rates --json" in source
+    assert "--phase inspect" in source
+    assert "--phase preflight" not in source
+    assert "--phase reserve" not in source
+    assert "--phase run" not in source
+    assert "result_namespace_unused=true" in source
+    assert "scientific_seed_consumed=false" in source
+    assert "gpu_allocated=false" in source
+    assert "trigger_authorized=false" in source
