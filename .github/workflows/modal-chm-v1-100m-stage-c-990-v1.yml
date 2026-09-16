@@ -192,7 +192,7 @@ jobs:
           PY
 
       - name: Run zero-GPU corpus and protocol preflight
-        env: &bindings
+        env:
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
           MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
@@ -246,7 +246,16 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="$(cat preflight-comment.md)"
 
       - name: Write durable dispatch marker before L4 allocation
-        env: *bindings
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
         run: |
           cd source
           modal run modal_chm_v1_100m_stage_c_990_v1.py \
@@ -281,7 +290,15 @@ jobs:
       - name: Launch Stage-C scientific attempt exactly once
         id: scientific
         env:
-          <<: *bindings
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
           LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
         run: |
           set +e
@@ -301,7 +318,16 @@ jobs:
 
       - name: Inspect durable scientific state after the one-shot call
         if: always()
-        env: *bindings
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
         run: |
           cd source
           modal run modal_chm_v1_100m_stage_c_990_v1.py \
@@ -330,14 +356,14 @@ jobs:
           SCIENTIFIC_EXIT_CODE: ${{ steps.scientific.outputs.exit_code }}
         run: |
           python - <<'PY' > terminal-comment.md
-          import json, os
+          import json
           from pathlib import Path
 
           state_path = Path("state.json")
           if not state_path.is_file():
               print("🟥 **CHM-v1 #990 Stage-C terminal inspection unavailable.**")
               print()
-              print("The one-shot workflow reached its terminal handling path but could not recover durable state. No retry/rerun/redispatch is authorized. A separate forensic audit is required before any further scientific action.")
+              print("The one-shot workflow reached terminal handling but could not recover durable state. No retry/rerun/redispatch is authorized. A separate forensic audit is required before any further scientific action.")
           else:
               state = json.loads(state_path.read_text(encoding="utf-8"))
               files = state.get("files", {})
