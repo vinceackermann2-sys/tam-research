@@ -1,0 +1,19 @@
+{
+  "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
+  "status": "PREDISPATCH_INFRASTRUCTURE_FAILURE_SEED_UNCONSUMED",
+  "attempt_id": "phase31-registered-rep1-attempt1",
+  "replicate": 1,
+  "seed_base": 831310000,
+  "workflow_run_id": 35143936258,
+  "trigger_commit": "e1b6f766196196fb2cdb73fb7b6b207b392c8243",
+  "workflow_conclusion": "failure",
+  "jobs_created": 0,
+  "registered_preparation_started": false,
+  "consumption_marker_written": false,
+  "registered_seed_status": "AUTHORIZED_UNCONSUMED",
+  "scientific_evidence": false,
+  "retry_policy_interpretation": "This event did not instantiate a job and never reached registered preparation, so it did not constitute a consumed scientific execution. A workflow-plumbing-only launch repair may use the same authorized seed without changing the protocol, scientific code, frozen criterion, or attempt identity.",
+  "repair_scope": "Remove job-construction-time conditional logic and enforce one-shot run-attempt/event/message checks inside a preflight shell step before registered preparation. No scientific setting changes are permitted.",
+  "replicate_2_status": "LOCKED_UNCONSUMED",
+  "replicate_3_status": "LOCKED_UNCONSUMED"
+}
