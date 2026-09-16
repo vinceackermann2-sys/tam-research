@@ -25,8 +25,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install test dependencies
-        run: python -m pip install -e '.[test]' 'scipy>=1.10,<2'
+      - name: Install CPU-only test dependencies
+        run: |
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.7,<2.11'
+          python -m pip install 'numpy>=2.0,<3' 'pytest>=8,<9' 'scipy>=1.10,<2'
+          python -m pip install -e . --no-deps
 
       - name: Run Phase-31 CPU invariants
         run: python -m pytest -q tests/test_physics_tokenizer_phase31.py
