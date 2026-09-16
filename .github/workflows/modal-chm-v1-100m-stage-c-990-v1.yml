@@ -1,0 +1,408 @@
+name: CHM-v1 100M Stage-C one-seed scientific screen v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-100m-stage-c-988-seed-977001-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+    steps:
+      - name: Refuse Actions reruns and resolve immutable Stage-C payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v1-100m-stage-c-990-v1",
+              "seed": 977001,
+              "research_issue": 977,
+              "prep_issue": 988,
+              "control_issue": 990,
+              "result_root": "/vol/chm-v1/100m-stage-c/issue-988/seed-977001-v1",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r} != {value!r}"
+          for key in (
+              "source_sha", "source_tree", "model_sha", "evaluator_sha",
+              "prep_sha", "core_sha", "runner_sha", "workflow_sha",
+          ):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
+              print(f"{key}={value}")
+          authority = cfg.get("authority_comment_id")
+          assert isinstance(authority, int) and authority > 0, "authority_comment_id must be a positive integer"
+          print(f"authority_comment_id={authority}")
+          print("seed=977001")
+          PY
+
+      - name: Checkout exact scientific boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on exact source tree and scientific blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          git -C source merge-base --is-ancestor 0e21e48ce7b86ca6b385bcafc6eb556f617d3fbb "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_scale.py")" = "$MODEL_SHA"
+          test "$MODEL_SHA" = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_eval.py")" = "$EVALUATOR_SHA"
+          test "$EVALUATOR_SHA" = "863bd038e60da5511503adb0c8e1046a680ed3bd"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_run_control_prep.py")" = "$PREP_SHA"
+          test "$PREP_SHA" = "bc4ed60885aaf991a2d6b9fe8f634ff973f3f722"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_execution.py")" = "$CORE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_990_v1.py")" = "$RUNNER_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-990-v1.yml")" = "$WORKFLOW_SHA"
+
+      - name: Verify final launcher authority and unique post-authority trigger
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          owner = repo.split("/", 1)[0]
+          trigger_number = int(os.environ["TRIGGER_ISSUE"])
+          authority_id = int(os.environ["AUTHORITY_COMMENT_ID"])
+          assert os.environ["RUN_ATTEMPT"] == "1"
+
+          def gh(path):
+              return json.loads(subprocess.check_output(["gh", "api", path], text=True))
+
+          control = gh(f"repos/{repo}/issues/990")
+          assert control["state"] == "open"
+          assert control["user"]["login"] == owner
+          assert control["title"] == "[chm-v1-run-control] 100M Stage-C execution implementation — one-shot scientific screen, trigger withheld"
+
+          authority = gh(f"repos/{repo}/issues/comments/{authority_id}")
+          assert authority["user"]["login"] == owner
+          assert authority["issue_url"].endswith("/990")
+          body = authority["body"]
+          assert "CHM_V1_990_FINAL_LAUNCHER_AUTHORITY_V1" in body
+          required = (
+              f"source_sha={os.environ['SOURCE_SHA']}",
+              f"source_tree={os.environ['SOURCE_TREE']}",
+              f"model_blob={os.environ['MODEL_SHA']}",
+              f"evaluator_blob={os.environ['EVALUATOR_SHA']}",
+              f"prep_blob={os.environ['PREP_SHA']}",
+              f"core_blob={os.environ['CORE_SHA']}",
+              f"runner_blob={os.environ['RUNNER_SHA']}",
+              f"workflow_blob={os.environ['WORKFLOW_SHA']}",
+              "ci_status=PASS",
+              "scientific_seed=977001",
+              "gpu=1x NVIDIA L4",
+              "max_gpu_seconds=43200",
+              "max_stage_c_compute_usd=25.00",
+              "result_namespace_unused=true",
+              "trigger_unique_precreation=true",
+              "automatic_retry_authorized=false",
+              "checkpoint_resume_authorized=false",
+              "trigger_authorized=true",
+              "stage_d_automatic_authority=false",
+          )
+          for needle in required:
+              assert needle in body, needle
+
+          trigger = gh(f"repos/{repo}/issues/{trigger_number}")
+          assert trigger["user"]["login"] == owner
+          assert trigger["title"] == "[modal-chm-v1-100m-stage-c-988-seed-977001-v1]"
+          assert trigger["created_at"] > authority["created_at"]
+
+          query = f'repo:{repo} in:title "[modal-chm-v1-100m-stage-c-988-seed-977001-v1]"'
+          found = json.loads(subprocess.check_output(
+              ["gh", "api", "-X", "GET", "search/issues", "-f", f"q={query}"], text=True
+          ))
+          assert found["total_count"] == 1, found["total_count"]
+          assert found["items"][0]["number"] == trigger_number
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Fail closed on live Modal rates and Stage-C hard cap
+        id: rates
+        run: |
+          modal billing rates --json > modal-rates.json
+          cat modal-rates.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          rates = json.load(open("modal-rates.json", encoding="utf-8"))
+          l4 = float(rates["gpu_hour_cost_l4"])
+          cpu = float(rates["cpu_hour_cost"])
+          ram = float(rates["mem_gib_hour_cost"])
+          for name, value in (("l4", l4), ("cpu", cpu), ("ram", ram)):
+              assert value > 0.0, f"invalid {name} hourly rate: {value}"
+          hourly = l4 + 4 * cpu + 16 * ram
+          worst = hourly * (43200 / 3600)
+          assert worst <= 25.00, f"live 12h Stage-C bound ${worst:.6f} exceeds $25.00 cap"
+          print(f"hourly_resource_usd={hourly:.12f}")
+          print(f"worst_case_stage_c_usd={worst:.12f}")
+          PY
+
+      - name: Run zero-GPU corpus and protocol preflight
+        env: &bindings
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_990_v1.py \
+            --phase preflight \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../zero-gpu.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("zero-gpu.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_100M_STAGE_C_ZERO_GPU=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_C_ZERO_GPU=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "PASS"
+          assert payload["scientific_seed"] == 977001
+          assert payload["gpu_allocated"] is False
+          assert payload["scientific_seed_consumed"] is False
+          assert payload["scientific_training_started"] is False
+          assert payload["stage_a"]["parameter_accounting"]["local_trainable_parameters"] == 101803520
+          assert payload["stage_a"]["parameter_accounting"]["eiem_trainable_parameters"] == 101836800
+          Path("zero-gpu.json").write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+          PY
+
+      - name: Record zero-GPU evidence before scientific allocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > preflight-comment.md
+          import json
+          p = json.load(open("zero-gpu.json", encoding="utf-8"))
+          print("🟨 **CHM-v1 #990 Stage-C zero-GPU preflight PASS**")
+          print()
+          print(f"- source: `{p['source_sha']}`; tree: `{p['source_tree']}`")
+          print(f"- core/runner/workflow: `{p['execution_core_blob_sha']}` / `{p['runner_blob_sha']}` / `{p['workflow_blob_sha']}`")
+          print("- exact Stage-A parameter counts reconfirmed: `101,803,520` LOCAL / `101,836,800` EIEM-FLAT")
+          print("- GPU allocated: **false**; scientific seed `977001` consumed: **false**.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="$(cat preflight-comment.md)"
+
+      - name: Write durable dispatch marker before L4 allocation
+        env: *bindings
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_990_v1.py \
+            --phase reserve \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../dispatch.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("dispatch.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_100M_STAGE_C_DISPATCH=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_C_DISPATCH=" in line]
+          assert len(matches) == 1, len(matches)
+          payload = json.loads(matches[0])
+          assert payload["status"] == "DISPATCH_RESERVED"
+          assert payload["scientific_seed"] == 977001
+          assert payload["gpu_allocation_started"] is False
+          assert payload["scientific_seed_consumed"] is False
+          assert payload["automatic_retry_authorized"] is False
+          assert payload["checkpoint_resume_authorized"] is False
+          PY
+
+      - name: Record one-shot dispatch reservation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="🟧 **CHM-v1 #990 Stage-C dispatch reserved.** Durable pre-allocation marker exists. The next step is the single authorized L4 scientific allocation. If the GPU function begins, seed 977001 is permanently consumed. Automatic retry, Actions rerun, redispatch, rescue, and checkpoint resume are all unauthorized."
+
+      - name: Launch Stage-C scientific attempt exactly once
+        id: scientific
+        env:
+          <<: *bindings
+          LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
+        run: |
+          set +e
+          cd source
+          modal run modal_chm_v1_100m_stage_c_990_v1.py \
+            --phase run \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" \
+            --live-hourly-resource-usd "$LIVE_HOURLY_RESOURCE_USD" | tee ../scientific.log
+          status=${PIPESTATUS[0]}
+          cd ..
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Inspect durable scientific state after the one-shot call
+        if: always()
+        env: *bindings
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_990_v1.py \
+            --phase inspect \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../inspect.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("inspect.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("CHM_V1_100M_STAGE_C_STATE=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_C_STATE=" in line]
+          assert len(matches) == 1, len(matches)
+          state = json.loads(matches[0])
+          Path("state.json").write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+          PY
+
+      - name: Record authoritative terminal state and close one-shot controls
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          SCIENTIFIC_EXIT_CODE: ${{ steps.scientific.outputs.exit_code }}
+        run: |
+          python - <<'PY' > terminal-comment.md
+          import json, os
+          from pathlib import Path
+
+          state_path = Path("state.json")
+          if not state_path.is_file():
+              print("🟥 **CHM-v1 #990 Stage-C terminal inspection unavailable.**")
+              print()
+              print("The one-shot workflow reached its terminal handling path but could not recover durable state. No retry/rerun/redispatch is authorized. A separate forensic audit is required before any further scientific action.")
+          else:
+              state = json.loads(state_path.read_text(encoding="utf-8"))
+              files = state.get("files", {})
+              consumed = files.get("ATTEMPT_CONSUMED.json")
+              result = files.get("RESULT.json")
+              failure = files.get("ATTEMPT_FAILURE.json")
+              if result is not None:
+                  assert consumed is not None
+                  assert result["scientific_seed_consumed"] is True
+                  assert result["classification"] in {
+                      "CHM_V1_100M_STAGE_C_POSITIVE_SCALING_SCREEN",
+                      "CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH",
+                  }
+                  m = result["metrics"]
+                  print("🟩 **CHM-v1 #990 Stage-C scientific attempt COMPLETE**")
+                  print()
+                  print(f"- classification: `{result['classification']}`")
+                  print(f"- PASS: `{result['passed']}`")
+                  print(f"- stop reasons: `{result['stop_reasons']}`")
+                  print(f"- aggregate long-range accuracy gain: `{m['aggregate_long_range_accuracy_gain']:.6f}`")
+                  print(f"- aggregate long-range candidate-NLL benefit: `{m['aggregate_long_range_candidate_nll_benefit']:.6f}` nats")
+                  print(f"- ordinary-language NLL delta EIEM-LOCAL: `{m['ordinary_language_nll_delta']:.6f}`")
+                  print(f"- bootstrap accuracy p2.5: `{m['bootstrap']['accuracy_gain']['p2_5']:.6f}`")
+                  print(f"- bootstrap candidate-NLL p2.5: `{m['bootstrap']['candidate_nll_benefit']['p2_5']:.6f}`")
+                  print("- scientific seed `977001`: **consumed exactly once**")
+                  print("- checkpoint resume / retry / redispatch: **false**")
+                  print("- Stage D automatic authority: **false**")
+                  print()
+                  print(result["interpretation_ceiling"])
+              elif failure is not None:
+                  assert consumed is not None
+                  print("🟥 **CHM-v1 #990 Stage-C infrastructure/runtime failure after scientific attempt consumption**")
+                  print()
+                  print(f"- error: `{failure['error_type']}: {failure['error']}`")
+                  print("- scientific seed `977001`: **consumed**")
+                  print("- scientific interpretation: **none**")
+                  print("- retry / rerun / redispatch / checkpoint resume: **unauthorized**")
+              elif consumed is not None:
+                  print("🟥 **CHM-v1 #990 Stage-C consumed attempt has no terminal result artifact**")
+                  print()
+                  print("Durable consumption exists, so seed `977001` is consumed. No scientific conclusion and no retry/rerun/redispatch/checkpoint resume are authorized. Separate forensic work is required.")
+              else:
+                  print("🟥 **CHM-v1 #990 Stage-C dispatch did not durably enter the scientific GPU function**")
+                  print()
+                  print("No durable attempt-consumed marker, RESULT, or ATTEMPT_FAILURE exists. Seed consumption is not established by durable evidence, but this trigger/dispatch must not be retried automatically. Any future attempt requires a fresh explicit run-control decision.")
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="$(cat terminal-comment.md)"
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/990" -f state=closed -f state_reason=completed >/dev/null
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$TRIGGER_ISSUE" -f state=closed -f state_reason=completed >/dev/null
+
+      - name: Reflect non-result scientific execution as workflow failure
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          if not Path("state.json").is_file():
+              raise SystemExit("no durable Stage-C state inspection")
+          state = json.load(open("state.json", encoding="utf-8"))
+          result = state.get("files", {}).get("RESULT.json")
+          if result is None:
+              raise SystemExit("Stage-C did not produce a scientific RESULT.json; see durable terminal comment")
+          if result.get("classification") not in {
+              "CHM_V1_100M_STAGE_C_POSITIVE_SCALING_SCREEN",
+              "CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH",
+          }:
+              raise SystemExit("unexpected Stage-C result classification")
+          PY
