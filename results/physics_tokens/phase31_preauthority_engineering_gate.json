@@ -2,26 +2,34 @@
   "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
   "status": "ENGINEERING_GATE_PASS_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
   "branch": "experiment/physics-tokenizer-phase31-recursive-damping-20260916",
-  "validated_commit": "b49289504ba6f1af82f0ccc4ba9aec56333824e2",
-  "preauthority_workflow_run_id": 35138815201,
-  "preauthority_job_id": 104937865638,
+  "implementation_commit": "b49289504ba6f1af82f0ccc4ba9aec56333824e2",
+  "latest_tested_semantic_commit": "bb7c07aa954a4c71d271770fd91407854ff4ad71",
+  "ci_hardening_commit": "8c94df4eb09944f1bb9b63aa3d05bdd6b3752664",
   "cpu_only": true,
   "registered_execution_enabled": false,
   "registered_seed_bases": [831310000, 831310100, 831310200],
   "registered_seed_status": "UNTOUCHED",
-  "unit_test_result": {
+  "initial_preauthority_validation": {
+    "workflow_run_id": 35138815201,
+    "job_id": 104937865638,
     "status": "PASS",
-    "tests_passed": 6,
-    "tests_failed": 0
-  },
-  "smoke_result": {
-    "status": "PASS",
-    "seed_base": 999311000,
-    "primary_cells": 23,
-    "registered_seed_count_in_invariants": 87,
+    "unit_tests_passed": 6,
+    "unit_tests_failed": 0,
+    "smoke_status": "PASS",
+    "smoke_seed_base": 999311000,
+    "smoke_primary_cells": 23,
     "guard_context_only": true,
     "phase30_selector_unchanged": true,
     "family_label_used": false
+  },
+  "semantic_invariant_validation": {
+    "workflow_run_id": 35139441661,
+    "job_id": 104939967584,
+    "status": "PASS",
+    "unit_tests_passed": 7,
+    "unit_tests_failed": 0,
+    "new_locked_property": "lambda=1.0 produces exactly the unchanged Phase-30 companded innovation update",
+    "seed_execution": false
   },
   "preceding_infrastructure_attempt": {
     "workflow_run_id": 35138543348,
@@ -31,6 +39,27 @@
     "scientific_evidence": false,
     "registered_seeds_consumed": false,
     "repair": "Branch-scoped pre-authority workflow explicitly installed scipy>=1.10,<2; no scientific code, protocol, seed, or project dependency was changed."
+  },
+  "engineering_smoke_seed_incident": {
+    "seed_base": 999311000,
+    "status": "PERMANENTLY_RETIRED_AFTER_UNINTENDED_DUPLICATE_AUTOMATIC_SMOKE",
+    "incident_record": "results/physics_tokens/phase31_engineering_smoke_seed_reuse_incident.json",
+    "scientific_evidence": false,
+    "registered_seeds_consumed": false
+  },
+  "current_ci_policy": {
+    "automatic_smoke_enabled": false,
+    "push_validation": "seedless Phase-31 unit/invariant tests only",
+    "dependency_mode": "CPU-only Torch plus NumPy, PyTest, and SciPy",
+    "result_or_workflow_only_commits_trigger_phase31_ci": false
+  },
+  "semantic_audit": {
+    "phase28_selector_fit_frames": "decoded context frames 0..5",
+    "phase28_selector_validation_pairs": [[5, 6], [6, 7]],
+    "phase31_guard_fit_transitions": [[1, 2], [2, 3], [3, 4]],
+    "phase31_guard_selection_window": [4, 7],
+    "heldout_forecast_target_used_for_selection": false,
+    "lambda_one_contains_phase30_baseline": true
   },
   "scientific_gate_status": "UNRUN",
   "next_boundary": "A separate explicit scientific-execution authorization is required before enabling or consuming registered Phase-31 seed base 831310000. Replicates 2 and 3 remain untouched unless the frozen protocol still requires them after prior registered outcomes.",
