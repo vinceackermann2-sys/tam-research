@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-batchscale768-modal-20260916-j",
+  "task": "systems_batchscale768_profile",
+  "engineering_seed": 20261002,
+  "seq_len": 64,
+  "batch_size": 768,
+  "prior_batchscale_job_id": "rlt-systems-batchscale512-modal-20260916-i",
+  "scientific_execution": false,
+  "automatic_retry": false
+}
