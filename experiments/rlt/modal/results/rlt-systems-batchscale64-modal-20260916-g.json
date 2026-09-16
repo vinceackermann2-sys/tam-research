@@ -1,0 +1,70 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "PASS_BATCH64_SCALING_MATERIAL",
+  "compile": {
+    "cuda_graphs_requested": false,
+    "dynamic": false,
+    "error": null,
+    "fullgraph": true,
+    "mode": "default"
+  },
+  "derived": {
+    "gap_improvement_vs_f": 2.794775661710347,
+    "rlt_speedup_vs_f_batch16": 5.999361311848086,
+    "transformer_gap_multiple": 10.826896853394615
+  },
+  "engineering_only": true,
+  "engineering_seed": 20260929,
+  "finished_unix": 1789549593.7642798,
+  "job_id": "rlt-systems-batchscale64-modal-20260916-g",
+  "job_source_blob_sha": "f66338a384ba386292a03887738fed7e8d84cd00",
+  "modal_cli_rc": 0,
+  "profile": {
+    "batch_size": 64,
+    "equivalence_batch_size": 2,
+    "measured_steps": 4,
+    "prior_f_batch16_rlt_tokens_per_second": 5893.930399585457,
+    "prior_f_transformer_gap_multiple": 30.25874781771561,
+    "rlt_parameters": 7007616,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "rlt": {
+    "first_step_seconds_including_compile": 318.57127543,
+    "last_loss": 10.843153953552246,
+    "measured_seconds": 0.46335080099999004,
+    "measured_tokens": 16384,
+    "parameters": 7007616,
+    "peak_vram_gb": 3.0906057357788086,
+    "speedup_vs_f_batch16": 5.999361311848086,
+    "tokens_per_second": 35359.81801399832
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100 80GB PCIe",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "semantic_equivalence": {
+    "candidate_difference": "diagnostic last_cache_lengths side effect omitted only",
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  },
+  "started_unix": 1789549259.5206063,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 11.271570198000006,
+    "last_loss": 10.856968879699707,
+    "measured_seconds": 0.04279626999999664,
+    "measured_tokens": 16384,
+    "parameters": 7040896,
+    "peak_vram_gb": 2.9571895599365234,
+    "throughput_multiple_vs_rlt": 10.826896853394615,
+    "tokens_per_second": 382837.1023923647
+  },
+  "trigger_sha": "1051975a20c410cde956b47a3a9b2738a61627fd"
+}
