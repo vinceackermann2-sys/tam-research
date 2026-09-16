@@ -1,0 +1,57 @@
+{
+  "batched_head_batch16": {
+    "first_step_seconds_including_compile": 542.088805998,
+    "last_loss": 10.852193832397461,
+    "measured_seconds": 0.7910277889999406,
+    "measured_tokens": 6144,
+    "parameters": 7007616,
+    "peak_vram_gb": 0.9308404922485352,
+    "speedup_vs_f_exact_batch16": 1.3178150508692354,
+    "tokens_per_second": 7767.110189349442
+  },
+  "branch": "exp/rlt-colab",
+  "classification": "FAIL_NUMERICAL_EQUIVALENCE",
+  "compile": {
+    "cuda_graphs_requested": false,
+    "dynamic": false,
+    "error": null,
+    "fullgraph": true,
+    "mode": "default"
+  },
+  "engineering_only": true,
+  "engineering_seed": 20260929,
+  "finished_unix": 1789551187.5447092,
+  "job_id": "rlt-systems-batched-head-b16-modal-20260916-g",
+  "job_source_blob_sha": "2fd9dba676a49f9b4ad49cac1992c3611850a253",
+  "modal_cli_rc": 0,
+  "model": {
+    "batch_size": 16,
+    "parameters": 7007616,
+    "seq_len": 64
+  },
+  "numerical_equivalence": {
+    "bit_identical_required": false,
+    "candidate_change": "deferred batched output_norm + tied lm_head only",
+    "grad_max_abs": 0.000244140625,
+    "logits_max_abs": 0.0078125,
+    "loss_abs": 1.1444091796875e-05,
+    "passed": false,
+    "thresholds": {
+      "grad_max_abs": 0.001,
+      "logits_max_abs": 0.01,
+      "loss_abs": 1e-05
+    }
+  },
+  "prior_f_exact_batch16_tokens_per_second": 5893.930399585457,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1789550639.8907835,
+  "status": "complete",
+  "trigger_sha": "bdd54d0e6bfb050247112872201d77a10cfe03b8"
+}
