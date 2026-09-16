@@ -16,10 +16,20 @@ concurrency:
 
 jobs:
   registered-rep1-attempt1:
-    if: ${{ github.run_attempt == 1 && github.event_name == 'push' && github.event.head_commit.message == 'research: dispatch Phase-31 registered replicate 1 attempt1' }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
+      - name: Enforce one-shot launch provenance before any scientific work
+        run: |
+          python - <<'PY'
+          import json, os
+          assert os.environ['GITHUB_RUN_ATTEMPT'] == '1', 'workflow rerun is forbidden'
+          assert os.environ['GITHUB_EVENT_NAME'] == 'push', 'only the authorized push launch is valid'
+          event = json.loads(open(os.environ['GITHUB_EVENT_PATH']).read())
+          assert event['head_commit']['message'] == 'research: dispatch Phase-31 registered replicate 1 attempt1 launch-repair1'
+          print('PHASE31_REP1_ONE_SHOT_LAUNCH_PROVENANCE_PASS')
+          PY
+
       - name: Checkout authorized branch
         uses: actions/checkout@v6
 
