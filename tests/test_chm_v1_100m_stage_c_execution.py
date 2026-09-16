@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 
 import numpy as np
@@ -205,6 +206,7 @@ def test_vectorized_eiem_validation_matches_exact_flat_reference() -> None:
 
 def test_runner_is_one_shot_and_has_no_checkpoint_resume_surface() -> None:
     source = RUNNER.read_text(encoding="utf-8")
+    ast.parse(source, filename=str(RUNNER))
     assert "SCIENTIFIC_SEED = 977_001" in source
     assert "977_201" not in source
     assert "retries=0" in source
@@ -223,6 +225,8 @@ def test_workflow_requires_final_authority_and_has_no_manual_dispatch() -> None:
     assert "issues:" in source
     assert "types: [opened]" in source
     assert "workflow_dispatch" not in source
+    assert "&bindings" not in source
+    assert "*bindings" not in source
     assert TRIGGER_TITLE in source
     assert "CHM_V1_990_FINAL_LAUNCHER_AUTHORITY_V1" in source
     assert "github.run_attempt" in source or "GITHUB_RUN_ATTEMPT" in source
