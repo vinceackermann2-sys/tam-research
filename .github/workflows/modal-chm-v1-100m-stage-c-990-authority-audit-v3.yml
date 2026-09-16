@@ -49,7 +49,7 @@ jobs:
           ):
               value = str(cfg.get(key, "")).strip().lower()
               assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
-              print(f"{key}={value")
+              print(f"{key}={value}")
           print("seed=977001")
           PY
 
@@ -120,7 +120,7 @@ jobs:
           assert found["total_count"] == 1, found["total_count"]
           assert found["items"][0]["number"] == trigger_number
 
-          v2 = gh("repos/%s/actions/runs/35113534368" % repo)
+          v2 = gh(f"repos/{repo}/actions/runs/35113534368")
           assert v2["run_attempt"] == 1
           assert v2["conclusion"] == "cancelled"
           assert v2["path"] == ".github/workflows/modal-chm-v1-100m-stage-c-990-authority-audit-v2.yml"
