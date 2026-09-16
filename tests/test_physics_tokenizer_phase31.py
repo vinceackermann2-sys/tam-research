@@ -11,6 +11,7 @@ import pytest
 from tam_research import physics_tokenizer_phase10 as p10
 from tam_research import physics_tokenizer_phase30 as p30
 from tam_research import physics_tokenizer_phase31 as p31
+from tam_research import physics_tokenizer_phase31_rep1_attempt1 as r31
 
 
 def test_phase31_registered_seed_namespace_is_unique_and_fresh():
@@ -92,3 +93,64 @@ def test_phase31_invariants_report_pre_authority_state():
     assert inv['phase30_selector_unchanged'] is True
     assert inv['family_label_used'] is False
     assert inv['registered_execution_enabled'] is False
+
+
+def test_phase31_rep1_attempt_is_hard_locked_to_authorized_seed_only():
+    inv = r31.validate_invariants()
+    assert r31.ATTEMPT_ID == 'phase31-registered-rep1-attempt1'
+    assert r31.REPLICATE == 1
+    assert r31.SEED_BASE == 831310000
+    assert r31.LOCKED_FUTURE_BASES == (831310100, 831310200)
+    assert inv['seed_base'] == 831310000
+    assert inv['future_registered_bases_locked'] == [831310100, 831310200]
+    assert inv['expected_primary_cells'] == 23
+
+
+def _write_fake_family_results(tmp_path, failing_split=None):
+    paths = []
+    for family in r31.FAMILIES:
+        names = [x for x in r31.EXPECTED_SPLITS if r31.split_family(x) == family]
+        ratios = {name: (1.0 if name == failing_split else 0.5) for name in names}
+        payload = {
+            'attempt_id': r31.ATTEMPT_ID,
+            'replicate': r31.REPLICATE,
+            'seed_base': r31.SEED_BASE,
+            'family': family,
+            'primary_ratios': ratios,
+            'passing_cells': sum(x < 1.0 for x in ratios.values()),
+            'total_cells': len(ratios),
+            'all_below_persistence': all(x < 1.0 for x in ratios.values()),
+        }
+        path = tmp_path / f'{family}.json'
+        path.write_text(json.dumps(payload))
+        paths.append(str(path))
+    return paths
+
+
+def test_phase31_rep1_aggregate_any_ratio_ge_one_is_decisive_fail(tmp_path):
+    paths = _write_fake_family_results(tmp_path, failing_split='nls_id_h8')
+    out = tmp_path / 'summary.json'
+    result = r31.aggregate(paths, str(out))
+    assert result['status'] == 'PHASE31_DECISIVE_FAIL_REGISTERED_REP1'
+    assert result['overall_gate_status'] == 'FAIL_DECISIVE'
+    assert result['failing_cells'] == {'nls_id_h8': 1.0}
+    assert result['replicate_2_status'] == 'LOCKED_UNCONSUMED'
+    assert result['replicate_3_status'] == 'LOCKED_UNCONSUMED'
+    assert result['retry_authorized'] is False
+
+
+def test_phase31_rep1_aggregate_23_of_23_keeps_overall_gate_unresolved(tmp_path):
+    paths = _write_fake_family_results(tmp_path)
+    out = tmp_path / 'summary.json'
+    result = r31.aggregate(paths, str(out))
+    assert result['status'] == 'PHASE31_REGISTERED_REP1_PASS_23_OF_23_OVERALL_GATE_UNRESOLVED'
+    assert result['primary_passing_cells'] == 23
+    assert result['failing_cells'] == {}
+    assert result['overall_gate_status'] == 'UNRESOLVED_REQUIRES_SEPARATE_REP2_AUTHORIZATION'
+    assert result['replicate_2_status'] == 'LOCKED_UNCONSUMED'
+
+
+def test_phase31_rep1_aggregate_rejects_missing_family(tmp_path):
+    paths = _write_fake_family_results(tmp_path)[:-1]
+    with pytest.raises(RuntimeError, match='exactly 6 family files required'):
+        r31.aggregate(paths, str(tmp_path / 'summary.json'))
