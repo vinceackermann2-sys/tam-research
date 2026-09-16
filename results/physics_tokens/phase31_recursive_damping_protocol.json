@@ -1,0 +1,27 @@
+{
+  "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
+  "status": "PREREGISTERED_BEFORE_REGISTERED_EXECUTION",
+  "parent": "Phase-30 repair1 decisive FAIL at faebc8bce02948e245bce7721f5d54e873466319",
+  "motivation": "Phase 30 passed 22/23 cells; the sole failure was nls_id_h8 at 5.549163911766668x persistence while the Phase-30 82-feature shared-support block was disabled for that split. Phase 28 had previously passed all 12 NLS cells but nls_id_h8 had a thin worst-case margin, so Phase 31 tests long-horizon rollout instability rather than adding NLS-specific features.",
+  "scientific_configuration_unchanged": "18-bit companded token representation, context=8, ridge=0.001, Phase-28 26-vs-62 parent selector, Phase-30 82-feature shared-support rule with median held-out gain >0.10, same six families and same 23 primary split definitions.",
+  "new_mechanism": "Context-only recursive damping selection. After Phase-30 chooses the model class for a trajectory (82 for the entire split when the frozen shared-support gate fires; otherwise the unchanged Phase-28 per-trajectory 26-vs-62 choice), fit guard-only maps on clean decoded context transitions t=1->2, t=2->3, t=3->4. Starting at decoded context frame t=4, recursively roll to t=7 for each frozen damping value lambda in [1.0, 0.5, 0.25, 0.125]. At each recursive step predict y with the selected model class, quantize/dequantize lambda*(y-current) with the existing companded innovation quantizer, and add that quantized damped innovation to current. Choose the lambda with lowest per-trajectory MSE to observed decoded context frame t=7; exact ties prefer the larger lambda. Refit the scientific forecast maps exactly as Phase 30 and use the chosen per-trajectory lambda for the held-out h3/h8 rollout.",
+  "guard_context_only": true,
+  "guard_fit_transitions": [1, 2, 3],
+  "guard_start_frame": 4,
+  "guard_target_frame": 7,
+  "guard_recursive_horizon": 3,
+  "damping_grid": [1.0, 0.5, 0.25, 0.125],
+  "damping_zero_excluded": "Pure persistence is not an eligible damping candidate because the frozen benchmark requires strictly beating persistence.",
+  "no_family_labels": true,
+  "no_future_targets": true,
+  "registered_replicates": [
+    {"replicate": 1, "seed_base": 831310000},
+    {"replicate": 2, "seed_base": 831310100},
+    {"replicate": 3, "seed_base": 831310200}
+  ],
+  "seed_convention": "Same sparse offsets as Phase 30: +1/+2 training, +3..+6 codebook, +11..+13 wave, +21..+24 Gray-Scott, +31..+34 NLS, +41..+44 advection, +51..+54 Burgers, +61..+64 Hamilton-Jacobi.",
+  "frozen_pass_rule": "PASS only if all 3 fresh registered Phase-31 replicates beat raw-state persistence on all 23 primary splits: 69/69 cells. Any selected ratio >=1.0 is FAIL. No retries or replacement seeds.",
+  "engineering_gate": "Registered seeds must remain untouched until the Phase-31 implementation and CPU-only invariant/smoke tests are committed and separately authorized for scientific execution.",
+  "forbidden_seed_lineages": [830300000, 830300100, 830300200, 830301000, 830301100, 830301200, 830310000, 830310100, 830310200],
+  "claim_limit": "Known synthetic benchmark evidence only; not unrestricted scientific-law discovery or new physics."
+}
