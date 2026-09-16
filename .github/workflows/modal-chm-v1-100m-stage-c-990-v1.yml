@@ -48,7 +48,7 @@ jobs:
               assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
               print(f"{key}={value}")
           authority = cfg.get("authority_comment_id")
-          assert isinstance(authority, int) and authority > 0, "authority_comment_id must be a positive integer"
+          assert isinstance(authority, int) and authority > 0, "authority_comment_id must be positive"
           print(f"authority_comment_id={authority}")
           print("seed=977001")
           PY
@@ -60,7 +60,7 @@ jobs:
           fetch-depth: 0
           path: source
 
-      - name: Fail closed on exact source tree and scientific blobs
+      - name: Fail closed on source tree and all frozen scientific blobs
         env:
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
@@ -103,7 +103,6 @@ jobs:
         run: |
           python - <<'PY'
           import json, os, subprocess
-
           repo = os.environ["GITHUB_REPOSITORY"]
           owner = repo.split("/", 1)[0]
           trigger_number = int(os.environ["TRIGGER_ISSUE"])
@@ -151,12 +150,11 @@ jobs:
           assert trigger["user"]["login"] == owner
           assert trigger["title"] == "[modal-chm-v1-100m-stage-c-988-seed-977001-v1]"
           assert trigger["created_at"] > authority["created_at"]
-
           query = f'repo:{repo} in:title "[modal-chm-v1-100m-stage-c-988-seed-977001-v1]"'
           found = json.loads(subprocess.check_output(
               ["gh", "api", "-X", "GET", "search/issues", "-f", f"q={query}"], text=True
           ))
-          assert found["total_count"] == 1, found["total_count"]
+          assert found["total_count"] == 1
           assert found["items"][0]["number"] == trigger_number
           PY
 
@@ -205,28 +203,26 @@ jobs:
         run: |
           cd source
           modal run modal_chm_v1_100m_stage_c_990_v1.py \
-            --phase preflight \
-            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
-            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
-            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
-            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --phase preflight --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --prep-sha "$PREP_SHA" \
+            --core-sha "$CORE_SHA" --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
             --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../zero-gpu.log
           cd ..
           python - <<'PY'
           import json
           from pathlib import Path
           lines = Path("zero-gpu.log").read_text(encoding="utf-8").splitlines()
-          matches = [line.split("CHM_V1_100M_STAGE_C_ZERO_GPU=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_C_ZERO_GPU=" in line]
-          assert len(matches) == 1, len(matches)
-          payload = json.loads(matches[0])
-          assert payload["status"] == "PASS"
-          assert payload["scientific_seed"] == 977001
-          assert payload["gpu_allocated"] is False
-          assert payload["scientific_seed_consumed"] is False
-          assert payload["scientific_training_started"] is False
-          assert payload["stage_a"]["parameter_accounting"]["local_trainable_parameters"] == 101803520
-          assert payload["stage_a"]["parameter_accounting"]["eiem_trainable_parameters"] == 101836800
-          Path("zero-gpu.json").write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+          matches = [x.split("CHM_V1_100M_STAGE_C_ZERO_GPU=", 1)[1] for x in lines if "CHM_V1_100M_STAGE_C_ZERO_GPU=" in x]
+          assert len(matches) == 1
+          p = json.loads(matches[0])
+          assert p["status"] == "PASS"
+          assert p["scientific_seed"] == 977001
+          assert p["gpu_allocated"] is False
+          assert p["scientific_seed_consumed"] is False
+          assert p["scientific_training_started"] is False
+          assert p["stage_a"]["parameter_accounting"]["local_trainable_parameters"] == 101803520
+          assert p["stage_a"]["parameter_accounting"]["eiem_trainable_parameters"] == 101836800
+          Path("zero-gpu.json").write_text(json.dumps(p, indent=2, sort_keys=True), encoding="utf-8")
           PY
 
       - name: Record zero-GPU evidence before scientific allocation
@@ -240,12 +236,13 @@ jobs:
           print()
           print(f"- source: `{p['source_sha']}`; tree: `{p['source_tree']}`")
           print(f"- core/runner/workflow: `{p['execution_core_blob_sha']}` / `{p['runner_blob_sha']}` / `{p['workflow_blob_sha']}`")
-          print("- exact Stage-A parameter counts reconfirmed: `101,803,520` LOCAL / `101,836,800` EIEM-FLAT")
+          print("- exact Stage-A parameters: `101,803,520` LOCAL / `101,836,800` EIEM-FLAT")
           print("- GPU allocated: **false**; scientific seed `977001` consumed: **false**.")
           PY
           gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="$(cat preflight-comment.md)"
 
       - name: Write durable dispatch marker before L4 allocation
+        id: reserve
         env:
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
@@ -259,33 +256,31 @@ jobs:
         run: |
           cd source
           modal run modal_chm_v1_100m_stage_c_990_v1.py \
-            --phase reserve \
-            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
-            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
-            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
-            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --phase reserve --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --prep-sha "$PREP_SHA" \
+            --core-sha "$CORE_SHA" --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
             --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../dispatch.log
           cd ..
           python - <<'PY'
           import json
           from pathlib import Path
           lines = Path("dispatch.log").read_text(encoding="utf-8").splitlines()
-          matches = [line.split("CHM_V1_100M_STAGE_C_DISPATCH=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_C_DISPATCH=" in line]
-          assert len(matches) == 1, len(matches)
-          payload = json.loads(matches[0])
-          assert payload["status"] == "DISPATCH_RESERVED"
-          assert payload["scientific_seed"] == 977001
-          assert payload["gpu_allocation_started"] is False
-          assert payload["scientific_seed_consumed"] is False
-          assert payload["automatic_retry_authorized"] is False
-          assert payload["checkpoint_resume_authorized"] is False
+          matches = [x.split("CHM_V1_100M_STAGE_C_DISPATCH=", 1)[1] for x in lines if "CHM_V1_100M_STAGE_C_DISPATCH=" in x]
+          assert len(matches) == 1
+          p = json.loads(matches[0])
+          assert p["status"] == "DISPATCH_RESERVED"
+          assert p["scientific_seed"] == 977001
+          assert p["gpu_allocation_started"] is False
+          assert p["scientific_seed_consumed"] is False
+          assert p["automatic_retry_authorized"] is False
+          assert p["checkpoint_resume_authorized"] is False
           PY
 
       - name: Record one-shot dispatch reservation
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="🟧 **CHM-v1 #990 Stage-C dispatch reserved.** Durable pre-allocation marker exists. The next step is the single authorized L4 scientific allocation. If the GPU function begins, seed 977001 is permanently consumed. Automatic retry, Actions rerun, redispatch, rescue, and checkpoint resume are all unauthorized."
+          gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="🟧 **CHM-v1 #990 Stage-C dispatch reserved.** Durable marker exists before allocation. The next step is the single authorized L4 scientific allocation. If the GPU function begins, seed 977001 is permanently consumed. Automatic retry, Actions rerun, redispatch, rescue, and checkpoint resume are unauthorized."
 
       - name: Launch Stage-C scientific attempt exactly once
         id: scientific
@@ -304,11 +299,9 @@ jobs:
           set +e
           cd source
           modal run modal_chm_v1_100m_stage_c_990_v1.py \
-            --phase run \
-            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
-            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
-            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
-            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --phase run --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --prep-sha "$PREP_SHA" \
+            --core-sha "$CORE_SHA" --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
             --authority-comment-id "$AUTHORITY_COMMENT_ID" \
             --live-hourly-resource-usd "$LIVE_HOURLY_RESOURCE_USD" | tee ../scientific.log
           status=${PIPESTATUS[0]}
@@ -317,7 +310,7 @@ jobs:
           exit 0
 
       - name: Inspect durable scientific state after the one-shot call
-        if: always()
+        if: ${{ always() && steps.reserve.outcome == 'success' }}
         env:
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
@@ -331,39 +324,34 @@ jobs:
         run: |
           cd source
           modal run modal_chm_v1_100m_stage_c_990_v1.py \
-            --phase inspect \
-            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
-            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
-            --prep-sha "$PREP_SHA" --core-sha "$CORE_SHA" \
-            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --phase inspect --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --prep-sha "$PREP_SHA" \
+            --core-sha "$CORE_SHA" --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
             --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../inspect.log
           cd ..
           python - <<'PY'
           import json
           from pathlib import Path
           lines = Path("inspect.log").read_text(encoding="utf-8").splitlines()
-          matches = [line.split("CHM_V1_100M_STAGE_C_STATE=", 1)[1] for line in lines if "CHM_V1_100M_STAGE_C_STATE=" in line]
-          assert len(matches) == 1, len(matches)
-          state = json.loads(matches[0])
-          Path("state.json").write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+          matches = [x.split("CHM_V1_100M_STAGE_C_STATE=", 1)[1] for x in lines if "CHM_V1_100M_STAGE_C_STATE=" in x]
+          assert len(matches) == 1
+          Path("state.json").write_text(json.dumps(json.loads(matches[0]), indent=2, sort_keys=True), encoding="utf-8")
           PY
 
       - name: Record authoritative terminal state and close one-shot controls
-        if: always()
+        if: ${{ always() && steps.reserve.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
           TRIGGER_ISSUE: ${{ github.event.issue.number }}
-          SCIENTIFIC_EXIT_CODE: ${{ steps.scientific.outputs.exit_code }}
         run: |
           python - <<'PY' > terminal-comment.md
           import json
           from pathlib import Path
-
           state_path = Path("state.json")
           if not state_path.is_file():
-              print("🟥 **CHM-v1 #990 Stage-C terminal inspection unavailable.**")
+              print("🟥 **CHM-v1 #990 Stage-C terminal inspection unavailable after durable dispatch.**")
               print()
-              print("The one-shot workflow reached terminal handling but could not recover durable state. No retry/rerun/redispatch is authorized. A separate forensic audit is required before any further scientific action.")
+              print("No retry/rerun/redispatch is authorized. Separate forensic audit is required before any further scientific action.")
           else:
               state = json.loads(state_path.read_text(encoding="utf-8"))
               files = state.get("files", {})
@@ -373,10 +361,7 @@ jobs:
               if result is not None:
                   assert consumed is not None
                   assert result["scientific_seed_consumed"] is True
-                  assert result["classification"] in {
-                      "CHM_V1_100M_STAGE_C_POSITIVE_SCALING_SCREEN",
-                      "CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH",
-                  }
+                  assert result["classification"] in {"CHM_V1_100M_STAGE_C_POSITIVE_SCALING_SCREEN", "CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH"}
                   m = result["metrics"]
                   print("🟩 **CHM-v1 #990 Stage-C scientific attempt COMPLETE**")
                   print()
@@ -389,33 +374,32 @@ jobs:
                   print(f"- bootstrap accuracy p2.5: `{m['bootstrap']['accuracy_gain']['p2_5']:.6f}`")
                   print(f"- bootstrap candidate-NLL p2.5: `{m['bootstrap']['candidate_nll_benefit']['p2_5']:.6f}`")
                   print("- scientific seed `977001`: **consumed exactly once**")
-                  print("- checkpoint resume / retry / redispatch: **false**")
+                  print("- retry / redispatch / checkpoint resume: **false**")
                   print("- Stage D automatic authority: **false**")
                   print()
                   print(result["interpretation_ceiling"])
               elif failure is not None:
                   assert consumed is not None
-                  print("🟥 **CHM-v1 #990 Stage-C infrastructure/runtime failure after scientific attempt consumption**")
+                  print("🟥 **CHM-v1 #990 Stage-C infrastructure/runtime failure after attempt consumption**")
                   print()
                   print(f"- error: `{failure['error_type']}: {failure['error']}`")
-                  print("- scientific seed `977001`: **consumed**")
-                  print("- scientific interpretation: **none**")
+                  print("- seed `977001`: **consumed**; scientific interpretation: **none**")
                   print("- retry / rerun / redispatch / checkpoint resume: **unauthorized**")
               elif consumed is not None:
-                  print("🟥 **CHM-v1 #990 Stage-C consumed attempt has no terminal result artifact**")
+                  print("🟥 **CHM-v1 #990 consumed attempt has no terminal result artifact**")
                   print()
-                  print("Durable consumption exists, so seed `977001` is consumed. No scientific conclusion and no retry/rerun/redispatch/checkpoint resume are authorized. Separate forensic work is required.")
+                  print("Seed `977001` is consumed by durable evidence. No scientific conclusion and no retry/rerun/redispatch/checkpoint resume are authorized.")
               else:
-                  print("🟥 **CHM-v1 #990 Stage-C dispatch did not durably enter the scientific GPU function**")
+                  print("🟥 **CHM-v1 #990 dispatch did not durably enter the scientific GPU function**")
                   print()
-                  print("No durable attempt-consumed marker, RESULT, or ATTEMPT_FAILURE exists. Seed consumption is not established by durable evidence, but this trigger/dispatch must not be retried automatically. Any future attempt requires a fresh explicit run-control decision.")
+                  print("Seed consumption is not established, but this trigger/dispatch must not be retried automatically. Any future attempt requires a fresh explicit run-control decision.")
           PY
           gh api "repos/$GITHUB_REPOSITORY/issues/990/comments" -f body="$(cat terminal-comment.md)"
           gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/990" -f state=closed -f state_reason=completed >/dev/null
           gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$TRIGGER_ISSUE" -f state=closed -f state_reason=completed >/dev/null
 
       - name: Reflect non-result scientific execution as workflow failure
-        if: always()
+        if: ${{ always() && steps.reserve.outcome == 'success' }}
         run: |
           python - <<'PY'
           import json
@@ -425,10 +409,7 @@ jobs:
           state = json.load(open("state.json", encoding="utf-8"))
           result = state.get("files", {}).get("RESULT.json")
           if result is None:
-              raise SystemExit("Stage-C did not produce a scientific RESULT.json; see durable terminal comment")
-          if result.get("classification") not in {
-              "CHM_V1_100M_STAGE_C_POSITIVE_SCALING_SCREEN",
-              "CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH",
-          }:
+              raise SystemExit("Stage-C produced no scientific RESULT.json; see terminal comment")
+          if result.get("classification") not in {"CHM_V1_100M_STAGE_C_POSITIVE_SCALING_SCREEN", "CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH"}:
               raise SystemExit("unexpected Stage-C result classification")
           PY
