@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from tam_research import physics_tokenizer_phase10 as p10
 from tam_research import physics_tokenizer_phase30 as p30
 from tam_research import physics_tokenizer_phase31 as p31
 
@@ -43,8 +44,23 @@ def test_phase31_guard_is_context_only_and_has_no_persistence_candidate():
     assert p31.GUARD_TARGET_FRAME < p31.CONTEXT
     assert p31.GUARD_HORIZON == 3
     assert p31.DAMPING_GRID == tuple(sorted(p31.DAMPING_GRID, reverse=True))
+    assert p31.DAMPING_GRID[0] == 1.0
     assert min(p31.DAMPING_GRID) > 0.0
     assert 0.0 not in p31.DAMPING_GRID
+
+
+def test_phase31_lambda_one_is_exact_phase30_companded_update():
+    cur = np.linspace(-0.4, 0.4, 36, dtype=np.float32).reshape(2, 2, 3, 3)
+    delta = np.linspace(-0.08, 0.12, 36, dtype=np.float32).reshape(2, 2, 3, 3)
+    y = (cur + delta).astype(np.float32)
+    dm = np.array([0.01, -0.02], dtype=np.float32)
+    ds = np.array([0.15, 0.25], dtype=np.float32)
+
+    got, _ = p31._damped_quantized_step(
+        cur, y, np.ones(2, dtype=np.float32), dm, ds
+    )
+    expected = (cur + p10.q_comp_delta(y - cur, dm, ds)).astype(np.float32)
+    np.testing.assert_array_equal(got, expected)
 
 
 def test_phase31_per_trajectory_mse_is_not_batch_averaged():
