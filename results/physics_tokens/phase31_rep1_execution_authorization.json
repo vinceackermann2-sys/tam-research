@@ -1,0 +1,25 @@
+{
+  "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
+  "status": "AUTHORIZED_FOR_REGISTERED_EXECUTION",
+  "authorization_scope": {
+    "replicate": 1,
+    "seed_base": 831310000,
+    "attempt_id": "phase31-registered-rep1-attempt1",
+    "single_attempt_only": true
+  },
+  "authorization_source": "Explicit user authorization in the governing research conversation on 2026-09-16.",
+  "authorized_branch": "experiment/physics-tokenizer-phase31-recursive-damping-20260916",
+  "preauthorization_gate_commit": "31c83441def6a2e96720698690009f09a405d5a5",
+  "protocol": "results/physics_tokens/phase31_recursive_damping_protocol.json",
+  "engineering_gate": "results/physics_tokens/phase31_preauthority_engineering_gate.json",
+  "registered_seed_bases": {
+    "replicate_1": {"seed_base": 831310000, "status": "AUTHORIZED_UNCONSUMED"},
+    "replicate_2": {"seed_base": 831310100, "status": "LOCKED_UNCONSUMED"},
+    "replicate_3": {"seed_base": 831310200, "status": "LOCKED_UNCONSUMED"}
+  },
+  "consumption_rule": "Replicate 1 is considered consumed once registered scientific preparation using seed base 831310000 begins, regardless of whether the attempt later completes or fails for infrastructure reasons.",
+  "retry_policy": "No retry, rerun, redispatch, or replacement seed is authorized for replicate 1. Infrastructure failure after consumption is not scientific evidence.",
+  "result_authority": "Only durable registered result artifacts produced by this authorized attempt determine the scientific outcome; workflow status alone does not.",
+  "stopping_rule": "If any replicate-1 primary selected ratio is >= 1.0, Phase 31 is decisively FAIL under the frozen 69/69 criterion and replicates 2 and 3 remain unconsumed. If replicate 1 is 23/23 below persistence, the overall gate remains unresolved and a separate authorization is required before replicate 2.",
+  "claim_limit": "Synthetic benchmark evidence only; not evidence of new physics, unrestricted scientific-law discovery, AGI, or SSI."
+}
