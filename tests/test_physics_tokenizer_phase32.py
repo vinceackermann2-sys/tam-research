@@ -51,8 +51,9 @@ def test_worst_window_selection_and_tie_break_prefer_larger_lambda():
     # trajectory 0: lambda 0.5 has worst score .4 versus .6/.5/.7
     assert chosen[0] == np.float32(0.5)
     assert best[0] == pytest.approx(0.4)
-    # trajectory 1: lambdas 1.0 and 0.5 tie at worst score .5/.4? Actually lambda 0.5 wins .4.
-    assert chosen[1] == np.float32(0.5)
+    # trajectory 1: lambda 0.125 has the smallest worst-window score (.2).
+    assert chosen[1] == np.float32(0.125)
+    assert best[1] == pytest.approx(0.2)
 
     exact_tie = np.ones((3, 4, 2), dtype=np.float64)
     tied_chosen, tied_best = p32._select_from_window_errors(exact_tie)
