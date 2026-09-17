@@ -1,0 +1,194 @@
+{
+  "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
+  "status": "PHASE31_REGISTERED_CONFIRMATION_SEALED_DECISIVE_FAIL",
+  "attempt_id": "phase31-registered-rep1-attempt1",
+  "replicate": 1,
+  "seed_base": 831310000,
+  "registered_seed_status": "CONSUMED_VALID_REGISTERED_ATTEMPT_DO_NOT_RETRY",
+  "source_workflow": {
+    "run_id": 35144065382,
+    "job_id": 104955529609,
+    "head_sha": "d72a2420f55c5ecf3d313a84b4540e1edd4a6578",
+    "workflow_conclusion": "success",
+    "artifact_id": 10465664726,
+    "artifact_digest": "sha256:e9f2bde0f830de5218123570e1873782f8986960683cc39a7a19db9a9204b1a3",
+    "artifact_expires_at": "2026-10-16T20:03:22Z"
+  },
+  "consumed_seed_map": {
+    "wave_train": 831310001,
+    "gray_train": 831310002,
+    "sc1": 831310003,
+    "sc2": 831310004,
+    "ic1": 831310005,
+    "ic2": 831310006,
+    "wave_id": 831310011,
+    "wave_spectral": 831310012,
+    "wave_combined": 831310013,
+    "gray_id": 831310021,
+    "gray_sharp": 831310022,
+    "gray_parameter": 831310023,
+    "gray_combined": 831310024,
+    "nls_id": 831310031,
+    "nls_spectral": 831310032,
+    "nls_parameter": 831310033,
+    "nls_combined": 831310034,
+    "adv_id": 831310041,
+    "adv_spectral": 831310042,
+    "adv_speed": 831310043,
+    "adv_combined": 831310044,
+    "burg_id": 831310051,
+    "burg_spectral": 831310052,
+    "burg_parameter": 831310053,
+    "burg_combined": 831310054,
+    "hj_id": 831310061,
+    "hj_spectral": 831310062,
+    "hj_parameter": 831310063,
+    "hj_combined": 831310064
+  },
+  "primary_ratios": {
+    "wave_id_h8": 0.011639472165989971,
+    "wave_spectral_ood_h3": 0.0012265435306025223,
+    "wave_combined_ood_h3": 0.10352310007068784,
+    "gray_id_h8": 0.28862002930148833,
+    "gray_sharp_ood_h3": 0.0325929309225844,
+    "gray_parameter_ood_h3": 0.011257655459369922,
+    "gray_combined_ood_h3": 0.0644018120983831,
+    "nls_id_h8": 0.8441240059482158,
+    "nls_spectral_ood_h3": 0.4763495008002294,
+    "nls_parameter_ood_h3": 0.2721975443502371,
+    "nls_combined_ood_h3": 0.1587442128619076,
+    "adv_id_h8": 0.8202111315643964,
+    "adv_spectral_ood_h3": 0.061398644883489506,
+    "adv_speed_ood_h3": 0.04181796702830988,
+    "adv_combined_ood_h3": 0.008326804913599571,
+    "burgers_id_h8": 0.16916246591667664,
+    "burgers_spectral_ood_h3": 0.1413123472311268,
+    "burgers_parameter_ood_h3": 0.139500533742556,
+    "burgers_combined_ood_h3": 0.6435638864833978,
+    "hj_id_h8": 11.016722022265716,
+    "hj_spectral_ood_h3": 0.007917840898253559,
+    "hj_parameter_ood_h3": 0.02064785026742323,
+    "hj_combined_ood_h3": 0.1334083388940759
+  },
+  "primary_passing_cells": 22,
+  "primary_total_cells": 23,
+  "failing_cells": {
+    "hj_id_h8": 11.016722022265716
+  },
+  "family_summary": {
+    "wave": {
+      "passing_cells": 3,
+      "total_cells": 3,
+      "all_below_persistence": true,
+      "worst_ratio": 0.10352310007068784
+    },
+    "gray_scott": {
+      "passing_cells": 4,
+      "total_cells": 4,
+      "all_below_persistence": true,
+      "worst_ratio": 0.28862002930148833
+    },
+    "nls": {
+      "passing_cells": 4,
+      "total_cells": 4,
+      "all_below_persistence": true,
+      "worst_ratio": 0.8441240059482158
+    },
+    "advection": {
+      "passing_cells": 4,
+      "total_cells": 4,
+      "all_below_persistence": true,
+      "worst_ratio": 0.8202111315643964
+    },
+    "burgers": {
+      "passing_cells": 4,
+      "total_cells": 4,
+      "all_below_persistence": true,
+      "worst_ratio": 0.6435638864833978
+    },
+    "hamilton_jacobi": {
+      "passing_cells": 3,
+      "total_cells": 4,
+      "all_below_persistence": false,
+      "worst_ratio": 11.016722022265716
+    }
+  },
+  "nls_target_split_diagnostics": {
+    "persistence_mse": 0.0015460677677765489,
+    "selected_mse": 0.0013050729176029563,
+    "selected_ratio": 0.8441240059482158,
+    "use82_group": false,
+    "median_heldout_gain82_vs62": -0.051460851653802875,
+    "gain_positive_fraction": 0.0625,
+    "parent_interaction_selection_fraction": 0.020833333333333332,
+    "damping_counts": {
+      "1.0": 47,
+      "0.5": 1,
+      "0.25": 0,
+      "0.125": 0
+    },
+    "damping_mean": 0.9895833134651184,
+    "damping_full_fraction": 0.9791666666666666,
+    "guard_best_mse_mean": 5.64397976415051e-06,
+    "guard_persistence_mse_mean": 0.00021742930381990117,
+    "guard_best_to_persistence_mean": 0.018737511174882922,
+    "guard_improves_persistence_fraction": 1.0,
+    "guard_grid_mse_mean": {
+      "1.0": 8.480894625975314e-06,
+      "0.5": 5.5447710522483866e-05,
+      "0.25": 0.00012258393706443245,
+      "0.125": 0.00016677624953049822
+    },
+    "context_mse": 0.00012118581071263179,
+    "context_clip_fraction": 6.394159226190477e-05,
+    "rollout_clip_fraction": 1.52587890625e-05
+  },
+  "decisive_hamilton_jacobi_diagnostics": {
+    "persistence_mse": 0.00012641491775866598,
+    "selected_mse": 0.001392678008414805,
+    "selected_ratio": 11.016722022265716,
+    "use82_group": true,
+    "median_heldout_gain82_vs62": 0.6984155085015867,
+    "gain_positive_fraction": 0.9583333333333334,
+    "parent_interaction_selection_fraction": null,
+    "damping_counts": {
+      "1.0": 48,
+      "0.5": 0,
+      "0.25": 0,
+      "0.125": 0
+    },
+    "damping_mean": 1.0,
+    "damping_full_fraction": 1.0,
+    "guard_best_mse_mean": 5.524832930288961e-07,
+    "guard_persistence_mse_mean": 1.876083322191543e-05,
+    "guard_best_to_persistence_mean": 0.06384225778913342,
+    "guard_improves_persistence_fraction": 1.0,
+    "guard_grid_mse_mean": {
+      "1.0": 5.524832930288961e-07,
+      "0.5": 5.334741063853402e-06,
+      "0.25": 1.1072376766533111e-05,
+      "0.125": 1.5000384770120974e-05
+    },
+    "context_mse": 6.191439024405554e-05,
+    "context_clip_fraction": 2.3251488095238094e-05,
+    "rollout_clip_fraction": 0.0002899169921875
+  },
+  "frozen_overall_gate": "69/69 across three fresh registered replicates; any ratio >=1.0 is FAIL",
+  "overall_gate_status": "FAIL_DECISIVE",
+  "gate_reason": "Replicate 1 has hj_id_h8 >= 1.0, making the preregistered 69/69 criterion impossible.",
+  "replicate_2": {
+    "seed_base": 831310100,
+    "status": "LOCKED_UNCONSUMED_DO_NOT_RUN"
+  },
+  "replicate_3": {
+    "seed_base": 831310200,
+    "status": "LOCKED_UNCONSUMED_DO_NOT_RUN"
+  },
+  "retry_authorized": false,
+  "next_action": "STOP_PHASE31_REGISTERED_EXECUTION. Any further scientific work requires a separately preregistered phase and a fresh seed namespace.",
+  "interpretation": {
+    "supported": "On this fresh registered replicate, Phase-31 recursive damping brought nls_id_h8 below persistence (0.8441240059482158), while 22/23 total primary cells passed.",
+    "failure": "Hamilton-Jacobi ID-h8 regressed severely to 11.016722022265716 times persistence. The context guard selected lambda=1.0 for all 48 HJ-ID trajectories, so damping did not intervene on that split despite use82_group=true.",
+    "claim_limit": "Synthetic benchmark evidence only; not evidence of new physics, unrestricted scientific-law discovery, AGI, or SSI."
+  }
+}
