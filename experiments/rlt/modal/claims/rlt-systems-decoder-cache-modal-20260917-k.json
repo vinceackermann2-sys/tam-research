@@ -1,0 +1,25 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789673632.1643214,
+  "engineering_only": true,
+  "job": {
+    "automatic_retry": false,
+    "baseline_batch512_job_id": "rlt-systems-batchscale512-modal-20260916-i",
+    "batch_size": 512,
+    "engineering_seed": 20261003,
+    "job_id": "rlt-systems-decoder-cache-modal-20260917-k",
+    "prior_occupancy_job_id": "rlt-systems-batchscale768-modal-20260916-j",
+    "schema": 1,
+    "scientific_execution": false,
+    "seq_len": 64,
+    "task": "systems_decoder_cache_profile"
+  },
+  "job_id": "rlt-systems-decoder-cache-modal-20260917-k",
+  "job_source_blob_sha": "8c35b2011abb33f1ff8a1efd8687c97b6d0198bc",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "trigger_sha": "e708c96d8add73614eb202de50305fb38393a573",
+  "worker": "github-actions-modal"
+}
