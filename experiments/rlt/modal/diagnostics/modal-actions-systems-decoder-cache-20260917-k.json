@@ -1,0 +1,13 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_DECODER_CACHE_SYSTEMS_K_ZERO_GPU_PREFLIGHT_PASS",
+  "finished_unix": 1789673627.1935399,
+  "job_id_checked": "rlt-systems-decoder-cache-modal-20260917-k",
+  "job_source_blob_sha": "8c35b2011abb33f1ff8a1efd8687c97b6d0198bc",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "e708c96d8add73614eb202de50305fb38393a573",
+  "worker": "modal-control"
+}
