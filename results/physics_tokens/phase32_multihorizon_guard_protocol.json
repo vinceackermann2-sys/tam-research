@@ -1,0 +1,75 @@
+{
+  "experiment": "physics-token-phase32-multihorizon-context-guard-six-family-v1",
+  "status": "PREREGISTERED_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
+  "parent_phase": "physics-token-phase31-recursive-damping-six-family-v1",
+  "parent_seal_commit": "6af0bac44dfae5b7443a37a9cb3fd2b70414f939",
+  "hypothesis": "The decisive Phase-31 Hamilton-Jacobi ID-h8 failure is caused by horizon mismatch in the context-only damping guard: a lambda that is optimal over a 3-step context rollout can still be unstable over a longer recursive rollout. A forward-chaining multihorizon guard should detect such instability using only observed context frames and reduce long-horizon failures without family labels or future targets.",
+  "frozen_scientific_configuration": {
+    "context_frames": 8,
+    "ridge": 0.001,
+    "representation": "unchanged Phase-30/31 18-bit companded token representation",
+    "representation_training_families": ["wave", "gray_scott"],
+    "phase28_parent_selector": "unchanged per-trajectory 26-vs-62 BIC selector",
+    "phase30_82_group_rule": "unchanged shared-support 82-feature group enabled per split iff median heldout 82-vs-62 gain > 0.10",
+    "median_gain_min": 0.10,
+    "damping_grid": [1.0, 0.5, 0.25, 0.125],
+    "families": ["wave", "gray_scott", "nls", "advection", "burgers", "hamilton_jacobi"],
+    "primary_split_count_per_replicate": 23,
+    "family_labels_used": false,
+    "future_forecast_targets_used_for_selection": false
+  },
+  "phase32_only_change": {
+    "name": "forward_chaining_multihorizon_context_guard",
+    "windows": [
+      {
+        "fit_transitions": [0, 1],
+        "start_frame": 2,
+        "target_frame": 7,
+        "rollout_horizon": 5
+      },
+      {
+        "fit_transitions": [0, 1, 2],
+        "start_frame": 3,
+        "target_frame": 7,
+        "rollout_horizon": 4
+      },
+      {
+        "fit_transitions": [0, 1, 2, 3],
+        "start_frame": 4,
+        "target_frame": 7,
+        "rollout_horizon": 3
+      }
+    ],
+    "per_window_score": "per-trajectory recursive-rollout MSE divided by same-window persistence MSE plus 1e-30",
+    "candidate_score": "per-trajectory maximum normalized score across the 5-step, 4-step, and 3-step windows",
+    "selection": "choose lambda with minimum candidate score independently per trajectory; exact ties prefer larger lambda because the frozen grid is descending",
+    "scientific_forecast": "after lambda selection, refit the Phase-30/31 scientific forecast maps on the unchanged full context and apply the selected lambda recursively for the held-out h3/h8 target",
+    "isolation_intent": "No new feature family, no family-specific branch, no new model class, and no damping-grid expansion are introduced so that the registered test isolates guard-horizon choice."
+  },
+  "registered_replicates": [
+    {"replicate": 1, "seed_base": 832320000, "status": "UNTOUCHED_NOT_AUTHORIZED"},
+    {"replicate": 2, "seed_base": 832320100, "status": "UNTOUCHED_NOT_AUTHORIZED"},
+    {"replicate": 3, "seed_base": 832320200, "status": "UNTOUCHED_NOT_AUTHORIZED"}
+  ],
+  "forbidden_seed_bases": [
+    830300000, 830300100, 830300200,
+    830301000, 830301100, 830301200,
+    830310000, 830310100, 830310200,
+    831310000, 831310100, 831310200,
+    999311000
+  ],
+  "registered_gate": {
+    "pass": "All three fresh registered replicates must beat raw persistence on all 23 frozen primary splits: 69/69 selected ratios strictly below 1.0.",
+    "fail": "Any valid registered primary selected ratio >= 1.0 is a decisive Phase-32 FAIL. Once such a cell exists, later registered replicates remain unconsumed and must not be run.",
+    "retry_policy": "No retry, rerun, redispatch, replacement seed, or post-result gate modification is permitted for a consumed valid registered attempt. Infrastructure failure is not scientific evidence and must be handled under a separately documented repair namespace if governance permits.",
+    "claim_limit": "Synthetic benchmark evidence only; not evidence of new physics, unrestricted scientific-law discovery, AGI, or SSI."
+  },
+  "secondary_diagnostics_frozen_before_execution": [
+    "per-window normalized guard score for every damping candidate",
+    "selected damping counts and mean per split",
+    "fraction of trajectories whose Phase-32 lambda differs from the Phase-31 3-step-only lambda when both are computed context-only",
+    "context quantization error and rollout clipping fraction",
+    "Phase-30 82-feature activation and heldout gain diagnostics"
+  ],
+  "authorization_boundary": "Engineering implementation and seedless validation are allowed. No registered Phase-32 seed may be consumed until a separate explicit scientific-execution authorization is recorded."
+}
