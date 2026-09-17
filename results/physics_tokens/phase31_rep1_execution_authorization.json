@@ -1,6 +1,6 @@
 {
   "experiment": "physics-token-phase31-recursive-damping-six-family-v1",
-  "status": "AUTHORIZED_FOR_REGISTERED_EXECUTION",
+  "status": "AUTHORIZATION_CONSUMED_AND_CLOSED_AFTER_DECISIVE_FAIL",
   "authorization_scope": {
     "replicate": 1,
     "seed_base": 831310000,
@@ -10,16 +10,27 @@
   "authorization_source": "Explicit user authorization in the governing research conversation on 2026-09-16.",
   "authorized_branch": "experiment/physics-tokenizer-phase31-recursive-damping-20260916",
   "preauthorization_gate_commit": "31c83441def6a2e96720698690009f09a405d5a5",
+  "dispatch_commit": "d72a2420f55c5ecf3d313a84b4540e1edd4a6578",
+  "sealed_result_commit": "9f2dddc5255f79d9d20535915f17454ccd9d2814",
   "protocol": "results/physics_tokens/phase31_recursive_damping_protocol.json",
   "engineering_gate": "results/physics_tokens/phase31_preauthority_engineering_gate.json",
+  "decisive_result": "results/physics_tokens/phase31_registered_rep1_decisive_summary.json",
   "registered_seed_bases": {
-    "replicate_1": {"seed_base": 831310000, "status": "AUTHORIZED_UNCONSUMED"},
-    "replicate_2": {"seed_base": 831310100, "status": "LOCKED_UNCONSUMED"},
-    "replicate_3": {"seed_base": 831310200, "status": "LOCKED_UNCONSUMED"}
+    "replicate_1": {"seed_base": 831310000, "status": "CONSUMED_VALID_REGISTERED_ATTEMPT_DO_NOT_RETRY"},
+    "replicate_2": {"seed_base": 831310100, "status": "LOCKED_UNCONSUMED_DO_NOT_RUN_AFTER_DECISIVE_FAIL"},
+    "replicate_3": {"seed_base": 831310200, "status": "LOCKED_UNCONSUMED_DO_NOT_RUN_AFTER_DECISIVE_FAIL"}
   },
-  "consumption_rule": "Replicate 1 is considered consumed once registered scientific preparation using seed base 831310000 begins, regardless of whether the attempt later completes or fails for infrastructure reasons.",
-  "retry_policy": "No retry, rerun, redispatch, or replacement seed is authorized for replicate 1. Infrastructure failure after consumption is not scientific evidence.",
-  "result_authority": "Only durable registered result artifacts produced by this authorized attempt determine the scientific outcome; workflow status alone does not.",
-  "stopping_rule": "If any replicate-1 primary selected ratio is >= 1.0, Phase 31 is decisively FAIL under the frozen 69/69 criterion and replicates 2 and 3 remain unconsumed. If replicate 1 is 23/23 below persistence, the overall gate remains unresolved and a separate authorization is required before replicate 2.",
+  "registered_result": {
+    "primary_passing_cells": 22,
+    "primary_total_cells": 23,
+    "failing_cells": {"hj_id_h8": 11.016722022265716},
+    "targeted_nls_id_h8_ratio": 0.8441240059482158,
+    "overall_gate_status": "FAIL_DECISIVE"
+  },
+  "consumption_rule": "Replicate 1 became irrevocably consumed when registered preparation using seed base 831310000 began.",
+  "retry_policy": "No retry, rerun, redispatch, or replacement seed is authorized for replicate 1.",
+  "result_authority": "The durable sealed registered result determines the scientific outcome; workflow success alone is not scientific evidence.",
+  "stopping_rule_applied": "hj_id_h8 was >= 1.0 in replicate 1, so Phase 31 is decisively FAIL under the frozen 69/69 criterion. Replicates 2 and 3 remain unconsumed and must not be run.",
+  "next_action": "STOP_PHASE31_REGISTERED_EXECUTION. Any further scientific work requires a separately preregistered phase with a fresh seed namespace.",
   "claim_limit": "Synthetic benchmark evidence only; not evidence of new physics, unrestricted scientific-law discovery, AGI, or SSI."
 }
