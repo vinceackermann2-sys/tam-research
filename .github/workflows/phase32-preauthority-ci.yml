@@ -1,0 +1,32 @@
+name: Phase-32 preauthority seedless validation
+
+on:
+  push:
+    branches:
+      - experiment/physics-tokenizer-phase32-multihorizon-guard-20260917
+    paths:
+      - tam_research/physics_tokenizer_phase32.py
+      - tests/test_physics_tokenizer_phase32.py
+      - results/physics_tokens/phase32_multihorizon_guard_protocol.json
+
+permissions:
+  contents: read
+
+jobs:
+  seedless-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only test dependencies
+        run: |
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.7,<2.11'
+          python -m pip install 'numpy>=2.0,<3' 'pytest>=8,<9' 'scipy>=1.10,<2'
+          python -m pip install -e . --no-deps
+      - name: Run Phase-32 seedless invariants
+        run: |
+          python -m pytest -q tests/test_physics_tokenizer_phase32.py
+          python -m tam_research.physics_tokenizer_phase32
