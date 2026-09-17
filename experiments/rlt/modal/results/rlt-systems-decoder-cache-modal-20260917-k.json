@@ -1,0 +1,63 @@
+{
+  "benchmark": {
+    "first_step_seconds_including_compile": 563.858925633,
+    "last_loss": 10.849055290222168,
+    "measured_seconds": 0.4324488830000064,
+    "measured_tokens": 65536,
+    "parameters": 7007616,
+    "peak_vram_gb": 23.075397968292236,
+    "speedup_vs_i_batch512": 1.2788359150415611,
+    "tokens_per_second": 151546.2348876018,
+    "variant": "cache_fast_path"
+  },
+  "branch": "exp/rlt-colab",
+  "classification": "PASS_CACHE_FAST_PATH_MATERIAL",
+  "compile": {
+    "cuda_graphs_requested": false,
+    "dynamic": false,
+    "error": null,
+    "fullgraph": true,
+    "mode": "default"
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261003,
+  "finished_unix": 1789674212.8824327,
+  "job_id": "rlt-systems-decoder-cache-modal-20260917-k",
+  "job_source_blob_sha": "8c35b2011abb33f1ff8a1efd8687c97b6d0198bc",
+  "modal_cli_rc": 0,
+  "profile": {
+    "batch_size": 512,
+    "equivalence_batch_size": 2,
+    "prior_i_batch512_tokens_per_second": 118503.26778058674,
+    "seq_len": 64,
+    "swa_window": 32
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "selected_variant": "cache_fast_path",
+  "semantic_equivalence": {
+    "cache_fast_path": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true,
+      "static_cross_prefix": false
+    },
+    "cache_fast_path_plus_static_cross_prefix": {
+      "grad_max_abs": 0.0006103515625,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": false,
+      "static_cross_prefix": true
+    }
+  },
+  "started_unix": 1789673642.3615365,
+  "status": "complete",
+  "trigger_sha": "e708c96d8add73614eb202de50305fb38393a573"
+}
