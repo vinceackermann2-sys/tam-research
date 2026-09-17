@@ -1,0 +1,40 @@
+{
+  "experiment": "physics-token-phase32-multihorizon-context-guard-six-family-v1",
+  "status": "ENGINEERING_GATE_PASS_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
+  "branch": "experiment/physics-tokenizer-phase32-multihorizon-guard-20260917",
+  "parent_phase31_seal_commit": "6af0bac44dfae5b7443a37a9cb3fd2b70414f939",
+  "protocol_commit": "6e87db71632e04a43598420cc457b79c72b665c3",
+  "implementation_commit": "3b4ba102b0e3c250f517c80a0ea56c2d9733096e",
+  "tested_commit": "8e790bf18170d6b3df4f57b308fe618558806f8e",
+  "scientific_change": "Replace Phase-31 single 3-step context damping guard with a forward-chaining 5/4/3-step minimax normalized context guard. Representation, selector, 82-feature rule, damping grid, six families, scientific rollout update, primary splits, and 69/69 gate remain unchanged.",
+  "registered_seed_bases": {
+    "replicate_1": {"seed_base": 832320000, "status": "UNTOUCHED_NOT_AUTHORIZED"},
+    "replicate_2": {"seed_base": 832320100, "status": "UNTOUCHED_NOT_AUTHORIZED"},
+    "replicate_3": {"seed_base": 832320200, "status": "UNTOUCHED_NOT_AUTHORIZED"}
+  },
+  "registered_seed_count": 87,
+  "registered_execution_enabled": false,
+  "seed_execution_in_engineering_gate": false,
+  "validation": {
+    "successful_run_id": 35270547454,
+    "successful_job_id": 105368443882,
+    "conclusion": "success",
+    "tests": "7 passed in 1.84s",
+    "cpu_only": true,
+    "guard_horizons": [5, 4, 3],
+    "guard_context_only": true,
+    "phase30_selector_unchanged": true,
+    "phase31_scientific_rollout_update_unchanged": true,
+    "family_label_used": false
+  },
+  "initial_seedless_ci_failure": {
+    "run_id": 35270321164,
+    "job_id": 105367704010,
+    "classification": "TEST_FIXTURE_EXPECTATION_ERROR_ONLY",
+    "detail": "The synthetic minimax fixture expected lambda 0.5 for trajectory 2 even though its stated matrix makes lambda 0.125 the unique minimax choice. Scientific implementation and preregistered protocol were unchanged; only the test assertion/comment were corrected.",
+    "scientific_seed_consumed": false
+  },
+  "frozen_registered_gate": "PASS only if all 3 fresh registered replicates beat raw persistence on all 23 primary cells = 69/69; any valid ratio >= 1.0 is decisive FAIL.",
+  "authorization_boundary": "A separate explicit scientific-execution authorization is required before enabling or consuming Phase-32 registered replicate 1 seed base 832320000.",
+  "claim_limit": "Engineering validation only. No Phase-32 registered scientific evidence exists yet."
+}
