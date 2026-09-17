@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-decoder-cache-modal-20260917-k",
+  "task": "systems_decoder_cache_profile",
+  "engineering_seed": 20261003,
+  "seq_len": 64,
+  "batch_size": 512,
+  "prior_occupancy_job_id": "rlt-systems-batchscale768-modal-20260916-j",
+  "baseline_batch512_job_id": "rlt-systems-batchscale512-modal-20260916-i",
+  "scientific_execution": false,
+  "automatic_retry": false
+}
