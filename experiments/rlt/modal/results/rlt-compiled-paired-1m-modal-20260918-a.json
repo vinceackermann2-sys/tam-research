@@ -1,0 +1,290 @@
+{
+  "branch": "exp/rlt-colab",
+  "checkpoint_durability": {
+    "modal_volume_committed": true,
+    "remote_dir": "rlt-compiled-paired-1m-modal-20260918-a",
+    "rlt": {
+      "bytes": 84126475,
+      "filename": "rlt_final.pt",
+      "sha256": "6ce3628b3b1808a32c2b0852dfc57a14193529bb780323597220ce7baf9b0ec2"
+    },
+    "transformer": {
+      "bytes": 84527675,
+      "filename": "transformer_final.pt",
+      "sha256": "fd89288278fe0dcec040e9d7f14b635b1d0792a6a90597801ce99c88e435bf3c"
+    },
+    "volume": "tam-rlt-scientific-checkpoints"
+  },
+  "checkpoint_export": {
+    "github_artifact_digest": "110736af89c2121fe1cbf062651fabf990f63b4e388cc7b7fc7e7b61edfbf158",
+    "github_artifact_id": "10553095392",
+    "github_artifact_name": "rlt-compiled-paired-1m-modal-20260918-a-checkpoints",
+    "github_artifact_upload_outcome": "success",
+    "github_run_id": "35355578104",
+    "modal_volume_get_outcome": "success"
+  },
+  "comparison": {
+    "breakthrough_claim_supported": false,
+    "classification": "PAIRED_1M_RLT_LOWER_NLL_SINGLE_RUN_HINT",
+    "compile_probe_seed": 20301005,
+    "derived": {
+      "effective_transformer_throughput_multiple_vs_rlt_including_compile_and_eval": 34.10078793080199,
+      "evaluation_points_total": 5,
+      "evaluation_points_where_rlt_lower_nll": [
+        0,
+        524288,
+        786432,
+        1048576
+      ],
+      "rlt_minus_transformer_final_nll": -0.020949244499206543,
+      "rlt_minus_transformer_final_perplexity": -22.195083567064785,
+      "steady_state_transformer_throughput_multiple_vs_rlt": 26.667047093571902,
+      "transformer_parameter_delta_fraction": 0.004749118673169306
+    },
+    "interpretation_ceiling": "Single matched ~1M-token seed. A lower RLT validation NLL would be a serious single-run hint only; it cannot support a breakthrough claim until replicated with fresh preregistered seeds.",
+    "matched_conditions": {
+      "compile_dynamic": false,
+      "compile_fullgraph": true,
+      "compile_mode": "default",
+      "cuda_graphs": false,
+      "eval_batches_per_checkpoint": 16,
+      "evaluation_fractions": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "grad_accum_steps": 1,
+      "learning_rate": 0.0003,
+      "micro_batch_size": 16,
+      "optimizer_steps": 1024,
+      "same_batch_stream": true,
+      "same_eval_stream": true,
+      "same_model_seed": true,
+      "seq_len": 64,
+      "token_budget": 1048576,
+      "warmup_ratio": 0.02,
+      "weight_decay": 0.1
+    },
+    "paired_batch_seed": 20271005,
+    "paired_eval_seed": 20291005,
+    "rlt": {
+      "checkpoint": {
+        "bytes": 84126475,
+        "filename": "rlt_final.pt",
+        "sha256": "6ce3628b3b1808a32c2b0852dfc57a14193529bb780323597220ce7baf9b0ec2"
+      },
+      "compile": {
+        "loss": 10.846781730651855,
+        "peak_vram_gb": 1.1211223602294922,
+        "seconds_forward_backward_no_update": 535.211485431
+      },
+      "config": {
+        "d_model": 128,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 4,
+        "n_stages": 2,
+        "rms_eps": 1e-06,
+        "swa_window": 32,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 1431.1084138813035,
+      "final_eval": {
+        "eval_tokens": 16384,
+        "nll": 6.955030590295792,
+        "perplexity": 1048.4106086523864,
+        "seconds": 1.169032919000074,
+        "step": 1024,
+        "tokens_seen": 1048576
+      },
+      "last_train_loss": 6.833438873291016,
+      "learning_curve": [
+        {
+          "eval_tokens": 16384,
+          "nll": 10.847935259342194,
+          "perplexity": 51427.85647175213,
+          "seconds": 215.44787313899997,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 7.415550142526627,
+          "perplexity": 1661.623046493212,
+          "seconds": 1.1904619079999748,
+          "step": 256,
+          "tokens_seen": 262144
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 7.10419961810112,
+          "perplexity": 1217.067575939306,
+          "seconds": 1.1835906420000128,
+          "step": 512,
+          "tokens_seen": 524288
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 6.995617866516113,
+          "perplexity": 1091.83807955657,
+          "seconds": 1.1733172309999418,
+          "step": 768,
+          "tokens_seen": 786432
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 6.955030590295792,
+          "perplexity": 1048.4106086523864,
+          "seconds": 1.169032919000074,
+          "step": 1024,
+          "tokens_seen": 1048576
+        }
+      ],
+      "parameters": 7007616,
+      "status": "complete",
+      "steps": 1024,
+      "tokens_per_second_excluding_compile_and_eval": 5439.40251462409,
+      "tokens_seen": 1048576,
+      "train_peak_vram_gb": 1.1110644340515137,
+      "train_seconds_excluding_scheduled_eval": 192.774113918,
+      "wall_seconds_training_and_scheduled_eval": 197.49051661800002
+    },
+    "scientific_seed": 20261005,
+    "semantic_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "status": "complete",
+    "transformer": {
+      "checkpoint": {
+        "bytes": 84527675,
+        "filename": "transformer_final.pt",
+        "sha256": "fd89288278fe0dcec040e9d7f14b635b1d0792a6a90597801ce99c88e435bf3c"
+      },
+      "compile": {
+        "loss": 10.849196434020996,
+        "peak_vram_gb": 0.7484140396118164,
+        "seconds_forward_backward_no_update": 14.075811371999976
+      },
+      "config": {
+        "architecture": "transformer",
+        "d_model": 128,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 4,
+        "n_layers": 3,
+        "tamv2_branch_inner": 104,
+        "tamv2_state_size": 64,
+        "tamv3_attn_inner": 208,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 48801.92452775274,
+      "final_eval": {
+        "eval_tokens": 16384,
+        "nll": 6.975979834794998,
+        "perplexity": 1070.6056922194512,
+        "seconds": 0.04535226299992701,
+        "step": 1024,
+        "tokens_seen": 1048576
+      },
+      "last_train_loss": 6.841854095458984,
+      "learning_curve": [
+        {
+          "eval_tokens": 16384,
+          "nll": 10.85276311635971,
+          "perplexity": 51676.74312066755,
+          "seconds": 5.3485776369999485,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 7.40912327170372,
+          "perplexity": 1650.9782528139401,
+          "seconds": 0.045714094999993904,
+          "step": 256,
+          "tokens_seen": 262144
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 7.117596834897995,
+          "perplexity": 1233.482606451042,
+          "seconds": 0.04550573599999552,
+          "step": 512,
+          "tokens_seen": 524288
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 7.013651132583618,
+          "perplexity": 1111.7060902917615,
+          "seconds": 0.04505614600009267,
+          "step": 768,
+          "tokens_seen": 786432
+        },
+        {
+          "eval_tokens": 16384,
+          "nll": 6.975979834794998,
+          "perplexity": 1070.6056922194512,
+          "seconds": 0.04535226299992701,
+          "step": 1024,
+          "tokens_seen": 1048576
+        }
+      ],
+      "parameters": 7040896,
+      "status": "complete",
+      "steps": 1024,
+      "tokens_per_second_excluding_compile_and_eval": 145052.80301837405,
+      "tokens_seen": 1048576,
+      "train_peak_vram_gb": 0.8008861541748047,
+      "train_seconds_excluding_scheduled_eval": 7.228926143999956,
+      "wall_seconds_training_and_scheduled_eval": 7.4105543839999655
+    }
+  },
+  "data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 1234,
+    "tokenizer": "gpt2",
+    "train_tokens": 2000000,
+    "val_tokens": 200000
+  },
+  "finished_unix": 1789742250.5845642,
+  "job": {
+    "automatic_retry": false,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "grad_accum_steps": 1,
+    "job_id": "rlt-compiled-paired-1m-modal-20260918-a",
+    "micro_batch_size": 16,
+    "requires_prior_pair_job_id": "rlt-compiled-paired-64k-modal-20260915-a",
+    "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+    "schema": 1,
+    "scientific_seed": 20261005,
+    "seq_len": 64,
+    "task": "compiled_paired_1m",
+    "token_budget": 1048576,
+    "train_tokens": 2000000,
+    "val_tokens": 200000
+  },
+  "job_id": "rlt-compiled-paired-1m-modal-20260918-a",
+  "job_source_blob_sha": "ccc1f73b0e9caa356eb45b815cf99fec262601de",
+  "launcher_blob_sha": "b2106d1bf740af6fa54bc17b5ee4c1e47da3e913",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1789741248.2158082,
+  "status": "complete",
+  "trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "trigger_sha": "7f0ade5e3f715232cb1ff3b88e6f4c4e0d457fb0",
+  "worker": "modal"
+}
