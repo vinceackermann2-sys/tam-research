@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "job_id": "rlt-compiled-paired-1m-modal-20260918-a",
+  "task": "compiled_paired_1m",
+  "scientific_seed": 20261005,
+  "requires_prior_pair_job_id": "rlt-compiled-paired-64k-modal-20260915-a",
+  "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+  "token_budget": 1048576,
+  "seq_len": 64,
+  "micro_batch_size": 16,
+  "grad_accum_steps": 1,
+  "train_tokens": 2000000,
+  "val_tokens": 200000,
+  "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+  "automatic_retry": false
+}
