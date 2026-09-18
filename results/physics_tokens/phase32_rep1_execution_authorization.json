@@ -1,0 +1,26 @@
+{
+  "experiment": "physics-token-phase32-multihorizon-context-guard-six-family-v1",
+  "status": "NOT_AUTHORIZED_PENDING_EXPLICIT_USER_AUTHORIZATION",
+  "authorization_scope": {
+    "replicate": 1,
+    "seed_base": 832320000,
+    "attempt_id": "phase32-registered-rep1-attempt1",
+    "single_attempt_only": true
+  },
+  "branch": "experiment/physics-tokenizer-phase32-multihorizon-guard-20260917",
+  "parent_phase31_seal_commit": "6af0bac44dfae5b7443a37a9cb3fd2b70414f939",
+  "preauthority_engineering_gate_commit": "48895ec016b333fccadf020b60f75faab84f3dcf",
+  "protocol": "results/physics_tokens/phase32_multihorizon_guard_protocol.json",
+  "engineering_gate": "results/physics_tokens/phase32_preauthority_engineering_gate.json",
+  "registered_seed_bases": {
+    "replicate_1": {"seed_base": 832320000, "status": "UNTOUCHED_NOT_AUTHORIZED"},
+    "replicate_2": {"seed_base": 832320100, "status": "LOCKED_UNCONSUMED"},
+    "replicate_3": {"seed_base": 832320200, "status": "LOCKED_UNCONSUMED"}
+  },
+  "consumption_rule": "Replicate 1 becomes irrevocably consumed immediately before registered scientific preparation using seed base 832320000 begins.",
+  "retry_policy": "No retry, rerun, redispatch, or replacement seed is permitted after consumption. Infrastructure failure after consumption is not scientific evidence.",
+  "result_authority": "Only durable registered result artifacts from the authorized one-shot attempt determine scientific outcome; workflow status alone does not.",
+  "stopping_rule": "Any valid replicate-1 primary selected ratio >= 1.0 makes Phase 32 decisively FAIL and keeps replicates 2 and 3 unconsumed. A 23/23 replicate-1 result leaves the overall 69/69 gate unresolved and requires separate replicate-2 authorization.",
+  "authorization_boundary": "This ledger is deliberately NOT authorized. It may be changed to AUTHORIZED_FOR_REGISTERED_EXECUTION only after a separate explicit user authorization for Phase-32 replicate 1 seed base 832320000.",
+  "claim_limit": "Synthetic benchmark evidence only; not evidence of new physics, unrestricted scientific-law discovery, AGI, or SSI."
+}
