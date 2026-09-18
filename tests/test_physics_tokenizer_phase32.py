@@ -166,3 +166,22 @@ def test_rep1_aggregate_23_of_23_still_requires_rep2_authorization(tmp_path):
     assert result['replicate_all_23_below_persistence'] is True
     assert result['overall_gate_status'] == 'UNRESOLVED_REQUIRES_SEPARATE_REP2_AUTHORIZATION'
     assert result['replicate_2_status'] == 'LOCKED_UNCONSUMED'
+
+
+def test_rep1_workflow_template_is_non_executable_and_one_shot():
+    template_path = Path('results/physics_tokens/phase32_rep1_registered_attempt1_workflow.template.yml')
+    executable_path = Path('.github/workflows/phase32-rep1-registered-attempt1.yml')
+    assert template_path.exists()
+    assert not executable_path.exists()
+    text = template_path.read_text()
+    assert 'NON-EXECUTABLE PREAUTHORIZATION TEMPLATE' in text
+    assert "GITHUB_RUN_ATTEMPT'] == '1'" in text
+    assert "GITHUB_EVENT_NAME'] == 'push'" in text
+    assert "research: dispatch Phase-32 registered replicate 1 attempt1" in text
+    assert "auth['status'] == 'AUTHORIZED_FOR_REGISTERED_EXECUTION'" in text
+    assert "832320000" in text
+    assert "AUTHORIZED_UNCONSUMED" in text
+    assert "LOCKED_UNCONSUMED" in text
+    assert "phase32_rep1_consumption.json" in text
+    assert "phase32_registered_rep1_summary.json" in text
+    assert "retention-days: 30" in text
