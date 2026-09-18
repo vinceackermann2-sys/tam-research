@@ -1,6 +1,6 @@
 {
   "experiment": "physics-token-phase32-multihorizon-context-guard-six-family-v1",
-  "status": "ENGINEERING_GATE_PASS_REP1_LAUNCH_READY_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
+  "status": "ENGINEERING_GATE_PASS_REP1_ONE_SHOT_TEMPLATE_VALIDATED_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
   "branch": "experiment/physics-tokenizer-phase32-multihorizon-guard-20260917",
   "parent_phase31_seal_commit": "6af0bac44dfae5b7443a37a9cb3fd2b70414f939",
   "protocol_commit": "6e87db71632e04a43598420cc457b79c72b665c3",
@@ -70,6 +70,27 @@
     "provisional_success": "If replicate 1 is 23/23 below persistence, the Phase-32 mechanism survives its first fresh registered test but overall PASS is not yet established.",
     "full_pass": "Only 69/69 across all three separately authorized registered replicates establishes the preregistered Phase-32 PASS."
   },
-  "authorization_boundary": "A separate explicit scientific-execution authorization is required before changing the authorization ledger to AUTHORIZED_FOR_REGISTERED_EXECUTION or consuming Phase-32 registered replicate 1 seed base 832320000.",
-  "claim_limit": "Engineering validation only. No Phase-32 registered scientific evidence exists yet."
+  "authorization_boundary": "No further scientific progress can be made without a separate explicit authorization for Phase-32 registered replicate 1 seed base 832320000. Bare instructions such as continue do not change this ledger or consume the seed.",
+  "claim_limit": "Engineering validation only. No Phase-32 registered scientific evidence exists yet.",
+  "one_shot_workflow_template": {
+    "path": "results/physics_tokens/phase32_rep1_registered_attempt1_workflow.template.yml",
+    "executable": false,
+    "template_commit": "dd4d07b935a78960b019e07b49ab17da65e42e02",
+    "validation_commit": "0511cf4632e8110519c8b1c8a19980a0ee1634e3",
+    "validation_run_id": 35357324090,
+    "validation_job_id": 105639751388,
+    "conclusion": "success",
+    "tests": "13 passed in 1.76s",
+    "safeguards": [
+      "template is outside .github/workflows and therefore cannot execute",
+      "run_attempt must equal 1",
+      "event must be the authorized push launch",
+      "launch commit message is frozen",
+      "authorization ledger must be AUTHORIZED_FOR_REGISTERED_EXECUTION",
+      "replicate 1 must be AUTHORIZED_UNCONSUMED at seed base 832320000",
+      "replicates 2 and 3 must remain LOCKED_UNCONSUMED",
+      "durable consumption marker is written before scientific preparation",
+      "durable registered result artifacts are uploaded with 30-day retention"
+    ]
+  }
 }
