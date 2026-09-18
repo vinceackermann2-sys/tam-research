@@ -1,0 +1,30 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789741235.5625863,
+  "job": {
+    "automatic_retry": false,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "grad_accum_steps": 1,
+    "job_id": "rlt-compiled-paired-1m-modal-20260918-a",
+    "micro_batch_size": 16,
+    "requires_prior_pair_job_id": "rlt-compiled-paired-64k-modal-20260915-a",
+    "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+    "schema": 1,
+    "scientific_seed": 20261005,
+    "seq_len": 64,
+    "task": "compiled_paired_1m",
+    "token_budget": 1048576,
+    "train_tokens": 2000000,
+    "val_tokens": 200000
+  },
+  "job_id": "rlt-compiled-paired-1m-modal-20260918-a",
+  "job_source_blob_sha": "ccc1f73b0e9caa356eb45b815cf99fec262601de",
+  "launcher_blob_sha": "b2106d1bf740af6fa54bc17b5ee4c1e47da3e913",
+  "schema": 1,
+  "scientific_seed": 20261005,
+  "status": "claimed",
+  "trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "trigger_sha": "7f0ade5e3f715232cb1ff3b88e6f4c4e0d457fb0",
+  "worker": "github-actions-modal"
+}
