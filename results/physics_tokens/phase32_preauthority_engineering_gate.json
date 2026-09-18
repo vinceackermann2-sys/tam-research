@@ -1,31 +1,61 @@
 {
   "experiment": "physics-token-phase32-multihorizon-context-guard-six-family-v1",
-  "status": "ENGINEERING_GATE_PASS_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
+  "status": "ENGINEERING_GATE_PASS_REP1_LAUNCH_READY_SCIENTIFIC_EXECUTION_NOT_AUTHORIZED",
   "branch": "experiment/physics-tokenizer-phase32-multihorizon-guard-20260917",
   "parent_phase31_seal_commit": "6af0bac44dfae5b7443a37a9cb3fd2b70414f939",
   "protocol_commit": "6e87db71632e04a43598420cc457b79c72b665c3",
   "implementation_commit": "3b4ba102b0e3c250f517c80a0ea56c2d9733096e",
-  "tested_commit": "8e790bf18170d6b3df4f57b308fe618558806f8e",
+  "initial_semantic_test_commit": "8e790bf18170d6b3df4f57b308fe618558806f8e",
+  "authorization_ledger_commit": "8e30c393c26af9772411aea6f22763b1866bb333",
+  "fail_closed_runner_commit": "5be1778439beea0b81e6b076bb37645a11082854",
+  "launch_readiness_test_commit": "53cacb3b10e8e0f3ac49e02b94a57c5b094e6c49",
   "scientific_change": "Replace Phase-31 single 3-step context damping guard with a forward-chaining 5/4/3-step minimax normalized context guard. Representation, selector, 82-feature rule, damping grid, six families, scientific rollout update, primary splits, and 69/69 gate remain unchanged.",
   "registered_seed_bases": {
-    "replicate_1": {"seed_base": 832320000, "status": "UNTOUCHED_NOT_AUTHORIZED"},
-    "replicate_2": {"seed_base": 832320100, "status": "UNTOUCHED_NOT_AUTHORIZED"},
-    "replicate_3": {"seed_base": 832320200, "status": "UNTOUCHED_NOT_AUTHORIZED"}
+    "replicate_1": {
+      "seed_base": 832320000,
+      "status": "UNTOUCHED_NOT_AUTHORIZED"
+    },
+    "replicate_2": {
+      "seed_base": 832320100,
+      "status": "LOCKED_UNCONSUMED"
+    },
+    "replicate_3": {
+      "seed_base": 832320200,
+      "status": "LOCKED_UNCONSUMED"
+    }
   },
   "registered_seed_count": 87,
   "registered_execution_enabled": false,
   "seed_execution_in_engineering_gate": false,
-  "validation": {
+  "semantic_validation": {
     "successful_run_id": 35270547454,
     "successful_job_id": 105368443882,
     "conclusion": "success",
     "tests": "7 passed in 1.84s",
     "cpu_only": true,
-    "guard_horizons": [5, 4, 3],
+    "guard_horizons": [
+      5,
+      4,
+      3
+    ],
     "guard_context_only": true,
     "phase30_selector_unchanged": true,
     "phase31_scientific_rollout_update_unchanged": true,
     "family_label_used": false
+  },
+  "launch_readiness_validation": {
+    "successful_run_id": 35354991767,
+    "successful_job_id": 105632059878,
+    "conclusion": "success",
+    "tests": "12 passed in 1.89s",
+    "scientific_seed_execution": false,
+    "checks": [
+      "rep1 runner seed namespace is exactly 832320000 with future bases 832320100 and 832320200 locked",
+      "authorization ledger is explicitly NOT_AUTHORIZED and all Phase-32 registered seeds remain untouched",
+      "unauthorized prepare() fails before build_all and before writing a consumption marker",
+      "synthetic 22/23 aggregation produces decisive FAIL and preserves reps 2-3 locked",
+      "synthetic 23/23 aggregation leaves overall gate unresolved and still requires separate rep2 authorization"
+    ]
   },
   "initial_seedless_ci_failure": {
     "run_id": 35270321164,
@@ -35,6 +65,11 @@
     "scientific_seed_consumed": false
   },
   "frozen_registered_gate": "PASS only if all 3 fresh registered replicates beat raw persistence on all 23 primary cells = 69/69; any valid ratio >= 1.0 is decisive FAIL.",
-  "authorization_boundary": "A separate explicit scientific-execution authorization is required before enabling or consuming Phase-32 registered replicate 1 seed base 832320000.",
+  "what_will_be_known_after_rep1": {
+    "decisive_failure": "If any of the 23 replicate-1 selected ratios is >=1.0, Phase 32 is immediately known to FAIL and reps 2-3 stay unconsumed.",
+    "provisional_success": "If replicate 1 is 23/23 below persistence, the Phase-32 mechanism survives its first fresh registered test but overall PASS is not yet established.",
+    "full_pass": "Only 69/69 across all three separately authorized registered replicates establishes the preregistered Phase-32 PASS."
+  },
+  "authorization_boundary": "A separate explicit scientific-execution authorization is required before changing the authorization ledger to AUTHORIZED_FOR_REGISTERED_EXECUTION or consuming Phase-32 registered replicate 1 seed base 832320000.",
   "claim_limit": "Engineering validation only. No Phase-32 registered scientific evidence exists yet."
 }
