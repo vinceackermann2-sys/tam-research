@@ -61,7 +61,7 @@ def run_pair_remote(job_json: str) -> str:
             "job_id": JOB_ID,
             "task": "compiled_paired_1m_replication_c",
             "scientific_seed": SCIENTIFIC_SEED,
-            "requires_prior_pair_job_id": "rlt-compiled-paired-1m-modal-20260918-a",
+            "requires_prior_pair_job_id": "rlt-compiled-paired-1m-modal-20260919-b",
             "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
             "token_budget": 1048576,
             "seq_len": 64,
