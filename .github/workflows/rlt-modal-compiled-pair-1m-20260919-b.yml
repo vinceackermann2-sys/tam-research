@@ -1,0 +1,345 @@
+name: RLT Modal compiled paired 1M replication B 20260919
+
+on:
+  push:
+    branches:
+      - exp/rlt-colab
+    paths:
+      - .github/workflows/rlt-modal-compiled-pair-1m-20260919-b.yml
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: rlt-modal-compiled-pair-1m-20260919-b
+  cancel-in-progress: false
+
+jobs:
+  paired:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-compiled-paired-1m-modal-20260919-b
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-compiled-paired-1m-modal-20260919-b.json
+      PRIOR_PAIR_PATH: experiments/rlt/modal/results/rlt-compiled-paired-1m-modal-20260918-a.json
+      SYSTEMS_PATH: experiments/rlt/modal/results/rlt-systems-decoder-cache768-modal-20260917-l.json
+      BASE_TRAINER_PATH: experiments/rlt/train_compiled_pair_1m.py
+      TRAINER_PATH: experiments/rlt/train_compiled_pair_1m_b.py
+      LAUNCHER_PATH: experiments/rlt/modal_compiled_pair_1m_b.py
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-compiled-pair-1m-20260919-b.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-compiled-paired-1m-modal-20260919-b.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-compiled-paired-1m-modal-20260919-b.json
+      VOLUME_NAME: tam-rlt-scientific-checkpoints
+      ARTIFACT_NAME: rlt-compiled-paired-1m-modal-20260919-b-checkpoints
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse any previously claimed or completed B attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          BASE_TRAINER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$BASE_TRAINER_PATH")"
+          TRAINER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$TRAINER_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "BASE_TRAINER_BLOB_SHA=$BASE_TRAINER_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "TRAINER_BLOB_SHA=$TRAINER_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA" >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-compiled-paired-1m-modal-20260919-b',
+            'task':'compiled_paired_1m_replication_b',
+            'scientific_seed':20261006,
+            'requires_prior_pair_job_id':'rlt-compiled-paired-1m-modal-20260918-a',
+            'requires_systems_job_id':'rlt-systems-decoder-cache768-modal-20260917-l',
+            'token_budget':1048576,
+            'seq_len':64,
+            'micro_batch_size':16,
+            'grad_accum_steps':1,
+            'train_tokens':2000000,
+            'val_tokens':200000,
+            'checkpoint_volume':'tam-rlt-scientific-checkpoints',
+            'automatic_retry':False,
+          }, j
+          PY
+
+      - name: Require A hint and frozen systems closeout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$PRIOR_PAIR_PATH" > /tmp/prior.json
+          git show "origin/$BRANCH:$SYSTEMS_PATH" > /tmp/systems.json
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/prior.json'))
+          s=json.load(open('/tmp/systems.json'))
+          assert p.get('status')=='complete', p
+          c=p.get('comparison')
+          assert isinstance(c,dict) and c.get('status')=='complete', c
+          assert c.get('classification')=='PAIRED_1M_RLT_LOWER_NLL_SINGLE_RUN_HINT', c
+          assert c.get('breakthrough_claim_supported') is False, c
+          assert float(c['derived']['rlt_minus_transformer_final_nll']) < 0.0, c
+          assert p.get('checkpoint_durability',{}).get('modal_volume_committed') is True, p
+          assert p.get('checkpoint_export',{}).get('github_artifact_upload_outcome')=='success', p
+          assert s.get('status')=='complete', s
+          assert s.get('classification')=='PASS_CACHE768_WEAK', s
+          assert s['semantic_equivalence']['passed'] is True, s
+          assert s['semantic_equivalence']['logits_max_abs']==0.0, s
+          assert s['semantic_equivalence']['loss_abs']==0.0, s
+          assert s['semantic_equivalence']['grad_max_abs']==0.0, s
+          PY
+
+      - name: Verify Modal secrets and install CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}"
+          test -n "${MODAL_TOKEN_SECRET:-}"
+          python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+
+      - name: Validate replication B sources locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py "$BASE_TRAINER_PATH" "$TRAINER_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          b=Path('experiments/rlt/train_compiled_pair_1m.py').read_text()
+          t=Path('experiments/rlt/train_compiled_pair_1m_b.py').read_text()
+          m=Path('experiments/rlt/modal_compiled_pair_1m_b.py').read_text()
+          assert 'TOKEN_BUDGET = 1_048_576' in b
+          assert 'MICRO_BATCH_SIZE = 16' in b and 'GRAD_ACCUM_STEPS = 1' in b
+          assert 'breakthrough_claim_supported": False' in b
+          assert 'SCIENTIFIC_SEED = 20_261_006' in t
+          assert 'PAIRED_BATCH_SEED = 20_271_006' in t
+          assert 'PAIRED_EVAL_SEED = 20_291_006' in t
+          assert 'COMPILE_PROBE_SEED = 20_301_006' in t
+          assert 'base.SCIENTIFIC_SEED = SCIENTIFIC_SEED' in t
+          assert 'Volume.from_name(CHECKPOINT_VOLUME, create_if_missing=True)' in m
+          assert 'retries=0' in m and 'gpu="A100"' in m
+          assert 'train_compiled_pair_1m_b(' in m
+          PY
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          export P
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['P'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False, p
+          p.update({
+            'classification':'RLT_COMPILED_PAIRED_1M_REPLICATION_B_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'base_trainer_blob_sha':os.environ['BASE_TRAINER_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Commit durable preflight before GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt paired 1m: record replication b preflight'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot B claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          payload={
+            'schema':1,
+            'job_id':os.environ['JOB_ID'],
+            'status':'claimed',
+            'claimed_unix':time.time(),
+            'worker':'github-actions-modal',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'base_trainer_blob_sha':os.environ['BASE_TRAINER_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_seed':20261006,
+            'automatic_retry_authorized':False,
+            'job':json.load(open(os.environ['JOB_PATH'])),
+          }
+          p=pathlib.Path(os.environ['CLAIM_PATH'])
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt paired 1m: claim $JOB_ID before A100 execution"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 replication B
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 62m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_COMPILED_PAIR_1M_B_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Decode terminal B payload
+        id: decode
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64','')
+          rc=int(os.environ.get('MODAL_RC','999'))
+          payload=None
+          if b:
+            try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+            except Exception: payload=None
+          if not isinstance(payload,dict):
+            log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+            payload={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed','finished_unix':time.time(),
+                     'worker':'github-actions-modal','error_type':'ModalInvocationOrTransportError',
+                     'error':f'Modal CLI rc={rc}; no parseable terminal payload','log_tail':log[-6000:],
+                     'scientific_conclusion':None}
+          pathlib.Path('/tmp/pair-result.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('PAIR_STATUS='+str(payload.get('status','unknown'))+'\n')
+          PY
+
+      - name: Export and verify B checkpoints
+        id: export
+        if: env.PAIR_STATUS == 'complete'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rlt-checkpoints
+          mkdir -p /tmp/rlt-checkpoints
+          modal volume get "$VOLUME_NAME" "$JOB_ID" /tmp/rlt-checkpoints
+          python - <<'PY'
+          import hashlib,json,pathlib
+          r=json.load(open('/tmp/pair-result.json'))
+          root=pathlib.Path('/tmp/rlt-checkpoints')
+          def one(name):
+              xs=list(root.rglob(name)); assert len(xs)==1,(name,xs); return xs[0]
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for chunk in iter(lambda:f.read(8*1024*1024),b''): h.update(chunk)
+              return h.hexdigest()
+          rp,tp=one('rlt_final.pt'),one('transformer_final.pt')
+          assert sha(rp)==r['checkpoint_durability']['rlt']['sha256']
+          assert sha(tp)==r['checkpoint_durability']['transformer']['sha256']
+          assert rp.stat().st_size==r['checkpoint_durability']['rlt']['bytes']
+          assert tp.stat().st_size==r['checkpoint_durability']['transformer']['bytes']
+          assert r['checkpoint_durability']['modal_volume_committed'] is True
+          PY
+
+      - name: Upload B checkpoint artifact
+        id: upload
+        if: env.PAIR_STATUS == 'complete' && steps.export.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: /tmp/rlt-checkpoints
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+
+      - name: Materialize durable B result
+        if: always()
+        shell: bash
+        env:
+          EXPORT_OUTCOME: ${{ steps.export.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          payload=json.load(open('/tmp/pair-result.json'))
+          payload.update({
+            'modal_cli_rc':int(os.environ.get('MODAL_RC','999')),
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'base_trainer_blob_sha':os.environ['BASE_TRAINER_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'checkpoint_export':{
+              'modal_volume_get_outcome':os.environ.get('EXPORT_OUTCOME',''),
+              'github_artifact_upload_outcome':os.environ.get('UPLOAD_OUTCOME',''),
+              'github_artifact_id':os.environ.get('ARTIFACT_ID',''),
+              'github_artifact_digest':os.environ.get('ARTIFACT_DIGEST',''),
+              'github_artifact_name':os.environ['ARTIFACT_NAME'],
+              'github_run_id':os.environ['GITHUB_RUN_ID'],
+            },
+          })
+          p=pathlib.Path(os.environ['RESULT_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt paired 1m: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize B outcome
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          c=r.get('comparison')
+          if not isinstance(c,dict) or c.get('status')!='complete': raise SystemExit(1)
+          if c.get('breakthrough_claim_supported') is not False: raise SystemExit(1)
+          if c.get('classification') not in {'PAIRED_1M_RLT_LOWER_NLL_SINGLE_RUN_HINT','PAIRED_1M_NO_RLT_QUALITY_ADVANTAGE'}:
+              raise SystemExit(1)
+          if r.get('checkpoint_durability',{}).get('modal_volume_committed') is not True: raise SystemExit(1)
+          e=r.get('checkpoint_export',{})
+          if e.get('modal_volume_get_outcome')!='success' or e.get('github_artifact_upload_outcome')!='success':
+              raise SystemExit(1)
+          print('B classification:',c['classification'])
+          print('B RLT final NLL:',c['rlt']['final_eval']['nll'])
+          print('B Transformer final NLL:',c['transformer']['final_eval']['nll'])
+          print('B delta NLL:',c['derived']['rlt_minus_transformer_final_nll'])
+          PY
