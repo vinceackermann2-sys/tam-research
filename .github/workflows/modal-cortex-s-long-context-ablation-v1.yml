@@ -1,0 +1,125 @@
+name: CORTEX-S long-context systems + ablation v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-s-long-context-ablation-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - name: Check out exact current main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Parse exact source-bound payload
+        id: payload
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY'
+          import json, os
+          body = json.loads(os.environ['ISSUE_BODY'])
+          expected = {'source_sha', 'source_tree', 'harness_sha'}
+          if set(body) != expected:
+              raise SystemExit(f'payload keys must be exactly {sorted(expected)}, got {sorted(body)}')
+          for key in sorted(expected):
+              value = str(body[key]).strip().lower()
+              if len(value) != 40 or any(ch not in '0123456789abcdef' for ch in value):
+                  raise SystemExit(f'{key} must be a full lowercase SHA')
+              with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
+                  handle.write(f'{key}={value}\n')
+          PY
+
+      - name: Verify live main, tree, ancestry, and exact harness bytes
+        env:
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git cat-file -e "$HARNESS_SHA^{commit}"
+          git merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          git diff --exit-code "$HARNESS_SHA" "$SOURCE_SHA" -- \
+            architectures/cortex_s/long_context_ablation_v1.py \
+            architectures/cortex_s/tests/test_long_context_ablation_v1.py \
+            modal_cortex_s_long_context_ablation_v1.py \
+            .github/workflows/modal-cortex-s-long-context-ablation-v1.yml
+
+      - name: Zero-GPU syntax and authority preflight
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            architectures/cortex_s/long_context_ablation_v1.py \
+            architectures/cortex_s/tests/test_long_context_ablation_v1.py \
+            modal_cortex_s_long_context_ablation_v1.py
+          python - <<'PY'
+          from pathlib import Path
+          runner = Path('modal_cortex_s_long_context_ablation_v1.py').read_text()
+          workflow = Path('.github/workflows/modal-cortex-s-long-context-ablation-v1.yml').read_text()
+          top = workflow.split('\njobs:', 1)[0]
+          assert 'torch.optim' not in runner
+          assert 'torch.save' not in runner
+          assert '.step(' not in runner
+          assert 'gpu="H100!"' in runner
+          assert runner.count('gpu="H100!"') == 1
+          assert 'workflow_dispatch:' not in top
+          assert 'issues:' in top
+          launch = workflow.split('\n      - name: Launch exact one-shot systems benchmark', 1)[1]
+          launch = launch.split('\n      - name: Record normal Modal return only', 1)[0]
+          assert launch.count('modal run --detach --timestamps') == 1
+          PY
+
+      - name: Install Modal CLI
+        run: python -m pip install 'modal>=1.2,<2'
+
+      - name: Authenticate guarded handoff comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="🟨 **CORTEX-S long-context systems handoff authenticated** — source=${SOURCE_SHA}, tree=${SOURCE_TREE}, harness=${HARNESS_SHA}. Exactly one H100 systems-only dispatch is allowed; no training or retry."
+
+      - name: Launch exact one-shot systems benchmark
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          modal run --detach --timestamps modal_cortex_s_long_context_ablation_v1.py \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" \
+            --repo-full-name "$GITHUB_REPOSITORY" \
+            --issue-number "$ISSUE_NUMBER"
+
+      - name: Record normal Modal return only
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="🟩 Long-context systems Modal call returned normally. Interpret only the durable RESULT.json classification; GitHub success alone is not architecture evidence."
