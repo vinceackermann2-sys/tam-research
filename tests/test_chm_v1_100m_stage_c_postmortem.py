@@ -12,7 +12,7 @@ import tam_research.chm_v1_100m_stage_c_postmortem as postmortem
 from tam_research.chm_v1_100m_stage_c_eval import GENERATOR_VERSION, eiem_flat_final_logits
 from tam_research.chm_v1_long_memory_eval import EncodedProbe
 from tam_research.chm_v1_small_lm import LOCAL_WINDOW
-from tam_research.model import ModelConfig, ResearchLM
+from tam_research.models import ModelConfig, ResearchLM
 
 
 class TinyEIEM(nn.Module):
