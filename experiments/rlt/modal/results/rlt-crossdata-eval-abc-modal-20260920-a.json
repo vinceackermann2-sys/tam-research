@@ -1,0 +1,136 @@
+{
+  "branch": "exp/rlt-colab",
+  "evaluation": {
+    "aggregate_across_model_seeds": {
+      "mean_rlt_minus_transformer_nll": -0.01846829056739807,
+      "pair_count": 3,
+      "rlt_lower_pair_count": 3,
+      "sample_sd_pair_delta_nll": 0.0060796889833896715,
+      "se_pair_delta_nll": 0.003510110071149229,
+      "t95_ci_pair_delta_nll_df2": [
+        -0.03357107524731736,
+        -0.003365505887478781
+      ]
+    },
+    "breakthrough_claim_supported": false,
+    "classification": "CROSSDATA_ABC_ALL_THREE_RLT_LOWER_NLL",
+    "fresh_data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "eval_target_tokens_per_pair": 1048576,
+      "required_val_tokens": 1064960,
+      "sampling": "deterministic non-overlapping 64-token next-token sequences from the fresh validation shard",
+      "shuffle_seed": 20260920
+    },
+    "interpretation_ceiling": "Cross-data evaluation of three independently trained model-seed pairs. All-three agreement would strengthen evidence that the 1M-token NLL effect generalizes, but it is still a small-model/single-dataset result and does not establish a general breakthrough.",
+    "pairs": [
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-1m-modal-20260918-a",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "A",
+        "paired_batch_delta_normal95_ci": [
+          -0.0202382016657925,
+          -0.017684486162748304
+        ],
+        "paired_batch_delta_sd": 0.010423520118482087,
+        "paired_batch_delta_se": 0.0006514700074051305,
+        "rlt_lower_batch_count": 249,
+        "rlt_minus_transformer_nll": -0.0189613439142704,
+        "rlt_nll": 7.0277136247605085,
+        "rlt_perplexity": 1127.4498875537663,
+        "seq_len": 64,
+        "transformer_nll": 7.046674968674779,
+        "transformer_perplexity": 1149.031817199621
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-1m-modal-20260919-b",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "B",
+        "paired_batch_delta_normal95_ci": [
+          -0.013750785467857572,
+          -0.010563390823369769
+        ],
+        "paired_batch_delta_sd": 0.013010013121178006,
+        "paired_batch_delta_se": 0.0008131258200736254,
+        "rlt_lower_batch_count": 228,
+        "rlt_minus_transformer_nll": -0.01215708814561367,
+        "rlt_nll": 7.0397307351231575,
+        "rlt_perplexity": 1141.0803124092663,
+        "seq_len": 64,
+        "transformer_nll": 7.051887823268771,
+        "transformer_perplexity": 1155.0371919601664
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-1m-modal-20260919-c",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "C",
+        "paired_batch_delta_normal95_ci": [
+          -0.025491159231746097,
+          -0.023081720052874188
+        ],
+        "paired_batch_delta_sd": 0.00983462634161549,
+        "paired_batch_delta_se": 0.0006146641463509681,
+        "rlt_lower_batch_count": 254,
+        "rlt_minus_transformer_nll": -0.024286439642310143,
+        "rlt_nll": 7.0197474248707294,
+        "rlt_perplexity": 1118.5040757549257,
+        "seq_len": 64,
+        "transformer_nll": 7.04403386451304,
+        "transformer_perplexity": 1146.0011084556907
+      }
+    ],
+    "status": "complete"
+  },
+  "evaluator_blob_sha": "1d83f42ce1d9fa0c1a21de3d345b278c86c5c99b",
+  "finished_unix": 1789911768.7464426,
+  "fresh_data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 20260920,
+    "tokenizer": "gpt2",
+    "train_tokens": 100000,
+    "val_tokens": 1100000
+  },
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 64,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "eval_batches": 256,
+    "eval_target_tokens_per_pair": 1048576,
+    "fresh_data_seed": 20260920,
+    "fresh_train_tokens": 100000,
+    "fresh_val_tokens": 1100000,
+    "job_id": "rlt-crossdata-eval-abc-modal-20260920-a",
+    "requires_checkpoint_job_ids": [
+      "rlt-compiled-paired-1m-modal-20260918-a",
+      "rlt-compiled-paired-1m-modal-20260919-b",
+      "rlt-compiled-paired-1m-modal-20260919-c"
+    ],
+    "schema": 1,
+    "seq_len": 64,
+    "task": "crossdata_eval_abc"
+  },
+  "job_id": "rlt-crossdata-eval-abc-modal-20260920-a",
+  "job_source_blob_sha": "b704125af27c54ef311c5163b8153a0a55d06a79",
+  "launcher_blob_sha": "b83c665fc58e57c7c34bf3d77cb0c66913f3a165",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1789911584.3262239,
+  "status": "complete",
+  "trigger_sha": "c3a53e0e713013e0e49155f2957b884edc677e83",
+  "worker": "modal"
+}
