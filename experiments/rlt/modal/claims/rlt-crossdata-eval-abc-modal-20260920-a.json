@@ -1,0 +1,32 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1789911562.238675,
+  "evaluator_blob_sha": "1d83f42ce1d9fa0c1a21de3d345b278c86c5c99b",
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 64,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "eval_batches": 256,
+    "eval_target_tokens_per_pair": 1048576,
+    "fresh_data_seed": 20260920,
+    "fresh_train_tokens": 100000,
+    "fresh_val_tokens": 1100000,
+    "job_id": "rlt-crossdata-eval-abc-modal-20260920-a",
+    "requires_checkpoint_job_ids": [
+      "rlt-compiled-paired-1m-modal-20260918-a",
+      "rlt-compiled-paired-1m-modal-20260919-b",
+      "rlt-compiled-paired-1m-modal-20260919-c"
+    ],
+    "schema": 1,
+    "seq_len": 64,
+    "task": "crossdata_eval_abc"
+  },
+  "job_id": "rlt-crossdata-eval-abc-modal-20260920-a",
+  "job_source_blob_sha": "b704125af27c54ef311c5163b8153a0a55d06a79",
+  "launcher_blob_sha": "b83c665fc58e57c7c34bf3d77cb0c66913f3a165",
+  "schema": 1,
+  "status": "claimed",
+  "trigger_sha": "c3a53e0e713013e0e49155f2957b884edc677e83",
+  "worker": "github-actions-modal"
+}
