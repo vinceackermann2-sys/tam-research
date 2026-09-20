@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "job_id": "rlt-crossdata-eval-abc-modal-20260920-a",
+  "task": "crossdata_eval_abc",
+  "requires_checkpoint_job_ids": [
+    "rlt-compiled-paired-1m-modal-20260918-a",
+    "rlt-compiled-paired-1m-modal-20260919-b",
+    "rlt-compiled-paired-1m-modal-20260919-c"
+  ],
+  "fresh_data_seed": 20260920,
+  "eval_target_tokens_per_pair": 1048576,
+  "eval_batches": 256,
+  "batch_size": 64,
+  "seq_len": 64,
+  "fresh_train_tokens": 100000,
+  "fresh_val_tokens": 1100000,
+  "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+  "automatic_retry": false
+}
