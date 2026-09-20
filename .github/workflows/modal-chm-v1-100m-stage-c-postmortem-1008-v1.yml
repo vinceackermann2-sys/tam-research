@@ -84,7 +84,6 @@ jobs:
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_scale.py")" = "$MODEL_SHA"
           test "$MODEL_SHA" = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_eval.py")" = "$EVALUATOR_SHA"
-          test "$EVALUATOR_SHA" = "863bd038e60da551150fd23b0a3143c68e0b60333" && exit 91 || true
           test "$EVALUATOR_SHA" = "863bd038e60da5511503adb0c8e1046a680ed3bd"
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_postmortem.py")" = "$POSTMORTEM_SHA"
           test "$POSTMORTEM_SHA" = "1612dfb17a613508b0604990c94bed6fecd3776d"
