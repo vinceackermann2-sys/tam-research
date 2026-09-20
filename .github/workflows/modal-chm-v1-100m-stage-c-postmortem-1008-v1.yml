@@ -1,0 +1,375 @@
+name: CHM-v1 100M Stage-C postmortem checkpoint diagnostic v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-100m-stage-c-postmortem-1008-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Refuse reruns and resolve immutable diagnostic payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v1-100m-stage-c-postmortem-1008-v1",
+              "control_issue": 1008,
+              "prereg_issue": 1002,
+              "source_scientific_issue": 990,
+              "result_root": "/vol/chm-v1/100m-stage-c-postmortem/issue-1008/v1",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r} != {value!r}"
+          for key in (
+              "source_sha", "source_tree", "model_sha", "evaluator_sha",
+              "postmortem_sha", "scientific_impl_sha", "runner_sha", "workflow_sha",
+          ):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
+              print(f"{key}={value}")
+          checkpoint_sha = str(cfg.get("checkpoint_sha256", "")).strip().lower()
+          assert re.fullmatch(r"[0-9a-f]{64}", checkpoint_sha), "checkpoint_sha256 must be full lowercase SHA-256"
+          checkpoint_bytes = cfg.get("checkpoint_bytes")
+          assert isinstance(checkpoint_bytes, int) and checkpoint_bytes > 0, "checkpoint_bytes must be positive int"
+          authority = cfg.get("authority_comment_id")
+          assert isinstance(authority, int) and authority > 0, "authority_comment_id must be positive"
+          print(f"checkpoint_sha256={checkpoint_sha}")
+          print(f"checkpoint_bytes={checkpoint_bytes}")
+          print(f"authority_comment_id={authority}")
+          PY
+
+      - name: Checkout exact authorized boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on current main, tree, and frozen blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          POSTMORTEM_SHA: ${{ steps.cfg.outputs.postmortem_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_scale.py")" = "$MODEL_SHA"
+          test "$MODEL_SHA" = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_eval.py")" = "$EVALUATOR_SHA"
+          test "$EVALUATOR_SHA" = "863bd038e60da5511503adb0c8e1046a680ed3bd"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_postmortem.py")" = "$POSTMORTEM_SHA"
+          test "$POSTMORTEM_SHA" = "1612dfb17a613508b0604990c94bed6fecd3776d"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_chm_v1_100m_stage_c_990_v1_impl.py")" = "$SCIENTIFIC_IMPL_SHA"
+          test "$SCIENTIFIC_IMPL_SHA" = "fb7fe5f8c2a597f7de9e4d03c6908dc0db9558ac"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_postmortem_1008_v1.py")" = "$RUNNER_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-postmortem-1008-v1.yml")" = "$WORKFLOW_SHA"
+
+      - name: Verify final authority and unique trigger
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          CHECKPOINT_SHA256: ${{ steps.cfg.outputs.checkpoint_sha256 }}
+          CHECKPOINT_BYTES: ${{ steps.cfg.outputs.checkpoint_bytes }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo = os.environ["GITHUB_REPOSITORY"]
+          owner = os.environ["REPO_OWNER"]
+          trigger_number = int(os.environ["TRIGGER_ISSUE"])
+          authority_id = int(os.environ["AUTHORITY_COMMENT_ID"])
+
+          def gh(path, *extra):
+              return json.loads(subprocess.check_output(["gh", "api", path, *extra], text=True))
+
+          trigger = gh(f"repos/{repo}/issues/{trigger_number}")
+          title = "[modal-chm-v1-100m-stage-c-postmortem-1008-v1]"
+          assert trigger["title"] == title
+          query = f'repo:{repo} is:issue in:title "{title}"'
+          found = gh("search/issues", "-X", "GET", "-f", f"q={query}", "-f", "per_page=100")
+          exact = [item for item in found["items"] if item["title"] == title]
+          assert len(exact) == 1, f"exact diagnostic trigger count={len(exact)}"
+          assert exact[0]["number"] == trigger_number
+
+          comments = gh(f"repos/{repo}/issues/1008/comments?per_page=100")
+          matches = [c for c in comments if int(c["id"]) == authority_id]
+          assert len(matches) == 1, "final authority comment not found"
+          comment = matches[0]
+          assert comment["user"]["login"] == owner, "authority must be posted by repository owner"
+          body = comment["body"]
+          required = [
+              "CHM_V1_100M_STAGE_C_POSTMORTEM_FINAL_LAUNCHER_AUTHORITY_V1",
+              f"source_sha={os.environ['SOURCE_SHA']}",
+              f"source_tree={os.environ['SOURCE_TREE']}",
+              f"runner_blob={os.environ['RUNNER_SHA']}",
+              f"workflow_blob={os.environ['WORKFLOW_SHA']}",
+              f"checkpoint_sha256={os.environ['CHECKPOINT_SHA256']}",
+              f"checkpoint_bytes={os.environ['CHECKPOINT_BYTES']}",
+              "trigger_authorized=true",
+              "training_authorized=false",
+              "new_scientific_seed_authorized=false",
+              "automatic_retry_authorized=false",
+              "stage_d_authorized=false",
+          ]
+          for item in required:
+              assert item in body, f"authority comment missing {item!r}"
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Read live rates and fail closed on 2-hour cap
+        id: rates
+        run: |
+          modal billing rates --json > modal-rates.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          rates = json.load(open("modal-rates.json", encoding="utf-8"))
+          l4 = float(rates["gpu_hour_cost_l4"])
+          cpu = float(rates["cpu_hour_cost"])
+          ram = float(rates["mem_gib_hour_cost"])
+          for name, value in (("l4", l4), ("cpu", cpu), ("ram", ram)):
+              assert value > 0.0, f"invalid {name} rate"
+          hourly = l4 + 4 * cpu + 16 * ram
+          worst = hourly * 2.0
+          assert worst <= 3.00, f"live worst-case ${worst:.6f} exceeds $3 cap"
+          print(f"hourly_resource_usd={hourly:.12f}")
+          print(f"worst_case_usd={worst:.12f}")
+          PY
+
+      - name: Zero-GPU source/checkpoint preflight
+        id: preflight
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          POSTMORTEM_SHA: ${{ steps.cfg.outputs.postmortem_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          CHECKPOINT_SHA256: ${{ steps.cfg.outputs.checkpoint_sha256 }}
+          CHECKPOINT_BYTES: ${{ steps.cfg.outputs.checkpoint_bytes }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_postmortem_1008_v1.py \
+            --phase preflight \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --postmortem-sha "$POSTMORTEM_SHA" --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" \
+            --expected-checkpoint-sha256 "$CHECKPOINT_SHA256" \
+            --expected-checkpoint-bytes "$CHECKPOINT_BYTES" | tee ../preflight.log
+
+      - name: Record zero-GPU preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 1008 --repo "$GITHUB_REPOSITORY" --body             "CHM-v1 #1008 checkpoint diagnostic zero-GPU preflight PASS. No GPU allocation and no diagnostic attempt consumption occurred."
+
+      - name: Reserve one-shot diagnostic dispatch
+        id: reserve
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          POSTMORTEM_SHA: ${{ steps.cfg.outputs.postmortem_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          CHECKPOINT_SHA256: ${{ steps.cfg.outputs.checkpoint_sha256 }}
+          CHECKPOINT_BYTES: ${{ steps.cfg.outputs.checkpoint_bytes }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_postmortem_1008_v1.py \
+            --phase reserve \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --postmortem-sha "$POSTMORTEM_SHA" --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" \
+            --expected-checkpoint-sha256 "$CHECKPOINT_SHA256" \
+            --expected-checkpoint-bytes "$CHECKPOINT_BYTES" | tee ../reserve.log
+
+      - name: Record durable dispatch reservation
+        if: steps.reserve.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 1008 --repo "$GITHUB_REPOSITORY" --body             "CHM-v1 #1008 checkpoint diagnostic dispatch reserved. The next step is the single authorized L4 diagnostic allocation. Once the GPU function begins, this diagnostic attempt is permanently consumed; no retry, rerun, redispatch, rescue, or checkpoint resume is authorized."
+
+      - name: Launch checkpoint diagnostic exactly once
+        id: launch
+        if: steps.reserve.outcome == 'success'
+        continue-on-error: true
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          POSTMORTEM_SHA: ${{ steps.cfg.outputs.postmortem_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          CHECKPOINT_SHA256: ${{ steps.cfg.outputs.checkpoint_sha256 }}
+          CHECKPOINT_BYTES: ${{ steps.cfg.outputs.checkpoint_bytes }}
+          LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_postmortem_1008_v1.py \
+            --phase run \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --postmortem-sha "$POSTMORTEM_SHA" --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" \
+            --expected-checkpoint-sha256 "$CHECKPOINT_SHA256" \
+            --expected-checkpoint-bytes "$CHECKPOINT_BYTES" \
+            --live-hourly-resource-usd "$LIVE_HOURLY_RESOURCE_USD" | tee ../run.log
+
+      - name: Inspect durable diagnostic state
+        id: inspect
+        if: always() && steps.reserve.outcome == 'success'
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          POSTMORTEM_SHA: ${{ steps.cfg.outputs.postmortem_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          CHECKPOINT_SHA256: ${{ steps.cfg.outputs.checkpoint_sha256 }}
+          CHECKPOINT_BYTES: ${{ steps.cfg.outputs.checkpoint_bytes }}
+        run: |
+          cd source
+          modal run modal_chm_v1_100m_stage_c_postmortem_1008_v1.py \
+            --phase state \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" \
+            --postmortem-sha "$POSTMORTEM_SHA" --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA" \
+            --authority-comment-id "$AUTHORITY_COMMENT_ID" \
+            --expected-checkpoint-sha256 "$CHECKPOINT_SHA256" \
+            --expected-checkpoint-bytes "$CHECKPOINT_BYTES" | tee ../state.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("state.log").read_text(encoding="utf-8").splitlines()
+          matches = [x.split("CHM_V1_100M_STAGE_C_POSTMORTEM_STATE=", 1)[1]
+                     for x in lines if "CHM_V1_100M_STAGE_C_POSTMORTEM_STATE=" in x]
+          assert len(matches) == 1, len(matches)
+          state = json.loads(matches[0])
+          Path("state.json").write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+          PY
+
+      - name: Record terminal diagnostic state
+        if: always() && steps.inspect.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          state = json.loads(Path("state.json").read_text(encoding="utf-8"))
+          result = state["files"].get("RESULT.json")
+          failure = state["files"].get("ATTEMPT_FAILURE.json")
+          consumed = state["files"].get("ATTEMPT_CONSUMED.json")
+          assert consumed is not None and consumed["diagnostic_attempt_consumed"] is True
+          if result is not None:
+              agg = result["summary"]["aggregate"]
+              lines = [
+                  "CHM_V1_100M_STAGE_C_POSTMORTEM_AUTHORITATIVE_RESULT",
+                  "",
+                  f"classification={result['classification']}",
+                  f"tags={json.dumps(result['tags'], sort_keys=True)}",
+                  f"probe_count={result['probe_count']}",
+                  f"soft_minus_hard_nll_benefit={agg['soft_minus_hard_nll_benefit']:.12f}",
+                  f"oracle_minus_hard_nll_benefit={agg['oracle_minus_hard_nll_benefit']:.12f}",
+                  f"oracle_minus_no_memory_nll_benefit={agg['oracle_minus_no_memory_nll_benefit']:.12f}",
+                  f"hard_authoritative_endpoint_hit_rate={agg['hard_authoritative_endpoint_hit_rate']}",
+                  f"source_checkpoint_unchanged={str(result['source_checkpoint_unchanged']).lower()}",
+                  "stage_c_result_changed=false",
+                  "stage_d_authorized=false",
+                  "new_training_authorized=false",
+                  "diagnostic_attempt_consumed=true",
+                  "automatic_retry_authorized=false",
+                  "",
+                  "Posthoc localization evidence only. The terminal #990 STOP classification is unchanged.",
+              ]
+              terminal = "result"
+          elif failure is not None:
+              lines = [
+                  "CHM_V1_100M_STAGE_C_POSTMORTEM_TERMINAL_INFRASTRUCTURE_FAILURE",
+                  "",
+                  f"error_type={failure['error_type']}",
+                  f"error={failure['error']}",
+                  "diagnostic_attempt_consumed=true",
+                  "posthoc_interpretation_authorized=false",
+                  "automatic_retry_authorized=false",
+                  "stage_d_authorized=false",
+              ]
+              terminal = "failure"
+          else:
+              raise RuntimeError("reserved diagnostic ended without durable RESULT.json or ATTEMPT_FAILURE.json")
+          Path("terminal-comment.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          Path("terminal-kind.txt").write_text(terminal, encoding="utf-8")
+          PY
+          gh issue comment 1008 --repo "$GITHUB_REPOSITORY" -F terminal-comment.md
+          gh issue close 1008 --repo "$GITHUB_REPOSITORY" --reason completed
+          gh issue close "$TRIGGER_ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed
+          test "$(cat terminal-kind.txt)" = "result"
+
+      - name: Fail workflow if one-shot diagnostic function failed
+        if: always() && steps.reserve.outcome == 'success'
+        run: |
+          test "${{ steps.launch.outcome }}" = "success"
