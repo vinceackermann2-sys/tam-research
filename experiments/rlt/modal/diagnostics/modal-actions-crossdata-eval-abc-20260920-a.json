@@ -1,0 +1,16 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_CROSSDATA_ABC_ZERO_GPU_PREFLIGHT_PASS",
+  "evaluator_blob_sha": "1d83f42ce1d9fa0c1a21de3d345b278c86c5c99b",
+  "finished_unix": 1789911559.6387887,
+  "job_id_checked": "rlt-crossdata-eval-abc-modal-20260920-a",
+  "job_source_blob_sha": "b704125af27c54ef311c5163b8153a0a55d06a79",
+  "launcher_blob_sha": "b83c665fc58e57c7c34bf3d77cb0c66913f3a165",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "c3a53e0e713013e0e49155f2957b884edc677e83",
+  "worker": "modal-control"
+}
