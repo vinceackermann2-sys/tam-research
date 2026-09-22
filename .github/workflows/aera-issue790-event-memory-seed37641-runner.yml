@@ -1,4 +1,4 @@
-name: AERA issue790 repaired event-memory seed37641 runner
+name: AERA issue790 repaired event-memory seed37641 runner v2
 
 on:
   issues:
@@ -11,15 +11,15 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: aera-issue790-event-memory-repair-seed37641
+  group: aera-issue790-event-memory-repair-seed37641-v2
   cancel-in-progress: false
 
 jobs:
-  issue790-seed37641:
+  issue790-seed37641-v2:
     if: >-
       github.event.issue.user.login == github.repository_owner &&
-      (startsWith(github.event.issue.title, '[aera-event-memory-repair-seed37641-preauth-v1]') ||
-       startsWith(github.event.issue.title, '[aera-event-memory-repair-seed37641-l4-v1]'))
+      (startsWith(github.event.issue.title, '[aera-event-memory-repair-seed37641-preauth-v2]') ||
+       startsWith(github.event.issue.title, '[aera-event-memory-repair-seed37641-l4-v2]'))
     runs-on: ubuntu-24.04
     timeout-minutes: 360
 
@@ -38,7 +38,7 @@ jobs:
       - name: Install Modal client
         run: pip install 'modal>=1.2,<1.3'
 
-      - name: Verify issue790 immutable boundary and select mode
+      - name: Verify immutable boundary and select v2 mode
         id: guard
         env:
           GH_TOKEN: ${{ github.token }}
@@ -49,38 +49,26 @@ jobs:
           test "${GITHUB_RUN_ATTEMPT}" = "1"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/790" --jq '.title')" = "[prereg/no-gpu] AERA repaired event-memory seed37641 runner after merged #786"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/790" --jq '.state')" = "open"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/issues/819" --jq '.title')" = "[cpu/correction] AERA seed37641 preauth-v1 trigger-body bind failure after #818"
 
           freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #790 pre-implementation seed37641 runner freeze")) | .id' | wc -l | tr -d ' ')"
           test "${freeze_count}" = "1"
           freeze_comment="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #790 pre-implementation seed37641 runner freeze")) | .body')"
-
           printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_MAIN=5e5d746c70380eb4819534eb5a061a2d142fa26f' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'SOURCE_TREE=2348be0e21c107d254146a7426b432f6f808687f' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'IMPLEMENTATION_BASE_MAIN=1c0ecd321a530daee32a4603a9cd6fb201be2d8a' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'IMPLEMENTATION_BASE_TREE=00dd4e489f5ad70fc68b5d195a9ba820ac299a54' >/dev/null
-          printf '%s\n' "${freeze_comment}" | grep -F 'BRANCH=infra/aera-issue790-seed37641-runner-v1' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'PREAUTH_PREFIX=[aera-event-memory-repair-seed37641-preauth-v1]' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'L4_PREFIX=[aera-event-memory-repair-seed37641-l4-v1]' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'RESULT_PATH=/vol/aera-capability/event-memory-repair-v2-seed37641/result.json' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'CHECKPOINT_DIR=/vol/aera-capability/event-memory-repair-v2-seed37641/checkpoints' >/dev/null
           printf '%s\n' "${freeze_comment}" | grep -F 'MODEL_SEED=37641' >/dev/null
 
-          adapter_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^ADAPTER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          protocol_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^PROTOCOL_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          runner_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^RUNNER_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          workflow_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          test_blob="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^RUNNER_TEST_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          frozen_tree="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_TREE=\([0-9a-f]\{40\}\)$/\1/p')"
-          frozen_commit="$(printf '%s\n' "${freeze_comment}" | sed -n 's/^FROZEN_COMMIT=\([0-9a-f]\{40\}\)$/\1/p')"
-          test -n "${adapter_blob}" && test -n "${protocol_blob}" && test -n "${runner_blob}" && test -n "${workflow_blob}" && test -n "${test_blob}" && test -n "${frozen_tree}" && test -n "${frozen_commit}"
-          test "${workflow_blob}" = "250f966c2c1ced919663ca8ee57aa03a2edf8852"
-          test "${test_blob}" = "94670f0f77f5ee86ce58ac9e5b3af29be22f2b7d"
-
-          correction_freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/806/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #806 pre-ref provenance-guard correction freeze")) | .id' | wc -l | tr -d ' ')"
-          test "${correction_freeze_count}" = "1"
-          correction_freeze_comment="$(gh api "repos/${GITHUB_REPOSITORY}/issues/806/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #806 pre-ref provenance-guard correction freeze")) | .body')"
-          corrected_workflow_blob="$(printf '%s\n' "${correction_freeze_comment}" | sed -n 's/^CORRECTED_WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
-          test -n "${corrected_workflow_blob}"
+          v2_freeze_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/819/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #819 pre-ref seed37641 v2 workflow correction freeze")) | .id' | wc -l | tr -d ' ')"
+          test "${v2_freeze_count}" = "1"
+          v2_freeze_comment="$(gh api "repos/${GITHUB_REPOSITORY}/issues/819/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("## #819 pre-ref seed37641 v2 workflow correction freeze")) | .body')"
+          v2_workflow_blob="$(printf '%s\n' "${v2_freeze_comment}" | sed -n 's/^V2_WORKFLOW_BLOB=\([0-9a-f]\{40\}\)$/\1/p')"
+          test -n "${v2_workflow_blob}"
 
           event_body="$(jq -r '.issue.body // ""' "${GITHUB_EVENT_PATH}")"
           bound_lines="$(printf '%s\n' "${event_body}" | sed -n 's/^Bind main: `\([0-9a-f]\{40\}\)`$/\1/p')"
@@ -95,20 +83,17 @@ jobs:
           test "$(git rev-parse 5e5d746c70380eb4819534eb5a061a2d142fa26f^{tree})" = "2348be0e21c107d254146a7426b432f6f808687f"
           git merge-base --is-ancestor 1c0ecd321a530daee32a4603a9cd6fb201be2d8a "${bound_main}"
           test "$(git rev-parse 1c0ecd321a530daee32a4603a9cd6fb201be2d8a^{tree})" = "00dd4e489f5ad70fc68b5d195a9ba820ac299a54"
-          git cat-file -e "${frozen_commit}^{commit}"
-          test "$(git rev-parse "${frozen_commit}^{tree}")" = "${frozen_tree}"
-          git cat-file -e "49be1185d38c0a38bcd5f38ded4430689c22b753^{commit}"
-          test "$(git rev-parse 49be1185d38c0a38bcd5f38ded4430689c22b753^{tree})" = "a492b2cc9ece22a3ab8db94536e3923b4ebb34ff"
           git merge-base --is-ancestor 49be1185d38c0a38bcd5f38ded4430689c22b753 "${bound_main}"
-          git cat-file -e "ad454169c1380ed303383e7911f5045c7c47084a^{commit}"
-          test "$(git rev-parse ad454169c1380ed303383e7911f5045c7c47084a^{tree})" = "a492b2cc9ece22a3ab8db94536e3923b4ebb34ff"
+          test "$(git rev-parse 49be1185d38c0a38bcd5f38ded4430689c22b753^{tree})" = "a492b2cc9ece22a3ab8db94536e3923b4ebb34ff"
           git merge-base --is-ancestor ad454169c1380ed303383e7911f5045c7c47084a "${bound_main}"
+          test "$(git rev-parse ad454169c1380ed303383e7911f5045c7c47084a^{tree})" = "a492b2cc9ece22a3ab8db94536e3923b4ebb34ff"
+          git merge-base --is-ancestor 39f7e55488fe4c3b03ae2664ef89365fed6d4ce7 "${bound_main}"
+          test "$(git rev-parse 39f7e55488fe4c3b03ae2664ef89365fed6d4ce7^{tree})" = "162126c2f04543ce9bfc2db0596573670c1ac123"
 
-          test "$(git hash-object tam_research/aera_issue790_event_memory_seed37641_scientific_adapter.py)" = "${adapter_blob}"
-          test "$(git hash-object docs/aera_issue790_event_memory_seed37641_protocol.json)" = "${protocol_blob}"
-          test "$(git hash-object modal_aera_issue790_event_memory_seed37641_runner.py)" = "${runner_blob}"
-          test "$(git hash-object .github/workflows/aera-issue790-event-memory-seed37641-runner.yml)" = "${corrected_workflow_blob}"
-          test "$(git hash-object tests/test_aera_issue790_event_memory_seed37641_runner_cpu.py)" = "${test_blob}"
+          test "$(git hash-object tam_research/aera_issue790_event_memory_seed37641_scientific_adapter.py)" = "931ba460cae55ceb940b61d92288668f6e02ff53"
+          test "$(git hash-object docs/aera_issue790_event_memory_seed37641_protocol.json)" = "9f865dff148aa46ffd9957259aeb4c0591595cad"
+          test "$(git hash-object modal_aera_issue790_event_memory_seed37641_runner.py)" = "58bc3bbe16492fa8161456ea5103653dc320f6b6"
+          test "$(git hash-object tests/test_aera_issue790_event_memory_seed37641_runner_cpu.py)" = "94670f0f77f5ee86ce58ac9e5b3af29be22f2b7d"
           test "$(git hash-object tam_research/aera_issue785_eval_materialization_bridge_cpu.py)" = "aa90b3ae3266786323b0517de8385135869c3653"
           test "$(git hash-object tam_research/aera_issue748_memory_capability_seed1_harness.py)" = "afc939a69633f68ded05eb585c95a599a8f5c981"
           test "$(git hash-object tam_research/aera_issue776_event_memory_scientific_adapter.py)" = "1489df753f2eee0f3acc5aba049c0eeb40fce10d"
@@ -117,22 +102,25 @@ jobs:
           test "$(git hash-object tam_research/aera_memory_capability_gate_v1.py)" = "981602432b684989f7a5011ff953e6965368c5e5"
           test "$(git hash-object tam_research/aera_hardware_core_v18.py)" = "97861a2407876f62665b13140c2135b4a11d4597"
           test "$(git hash-object tam_research/aera_delta_memory.py)" = "ec0b5d29b3d4ac27bd60fd9c152480b9f177c3e9"
+          test "$(git hash-object .github/workflows/aera-issue790-event-memory-seed37641-runner.yml)" = "${v2_workflow_blob}"
 
           title="$(jq -r '.issue.title' "${GITHUB_EVENT_PATH}")"
-          if [[ "${title}" == '[aera-event-memory-repair-seed37641-preauth-v1]'* ]]; then
+          if [[ "${title}" == '[aera-event-memory-repair-seed37641-preauth-v2]'* ]]; then
             mode=preauth
-            prefix='[aera-event-memory-repair-seed37641-preauth-v1]'
-            evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence**")) | .id' | wc -l | tr -d ' ')"
+            prefix='[aera-event-memory-repair-seed37641-preauth-v2]'
+            evidence_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence v2**")) | .id' | wc -l | tr -d ' ')"
             test "${evidence_count}" = "0"
-          else
+          elif [[ "${title}" == '[aera-event-memory-repair-seed37641-l4-v2]'* ]]; then
             mode=l4
-            prefix='[aera-event-memory-repair-seed37641-l4-v1]'
-            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            prefix='[aera-event-memory-repair-seed37641-l4-v2]'
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence v2**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
             test "${preauth_count}" = "1"
-            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #790 repaired seed 37641 L4 scientific authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | select((.body // "") | contains("Authorize seed: `37641`")) | .id' | wc -l | tr -d ' ')"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" | jq -r --arg bound "${bound_main}" '.[] | select((.body // "") | startswith("## #790 repaired seed 37641 L4 scientific authorization v2")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | select((.body // "") | contains("Authorize seed: `37641`")) | .id' | wc -l | tr -d ' ')"
             test "${auth_count}" = "1"
             result_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" --jq '.[] | select((.body // "") | startswith("🔬 **AERA #790 seed37641 scientific evidence**")) | .id' | wc -l | tr -d ' ')"
             test "${result_count}" = "0"
+          else
+            exit 1
           fi
 
           mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
@@ -143,7 +131,7 @@ jobs:
           echo "bound_main=${bound_main}" >> "${GITHUB_OUTPUT}"
           echo "allowed=true" >> "${GITHUB_OUTPUT}"
 
-      - name: Re-verify issue790 trigger immediately before Modal
+      - name: Re-verify v2 trigger immediately before Modal
         if: steps.guard.outputs.allowed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -155,12 +143,12 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "${BOUND_MAIN}"
           if [[ "${MODE}" == "preauth" ]]; then
-            prefix='[aera-event-memory-repair-seed37641-preauth-v1]'
+            prefix='[aera-event-memory-repair-seed37641-preauth-v2]'
           else
-            prefix='[aera-event-memory-repair-seed37641-l4-v1]'
-            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
+            prefix='[aera-event-memory-repair-seed37641-l4-v2]'
+            preauth_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("🔎 **AERA #790 seed37641 preauthorization evidence v2**")) | select((.body // "") | contains("Bound main: `" + $bound + "`")) | .id' | wc -l | tr -d ' ')"
             test "${preauth_count}" = "1"
-            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("## #790 repaired seed 37641 L4 scientific authorization")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | select((.body // "") | contains("Authorize seed: `37641`")) | .id' | wc -l | tr -d ' ')"
+            auth_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/790/comments?per_page=100" | jq -r --arg bound "${BOUND_MAIN}" '.[] | select((.body // "") | startswith("## #790 repaired seed 37641 L4 scientific authorization v2")) | select((.body // "") | contains("Authorize main: `" + $bound + "`")) | select((.body // "") | contains("Authorize seed: `37641`")) | .id' | wc -l | tr -d ' ')"
             test "${auth_count}" = "1"
           fi
           mapfile -t matches < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\") | not) | select(.title | startswith(\"${prefix}\")) | .number" | sort -n)
@@ -174,7 +162,7 @@ jobs:
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
         run: modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
 
-      - name: Run issue790 zero-GPU seed37641 preauthorization
+      - name: Run zero-GPU seed37641 preauthorization v2
         if: steps.guard.outputs.mode == 'preauth'
         id: preauth
         env:
@@ -183,10 +171,10 @@ jobs:
         shell: bash --noprofile --norc {0}
         run: |
           set -o pipefail
-          modal run modal_aera_issue790_event_memory_seed37641_runner.py::preauth_main 2>&1 | tee /tmp/issue790-preauth.log
-          test "$(grep -c '^AERA_ISSUE790_SEED37641_PREAUTH_JSON=' /tmp/issue790-preauth.log)" = "1"
+          modal run modal_aera_issue790_event_memory_seed37641_runner.py::preauth_main 2>&1 | tee /tmp/issue790-preauth-v2.log
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_PREAUTH_JSON=' /tmp/issue790-preauth-v2.log)" = "1"
 
-      - name: Record issue790 seed37641 preauthorization evidence
+      - name: Record seed37641 preauthorization evidence v2
         if: steps.guard.outputs.mode == 'preauth' && steps.preauth.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -194,18 +182,18 @@ jobs:
           BOUND_MAIN: ${{ steps.guard.outputs.bound_main }}
         shell: bash --noprofile --norc {0}
         run: |
-          python - <<'PY' >/tmp/issue790-preauth.md
+          python - <<'PY' >/tmp/issue790-preauth-v2.md
           import json, os
           from pathlib import Path
           prefix = "AERA_ISSUE790_SEED37641_PREAUTH_JSON="
-          payloads = [json.loads(x[len(prefix):]) for x in Path("/tmp/issue790-preauth.log").read_text().splitlines() if x.startswith(prefix)]
+          payloads = [json.loads(x[len(prefix):]) for x in Path("/tmp/issue790-preauth-v2.log").read_text().splitlines() if x.startswith(prefix)]
           if len(payloads) != 1:
-              raise SystemExit("expected one #790 preauth payload")
+              raise SystemExit("expected one #790 preauth v2 payload")
           p = payloads[0]
           if p.get("runner_issue") != 790 or p.get("research_issue") != 790 or p.get("model_seed") != 37641:
-              raise SystemExit("#790 preauth identity drift")
+              raise SystemExit("#790 preauth v2 identity drift")
           if p.get("result_absent") is not True or p.get("checkpoint_absent_or_empty") is not True:
-              raise SystemExit("#790 namespace not fresh")
+              raise SystemExit("#790 preauth v2 namespace not fresh")
           if p.get("evaluation_case_count") != 432 or p.get("unique_case_ids") != 432:
               raise SystemExit("#790 corrected materialization drift")
           for key in (
@@ -216,8 +204,8 @@ jobs:
               "scaling_authorized", "breakthrough_proven",
           ):
               if p.get(key) is not False:
-                  raise SystemExit(f"#790 preauth authority drift: {key}")
-          print("🔎 **AERA #790 seed37641 preauthorization evidence**")
+                  raise SystemExit(f"#790 preauth v2 authority drift: {key}")
+          print("🔎 **AERA #790 seed37641 preauthorization evidence v2**")
           print()
           print(f"Bound main: `{os.environ['BOUND_MAIN']}`")
           print("Model seed: `37641` — **not consumed**")
@@ -226,11 +214,11 @@ jobs:
           print("Corrected held-out materialization: `432/432 unique`.")
           print("GPU used: `false`; model constructed: `false`; training/evaluation: `false`; writes: `false`.")
           print()
-          print("This evidence authorizes no L4/scientific run. Explicit user authorization for repaired seed `37641` remains required.")
+          print("This evidence authorizes no L4/scientific run. Explicit repaired seed `37641` L4 authorization remains required.")
           PY
-          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue790-preauth.md)" >/dev/null
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue790-preauth-v2.md)" >/dev/null
 
-      - name: Run issue790 sole repaired seed37641 L4 capability gate
+      - name: Run sole repaired seed37641 L4 capability gate v2
         if: steps.guard.outputs.mode == 'l4'
         id: l4
         env:
@@ -239,13 +227,13 @@ jobs:
         shell: bash --noprofile --norc {0}
         run: |
           set -o pipefail
-          modal run modal_aera_issue790_event_memory_seed37641_runner.py::l4_main 2>&1 | tee /tmp/issue790-l4.log
-          test "$(grep -c '^AERA_ISSUE790_SEED37641_PREAUTH_JSON=' /tmp/issue790-l4.log)" = "1"
-          test "$(grep -c '^AERA_ISSUE790_SEED37641_L4_START_JSON=' /tmp/issue790-l4.log)" = "1"
-          test "$(grep -c '^AERA_ISSUE790_SEED37641_RESULT_JSON=' /tmp/issue790-l4.log)" = "1"
-          test "$(grep -c '^AERA_ISSUE790_SEED37641_SUMMARY_JSON=' /tmp/issue790-l4.log)" = "1"
+          modal run modal_aera_issue790_event_memory_seed37641_runner.py::l4_main 2>&1 | tee /tmp/issue790-l4-v2.log
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_PREAUTH_JSON=' /tmp/issue790-l4-v2.log)" = "1"
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_L4_START_JSON=' /tmp/issue790-l4-v2.log)" = "1"
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_RESULT_JSON=' /tmp/issue790-l4-v2.log)" = "1"
+          test "$(grep -c '^AERA_ISSUE790_SEED37641_SUMMARY_JSON=' /tmp/issue790-l4-v2.log)" = "1"
 
-      - name: Record issue790 seed37641 scientific evidence
+      - name: Record seed37641 scientific evidence
         if: always() && steps.guard.outputs.mode == 'l4'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -254,10 +242,10 @@ jobs:
           L4_OUTCOME: ${{ steps.l4.outcome }}
         shell: bash --noprofile --norc {0}
         run: |
-          python - <<'PY' >/tmp/issue790-science.md
+          python - <<'PY' >/tmp/issue790-science-v2.md
           import json, os
           from pathlib import Path
-          path = Path("/tmp/issue790-l4.log")
+          path = Path("/tmp/issue790-l4-v2.log")
           lines = path.read_text(errors="replace").splitlines() if path.exists() else []
           def payloads(prefix):
               out = []
@@ -295,4 +283,4 @@ jobs:
           print()
           print("This evidence itself grants no systems optimization, architecture freeze, replication, scaling, or breakthrough authority.")
           PY
-          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue790-science.md)" >/dev/null
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TRIGGER_ISSUE}/comments" -f body="$(cat /tmp/issue790-science-v2.md)" >/dev/null
