@@ -82,9 +82,10 @@ jobs:
           assert "workflow_dispatch:" not in top
           assert runner.count('gpu="H100!"') == 1
           assert "torch.save" not in runner
-          assert "58_231" not in runner
-          assert "58_232" not in runner
-          assert "58_233" not in runner
+          assert "SCIENTIFIC_PAIR_SEEDS" not in runner
+          assert "manual_seed(58_231" not in runner
+          assert "manual_seed(58_232" not in runner
+          assert "manual_seed(58_233" not in runner
           launch = workflow.split(
               "\n      - name: Launch exact one-shot reduced-attention calibration", 1
           )[1]

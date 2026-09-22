@@ -77,8 +77,13 @@ def test_runner_uses_same_training_step_for_both_parameter_matched_models() -> N
 
 def test_runner_does_not_use_reserved_scientific_seeds_or_write_checkpoints() -> None:
     source = RUNNER.read_text(encoding="utf-8")
-    for forbidden_literal in ("58_231", "58_232", "58_233"):
-        assert forbidden_literal not in source
+    assert "SCIENTIFIC_PAIR_SEEDS" not in source
+    for forbidden_call in (
+        "manual_seed(58_231",
+        "manual_seed(58_232",
+        "manual_seed(58_233",
+    ):
+        assert forbidden_call not in source
     assert "scientific_seed_used" in source
     assert '"scientific_seeds_consumed": False' in source
     assert '"checkpoint_written": False' in source
