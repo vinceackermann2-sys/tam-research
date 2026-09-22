@@ -325,7 +325,7 @@ def run_diagnostic(
 
         payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
         from tam_research.chm_v1_100m_scale import CHMV1100MEIEMLM
-        from tam_research.chm_v1_100m_stage_c_eval import CASES_PER_FAMILY, PROBE_SEED, generate_aligned_probe_suite
+        from tam_research.chm_v1_100m_stage_c_eval import CASES_PER_FAMILY, LONG_RANGE_FAMILIES, PROBE_SEED, generate_aligned_probe_suite
         from tam_research.chm_v1_100m_stage_c_postmortem import validate_checkpoint_payload
         from tam_research.chm_v1_100m_stage_c_payload_gate_diagnostic import (
             classify_payload_gate_signals,
@@ -334,7 +334,6 @@ def run_diagnostic(
             summarize_payload_gate_diagnostic,
             validate_protocol_manifest,
         )
-        from tam_research.chm_v1_long_memory_eval_v3 import LONG_RANGE_FAMILIES
 
         manifest = validate_protocol_manifest()
         validate_checkpoint_payload(payload, expected_kind="eiem")
