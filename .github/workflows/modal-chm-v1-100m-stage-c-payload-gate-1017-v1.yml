@@ -154,7 +154,7 @@ jobs:
 
       - name: Zero-GPU preflight
         id: preflight
-        env: &bindings
+        env:
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
           MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
@@ -175,7 +175,16 @@ jobs:
 
       - name: Reserve one-shot dispatch
         id: reserve
-        env: *bindings
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PAYLOAD_GATE_SHA: ${{ steps.cfg.outputs.payload_gate_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
         run: |
           cd source
           modal run modal_chm_v1_100m_stage_c_payload_gate_1017_v1.py --phase reserve             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" --model-sha "$MODEL_SHA"             --evaluator-sha "$EVALUATOR_SHA" --payload-gate-sha "$PAYLOAD_GATE_SHA"             --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" --runner-sha "$RUNNER_SHA"             --workflow-sha "$WORKFLOW_SHA" --authority-comment-id "$AUTHORITY_COMMENT_ID"
@@ -191,7 +200,15 @@ jobs:
         if: steps.reserve.outcome == 'success'
         continue-on-error: true
         env:
-          <<: *bindings
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PAYLOAD_GATE_SHA: ${{ steps.cfg.outputs.payload_gate_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
           LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
         run: |
           cd source
@@ -200,7 +217,16 @@ jobs:
       - name: Inspect durable state
         id: inspect
         if: always() && steps.reserve.outcome == 'success'
-        env: *bindings
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PAYLOAD_GATE_SHA: ${{ steps.cfg.outputs.payload_gate_sha }}
+          SCIENTIFIC_IMPL_SHA: ${{ steps.cfg.outputs.scientific_impl_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
         run: |
           cd source
           modal run modal_chm_v1_100m_stage_c_payload_gate_1017_v1.py --phase state             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" --model-sha "$MODEL_SHA"             --evaluator-sha "$EVALUATOR_SHA" --payload-gate-sha "$PAYLOAD_GATE_SHA"             --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" --runner-sha "$RUNNER_SHA"             --workflow-sha "$WORKFLOW_SHA" --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../state.log
