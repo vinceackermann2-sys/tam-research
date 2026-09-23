@@ -1,0 +1,38 @@
+{
+  "base_trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_COMPILED_PAIRED_4M_WIKITEXT_E_ZERO_GPU_PREFLIGHT_PASS",
+  "finished_unix": 1790194032.2111425,
+  "job_id_checked": "rlt-compiled-paired-4m-wikitext-modal-20260923-e",
+  "job_source_blob_sha": "ce339c553f5c45da9d79ed404be5bc7219113b1e",
+  "launcher_blob_sha": "0338e8f7af22941ee666620974731a7fcabc609f",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trainer_blob_sha": "f219fc262729de490bdd5ed3bb8b18d15e1fab04",
+  "trigger_sha": "1e942ea51e8ed48c68c57a9fdfecdde103983e69",
+  "wikitext_trainval_preflight": {
+    "dataset": "Salesforce/wikitext",
+    "dataset_config": "wikitext-103-raw-v1",
+    "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+    "dtype": "uint16",
+    "tokenizer": "gpt2",
+    "train": {
+      "raw_tokens_before_truncation": 6000180,
+      "sha256": "e4b8e6f129e678d64cf6680ca2d744ba6ddb6c75149050fcfb499fd42e2a1484",
+      "source_rows_consumed": 59643,
+      "split": "train",
+      "tokens_written": 6000000
+    },
+    "validation": {
+      "raw_tokens_before_truncation": 131257,
+      "sha256": "1b2e9a8837a05fff1045d2c74593d5850439437204356a917f641a9b3ab9e4de",
+      "source_rows_consumed": 1327,
+      "split": "validation",
+      "tokens_written": 131072
+    }
+  },
+  "worker": "modal-control"
+}
