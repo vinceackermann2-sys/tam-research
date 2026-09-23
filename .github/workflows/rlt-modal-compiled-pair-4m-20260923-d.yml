@@ -98,7 +98,7 @@ jobs:
           assert p.get('status')=='complete',p
           pc=p.get('comparison')
           assert isinstance(pc,dict) and pc.get('status')=='complete',pc
-          assert pc.get('classification')=='PAIRED_4M_INDEPENDENT_TRAIN_SHARD_RLT_LOWER_NLL_SINGLE_RUN_HINT',pc
+          assert pc.get('classification')=='PAIRED_4M_RLT_LOWER_NLL_SINGLE_RUN_HINT',pc
           assert pc.get('breakthrough_claim_supported') is False,pc
           assert float(pc['derived']['rlt_minus_transformer_final_nll'])<0.0,pc
           assert p.get('checkpoint_durability',{}).get('modal_volume_committed') is True,p
