@@ -1,0 +1,297 @@
+{
+  "base_trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "branch": "exp/rlt-colab",
+  "checkpoint_durability": {
+    "modal_volume_committed": true,
+    "remote_dir": "rlt-compiled-paired-4m-modal-20260923-d",
+    "rlt": {
+      "bytes": 84126475,
+      "filename": "rlt_final.pt",
+      "sha256": "541980868282eb9824a920c2e760550bc3d0989792c6190a0db063614f66c453"
+    },
+    "transformer": {
+      "bytes": 84527675,
+      "filename": "transformer_final.pt",
+      "sha256": "585eea4e45e0443653025370e1275102e7ca76a4a211b65e88d460b801c03252"
+    },
+    "volume": "tam-rlt-scientific-checkpoints"
+  },
+  "checkpoint_export": {
+    "github_artifact_digest": "0c56ddb6797fac3255d709f22effa1da6ef252df95d41ad1d4584d81dc7720d5",
+    "github_artifact_id": "10743369706",
+    "github_artifact_name": "rlt-compiled-paired-4m-modal-20260923-d-checkpoints",
+    "github_artifact_upload_outcome": "success",
+    "github_run_id": "35845707507",
+    "modal_volume_get_outcome": "success"
+  },
+  "comparison": {
+    "breakthrough_claim_supported": false,
+    "classification": "PAIRED_4M_INDEPENDENT_TRAIN_SHARD_RLT_LOWER_NLL_SINGLE_RUN_HINT",
+    "compile_probe_seed": 20301011,
+    "derived": {
+      "effective_transformer_throughput_multiple_vs_rlt_including_compile_and_eval": 29.432687462075606,
+      "evaluation_points_total": 5,
+      "evaluation_points_where_rlt_lower_nll": [
+        1048576,
+        2097152,
+        3145728,
+        4194304
+      ],
+      "rlt_minus_transformer_final_nll": -0.01968488097190857,
+      "rlt_minus_transformer_final_perplexity": -13.47264078535079,
+      "steady_state_transformer_throughput_multiple_vs_rlt": 26.19919264592391,
+      "transformer_parameter_delta_fraction": 0.004749118673169306
+    },
+    "interpretation_ceiling": "Single matched ~4M-token run on a newly shuffled FineWeb-Edu training shard at ~7M parameters. A lower RLT validation NLL would show that the replicated A/B/C effect is not tied to the original seed-1234 training-token sample, but it remains one dataset family and cannot establish a general architecture breakthrough.",
+    "matched_conditions": {
+      "compile_dynamic": false,
+      "compile_fullgraph": true,
+      "compile_mode": "default",
+      "cuda_graphs": false,
+      "eval_batches_per_checkpoint": 64,
+      "evaluation_fractions": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "grad_accum_steps": 1,
+      "learning_rate": 0.0003,
+      "micro_batch_size": 16,
+      "optimizer_steps": 4096,
+      "same_batch_stream": true,
+      "same_eval_stream": true,
+      "same_model_seed": true,
+      "seq_len": 64,
+      "token_budget": 4194304,
+      "warmup_ratio": 0.02,
+      "weight_decay": 0.1
+    },
+    "paired_batch_seed": 20271011,
+    "paired_eval_seed": 20291011,
+    "rlt": {
+      "checkpoint": {
+        "bytes": 84126475,
+        "filename": "rlt_final.pt",
+        "sha256": "541980868282eb9824a920c2e760550bc3d0989792c6190a0db063614f66c453"
+      },
+      "compile": {
+        "loss": 10.83599853515625,
+        "peak_vram_gb": 1.1360235214233398,
+        "seconds_forward_backward_no_update": 467.60174609999996
+      },
+      "config": {
+        "d_model": 128,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 4,
+        "n_stages": 2,
+        "rms_eps": 1e-06,
+        "swa_window": 32,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 3555.4905806536517,
+      "final_eval": {
+        "eval_tokens": 65536,
+        "nll": 6.51870683580637,
+        "perplexity": 677.7014392088261,
+        "seconds": 4.309194797999908,
+        "step": 4096,
+        "tokens_seen": 4194304
+      },
+      "last_train_loss": 6.384763717651367,
+      "learning_curve": [
+        {
+          "eval_tokens": 65536,
+          "nll": 10.841753885149956,
+          "perplexity": 51110.942139125174,
+          "seconds": 207.807179012,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.829414322972298,
+          "perplexity": 924.6491081213318,
+          "seconds": 4.318586289999985,
+          "step": 1024,
+          "tokens_seen": 1048576
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.635690152645111,
+          "perplexity": 761.8046459281095,
+          "seconds": 4.333661857999914,
+          "step": 2048,
+          "tokens_seen": 2097152
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.552197486162186,
+          "perplexity": 700.7824427551706,
+          "seconds": 4.3562685780000265,
+          "step": 3072,
+          "tokens_seen": 3145728
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.51870683580637,
+          "perplexity": 677.7014392088261,
+          "seconds": 4.309194797999908,
+          "step": 4096,
+          "tokens_seen": 4194304
+        }
+      ],
+      "parameters": 7007616,
+      "status": "complete",
+      "steps": 4096,
+      "tokens_per_second_excluding_compile_and_eval": 6037.140549826972,
+      "tokens_seen": 4194304,
+      "train_peak_vram_gb": 1.1270833015441895,
+      "train_seconds_excluding_scheduled_eval": 694.7500998830002,
+      "wall_seconds_training_and_scheduled_eval": 712.067811407
+    },
+    "scientific_seed": 20261011,
+    "semantic_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "status": "complete",
+    "transformer": {
+      "checkpoint": {
+        "bytes": 84527675,
+        "filename": "transformer_final.pt",
+        "sha256": "585eea4e45e0443653025370e1275102e7ca76a4a211b65e88d460b801c03252"
+      },
+      "compile": {
+        "loss": 10.847630500793457,
+        "peak_vram_gb": 0.7644462585449219,
+        "seconds_forward_backward_no_update": 12.909815544999901
+      },
+      "config": {
+        "architecture": "transformer",
+        "d_model": 128,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 4,
+        "n_layers": 3,
+        "tamv2_branch_inner": 104,
+        "tamv2_state_size": 64,
+        "tamv3_attn_inner": 208,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 104647.64303473265,
+      "final_eval": {
+        "eval_tokens": 65536,
+        "nll": 6.538391716778278,
+        "perplexity": 691.1740799941769,
+        "seconds": 0.16170694600009483,
+        "step": 4096,
+        "tokens_seen": 4194304
+      },
+      "last_train_loss": 6.434079647064209,
+      "learning_curve": [
+        {
+          "eval_tokens": 65536,
+          "nll": 10.838097751140594,
+          "perplexity": 50924.41487743309,
+          "seconds": 5.265450021000106,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.855869673192501,
+          "perplexity": 949.4374707807002,
+          "seconds": 0.16444906200013065,
+          "step": 1024,
+          "tokens_seen": 1048576
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.665861219167709,
+          "perplexity": 785.1393509545891,
+          "seconds": 0.1648976239998774,
+          "step": 2048,
+          "tokens_seen": 2097152
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.576395578682423,
+          "perplexity": 717.9468768826782,
+          "seconds": 0.16138720200001444,
+          "step": 3072,
+          "tokens_seen": 3145728
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.538391716778278,
+          "perplexity": 691.1740799941769,
+          "seconds": 0.16170694600009483,
+          "step": 4096,
+          "tokens_seen": 4194304
+        }
+      ],
+      "parameters": 7040896,
+      "status": "complete",
+      "steps": 4096,
+      "tokens_per_second_excluding_compile_and_eval": 158168.20829543585,
+      "tokens_seen": 4194304,
+      "train_peak_vram_gb": 0.8169183731079102,
+      "train_seconds_excluding_scheduled_eval": 26.517996537999807,
+      "wall_seconds_training_and_scheduled_eval": 27.170437371999924
+    }
+  },
+  "data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 20260924,
+    "tokenizer": "gpt2",
+    "train_tokens": 6000000,
+    "val_tokens": 500000
+  },
+  "data_sha256": {
+    "train.bin": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val.bin": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "finished_unix": 1790158803.7139254,
+  "job": {
+    "automatic_retry": false,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "grad_accum_steps": 1,
+    "job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+    "micro_batch_size": 16,
+    "requires_crossdata_analysis_id": "rlt-crossdata-4m-abc-aggregate-20260923-a",
+    "requires_prior_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-c",
+    "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+    "schema": 1,
+    "scientific_seed": 20261011,
+    "seq_len": 64,
+    "task": "compiled_paired_4m_independent_train_shard_d",
+    "token_budget": 4194304,
+    "train_tokens": 6000000,
+    "training_data_seed": 20260924,
+    "val_tokens": 500000
+  },
+  "job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+  "job_source_blob_sha": "3a1f99592104d459304b40cf9f826c84fb15b30b",
+  "launcher_blob_sha": "e15ed84dab8ac716baadbd4f295876c1d7b5b764",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790157325.2076185,
+  "status": "complete",
+  "trainer_blob_sha": "fcd7bffbbed73c34be7a8407a951bcb6fd5c2fa2",
+  "trigger_sha": "6d83804c6cc711598ee459d57e9ee5feb2874742",
+  "worker": "modal"
+}
