@@ -12,7 +12,7 @@ jobs:
   audit:
     if: >-
       github.event.issue.user.login == github.repository_owner &&
-      github.event.issue.title == '[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v2]'
+      github.event.issue.title == '[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v3]'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -31,7 +31,7 @@ jobs:
           import json, os, re
           cfg=json.loads(os.environ.get("ISSUE_BODY") or "{}")
           expected={
-            "phase":"chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v2",
+            "phase":"chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v3",
             "control_issue":1017,
             "prereg_issue":1014,
             "result_root":"/vol/chm-v1/100m-stage-c-payload-gate/issue-1017/v3",
@@ -75,7 +75,7 @@ jobs:
           test "$SCIENTIFIC_IMPL_SHA" = "fb7fe5f8c2a597f7de9e4d03c6908dc0db9558ac"
           test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_payload_gate_1017_v3.py")" = "$RUNNER_SHA"
           test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-gate-1017-v3.yml")" = "$SCIENTIFIC_WORKFLOW_SHA"
-          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v2.yml")" = "$AUDIT_WORKFLOW_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v3.yml")" = "$AUDIT_WORKFLOW_SHA"
 
       - name: Verify unique audit and trigger absence
         env:
@@ -90,7 +90,7 @@ jobs:
               q=f'repo:{repo} is:issue in:title "{title}"'
               r=gh("search/issues","-X","GET","-f",f"q={q}","-f","per_page=100")
               return [x for x in r["items"] if x["title"]==title]
-          a=exact("[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v2]")
+          a=exact("[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v3]")
           assert len(a)==1 and a[0]["number"]==n
           assert len(exact("[modal-chm-v1-100m-stage-c-payload-gate-1017-v3]"))==0
           control=gh(f"repos/{repo}/issues/1017"); assert control["state"]=="open"
