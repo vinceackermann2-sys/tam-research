@@ -1,0 +1,381 @@
+name: RLT Modal WikiText cross-corpus 4M ABCD 20260923 A
+
+on:
+  push:
+    branches:
+      - exp/rlt-colab
+    paths:
+      - .github/workflows/rlt-modal-crosscorpus-wikitext-4m-abcd-20260923-a.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-modal-crosscorpus-wikitext-4m-abcd-20260923-a
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a.json
+      EVAL_PATH: experiments/rlt/eval_crosscorpus_wikitext_4m_abcd.py
+      LAUNCHER_PATH: experiments/rlt/modal_crosscorpus_wikitext_4m_abcd.py
+      A_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260920-a.json
+      B_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260922-b.json
+      C_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260923-c.json
+      D_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260923-d.json
+      AGGREGATE_PATH: experiments/rlt/modal/results/rlt-crossdata-4m-abc-aggregate-20260923-a.json
+      SYSTEMS_PATH: experiments/rlt/modal/results/rlt-systems-decoder-cache768-modal-20260917-l.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-crosscorpus-wikitext-4m-abcd-20260923-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a.json
+      DATASET_ID: Salesforce/wikitext
+      DATASET_CONFIG: wikitext-103-raw-v1
+      DATASET_REVISION: 00aa25585682d4957f9e86edc73f59be7419af99
+      DATASET_SPLIT: test
+      TOKENIZER_ID: gpt2
+      REQUIRED_TEST_TOKENS: "133120"
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse any previously claimed or completed WikiText evaluation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          EVAL_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$EVAL_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "EVAL_BLOB_SHA=$EVAL_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA" >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a',
+            'task':'crosscorpus_wikitext_4m_abcd',
+            'requires_checkpoint_job_ids':[
+              'rlt-compiled-paired-4m-modal-20260920-a',
+              'rlt-compiled-paired-4m-modal-20260922-b',
+              'rlt-compiled-paired-4m-modal-20260923-c',
+              'rlt-compiled-paired-4m-modal-20260923-d',
+            ],
+            'requires_crossdata_analysis_id':'rlt-crossdata-4m-abc-aggregate-20260923-a',
+            'dataset_id':'Salesforce/wikitext',
+            'dataset_config':'wikitext-103-raw-v1',
+            'dataset_revision':'00aa25585682d4957f9e86edc73f59be7419af99',
+            'dataset_split':'test',
+            'tokenizer_id':'gpt2',
+            'eval_target_tokens_per_pair':131072,
+            'eval_batches':32,
+            'batch_size':64,
+            'seq_len':64,
+            'checkpoint_volume':'tam-rlt-scientific-checkpoints',
+            'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require durable A B C D checkpoints and replicated fresh-data signal
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$A_PATH" > /tmp/a.json
+          git show "origin/$BRANCH:$B_PATH" > /tmp/b.json
+          git show "origin/$BRANCH:$C_PATH" > /tmp/c.json
+          git show "origin/$BRANCH:$D_PATH" > /tmp/d.json
+          git show "origin/$BRANCH:$AGGREGATE_PATH" > /tmp/agg.json
+          git show "origin/$BRANCH:$SYSTEMS_PATH" > /tmp/systems.json
+          python - <<'PY'
+          import json
+          rows=[
+            json.load(open('/tmp/a.json')),
+            json.load(open('/tmp/b.json')),
+            json.load(open('/tmp/c.json')),
+            json.load(open('/tmp/d.json')),
+          ]
+          expected_ids=[
+            'rlt-compiled-paired-4m-modal-20260920-a',
+            'rlt-compiled-paired-4m-modal-20260922-b',
+            'rlt-compiled-paired-4m-modal-20260923-c',
+            'rlt-compiled-paired-4m-modal-20260923-d',
+          ]
+          for i,(expected_id,r) in enumerate(zip(expected_ids,rows)):
+              assert r.get('job_id')==expected_id,r
+              assert r.get('status')=='complete',r
+              c=r.get('comparison')
+              assert isinstance(c,dict) and c.get('status')=='complete',c
+              expected_class=(
+                  'PAIRED_4M_INDEPENDENT_TRAIN_SHARD_RLT_LOWER_NLL_SINGLE_RUN_HINT'
+                  if i==3 else 'PAIRED_4M_RLT_LOWER_NLL_SINGLE_RUN_HINT'
+              )
+              assert c.get('classification')==expected_class,c
+              assert c.get('breakthrough_claim_supported') is False,c
+              assert float(c['derived']['rlt_minus_transformer_final_nll'])<0.0,c
+              assert r.get('checkpoint_durability',{}).get('modal_volume_committed') is True,r
+              assert r.get('checkpoint_export',{}).get('github_artifact_upload_outcome')=='success',r
+          d=rows[3]
+          assert d.get('data',{}).get('seed')==20260924,d
+          assert len(d.get('data_sha256',{}).get('train.bin',''))==64,d
+          assert len(d.get('data_sha256',{}).get('val.bin',''))==64,d
+          a=json.load(open('/tmp/agg.json'))
+          assert a.get('analysis_id')=='rlt-crossdata-4m-abc-aggregate-20260923-a',a
+          assert a.get('classification')=='CROSSDATA_4M_ABC_ALL_THREE_RLT_LOWER_NLL',a
+          assert a.get('breakthrough_claim_supported') is False,a
+          agg=a['aggregate_across_model_seeds']
+          assert agg['pair_count']==3 and agg['rlt_lower_pair_count']==3,agg
+          assert float(agg['t95_ci_pair_delta_nll_df2'][1])<0.0,agg
+          s=json.load(open('/tmp/systems.json'))
+          assert s.get('status')=='complete',s
+          assert s.get('classification')=='PASS_CACHE768_WEAK',s
+          assert s['semantic_equivalence']['passed'] is True,s
+          PY
+
+      - name: Install CPU dataset and Modal preflight dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}"
+          test -n "${MODAL_TOKEN_SECRET:-}"
+          python -m pip install --disable-pip-version-check             'modal>=1.5.4,<1.6'             'numpy>=2.0,<3'             'datasets>=4.0,<5'             'transformers>=4.55,<5'             'tokenizers>=0.21,<1'             'huggingface-hub>=0.34,<1'
+
+      - name: Validate WikiText cross-corpus sources locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py "$EVAL_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          e=Path('experiments/rlt/eval_crosscorpus_wikitext_4m_abcd.py').read_text()
+          m=Path('experiments/rlt/modal_crosscorpus_wikitext_4m_abcd.py').read_text()
+          required=[
+            'DATASET_ID = "Salesforce/wikitext"',
+            'DATASET_CONFIG = "wikitext-103-raw-v1"',
+            'DATASET_REVISION = "00aa25585682d4957f9e86edc73f59be7419af99"',
+            'DATASET_SPLIT = "test"',
+            'EVAL_BATCHES = 32',
+            'CROSSCORPUS_WIKITEXT_4M_ABCD_ALL_FOUR_RLT_LOWER_NLL',
+            '"breakthrough_claim_supported": False',
+          ]
+          for x in required: assert x in e,x
+          assert 'JOB_ID = "rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a"' in m
+          assert 'revision=DATASET_REVISION' in m
+          assert 'split=DATASET_SPLIT' in m
+          assert 'test_bin_sha256' in m
+          assert 'create_if_missing=False' in m
+          assert 'retries=0' in m and 'gpu="A100"' in m
+          assert 'RLT_CROSSCORPUS_WIKITEXT_4M_ABCD_RESULT_B64=' in m
+          PY
+
+      - name: Prove pinned WikiText test corpus on CPU before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          import numpy as np
+          from datasets import load_dataset
+          from transformers import AutoTokenizer
+          dataset=load_dataset(
+              os.environ['DATASET_ID'],
+              name=os.environ['DATASET_CONFIG'],
+              split=os.environ['DATASET_SPLIT'],
+              revision=os.environ['DATASET_REVISION'],
+          )
+          tokenizer=AutoTokenizer.from_pretrained(os.environ['TOKENIZER_ID'],use_fast=True)
+          need=int(os.environ['REQUIRED_TEST_TOKENS'])
+          chunks=[]; total=0; rows=0
+          for row in dataset:
+              text=row.get('text') or ''
+              if not text: continue
+              ids=tokenizer.encode(text,add_special_tokens=False)
+              ids.append(tokenizer.eos_token_id)
+              arr=np.asarray(ids,dtype=np.uint16)
+              chunks.append(arr); total+=len(arr); rows+=1
+              if total>=need: break
+          assert total>=need,(total,need)
+          tokens=np.concatenate(chunks)[:need]
+          p=pathlib.Path('/tmp/wikitext-test.bin')
+          tokens.tofile(p)
+          h=hashlib.sha256(p.read_bytes()).hexdigest()
+          payload={
+              'dataset':os.environ['DATASET_ID'],
+              'dataset_config':os.environ['DATASET_CONFIG'],
+              'dataset_revision':os.environ['DATASET_REVISION'],
+              'split':os.environ['DATASET_SPLIT'],
+              'tokenizer':os.environ['TOKENIZER_ID'],
+              'source_rows_consumed':rows,
+              'raw_tokens_before_truncation':total,
+              'tokens_written':int(tokens.size),
+              'dtype':'uint16',
+              'test_bin_sha256':h,
+          }
+          pathlib.Path('/tmp/wikitext-preflight.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(payload,sort_keys=True))
+          PY
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/modal-preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/modal-preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Materialize and commit combined zero-GPU preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          data=json.load(open('/tmp/wikitext-preflight.json'))
+          p.update({
+            'classification':'RLT_CROSSCORPUS_WIKITEXT_4M_ABCD_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,
+            'cross_corpus_data_preflight':data,
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt wikitext crosscorpus: record zero-GPU data and control preflight'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot WikiText evaluation claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          d=json.load(open(os.environ['DIAGNOSTIC_PATH']))
+          data=d['cross_corpus_data_preflight']
+          payload={
+            'schema':1,
+            'job_id':os.environ['JOB_ID'],
+            'status':'claimed',
+            'claimed_unix':time.time(),
+            'worker':'github-actions-modal',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'cross_corpus_test_bin_sha256':data['test_bin_sha256'],
+            'cross_corpus_tokens_written':data['tokens_written'],
+            'automatic_retry_authorized':False,
+            'job':json.load(open(os.environ['JOB_PATH'])),
+          }
+          p=pathlib.Path(os.environ['CLAIM_PATH'])
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt wikitext crosscorpus: claim $JOB_ID before A100 evaluation"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 WikiText cross-corpus evaluation
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 55m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_CROSSCORPUS_WIKITEXT_4M_ABCD_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize terminal WikiText result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64','')
+          rc=int(os.environ.get('MODAL_RC','999'))
+          payload=None
+          if b:
+              try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception: payload=None
+          if not isinstance(payload,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              payload={
+                  'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed',
+                  'finished_unix':time.time(),'worker':'github-actions-modal',
+                  'error_type':'ModalInvocationOrTransportError',
+                  'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+                  'log_tail':log[-6000:],'scientific_conclusion':None,
+              }
+          claim=json.load(open(os.environ['CLAIM_PATH']))
+          remote_hash=(payload.get('cross_corpus_data') or {}).get('test_bin_sha256')
+          payload.update({
+            'modal_cli_rc':rc,
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'dataset_hash_matches_claim':(
+                remote_hash is not None and remote_hash==claim['cross_corpus_test_bin_sha256']
+            ),
+          })
+          p=pathlib.Path(os.environ['RESULT_PATH'])
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt wikitext crosscorpus: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize WikiText cross-corpus outcome
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          if r.get('dataset_hash_matches_claim') is not True: raise SystemExit(1)
+          e=r.get('evaluation')
+          if not isinstance(e,dict) or e.get('status')!='complete': raise SystemExit(1)
+          if e.get('breakthrough_claim_supported') is not False: raise SystemExit(1)
+          allowed={
+              'CROSSCORPUS_WIKITEXT_4M_ABCD_ALL_FOUR_RLT_LOWER_NLL',
+              'CROSSCORPUS_WIKITEXT_4M_ABCD_MEAN_RLT_LOWER_NLL_MIXED',
+              'CROSSCORPUS_WIKITEXT_4M_ABCD_NO_RLT_QUALITY_ADVANTAGE',
+          }
+          if e.get('classification') not in allowed: raise SystemExit(1)
+          print('classification:',e['classification'])
+          print('pair deltas:',[x['rlt_minus_transformer_nll'] for x in e['pairs']])
+          print('mean delta:',e['aggregate_across_model_pairs']['mean_rlt_minus_transformer_nll'])
+          print('4-pair t95 CI:',e['aggregate_across_model_pairs']['t95_ci_pair_delta_nll_df3'])
+          PY
