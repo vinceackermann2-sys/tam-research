@@ -155,7 +155,7 @@ def test_v3_has_fresh_namespace_and_never_reuses_v1_trigger() -> None:
     assert "/issue-1017/v1" not in runner
     assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-v3]" in scientific
     assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-v1]" not in scientific
-    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v2]" in audit
+    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v3]" in audit
 
 
 def test_v3_workflows_have_real_block_scalars_and_retire_v1_v2_identities() -> None:
