@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+  "task": "compiled_paired_4m_independent_train_shard_d",
+  "scientific_seed": 20261011,
+  "training_data_seed": 20260924,
+  "requires_prior_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-c",
+  "requires_crossdata_job_id": "rlt-crossdata-4m-abc-aggregate-20260923-a",
+  "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+  "token_budget": 4194304,
+  "seq_len": 64,
+  "micro_batch_size": 16,
+  "grad_accum_steps": 1,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+  "automatic_retry": false
+}
