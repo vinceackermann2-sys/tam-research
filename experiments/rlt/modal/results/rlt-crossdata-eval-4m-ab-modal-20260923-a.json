@@ -1,0 +1,115 @@
+{
+  "branch": "exp/rlt-colab",
+  "evaluation": {
+    "aggregate_across_model_seeds": {
+      "mean_rlt_minus_transformer_nll": -0.02016835566610098,
+      "pair_count": 2,
+      "rlt_lower_pair_count": 2,
+      "sample_sd_pair_delta_nll": 0.004417130652466403,
+      "se_pair_delta_nll": 0.0031233830377459526,
+      "t95_ci_pair_delta_nll_df1": [
+        -0.05985470001400027,
+        0.019517988681798312
+      ]
+    },
+    "breakthrough_claim_supported": false,
+    "classification": "CROSSDATA_4M_AB_BOTH_RLT_LOWER_NLL",
+    "fresh_data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "eval_target_tokens_per_pair": 1048576,
+      "required_val_tokens": 1064960,
+      "sampling": "deterministic non-overlapping 64-token next-token sequences from a fresh validation shard",
+      "shuffle_seed": 20260923
+    },
+    "interpretation_ceiling": "Fresh-data evaluation of two independently trained ~4M-token model-seed pairs. Agreement would strengthen evidence that the small-model 4M-token NLL effect generalizes beyond the original validation stream, but two seeds at ~7M parameters on one dataset cannot establish a general breakthrough.",
+    "pairs": [
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260920-a",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "A",
+        "paired_batch_delta_normal95_ci": [
+          -0.018457503267120656,
+          -0.015632441989589397
+        ],
+        "paired_batch_delta_sd": 0.011531074243465611,
+        "paired_batch_delta_se": 0.0007206921402166007,
+        "rlt_lower_batch_count": 237,
+        "rlt_minus_transformer_nll": -0.017044972628355026,
+        "rlt_nll": 6.525655882433057,
+        "rlt_perplexity": 682.4272189236398,
+        "seq_len": 64,
+        "transformer_nll": 6.542700855061412,
+        "transformer_perplexity": 694.1588710025576
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260922-b",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "B",
+        "paired_batch_delta_normal95_ci": [
+          -0.024981913350656096,
+          -0.021601564057037767
+        ],
+        "paired_batch_delta_sd": 0.01379759758967855,
+        "paired_batch_delta_se": 0.0008623498493549094,
+        "rlt_lower_batch_count": 242,
+        "rlt_minus_transformer_nll": -0.02329173870384693,
+        "rlt_nll": 6.514445165172219,
+        "rlt_perplexity": 674.8194443050116,
+        "seq_len": 64,
+        "transformer_nll": 6.537736903876066,
+        "transformer_perplexity": 690.721638437373
+      }
+    ],
+    "status": "complete"
+  },
+  "evaluator_blob_sha": "eacb79bacda217fb54dd27358c724a59d30024d8",
+  "finished_unix": 1790146969.975855,
+  "fresh_data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 20260923,
+    "tokenizer": "gpt2",
+    "train_tokens": 100000,
+    "val_tokens": 1100000
+  },
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 64,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "eval_batches": 256,
+    "eval_target_tokens_per_pair": 1048576,
+    "fresh_data_seed": 20260923,
+    "fresh_train_tokens": 100000,
+    "fresh_val_tokens": 1100000,
+    "job_id": "rlt-crossdata-eval-4m-ab-modal-20260923-a",
+    "requires_checkpoint_job_ids": [
+      "rlt-compiled-paired-4m-modal-20260920-a",
+      "rlt-compiled-paired-4m-modal-20260922-b"
+    ],
+    "schema": 1,
+    "seq_len": 64,
+    "task": "crossdata_eval_4m_ab"
+  },
+  "job_id": "rlt-crossdata-eval-4m-ab-modal-20260923-a",
+  "job_source_blob_sha": "baa510bf15e32bd63453a7d8375145be4c4174e3",
+  "launcher_blob_sha": "a672317f245b0d6ca309358e353371483f16234c",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790146881.7370794,
+  "status": "complete",
+  "trigger_sha": "394489b99ec289b2f32542833bb21f3526beb5a6",
+  "worker": "modal"
+}
