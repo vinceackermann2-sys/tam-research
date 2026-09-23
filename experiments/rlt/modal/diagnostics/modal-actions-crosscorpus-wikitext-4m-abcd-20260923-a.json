@@ -1,0 +1,28 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_CROSSCORPUS_WIKITEXT_4M_ABCD_ZERO_GPU_PREFLIGHT_PASS",
+  "cross_corpus_data_preflight": {
+    "dataset": "Salesforce/wikitext",
+    "dataset_config": "wikitext-103-raw-v1",
+    "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+    "dtype": "uint16",
+    "raw_tokens_before_truncation": 133346,
+    "source_rows_consumed": 1240,
+    "split": "test",
+    "test_bin_sha256": "9ad01fe13ab2249fa2bc1bb95d05a8077211319ca0768b898634c2ade4c0202a",
+    "tokenizer": "gpt2",
+    "tokens_written": 133120
+  },
+  "evaluator_blob_sha": "c22cb27ba7689660d2398b83bff8699f026bcf0e",
+  "finished_unix": 1790193662.433861,
+  "job_id_checked": "rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a",
+  "job_source_blob_sha": "38dc492d4a30b621c0ee9881664c58b2789550c1",
+  "launcher_blob_sha": "f0bd08da681d953b50fe299a3df39dc68256ee81",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "2574950afb4b47b2fbbdb41bb2f0fd97c62b43d0",
+  "worker": "modal-control"
+}
