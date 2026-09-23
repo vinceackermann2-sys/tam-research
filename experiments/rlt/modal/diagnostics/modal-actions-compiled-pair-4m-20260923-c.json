@@ -1,0 +1,17 @@
+{
+  "base_trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_COMPILED_PAIRED_4M_REPLICATION_C_ZERO_GPU_PREFLIGHT_PASS",
+  "finished_unix": 1790147162.4085596,
+  "job_id_checked": "rlt-compiled-paired-4m-modal-20260923-c",
+  "job_source_blob_sha": "55f15f34d4535240e81e110a80329cabf4203ee3",
+  "launcher_blob_sha": "6d8f477136d3957de5b1c1f4840d7225535dda76",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trainer_blob_sha": "c121e08e6d69912f64b7f6575eae2915e6acad99",
+  "trigger_sha": "de15fbb9fbdf967cc276fb316445088aa0bf3e29",
+  "worker": "modal-control"
+}
