@@ -1,0 +1,80 @@
+name: Belna HyperFrames CLI Render
+
+on:
+  push:
+    branches:
+      - belna-hyperframes-cli-render
+    paths:
+      - "belna-hyperframes/**"
+      - ".github/workflows/belna-hyperframes-render.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify FFmpeg
+        run: ffmpeg -version | head -n 1
+
+      - name: Install / verify official HyperFrames CLI
+        run: |
+          npx --yes hyperframes@latest --version
+          npx --yes hyperframes@latest doctor --json || true
+          npx --yes hyperframes@latest browser ensure
+
+      - name: Lint Swedish composition
+        working-directory: belna-hyperframes
+        run: npx --yes hyperframes@latest lint sv.html
+
+      - name: Lint English composition
+        working-directory: belna-hyperframes
+        run: npx --yes hyperframes@latest lint en.html
+
+      - name: Render Swedish 24fps
+        working-directory: belna-hyperframes
+        run: |
+          mkdir -p renders
+          npx --yes hyperframes@latest render -c sv.html --output renders/belna_muse_hyperframes_sv.mp4 --fps 24 --quality delivery
+
+      - name: Render English 24fps
+        working-directory: belna-hyperframes
+        run: |
+          npx --yes hyperframes@latest render -c en.html --output renders/belna_muse_hyperframes_en.mp4 --fps 24 --quality delivery
+
+      - name: Verify outputs
+        working-directory: belna-hyperframes
+        run: |
+          for f in renders/*.mp4; do
+            echo "=== $f ==="
+            ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames -show_entries format=duration -of json "$f"
+          done
+
+      - name: Package
+        working-directory: belna-hyperframes
+        run: zip -j belna_hyperframes_cli_renders.zip renders/*.mp4 sv.html en.html
+
+      - name: Upload renders
+        uses: actions/upload-artifact@v4
+        with:
+          name: belna-hyperframes-cli-renders
+          path: |
+            belna-hyperframes/renders/*.mp4
+            belna-hyperframes/belna_hyperframes_cli_renders.zip
+            belna-hyperframes/sv.html
+            belna-hyperframes/en.html
+          if-no-files-found: error
+          retention-days: 7
