@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "job_id": "rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a",
+  "task": "crosscorpus_wikitext_4m_abcd",
+  "requires_checkpoint_job_ids": [
+    "rlt-compiled-paired-4m-modal-20260920-a",
+    "rlt-compiled-paired-4m-modal-20260922-b",
+    "rlt-compiled-paired-4m-modal-20260923-c",
+    "rlt-compiled-paired-4m-modal-20260923-d"
+  ],
+  "requires_crossdata_analysis_id": "rlt-crossdata-4m-abc-aggregate-20260923-a",
+  "dataset_id": "Salesforce/wikitext",
+  "dataset_config": "wikitext-103-raw-v1",
+  "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+  "dataset_split": "test",
+  "tokenizer_id": "gpt2",
+  "eval_target_tokens_per_pair": 131072,
+  "eval_batches": 32,
+  "batch_size": 64,
+  "seq_len": 64,
+  "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+  "automatic_retry": false
+}
