@@ -1,4 +1,4 @@
-name: CHM-v1 100M Stage-C payload/gate pre-authority audit v2
+name: CHM-v1 100M Stage-C payload/gate pre-authority audit v3
 
 on:
   issues:
@@ -95,7 +95,7 @@ jobs:
           assert len(exact("[modal-chm-v1-100m-stage-c-payload-gate-1017-v3]"))==0
           control=gh(f"repos/{repo}/issues/1017"); assert control["state"]=="open"
           comments=gh(f"repos/{repo}/issues/1017/comments?per_page=100")
-          assert not any("CHM_V1_100M_STAGE_C_PAYLOAD_GATE_FINAL_LAUNCHER_AUTHORITY_V2" in c["body"] for c in comments)
+          assert not any("CHM_V1_100M_STAGE_C_PAYLOAD_GATE_FINAL_LAUNCHER_AUTHORITY_V3" in c["body"] for c in comments)
           PY
 
       - uses: actions/setup-python@v5
