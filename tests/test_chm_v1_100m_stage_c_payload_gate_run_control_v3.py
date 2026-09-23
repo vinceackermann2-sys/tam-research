@@ -1,3 +1,4 @@
+# Fresh-head CI successor after hosted-runner TLS checkout failure 35915811863; no protocol change.
 from __future__ import annotations
 
 import ast
