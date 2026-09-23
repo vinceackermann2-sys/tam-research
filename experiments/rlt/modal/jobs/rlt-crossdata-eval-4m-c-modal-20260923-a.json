@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "job_id": "rlt-crossdata-eval-4m-c-modal-20260923-a",
+  "task": "crossdata_eval_4m_c",
+  "requires_checkpoint_job_ids": [
+    "rlt-compiled-paired-4m-modal-20260923-c"
+  ],
+  "fresh_data_seed": 20260923,
+  "eval_target_tokens_per_pair": 1048576,
+  "eval_batches": 256,
+  "batch_size": 64,
+  "seq_len": 64,
+  "fresh_train_tokens": 100000,
+  "fresh_val_tokens": 1100000,
+  "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+  "automatic_retry": false
+}
