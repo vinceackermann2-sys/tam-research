@@ -1,0 +1,166 @@
+{
+  "branch": "exp/rlt-colab",
+  "cross_corpus_data": {
+    "dataset": "Salesforce/wikitext",
+    "dataset_config": "wikitext-103-raw-v1",
+    "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+    "dtype": "uint16",
+    "raw_tokens_before_truncation": 133346,
+    "source_rows_consumed": 1240,
+    "split": "test",
+    "test_bin_sha256": "9ad01fe13ab2249fa2bc1bb95d05a8077211319ca0768b898634c2ade4c0202a",
+    "tokenizer": "gpt2",
+    "tokens_written": 133120
+  },
+  "dataset_hash_matches_claim": true,
+  "evaluation": {
+    "aggregate_across_model_pairs": {
+      "mean_rlt_minus_transformer_nll": 0.012336701154708862,
+      "pair_count": 4,
+      "rlt_lower_pair_count": 1,
+      "sample_sd_pair_delta_nll": 0.023849583112458394,
+      "se_pair_delta_nll": 0.011924791556229197,
+      "t95_ci_pair_delta_nll_df3": [
+        -0.025613307674697723,
+        0.05028670998411545
+      ]
+    },
+    "breakthrough_claim_supported": false,
+    "classification": "CROSSCORPUS_WIKITEXT_4M_ABCD_NO_RLT_QUALITY_ADVANTAGE",
+    "cross_corpus": {
+      "dataset": "Salesforce/wikitext",
+      "dataset_config": "wikitext-103-raw-v1",
+      "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+      "eval_target_tokens_per_pair": 131072,
+      "required_test_tokens": 133120,
+      "sampling": "deterministic contiguous GPT-2 token stream from the pinned WikiText-103 raw test split",
+      "split": "test",
+      "tokenizer": "gpt2"
+    },
+    "interpretation_ceiling": "Out-of-domain evaluation of four ~4M-token FineWeb-Edu-trained checkpoint pairs on a pinned WikiText-103 raw test split. Agreement would show the quality difference is not restricted to FineWeb-Edu validation text, but it would not show that RLT retains an advantage when trained on a different corpus or at larger model scale.",
+    "pairs": [
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260920-a",
+        "eval_batches": 32,
+        "eval_target_tokens": 131072,
+        "label": "A",
+        "paired_batch_delta_normal95_ci": [
+          0.020552445582281705,
+          0.038653354712594394
+        ],
+        "paired_batch_delta_sd": 0.02612145058306102,
+        "paired_batch_delta_se": 0.004617663710427935,
+        "rlt_lower_batch_count": 3,
+        "rlt_minus_transformer_nll": 0.02960290014743805,
+        "rlt_nll": 7.811146959662437,
+        "rlt_perplexity": 2467.9594625374307,
+        "seq_len": 64,
+        "transformer_nll": 7.781544059514999,
+        "transformer_perplexity": 2395.971488439704
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260922-b",
+        "eval_batches": 32,
+        "eval_target_tokens": 131072,
+        "label": "B",
+        "paired_batch_delta_normal95_ci": [
+          -0.00633311727687386,
+          0.010741596013751301
+        ],
+        "paired_batch_delta_sd": 0.024640545744416726,
+        "paired_batch_delta_se": 0.004355874247003598,
+        "rlt_lower_batch_count": 14,
+        "rlt_minus_transformer_nll": 0.0022042393684387207,
+        "rlt_nll": 7.7853908985853195,
+        "rlt_perplexity": 2405.2061559246354,
+        "seq_len": 64,
+        "transformer_nll": 7.783186659216881,
+        "transformer_perplexity": 2399.9103445886694
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260923-c",
+        "eval_batches": 32,
+        "eval_target_tokens": 131072,
+        "label": "C",
+        "paired_batch_delta_normal95_ci": [
+          -0.02126445935177225,
+          -0.011795763512378751
+        ],
+        "paired_batch_delta_sd": 0.013664289935611649,
+        "paired_batch_delta_se": 0.002415528018392522,
+        "rlt_lower_batch_count": 29,
+        "rlt_minus_transformer_nll": -0.0165301114320755,
+        "rlt_nll": 7.806985005736351,
+        "rlt_perplexity": 2457.709274164795,
+        "seq_len": 64,
+        "transformer_nll": 7.8235151171684265,
+        "transformer_perplexity": 2498.6731180281326
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+        "eval_batches": 32,
+        "eval_target_tokens": 131072,
+        "label": "D",
+        "paired_batch_delta_normal95_ci": [
+          0.02358698891897611,
+          0.04455256415109225
+        ],
+        "paired_batch_delta_sd": 0.03025545476354254,
+        "paired_batch_delta_se": 0.00534845930779594,
+        "rlt_lower_batch_count": 2,
+        "rlt_minus_transformer_nll": 0.03406977653503418,
+        "rlt_nll": 7.795764192938805,
+        "rlt_perplexity": 2430.285922368229,
+        "seq_len": 64,
+        "transformer_nll": 7.7616944164037704,
+        "transformer_perplexity": 2348.881218171991
+      }
+    ],
+    "status": "complete"
+  },
+  "evaluator_blob_sha": "c22cb27ba7689660d2398b83bff8699f026bcf0e",
+  "finished_unix": 1790193743.8707595,
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 64,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "dataset_config": "wikitext-103-raw-v1",
+    "dataset_id": "Salesforce/wikitext",
+    "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+    "dataset_split": "test",
+    "eval_batches": 32,
+    "eval_target_tokens_per_pair": 131072,
+    "job_id": "rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a",
+    "requires_checkpoint_job_ids": [
+      "rlt-compiled-paired-4m-modal-20260920-a",
+      "rlt-compiled-paired-4m-modal-20260922-b",
+      "rlt-compiled-paired-4m-modal-20260923-c",
+      "rlt-compiled-paired-4m-modal-20260923-d"
+    ],
+    "requires_crossdata_analysis_id": "rlt-crossdata-4m-abc-aggregate-20260923-a",
+    "schema": 1,
+    "seq_len": 64,
+    "task": "crosscorpus_wikitext_4m_abcd",
+    "tokenizer_id": "gpt2"
+  },
+  "job_id": "rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a",
+  "job_source_blob_sha": "38dc492d4a30b621c0ee9881664c58b2789550c1",
+  "launcher_blob_sha": "f0bd08da681d953b50fe299a3df39dc68256ee81",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790193692.5406783,
+  "status": "complete",
+  "trigger_sha": "2574950afb4b47b2fbbdb41bb2f0fd97c62b43d0",
+  "worker": "modal"
+}
