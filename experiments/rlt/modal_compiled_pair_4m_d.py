@@ -65,7 +65,7 @@ def run_pair_remote(job_json: str) -> str:
             "scientific_seed": SCIENTIFIC_SEED,
             "training_data_seed": 20260924,
             "requires_prior_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-c",
-            "requires_crossdata_job_id": "rlt-crossdata-4m-abc-aggregate-20260923-a",
+            "requires_crossdata_analysis_id": "rlt-crossdata-4m-abc-aggregate-20260923-a",
             "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
             "token_budget": 4194304,
             "seq_len": 64,
