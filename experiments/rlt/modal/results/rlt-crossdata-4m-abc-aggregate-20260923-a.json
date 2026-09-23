@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "analysis_id": "rlt-crossdata-4m-abc-aggregate-20260923-a",
+  "branch": "exp/rlt-colab",
+  "status": "complete",
+  "scientific_execution": false,
+  "paid_attempt": false,
+  "source_result_job_ids": [
+    "rlt-crossdata-eval-4m-ab-modal-20260923-a",
+    "rlt-crossdata-eval-4m-c-modal-20260923-a"
+  ],
+  "checkpoint_job_ids": [
+    "rlt-compiled-paired-4m-modal-20260920-a",
+    "rlt-compiled-paired-4m-modal-20260922-b",
+    "rlt-compiled-paired-4m-modal-20260923-c"
+  ],
+  "fresh_data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "shuffle_seed": 20260923,
+    "eval_target_tokens_per_pair": 1048576,
+    "same_shard_definition_for_all_three_pairs": true
+  },
+  "pair_deltas_nll": {
+    "A": -0.017044972628355026,
+    "B": -0.02329173870384693,
+    "C": -0.033148955553770065
+  },
+  "aggregate_across_model_seeds": {
+    "pair_count": 3,
+    "rlt_lower_pair_count": 3,
+    "mean_rlt_minus_transformer_nll": -0.02449522229532401,
+    "sample_sd_pair_delta_nll": 0.0081191653562254,
+    "se_pair_delta_nll": 0.004687602304011818,
+    "t95_ci_pair_delta_nll_df2": [
+      -0.04466434714541884,
+      -0.004326097445229177
+    ]
+  },
+  "classification": "CROSSDATA_4M_ABC_ALL_THREE_RLT_LOWER_NLL",
+  "breakthrough_claim_supported": false,
+  "interpretation_ceiling": "Three independently seeded ~4M-token model pairs all favor RLT on the same independently prepared FineWeb-Edu validation shard, and the three-seed t-based interval is below zero. This is replicated small-model evidence within one dataset family, not evidence of a general architecture breakthrough. The next tests should broaden training data/corpus and model or token scale."
+}
