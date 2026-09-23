@@ -1,0 +1,270 @@
+name: RLT Modal cross-data 4M C evaluation 20260923 A
+
+on:
+  push:
+    branches:
+      - exp/rlt-colab
+    paths:
+      - .github/workflows/rlt-modal-crossdata-eval-4m-c-20260923-a.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-modal-crossdata-eval-4m-c-20260923-a
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-crossdata-eval-4m-c-modal-20260923-a
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-crossdata-eval-4m-c-modal-20260923-a.json
+      EVAL_PATH: experiments/rlt/eval_crossdata_4m_c.py
+      LAUNCHER_PATH: experiments/rlt/modal_crossdata_eval_4m_c.py
+      C_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260923-c.json
+      AB_PATH: experiments/rlt/modal/results/rlt-crossdata-eval-4m-ab-modal-20260923-a.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-crossdata-eval-4m-c-20260923-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-crossdata-eval-4m-c-modal-20260923-a.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-crossdata-eval-4m-c-modal-20260923-a.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse any previously claimed or completed C evaluation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          EVAL_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$EVAL_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "EVAL_BLOB_SHA=$EVAL_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA" >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-crossdata-eval-4m-c-modal-20260923-a',
+            'task':'crossdata_eval_4m_c',
+            'requires_checkpoint_job_ids':['rlt-compiled-paired-4m-modal-20260923-c'],
+            'fresh_data_seed':20260923,
+            'eval_target_tokens_per_pair':1048576,
+            'eval_batches':256,
+            'batch_size':64,
+            'seq_len':64,
+            'fresh_train_tokens':100000,
+            'fresh_val_tokens':1100000,
+            'checkpoint_volume':'tam-rlt-scientific-checkpoints',
+            'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require durable 4M C checkpoint and exact A B fresh-data shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$C_PATH" > /tmp/c.json
+          git show "origin/$BRANCH:$AB_PATH" > /tmp/ab.json
+          python - <<'PY'
+          import json
+          c=json.load(open('/tmp/c.json'))
+          ab=json.load(open('/tmp/ab.json'))
+          assert c.get('job_id')=='rlt-compiled-paired-4m-modal-20260923-c',c
+          assert c.get('status')=='complete',c
+          cc=c.get('comparison')
+          assert isinstance(cc,dict) and cc.get('status')=='complete',cc
+          assert cc.get('classification')=='PAIRED_4M_RLT_LOWER_NLL_SINGLE_RUN_HINT',cc
+          assert cc.get('breakthrough_claim_supported') is False,cc
+          assert float(cc['derived']['rlt_minus_transformer_final_nll'])<0.0,cc
+          assert c.get('checkpoint_durability',{}).get('modal_volume_committed') is True,c
+          assert c.get('checkpoint_export',{}).get('github_artifact_upload_outcome')=='success',c
+          assert ab.get('status')=='complete',ab
+          e=ab.get('evaluation')
+          assert isinstance(e,dict) and e.get('status')=='complete',e
+          assert e.get('classification')=='CROSSDATA_4M_AB_BOTH_RLT_LOWER_NLL',e
+          assert e.get('breakthrough_claim_supported') is False,e
+          assert e['fresh_data']['shuffle_seed']==20260923,e
+          assert e['fresh_data']['eval_target_tokens_per_pair']==1048576,e
+          assert e['fresh_data']['required_val_tokens']==1064960,e
+          assert ab.get('fresh_data',{}).get('seed')==20260923,ab
+          assert ab.get('fresh_data',{}).get('train_tokens')==100000,ab
+          assert ab.get('fresh_data',{}).get('val_tokens')==1100000,ab
+          PY
+
+      - name: Verify Modal secrets and install CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}"
+          test -n "${MODAL_TOKEN_SECRET:-}"
+          python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+
+      - name: Validate C fresh-data sources locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py experiments/rlt/eval_crossdata_4m_ab.py "$EVAL_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          e=Path('experiments/rlt/eval_crossdata_4m_c.py').read_text()
+          m=Path('experiments/rlt/modal_crossdata_eval_4m_c.py').read_text()
+          assert 'CHECKPOINT_JOB_ID = "rlt-compiled-paired-4m-modal-20260923-c"' in e
+          assert 'CROSSDATA_4M_C_RLT_LOWER_NLL' in e
+          assert 'from experiments.rlt.eval_crossdata_4m_ab import' in e
+          assert 'DATA_SEED' in e
+          assert 'JOB_ID = "rlt-crossdata-eval-4m-c-modal-20260923-a"' in m
+          assert '"task": "crossdata_eval_4m_c"' in m
+          assert '"rlt-compiled-paired-4m-modal-20260923-c"' in m
+          assert 'create_if_missing=False' in m
+          assert 'retries=0' in m and 'gpu="A100"' in m
+          assert 'seed=job["fresh_data_seed"]' in m
+          assert 'RLT_CROSSDATA_4M_C_RESULT_B64=' in m
+          PY
+
+      - name: Run non-GPU Modal preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          export P
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['P'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          p.update({
+            'classification':'RLT_CROSSDATA_4M_C_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Commit durable preflight before GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt crossdata 4m c: record zero-GPU preflight'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot C evaluation claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          p=pathlib.Path(os.environ['CLAIM_PATH'])
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps({
+            'schema':1,
+            'job_id':os.environ['JOB_ID'],
+            'status':'claimed',
+            'claimed_unix':time.time(),
+            'worker':'github-actions-modal',
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'fresh_data_seed':20260923,
+            'automatic_retry_authorized':False,
+            'job':json.load(open(os.environ['JOB_PATH'])),
+          },indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt crossdata 4m c: claim $JOB_ID before A100 evaluation"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 cross-data 4M C evaluation
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 55m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_CROSSDATA_4M_C_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize terminal C evaluation result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64','')
+          rc=int(os.environ.get('MODAL_RC','999'))
+          payload=None
+          if b:
+              try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception: payload=None
+          if not isinstance(payload,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              payload={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed',
+                       'finished_unix':time.time(),'worker':'github-actions-modal',
+                       'error_type':'ModalInvocationOrTransportError',
+                       'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+                       'log_tail':log[-6000:],'scientific_conclusion':None}
+          payload.update({
+            'modal_cli_rc':rc,
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+          })
+          p=pathlib.Path(os.environ['RESULT_PATH'])
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt crossdata 4m c: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize C fresh-data outcome
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          e=r.get('evaluation')
+          if not isinstance(e,dict) or e.get('status')!='complete': raise SystemExit(1)
+          if e.get('breakthrough_claim_supported') is not False: raise SystemExit(1)
+          if e.get('classification') not in {
+              'CROSSDATA_4M_C_RLT_LOWER_NLL',
+              'CROSSDATA_4M_C_NO_RLT_QUALITY_ADVANTAGE',
+          }: raise SystemExit(1)
+          print('classification:',e['classification'])
+          print('C delta:',e['pair']['rlt_minus_transformer_nll'])
+          print('C paired-batch 95% CI:',e['pair']['paired_batch_delta_normal95_ci'])
+          PY
