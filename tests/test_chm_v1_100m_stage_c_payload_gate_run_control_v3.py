@@ -8,7 +8,7 @@ import textwrap
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "modal_chm_v1_100m_stage_c_payload_gate_1017_v3.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-gate-1017-v3.yml"
-AUDIT = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v2.yml"
+AUDIT = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v3.yml"
 
 
 def _func(source: str, name: str) -> str:
@@ -112,7 +112,7 @@ def test_scientific_workflow_is_issue_only_one_shot_and_authority_bound() -> Non
 def test_authority_audit_is_cpu_inspect_only() -> None:
     s=AUDIT.read_text()
     assert "workflow_dispatch" not in s
-    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v2]" in s
+    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v3]" in s
     assert 'test "$RUN_ATTEMPT" = "1"' in s
     assert "--phase inspect-source" in s
     assert "--phase preflight" not in s
