@@ -118,6 +118,7 @@ def run_pair_remote(job_json: str) -> str:
                 name=job["dataset_config"],
                 split=split,
                 revision=job["dataset_revision"],
+                streaming=True,
             )
             chunks: list[np.ndarray] = []
             total = 0
