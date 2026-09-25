@@ -1,4 +1,4 @@
-name: CHM-v1 100M Stage-C payload/gate pre-authority audit v3
+name: CHM-v1 100M Stage-C payload/gate pre-authority audit v4
 
 on:
   issues:
@@ -79,7 +79,7 @@ jobs:
           test "$PAYLOAD_GATE_SHA" = "32a5ea1baca45705e75fef4c99974668b59d73a6"
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_chm_v1_100m_stage_c_990_v1_impl.py")" = "$SCIENTIFIC_IMPL_SHA"
           test "$SCIENTIFIC_IMPL_SHA" = "fb7fe5f8c2a597f7de9e4d03c6908dc0db9558ac"
-          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_payload_gate_1017_v3.py")" = "$RUNNER_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_payload_gate_1017_v4.py")" = "$RUNNER_SHA"
           test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-gate-1017-v4.yml")" = "$SCIENTIFIC_WORKFLOW_SHA"
           test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v4.yml")" = "$AUDIT_WORKFLOW_SHA"
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_dual_account.py")" = "$DUAL_ACCOUNT_SHA"
@@ -192,7 +192,7 @@ jobs:
           ACCOUNT_SELECTION_EVIDENCE_SHA256: ${{ steps.account_binding.outputs.account_selection_evidence_sha256 }}
         run: |
           cd source
-          modal run modal_chm_v1_100m_stage_c_payload_gate_1017_v3.py --phase inspect-source             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" --model-sha "$MODEL_SHA"             --evaluator-sha "$EVALUATOR_SHA" --payload-gate-sha "$PAYLOAD_GATE_SHA"             --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" --runner-sha "$RUNNER_SHA"             --workflow-sha "$SCIENTIFIC_WORKFLOW_SHA" --dual-account-sha "$DUAL_ACCOUNT_SHA"             --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA" --selected-modal-account "$SELECTED_MODAL_ACCOUNT"             --selected-modal-workspace "$SELECTED_MODAL_WORKSPACE" --account-selection-evidence-sha256 "$ACCOUNT_SELECTION_EVIDENCE_SHA256" | tee ../inspect.log
+          modal run modal_chm_v1_100m_stage_c_payload_gate_1017_v4.py --phase inspect-source             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" --model-sha "$MODEL_SHA"             --evaluator-sha "$EVALUATOR_SHA" --payload-gate-sha "$PAYLOAD_GATE_SHA"             --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" --runner-sha "$RUNNER_SHA"             --workflow-sha "$SCIENTIFIC_WORKFLOW_SHA" --dual-account-sha "$DUAL_ACCOUNT_SHA"             --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA" --selected-modal-account "$SELECTED_MODAL_ACCOUNT"             --selected-modal-workspace "$SELECTED_MODAL_WORKSPACE" --account-selection-evidence-sha256 "$ACCOUNT_SELECTION_EVIDENCE_SHA256" | tee ../inspect.log
           cd ..
           python - <<'PY'
           import json
