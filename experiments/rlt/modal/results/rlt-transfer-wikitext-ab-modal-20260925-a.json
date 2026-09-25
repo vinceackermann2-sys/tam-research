@@ -1,0 +1,210 @@
+{
+  "branch": "exp/rlt-colab",
+  "data": {
+    "fineweb": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260926,
+      "tokenizer": "gpt2",
+      "train_tokens": 100000,
+      "val_tokens": 1100000
+    },
+    "fineweb_val_sha256": "152fdd06894ab23e6c63b0e27287e6de5b793e149a205f530bc9e08b5b6d1f97",
+    "wikitext_test": {
+      "dataset": "Salesforce/wikitext",
+      "dataset_config": "wikitext-103-raw-v1",
+      "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+      "raw_tokens_before_truncation": 133346,
+      "sha256": "9ad01fe13ab2249fa2bc1bb95d05a8077211319ca0768b898634c2ade4c0202a",
+      "source_rows_consumed": 1240,
+      "split": "test",
+      "tokenizer": "gpt2",
+      "tokens_written": 133120
+    }
+  },
+  "data_hashes_match_claim": true,
+  "evaluation": {
+    "breakthrough_claim_supported": false,
+    "classification": "TRANSFER_WIKITEXT_AB_RLT_LOWER_BOTH_DOMAINS",
+    "fineweb_out_of_domain": {
+      "aggregate": {
+        "mean_rlt_minus_transformer_nll": -0.11753207352012396,
+        "pair_count": 2,
+        "rlt_lower_pair_count": 2,
+        "sample_sd_pair_delta_nll": 0.09147779462077497,
+        "se_pair_delta_nll": 0.06468456890434025,
+        "t95_ci_pair_delta_nll_df1": [
+          -0.9394274493065203,
+          0.7043633022662724
+        ]
+      },
+      "pairs": [
+        {
+          "batch_size": 64,
+          "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+          "eval_batches": 256,
+          "eval_target_tokens": 1048576,
+          "label": "A",
+          "paired_batch_delta_normal95_ci": [
+            -0.18811725686604186,
+            -0.1763160279828866
+          ],
+          "paired_batch_delta_sd": 0.04816916627546972,
+          "paired_batch_delta_se": 0.0030105728922168577,
+          "rlt_lower_batch_count": 255,
+          "rlt_minus_transformer_nll": -0.18221664242446423,
+          "rlt_nll": 8.401680970564485,
+          "rlt_perplexity": 4454.548422476851,
+          "seq_len": 64,
+          "transformer_nll": 8.583897612988949,
+          "transformer_perplexity": 5344.897321023057
+        },
+        {
+          "batch_size": 64,
+          "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260925-b",
+          "eval_batches": 256,
+          "eval_target_tokens": 1048576,
+          "label": "B",
+          "paired_batch_delta_normal95_ci": [
+            -0.05877888031435705,
+            -0.04691612891721033
+          ],
+          "paired_batch_delta_sd": 0.048420283191807974,
+          "paired_batch_delta_se": 0.0030262676994879984,
+          "rlt_lower_batch_count": 232,
+          "rlt_minus_transformer_nll": -0.05284750461578369,
+          "rlt_nll": 8.357056034728885,
+          "rlt_perplexity": 4260.134598809241,
+          "seq_len": 64,
+          "transformer_nll": 8.409903539344668,
+          "transformer_perplexity": 4491.327254282627
+        }
+      ]
+    },
+    "interpretation_ceiling": "Two independently seeded WikiText-trained ~7M-parameter model pairs evaluated both in-domain on pinned WikiText-103 test text and out-of-domain on a fresh FineWeb-Edu shard. This directly measures whether the RLT-vs-Transformer quality difference changes under distribution shift. Two seeds remain too few for a general claim.",
+    "status": "complete",
+    "transfer": {
+      "mean_ood_minus_indomain_relative_delta_nll": -0.10486031230539083,
+      "pairs": [
+        {
+          "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+          "fineweb_out_of_domain_rlt_minus_transformer_nll": -0.18221664242446423,
+          "label": "A",
+          "ood_minus_indomain_relative_delta_nll": -0.17113062553107738,
+          "wikitext_in_domain_rlt_minus_transformer_nll": -0.01108601689338684
+        },
+        {
+          "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260925-b",
+          "fineweb_out_of_domain_rlt_minus_transformer_nll": -0.05284750461578369,
+          "label": "B",
+          "ood_minus_indomain_relative_delta_nll": -0.038589999079704285,
+          "wikitext_in_domain_rlt_minus_transformer_nll": -0.014257505536079407
+        }
+      ],
+      "sample_sd_gap": 0.09372037574647901,
+      "se_gap": 0.06627031322568655,
+      "t95_ci_gap_df1": [
+        -0.9469044800984479,
+        0.7371838554876662
+      ]
+    },
+    "wikitext_indomain": {
+      "aggregate": {
+        "mean_rlt_minus_transformer_nll": -0.012671761214733124,
+        "pair_count": 2,
+        "rlt_lower_pair_count": 2,
+        "sample_sd_pair_delta_nll": 0.0022425811257040327,
+        "se_pair_delta_nll": 0.0015857443213462827,
+        "t95_ci_pair_delta_nll_df1": [
+          -0.03282055322139356,
+          0.007477030791927311
+        ]
+      },
+      "pairs": [
+        {
+          "batch_size": 64,
+          "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+          "eval_batches": 32,
+          "eval_target_tokens": 131072,
+          "label": "A",
+          "paired_batch_delta_normal95_ci": [
+            -0.01596414187493489,
+            -0.006207891911838794
+          ],
+          "paired_batch_delta_sd": 0.014079259746143095,
+          "paired_batch_delta_se": 0.0024888850101461427,
+          "rlt_lower_batch_count": 23,
+          "rlt_minus_transformer_nll": -0.01108601689338684,
+          "rlt_nll": 6.0578596740961075,
+          "rlt_perplexity": 427.45955430839774,
+          "seq_len": 64,
+          "transformer_nll": 6.068945690989494,
+          "transformer_perplexity": 432.22474282562
+        },
+        {
+          "batch_size": 64,
+          "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260925-b",
+          "eval_batches": 32,
+          "eval_target_tokens": 131072,
+          "label": "B",
+          "paired_batch_delta_normal95_ci": [
+            -0.021291835608305623,
+            -0.00722317546385319
+          ],
+          "paired_batch_delta_sd": 0.020302505696676347,
+          "paired_batch_delta_se": 0.0035890098632995887,
+          "rlt_lower_batch_count": 24,
+          "rlt_minus_transformer_nll": -0.014257505536079407,
+          "rlt_nll": 6.059820830821991,
+          "rlt_perplexity": 428.2986920597422,
+          "seq_len": 64,
+          "transformer_nll": 6.07407833635807,
+          "transformer_perplexity": 434.44890217788907
+        }
+      ]
+    }
+  },
+  "evaluator_blob_sha": "8364a11485a4c50543eb9fa9e4c73fce86049258",
+  "finished_unix": 1790327991.1906776,
+  "job": {
+    "artifact_digests": [
+      "sha256:2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028",
+      "sha256:0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4"
+    ],
+    "artifact_ids": [
+      10774574552,
+      10853054614
+    ],
+    "automatic_retry": false,
+    "checkpoint_volume": "tam-rlt-portable-transfer-wikitext-ab-20260925-a",
+    "fineweb_seed": 20260926,
+    "fineweb_train_tokens": 100000,
+    "fineweb_val_tokens": 1100000,
+    "job_id": "rlt-transfer-wikitext-ab-modal-20260925-a",
+    "requires_wikitext_job_ids": [
+      "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+      "rlt-compiled-paired-4m-wikitext-modal-20260925-b"
+    ],
+    "schema": 1,
+    "task": "transfer_wikitext_ab",
+    "wikitext_dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99"
+  },
+  "job_id": "rlt-transfer-wikitext-ab-modal-20260925-a",
+  "job_source_blob_sha": "0fb1c5e70ff377fa0603fd6846de32fbfe2d09a8",
+  "launcher_blob_sha": "2955379eb433afdce7006e682ff9abff9326807a",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790327893.4717758,
+  "status": "complete",
+  "trigger_sha": "fdecbbecd889dd7486909b1f2da0181f9699339d",
+  "worker": "modal"
+}
