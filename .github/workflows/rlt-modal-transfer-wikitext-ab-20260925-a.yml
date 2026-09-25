@@ -256,7 +256,6 @@ jobs:
           import numpy as np
           from datasets import load_dataset
           from transformers import AutoTokenizer
-          from tam_research.data import prepare_fineweb
           REQUIRED_TEST_TOKENS=133120
           REQUIRED_VAL_TOKENS=1064960
 
@@ -280,8 +279,23 @@ jobs:
           wt=np.concatenate(chunks)[:REQUIRED_TEST_TOKENS]
           wp=pathlib.Path('/tmp/wikitext-test.bin'); wt.tofile(wp)
 
-          fd=pathlib.Path('/tmp/fineweb-transfer')
-          meta=prepare_fineweb(str(fd),train_tokens=100000,val_tokens=1100000,seed=20260926)
+          fd=pathlib.Path('/tmp/fineweb-transfer'); fd.mkdir(parents=True,exist_ok=True)
+          fine_tok=AutoTokenizer.from_pretrained('gpt2',use_fast=True)
+          fine=load_dataset('HuggingFaceFW/fineweb-edu',name='sample-10BT',split='train',streaming=True)
+          fine=fine.shuffle(seed=20260926,buffer_size=10000)
+          target=1200000; fchunks=[]; ftotal=0
+          for row in fine:
+              text=row.get('text') or ''
+              if not text: continue
+              ids=fine_tok.encode(text,add_special_tokens=False); ids.append(fine_tok.eos_token_id)
+              a=np.asarray(ids,dtype=np.uint16); fchunks.append(a); ftotal+=len(a)
+              if ftotal>=target: break
+          assert ftotal>=target,(ftotal,target)
+          ftokens=np.concatenate(fchunks)[:target]
+          ftokens[:100000].tofile(fd/'train.bin')
+          ftokens[100000:1200000].tofile(fd/'val.bin')
+          meta={'dataset':'HuggingFaceFW/fineweb-edu','dataset_config':'sample-10BT','tokenizer':'gpt2',
+                'seed':20260926,'train_tokens':100000,'val_tokens':1100000,'dtype':'uint16'}
           vp=fd/'val.bin'
           assert vp.stat().st_size//2 >= REQUIRED_VAL_TOKENS
           payload={
