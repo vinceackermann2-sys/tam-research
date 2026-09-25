@@ -1,0 +1,141 @@
+{
+  "branch": "exp/rlt-colab",
+  "calibration": {
+    "attempt_seed": 20261014,
+    "breakthrough_claim_supported": false,
+    "calibration_only": true,
+    "classification": "SCALE15M_CALIBRATION_PASS",
+    "compile_probe_seed": 20301014,
+    "configs": {
+      "rlt": {
+        "d_model": 256,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 8,
+        "n_stages": 2,
+        "rms_eps": 1e-06,
+        "swa_window": 32,
+        "vocab_size": 50257
+      },
+      "transformer": {
+        "architecture": "transformer",
+        "d_model": 256,
+        "ff_inner": 938,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 8,
+        "n_layers": 3,
+        "tamv2_branch_inner": 104,
+        "tamv2_state_size": 64,
+        "tamv3_attn_inner": 208,
+        "vocab_size": 50257
+      }
+    },
+    "derived": {
+      "projected_rlt_full_4m_hours_including_compile_excluding_eval": 0.3156279606044447,
+      "projected_transformer_full_4m_hours_including_compile_excluding_eval": 0.010036283140000567,
+      "steady_transformer_throughput_multiple_vs_rlt": 22.819845232163683
+    },
+    "exact_parameter_match": {
+      "delta_parameters": 0,
+      "passed": true,
+      "rlt_parameters": 15129344,
+      "transformer_parameters": 15129344
+    },
+    "interpretation_ceiling": "Runtime/memory/semantic calibration only. Loss values from the compile and 32-step probes are not scientific quality evidence and must not be used to claim an RLT quality advantage or disadvantage. A separate preregistered full scale run is required.",
+    "paired_batch_seed": 20271014,
+    "probe_conditions": {
+      "compile_dynamic": false,
+      "compile_fullgraph": true,
+      "compile_mode": "default",
+      "full_token_budget_reference": 4194304,
+      "micro_batch_size": 16,
+      "probe_steps": 32,
+      "seq_len": 64
+    },
+    "rlt": {
+      "compile_probe": {
+        "loss": 10.850635528564453,
+        "peak_vram_gb": 2.097127914428711,
+        "seconds_forward_backward_no_update": 536.52966656
+      },
+      "projected_full_4m_seconds_including_compile_excluding_eval": 1136.260658176001,
+      "projected_full_4m_train_seconds_excluding_eval": 599.7309916160011,
+      "steady_probe": {
+        "last_loss_for_runtime_probe_only": 8.598247528076172,
+        "peak_vram_gb": 2.1768388748168945,
+        "seconds": 4.685398372000009,
+        "steps": 32,
+        "tokens": 32768,
+        "tokens_per_second": 6993.642247332035
+      }
+    },
+    "scientific_quality_claim_supported": false,
+    "semantic_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "status": "complete",
+    "transformer": {
+      "compile_probe": {
+        "loss": 10.879345893859863,
+        "peak_vram_gb": 0.8014998435974121,
+        "seconds_forward_backward_no_update": 9.849503656000024
+      },
+      "projected_full_4m_seconds_including_compile_excluding_eval": 36.13061930400204,
+      "projected_full_4m_train_seconds_excluding_eval": 26.281115648002014,
+      "steady_probe": {
+        "last_loss_for_runtime_probe_only": 8.559494018554688,
+        "peak_vram_gb": 0.9142317771911621,
+        "seconds": 0.20532121600001574,
+        "steps": 32,
+        "tokens": 32768,
+        "tokens_per_second": 159593.83369323844
+      }
+    }
+  },
+  "calibration_blob_sha": "938152fdb8dfdb40a5ef7a7ec987f418e08767e9",
+  "data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 20260927,
+    "tokenizer": "gpt2",
+    "train_tokens": 500000,
+    "val_tokens": 10000
+  },
+  "finished_unix": 1790330483.513855,
+  "job": {
+    "attempt_seed": 20261014,
+    "automatic_retry": false,
+    "data_seed": 20260927,
+    "job_id": "rlt-scale15m-calibration-modal-20260925-a",
+    "micro_batch_size": 16,
+    "probe_steps": 32,
+    "requires_c4_job_id": "rlt-c4-balanced-4m-modal-20260925-a",
+    "schema": 1,
+    "seq_len": 64,
+    "task": "scale15m_calibration_only",
+    "train_tokens": 500000,
+    "val_tokens": 10000
+  },
+  "job_id": "rlt-scale15m-calibration-modal-20260925-a",
+  "job_source_blob_sha": "b8860949b7152c3d257c6997276419a3240484d2",
+  "launcher_blob_sha": "1130d886d007a171b6942839eefe142349ab92d8",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790329918.2935047,
+  "status": "complete",
+  "trigger_sha": "1fd42b9129a41eb004df1e5365ecbc156a1108ed",
+  "worker": "modal"
+}
