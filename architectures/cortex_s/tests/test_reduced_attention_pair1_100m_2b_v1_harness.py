@@ -149,6 +149,7 @@ def test_pair1_workflow_is_exact_owner_only_one_shot_and_dual_account_bound() ->
     assert "git merge-base --is-ancestor" in source
     assert "git diff --exit-code" in source
     assert "scripts/modal_select_account.py --required-volume tam-research-data" in source
+    assert 'PYTHONPATH="$PWD" python scripts/modal_select_account.py --required-volume tam-research-data' in source
     assert 'SELECTED" = "secondary"' in source
     assert 'SELECTED" = "primary"' in source
     assert "modal volume list --json" in source
