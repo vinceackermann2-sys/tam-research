@@ -38,7 +38,7 @@ def _encode(value: dict[str, Any]) -> str:
     gpu="A100",
     cpu=4.0,
     memory=65536,
-    timeout=55 * 60,
+    timeout=120 * 60,
     retries=0,
     max_containers=1,
     volumes={"/checkpoints": checkpoint_volume},
