@@ -1,0 +1,315 @@
+{
+  "base_trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "branch": "exp/rlt-colab",
+  "checkpoint_durability": {
+    "modal_volume_committed": true,
+    "remote_dir": "rlt-compiled-paired-4m-wikitext-modal-20260925-b",
+    "rlt": {
+      "bytes": 84126475,
+      "filename": "rlt_final.pt",
+      "sha256": "035e02b4b575e8de2d22080b94ca44fb5ebdc6ce2a7a9028dc6e362a3942ec3c"
+    },
+    "transformer": {
+      "bytes": 84527675,
+      "filename": "transformer_final.pt",
+      "sha256": "12e2f8d330eb10b13a02f8f6b6f6e50801daa38a07fb2786620204ed6cdab2b6"
+    },
+    "volume": "tam-rlt-scientific-checkpoints"
+  },
+  "checkpoint_export": {
+    "github_artifact_digest": "0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4",
+    "github_artifact_id": "10853054614",
+    "github_artifact_name": "rlt-compiled-paired-4m-wikitext-modal-20260925-b-checkpoints",
+    "github_artifact_upload_outcome": "success",
+    "github_run_id": "36111532654",
+    "modal_volume_get_outcome": "success"
+  },
+  "comparison": {
+    "breakthrough_claim_supported": false,
+    "classification": "PAIRED_4M_WIKITEXT_RLT_LOWER_NLL_SINGLE_RUN_HINT",
+    "compile_probe_seed": 20301013,
+    "derived": {
+      "effective_transformer_throughput_multiple_vs_rlt_including_compile_and_eval": 29.27248333513289,
+      "evaluation_points_total": 5,
+      "evaluation_points_where_rlt_lower_nll": [
+        0,
+        1048576,
+        2097152,
+        3145728,
+        4194304
+      ],
+      "rlt_minus_transformer_final_nll": -0.023290380835533142,
+      "rlt_minus_transformer_final_perplexity": -9.58366938168757,
+      "steady_state_transformer_throughput_multiple_vs_rlt": 26.356736695956183,
+      "transformer_parameter_delta_fraction": 0.004749118673169306
+    },
+    "interpretation_ceiling": "Second independent matched ~4M-token run trained and validated in-domain on the same pinned WikiText-103 raw bytes at ~7M parameters. Agreement with run A would establish two-seed corpus-level replication, but broader seed, scale, and corpus evidence remains required.",
+    "matched_conditions": {
+      "compile_dynamic": false,
+      "compile_fullgraph": true,
+      "compile_mode": "default",
+      "cuda_graphs": false,
+      "eval_batches_per_checkpoint": 64,
+      "evaluation_fractions": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "grad_accum_steps": 1,
+      "learning_rate": 0.0003,
+      "micro_batch_size": 16,
+      "optimizer_steps": 4096,
+      "same_batch_stream": true,
+      "same_eval_stream": true,
+      "same_model_seed": true,
+      "seq_len": 64,
+      "token_budget": 4194304,
+      "warmup_ratio": 0.02,
+      "weight_decay": 0.1
+    },
+    "paired_batch_seed": 20271013,
+    "paired_eval_seed": 20291013,
+    "rlt": {
+      "checkpoint": {
+        "bytes": 84126475,
+        "filename": "rlt_final.pt",
+        "sha256": "035e02b4b575e8de2d22080b94ca44fb5ebdc6ce2a7a9028dc6e362a3942ec3c"
+      },
+      "compile": {
+        "loss": 10.850279808044434,
+        "peak_vram_gb": 1.1360235214233398,
+        "seconds_forward_backward_no_update": 378.673256576
+      },
+      "config": {
+        "d_model": 128,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 4,
+        "n_stages": 2,
+        "rms_eps": 1e-06,
+        "swa_window": 32,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 4292.674358814754,
+      "final_eval": {
+        "eval_tokens": 65536,
+        "nll": 6.008107595145702,
+        "perplexity": 406.7129260393754,
+        "seconds": 3.4945201729999553,
+        "step": 4096,
+        "tokens_seen": 4194304
+      },
+      "last_train_loss": 6.224169731140137,
+      "learning_curve": [
+        {
+          "eval_tokens": 65536,
+          "nll": 10.849439546465874,
+          "perplexity": 51505.27695075646,
+          "seconds": 178.766969662,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.333210997283459,
+          "perplexity": 562.9613621538309,
+          "seconds": 3.56491367000001,
+          "step": 1024,
+          "tokens_seen": 1048576
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.129581682384014,
+          "perplexity": 459.2440106331777,
+          "seconds": 3.560326616999987,
+          "step": 2048,
+          "tokens_seen": 2097152
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.042908996343613,
+          "perplexity": 421.11628053581046,
+          "seconds": 3.5895949040000232,
+          "step": 3072,
+          "tokens_seen": 3145728
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.008107595145702,
+          "perplexity": 406.7129260393754,
+          "seconds": 3.4945201729999553,
+          "step": 4096,
+          "tokens_seen": 4194304
+        }
+      ],
+      "parameters": 7007616,
+      "status": "complete",
+      "steps": 4096,
+      "tokens_per_second_excluding_compile_and_eval": 7179.5499595817255,
+      "tokens_seen": 4194304,
+      "train_peak_vram_gb": 1.1257085800170898,
+      "train_seconds_excluding_scheduled_eval": 584.2015200970002,
+      "wall_seconds_training_and_scheduled_eval": 598.4108754610002
+    },
+    "scientific_seed": 20261013,
+    "semantic_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "status": "complete",
+    "transformer": {
+      "checkpoint": {
+        "bytes": 84527675,
+        "filename": "transformer_final.pt",
+        "sha256": "12e2f8d330eb10b13a02f8f6b6f6e50801daa38a07fb2786620204ed6cdab2b6"
+      },
+      "compile": {
+        "loss": 10.84926986694336,
+        "peak_vram_gb": 0.7630715370178223,
+        "seconds_forward_backward_no_update": 10.66349450100006
+      },
+      "config": {
+        "architecture": "transformer",
+        "d_model": 128,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 4,
+        "n_layers": 3,
+        "tamv2_branch_inner": 104,
+        "tamv2_state_size": 64,
+        "tamv3_attn_inner": 208,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 125657.23863155715,
+      "final_eval": {
+        "eval_tokens": 65536,
+        "nll": 6.0313979759812355,
+        "perplexity": 416.296595421063,
+        "seconds": 0.13852222599984998,
+        "step": 4096,
+        "tokens_seen": 4194304
+      },
+      "last_train_loss": 6.242929458618164,
+      "learning_curve": [
+        {
+          "eval_tokens": 65536,
+          "nll": 10.856580898165703,
+          "perplexity": 51874.41073616833,
+          "seconds": 4.461254520000011,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.367965117096901,
+          "perplexity": 582.8705479993428,
+          "seconds": 0.13733723799987274,
+          "step": 1024,
+          "tokens_seen": 1048576
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.16853740811348,
+          "perplexity": 477.4872261828738,
+          "seconds": 0.13741208700002971,
+          "step": 2048,
+          "tokens_seen": 2097152
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.07277350127697,
+          "perplexity": 433.8823876937469,
+          "seconds": 0.13699369300002218,
+          "step": 3072,
+          "tokens_seen": 3145728
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.0313979759812355,
+          "perplexity": 416.296595421063,
+          "seconds": 0.13852222599984998,
+          "step": 4096,
+          "tokens_seen": 4194304
+        }
+      ],
+      "parameters": 7040896,
+      "status": "complete",
+      "steps": 4096,
+      "tokens_per_second_excluding_compile_and_eval": 189229.5078801584,
+      "tokens_seen": 4194304,
+      "train_peak_vram_gb": 0.8155436515808105,
+      "train_seconds_excluding_scheduled_eval": 22.165168884000423,
+      "wall_seconds_training_and_scheduled_eval": 22.715434128000197
+    }
+  },
+  "data": {
+    "dataset": "Salesforce/wikitext",
+    "dataset_config": "wikitext-103-raw-v1",
+    "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+    "dtype": "uint16",
+    "tokenizer": "gpt2",
+    "train": {
+      "raw_tokens_before_truncation": 6000180,
+      "sha256": "e4b8e6f129e678d64cf6680ca2d744ba6ddb6c75149050fcfb499fd42e2a1484",
+      "source_rows_consumed": 59643,
+      "split": "train",
+      "target_tokens": 6000000,
+      "tokens_written": 6000000
+    },
+    "validation": {
+      "raw_tokens_before_truncation": 131257,
+      "sha256": "1b2e9a8837a05fff1045d2c74593d5850439437204356a917f641a9b3ab9e4de",
+      "source_rows_consumed": 1327,
+      "split": "validation",
+      "target_tokens": 131072,
+      "tokens_written": 131072
+    }
+  },
+  "dataset_hashes_match_claim": true,
+  "finished_unix": 1790325162.2052085,
+  "job": {
+    "automatic_retry": false,
+    "checkpoint_volume": "tam-rlt-scientific-checkpoints",
+    "dataset_config": "wikitext-103-raw-v1",
+    "dataset_id": "Salesforce/wikitext",
+    "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+    "grad_accum_steps": 1,
+    "job_id": "rlt-compiled-paired-4m-wikitext-modal-20260925-b",
+    "micro_batch_size": 16,
+    "requires_crosscorpus_job_id": "rlt-crosscorpus-wikitext-4m-abcd-modal-20260923-a",
+    "requires_prior_wikitext_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+    "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+    "schema": 1,
+    "scientific_seed": 20261013,
+    "seq_len": 64,
+    "task": "compiled_paired_4m_wikitext_b",
+    "token_budget": 4194304,
+    "tokenizer_id": "gpt2",
+    "train_split": "train",
+    "train_tokens": 6000000,
+    "val_split": "validation",
+    "val_tokens": 131072
+  },
+  "job_id": "rlt-compiled-paired-4m-wikitext-modal-20260925-b",
+  "job_source_blob_sha": "4e8cf69a1378e04d9945d6805100d3702ad3afe4",
+  "launcher_blob_sha": "9a3aa2e731e30443f45705a104b67927b2e23b18",
+  "modal_account_slot": "A",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790323936.5323575,
+  "status": "complete",
+  "trainer_blob_sha": "b37d8b5f773b102ebe0754171ecfb076a5a2cef6",
+  "trigger_sha": "879ffc61a98c53975e3eebce6739e6f712b1045f",
+  "worker": "modal"
+}
