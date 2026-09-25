@@ -243,3 +243,10 @@ def test_v4_workflows_bind_exact_dual_account_blobs() -> None:
         assert "7d9bd073bedcb8bfafcde23e6f03772dddb6d50e" in s
         assert "tam_research/modal_dual_account.py" in s
         assert "scripts/modal_select_account.py" in s
+
+
+def test_v4_workflows_never_reference_retired_v3_runner() -> None:
+    for path in (WORKFLOW, AUDIT):
+        source = path.read_text()
+        assert "modal_chm_v1_100m_stage_c_payload_gate_1017_v3.py" not in source
+        assert "modal_chm_v1_100m_stage_c_payload_gate_1017_v4.py" in source
