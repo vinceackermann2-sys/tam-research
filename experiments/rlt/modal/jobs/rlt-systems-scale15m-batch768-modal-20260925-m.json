@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-scale15m-batch768-modal-20260925-m",
+  "task": "systems_scale15m_batch768_m",
+  "engineering_seed": 20261018,
+  "requires_scale4m_a_job_id": "rlt-exact15m-fineweb-4m-modal-20260925-a",
+  "requires_scale4m_b_job_id": "rlt-scale15m-paired-4m-modal-20260925-b",
+  "requires_scale16m_a_job_id": "rlt-scale15m-paired-16m-modal-20260925-a",
+  "batch_size": 768,
+  "seq_len": 64,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
