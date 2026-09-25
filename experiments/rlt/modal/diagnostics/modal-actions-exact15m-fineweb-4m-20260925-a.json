@@ -1,0 +1,57 @@
+{
+  "base_trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_EXACT15M_FINEWEB_ZERO_GPU_PARAMETER_AND_DATA_PREFLIGHT_PASS",
+  "data_audit": {
+    "matches_prior_d_bytes": true,
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "finished_unix": 1790328909.9269543,
+  "forward_shape_audit": {
+    "rlt": [
+      1,
+      2,
+      50257
+    ],
+    "transformer": [
+      1,
+      2,
+      50257
+    ]
+  },
+  "gpu_allocated": false,
+  "job_id_checked": "rlt-exact15m-fineweb-4m-modal-20260925-a",
+  "job_source_blob_sha": "615eac31c706f70f05ec85fde0c8718de21668f0",
+  "launcher_blob_sha": "9f42065d74214372ca49736ff3e35ccbfcf4642c",
+  "modal_account_slot": "2",
+  "models_blob_sha": "b95ca0a2d7c6039b9ddc90a856caf6fa3ea3d64d",
+  "parameter_audit": {
+    "default_7m_transformer_parameters": 7040896,
+    "expected_parameters": 15129344,
+    "parameter_delta": 0,
+    "rlt_parameters": 15129344,
+    "transformer_ff_inner": 938,
+    "transformer_parameters": 15129344
+  },
+  "preflight_blob_sha": "e0bfc73ffaf947e7e24e7ed2004576d4bf2a5105",
+  "runtime": {
+    "cuda_available": false,
+    "torch_version": "2.10.0+cu128"
+  },
+  "scale_trainer_blob_sha": "9ad6ac75e82dd52ee5a43f1a57bc3fba5ad402e2",
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790328880.8719938,
+  "status": "pass",
+  "trigger_sha": "6e208043ddc86bb6e6b009605eb2561e7807cf55"
+}
