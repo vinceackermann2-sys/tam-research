@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "job_id": "rlt-scale15m-calibration-modal-20260925-a",
+  "task": "scale15m_calibration_only",
+  "attempt_seed": 20261014,
+  "requires_c4_job_id": "rlt-c4-balanced-4m-modal-20260925-a",
+  "data_seed": 20260927,
+  "train_tokens": 500000,
+  "val_tokens": 10000,
+  "seq_len": 64,
+  "micro_batch_size": 16,
+  "probe_steps": 32,
+  "automatic_retry": false
+}
