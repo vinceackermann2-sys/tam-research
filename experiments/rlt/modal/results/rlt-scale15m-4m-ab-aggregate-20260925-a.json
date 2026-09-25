@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "analysis_id": "rlt-scale15m-4m-ab-aggregate-20260925-a",
+  "branch": "exp/rlt-colab",
+  "status": "complete",
+  "scientific_execution": false,
+  "paid_attempt": false,
+  "source_job_ids": [
+    "rlt-exact15m-fineweb-4m-modal-20260925-a",
+    "rlt-scale15m-paired-4m-modal-20260925-b"
+  ],
+  "scientific_seeds": [
+    20261014,
+    20261015
+  ],
+  "exact_parameter_match": {
+    "rlt_parameters": 15129344,
+    "transformer_parameters": 15129344,
+    "parameter_delta": 0,
+    "parameter_delta_fraction": 0.0
+  },
+  "shared_data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "training_data_seed": 20260924,
+    "train_bin_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_bin_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+    "token_budget_per_pair": 4194304
+  },
+  "pair_deltas_nll": {
+    "A": -0.017689518630504608,
+    "B": -0.021268010139465332
+  },
+  "aggregate_across_model_seeds": {
+    "pair_count": 2,
+    "rlt_lower_pair_count": 2,
+    "mean_rlt_minus_transformer_nll": -0.01947876438498497,
+    "sample_sd_pair_delta_nll": 0.002530375612404609,
+    "se_pair_delta_nll": 0.0017892457544803617,
+    "t95_ci_pair_delta_nll_df1": [
+      -0.04221328726520436,
+      0.0032557584952344204
+    ]
+  },
+  "classification": "SCALE15M_4M_AB_BOTH_RLT_LOWER_NLL",
+  "breakthrough_claim_supported": false,
+  "interpretation_ceiling": "Two independent exactly parameter-matched ~15.1M-parameter seeds both favor RLT after ~4M training tokens on the same frozen FineWeb-Edu shard. This establishes replicated scale persistence beyond the ~7M setup, but n=2 is too small for a seed-level 95% t-interval below zero and the current RLT implementation remains much slower than the Transformer. Longer-token and compute-matched evidence are still required before a breakthrough claim."
+}
