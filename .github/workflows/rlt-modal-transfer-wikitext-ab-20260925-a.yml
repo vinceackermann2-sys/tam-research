@@ -1,0 +1,436 @@
+name: RLT Modal symmetric WikiText transfer AB 20260925 A
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-modal-transfer-wikitext-ab-20260925-a.yml
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: rlt-modal-transfer-wikitext-ab-20260925-a
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-transfer-wikitext-ab-modal-20260925-a
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-transfer-wikitext-ab-modal-20260925-a.json
+      EVAL_PATH: experiments/rlt/eval_transfer_wikitext_ab.py
+      LAUNCHER_PATH: experiments/rlt/modal_transfer_wikitext_ab.py
+      A_RESULT_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-wikitext-modal-20260923-a.json
+      B_RESULT_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-wikitext-modal-20260925-b.json
+      SYSTEMS_PATH: experiments/rlt/modal/results/rlt-systems-decoder-cache768-modal-20260917-l.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-transfer-wikitext-ab-20260925-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-transfer-wikitext-ab-modal-20260925-a.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-transfer-wikitext-ab-modal-20260925-a.json
+      PORTABLE_VOLUME: tam-rlt-portable-transfer-wikitext-ab-20260925-a
+      A_JOB_ID: rlt-compiled-paired-4m-wikitext-modal-20260923-a
+      B_JOB_ID: rlt-compiled-paired-4m-wikitext-modal-20260925-b
+      A_ARTIFACT_NAME: rlt-compiled-paired-4m-wikitext-modal-20260923-a-checkpoints
+      B_ARTIFACT_NAME: rlt-compiled-paired-4m-wikitext-modal-20260925-b-checkpoints
+      A_ARTIFACT_ID: "10774574552"
+      B_ARTIFACT_ID: "10853054614"
+      A_RUN_ID: "35913832716"
+      B_RUN_ID: "36111532654"
+      WIKITEXT_REVISION: 00aa25585682d4957f9e86edc73f59be7419af99
+      FINEWEB_SEED: "20260926"
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse previously claimed or completed transfer attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          EVAL_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$EVAL_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          {
+            echo "JOB_BLOB_SHA=$JOB_BLOB_SHA"
+            echo "EVAL_BLOB_SHA=$EVAL_BLOB_SHA"
+            echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA"
+          } >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-transfer-wikitext-ab-modal-20260925-a',
+            'task':'transfer_wikitext_ab',
+            'requires_wikitext_job_ids':[
+              'rlt-compiled-paired-4m-wikitext-modal-20260923-a',
+              'rlt-compiled-paired-4m-wikitext-modal-20260925-b',
+            ],
+            'artifact_ids':[10774574552,10853054614],
+            'artifact_digests':[
+              'sha256:2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028',
+              'sha256:0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4',
+            ],
+            'checkpoint_volume':'tam-rlt-portable-transfer-wikitext-ab-20260925-a',
+            'wikitext_dataset_revision':'00aa25585682d4957f9e86edc73f59be7419af99',
+            'fineweb_seed':20260926,
+            'fineweb_train_tokens':100000,
+            'fineweb_val_tokens':1100000,
+            'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require independent positive WikiText A B and frozen systems result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$A_RESULT_PATH" > /tmp/a-result.json
+          git show "origin/$BRANCH:$B_RESULT_PATH" > /tmp/b-result.json
+          git show "origin/$BRANCH:$SYSTEMS_PATH" > /tmp/systems.json
+          python - <<'PY'
+          import json
+          rows=[json.load(open('/tmp/a-result.json')),json.load(open('/tmp/b-result.json'))]
+          ids=['rlt-compiled-paired-4m-wikitext-modal-20260923-a',
+               'rlt-compiled-paired-4m-wikitext-modal-20260925-b']
+          seeds=[20261012,20261013]
+          artifact_ids=['10774574552','10853054614']
+          digests=['2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028',
+                   '0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4']
+          for r,jid,seed,aid,digest in zip(rows,ids,seeds,artifact_ids,digests):
+              assert r.get('job_id')==jid,r
+              assert r.get('status')=='complete' and r.get('dataset_hashes_match_claim') is True,r
+              c=r.get('comparison'); assert isinstance(c,dict) and c.get('status')=='complete',c
+              assert c.get('scientific_seed')==seed,c
+              assert c.get('classification')=='PAIRED_4M_WIKITEXT_RLT_LOWER_NLL_SINGLE_RUN_HINT',c
+              assert c.get('breakthrough_claim_supported') is False,c
+              assert float(c['derived']['rlt_minus_transformer_final_nll'])<0.0,c
+              e=r.get('checkpoint_export',{})
+              assert e.get('github_artifact_upload_outcome')=='success',e
+              assert str(e.get('github_artifact_id'))==aid,e
+              assert digest in str(e.get('github_artifact_digest')),e
+          assert rows[0]['comparison']['scientific_seed'] != rows[1]['comparison']['scientific_seed']
+          s=json.load(open('/tmp/systems.json'))
+          assert s.get('status')=='complete' and s.get('classification')=='PASS_CACHE768_WEAK',s
+          assert s['semantic_equivalence']['passed'] is True,s
+          PY
+
+      - name: Install zero-GPU dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check             'modal>=1.5.4,<1.6' 'numpy>=2.0,<3' 'datasets>=4.0,<5'             'transformers>=4.55,<5' 'tokenizers>=0.21,<1' 'huggingface-hub>=0.34,<1'
+
+      - name: Select Modal account 2 before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLOT=""
+          ID=""
+          SECRET=""
+          if [ -n "${MODAL_TOKEN_ID_2:-}" ] && [ -n "${MODAL_TOKEN_SECRET_2:-}" ]; then
+            SLOT="2"; ID="$MODAL_TOKEN_ID_2"; SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "${MODAL_TOKEN_ID_B:-}" ] && [ -n "${MODAL_TOKEN_SECRET_B:-}" ]; then
+            SLOT="B"; ID="$MODAL_TOKEN_ID_B"; SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+            SLOT="A"; ID="$MODAL_TOKEN_ID_A"; SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID"; test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID"
+          export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          {
+            echo "MODAL_ACCOUNT_SLOT=$SLOT"
+            echo "MODAL_TOKEN_ID=$ID"
+            echo "MODAL_TOKEN_SECRET=$SECRET"
+          } >> "$GITHUB_ENV"
+          echo "Selected Modal account slot $SLOT before claim."
+
+      - name: Download WikiText A checkpoint artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.A_ARTIFACT_NAME }}
+          path: /tmp/artifact-a
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: vinceackermann2-sys/tam-research
+          run-id: ${{ env.A_RUN_ID }}
+
+      - name: Download WikiText B checkpoint artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.B_ARTIFACT_NAME }}
+          path: /tmp/artifact-b
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: vinceackermann2-sys/tam-research
+          run-id: ${{ env.B_RUN_ID }}
+
+      - name: Normalize and verify portable checkpoint bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib,shutil
+          rows=[json.load(open('/tmp/a-result.json')),json.load(open('/tmp/b-result.json'))]
+          specs=[('/tmp/artifact-a',os.environ['A_JOB_ID'],rows[0]),
+                 ('/tmp/artifact-b',os.environ['B_JOB_ID'],rows[1])]
+          root=pathlib.Path('/tmp/portable-checkpoints'); root.mkdir(parents=True,exist_ok=True)
+          manifest={}
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for x in iter(lambda:f.read(8*1024*1024),b''): h.update(x)
+              return h.hexdigest()
+          for src,jid,r in specs:
+              srcp=pathlib.Path(src)
+              dest=root/jid; dest.mkdir(parents=True,exist_ok=False)
+              manifest[jid]={}
+              for model,name in [('rlt','rlt_final.pt'),('transformer','transformer_final.pt')]:
+                  xs=list(srcp.rglob(name)); assert len(xs)==1,(src,name,xs)
+                  out=dest/name; shutil.copy2(xs[0],out)
+                  expected=r['checkpoint_durability'][model]
+                  got=sha(out)
+                  assert got==expected['sha256'],(jid,name,got,expected)
+                  assert out.stat().st_size==expected['bytes'],(jid,name,out.stat().st_size,expected)
+                  manifest[jid][name]={'sha256':got,'bytes':out.stat().st_size}
+          pathlib.Path('/tmp/checkpoint-manifest.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Stage portable checkpoints into selected Modal workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          modal volume create "$PORTABLE_VOLUME" >/tmp/volume-create.log 2>&1 || true
+          for JID in "$A_JOB_ID" "$B_JOB_ID"; do
+            modal volume put -f "$PORTABLE_VOLUME" "/tmp/portable-checkpoints/$JID/rlt_final.pt" "$JID/rlt_final.pt"
+            modal volume put -f "$PORTABLE_VOLUME" "/tmp/portable-checkpoints/$JID/transformer_final.pt" "$JID/transformer_final.pt"
+            modal volume ls "$PORTABLE_VOLUME" "$JID"
+          done
+
+      - name: Validate transfer sources locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py "$EVAL_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          e=Path('experiments/rlt/eval_transfer_wikitext_ab.py').read_text()
+          m=Path('experiments/rlt/modal_transfer_wikitext_ab.py').read_text()
+          for x in [
+            'rlt-compiled-paired-4m-wikitext-modal-20260923-a',
+            'rlt-compiled-paired-4m-wikitext-modal-20260925-b',
+            'TRANSFER_WIKITEXT_AB_RLT_LOWER_BOTH_DOMAINS',
+            'TRANSFER_WIKITEXT_AB_RLT_LOWER_INDOMAIN_NOT_ROBUST_OOD',
+            'ood_minus_indomain_relative_delta_nll',
+            '"breakthrough_claim_supported": False',
+          ]: assert x in e,x
+          for x in [
+            'JOB_ID = "rlt-transfer-wikitext-ab-modal-20260925-a"',
+            'CHECKPOINT_VOLUME = "tam-rlt-portable-transfer-wikitext-ab-20260925-a"',
+            'FINEWEB_SEED = 20_260_926',
+            'create_if_missing=False','retries=0','gpu="A100"',
+            'RLT_TRANSFER_WIKITEXT_AB_RESULT_B64=',
+          ]: assert x in m,x
+          PY
+
+      - name: Prove transfer data bytes on CPU before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib
+          import numpy as np
+          from datasets import load_dataset
+          from transformers import AutoTokenizer
+          from tam_research.data import prepare_fineweb
+          from experiments.rlt.eval_crosscorpus_wikitext_4m_abcd import REQUIRED_TEST_TOKENS
+          from experiments.rlt.eval_crossdata_4m_ab import REQUIRED_VAL_TOKENS
+
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for x in iter(lambda:f.read(8*1024*1024),b''): h.update(x)
+              return h.hexdigest()
+
+          ds=load_dataset('Salesforce/wikitext',name='wikitext-103-raw-v1',split='test',
+                          revision='00aa25585682d4957f9e86edc73f59be7419af99')
+          tok=AutoTokenizer.from_pretrained('gpt2',use_fast=True)
+          chunks=[]; total=0; rows=0
+          for row in ds:
+              text=row.get('text') or ''
+              if not text: continue
+              ids=tok.encode(text,add_special_tokens=False); ids.append(tok.eos_token_id)
+              a=np.asarray(ids,dtype=np.uint16); chunks.append(a); total+=len(a); rows+=1
+              if total>=REQUIRED_TEST_TOKENS: break
+          assert total>=REQUIRED_TEST_TOKENS
+          wt=np.concatenate(chunks)[:REQUIRED_TEST_TOKENS]
+          wp=pathlib.Path('/tmp/wikitext-test.bin'); wt.tofile(wp)
+
+          fd=pathlib.Path('/tmp/fineweb-transfer')
+          meta=prepare_fineweb(str(fd),train_tokens=100000,val_tokens=1100000,seed=20260926)
+          vp=fd/'val.bin'
+          assert vp.stat().st_size//2 >= REQUIRED_VAL_TOKENS
+          payload={
+            'wikitext_test':{
+              'dataset_revision':'00aa25585682d4957f9e86edc73f59be7419af99',
+              'tokens_written':int(wt.size),'source_rows_consumed':rows,'sha256':sha(wp),
+            },
+            'fineweb':meta,
+            'fineweb_seed':20260926,
+            'fineweb_val_sha256':sha(vp),
+          }
+          pathlib.Path('/tmp/transfer-data-preflight.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(payload,sort_keys=True))
+          PY
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/modal-preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/modal-preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Commit combined zero-GPU transfer preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          data=json.load(open('/tmp/transfer-data-preflight.json'))
+          checkpoints=json.load(open('/tmp/checkpoint-manifest.json'))
+          p.update({
+            'classification':'RLT_TRANSFER_WIKITEXT_AB_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'portable_volume':os.environ['PORTABLE_VOLUME'],
+            'checkpoint_manifest':checkpoints,'data_preflight':data,
+            'artifact_ids':[int(os.environ['A_ARTIFACT_ID']),int(os.environ['B_ARTIFACT_ID'])],
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH']); path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt transfer: record portable checkpoints and zero-GPU preflight'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot transfer claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          d=json.load(open(os.environ['DIAGNOSTIC_PATH']))
+          data=d['data_preflight']
+          payload={
+            'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed','claimed_unix':time.time(),
+            'worker':'github-actions-modal','branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'portable_volume':os.environ['PORTABLE_VOLUME'],'checkpoint_manifest':d['checkpoint_manifest'],
+            'wikitext_test_sha256':data['wikitext_test']['sha256'],
+            'fineweb_val_sha256':data['fineweb_val_sha256'],'automatic_retry_authorized':False,
+            'job':json.load(open(os.environ['JOB_PATH'])),
+          }
+          p=pathlib.Path(os.environ['CLAIM_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt transfer: claim $JOB_ID before A100 evaluation"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 symmetric transfer evaluation
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 60m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_TRANSFER_WIKITEXT_AB_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize durable transfer result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64',''); rc=int(os.environ.get('MODAL_RC','999')); payload=None
+          if b:
+              try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception: payload=None
+          if not isinstance(payload,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              payload={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed','finished_unix':time.time(),
+                       'worker':'github-actions-modal','error_type':'ModalInvocationOrTransportError',
+                       'error':f'Modal CLI rc={rc}; no parseable terminal payload','log_tail':log[-6000:],
+                       'scientific_conclusion':None}
+          claim=json.load(open(os.environ['CLAIM_PATH']))
+          data=payload.get('data') or {}
+          wiki=(data.get('wikitext_test') or {}).get('sha256')
+          fine=data.get('fineweb_val_sha256')
+          payload.update({
+            'modal_cli_rc':rc,'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'data_hashes_match_claim':(
+              wiki is not None and fine is not None and
+              wiki==claim['wikitext_test_sha256'] and fine==claim['fineweb_val_sha256']
+            ),
+          })
+          p=pathlib.Path(os.environ['RESULT_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt transfer: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize transfer outcome
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete' or r.get('data_hashes_match_claim') is not True: raise SystemExit(1)
+          e=r.get('evaluation')
+          if not isinstance(e,dict) or e.get('status')!='complete' or e.get('breakthrough_claim_supported') is not False:
+              raise SystemExit(1)
+          allowed={
+            'TRANSFER_WIKITEXT_AB_RLT_LOWER_BOTH_DOMAINS',
+            'TRANSFER_WIKITEXT_AB_RLT_LOWER_INDOMAIN_NOT_ROBUST_OOD',
+            'TRANSFER_WIKITEXT_AB_RLT_LOWER_OOD_NOT_CONSISTENT_INDOMAIN',
+            'TRANSFER_WIKITEXT_AB_NO_CONSISTENT_TWO_SEED_ADVANTAGE',
+          }
+          if e.get('classification') not in allowed: raise SystemExit(1)
+          print('account slot:',r.get('modal_account_slot'))
+          print('classification:',e['classification'])
+          print('WikiText deltas:',[x['rlt_minus_transformer_nll'] for x in e['wikitext_indomain']['pairs']])
+          print('FineWeb deltas:',[x['rlt_minus_transformer_nll'] for x in e['fineweb_out_of_domain']['pairs']])
+          print('mean transfer gap:',e['transfer']['mean_ood_minus_indomain_relative_delta_nll'])
+          PY
