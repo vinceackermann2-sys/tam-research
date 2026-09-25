@@ -126,14 +126,23 @@ def test_result_schema_cannot_repeat_v8_benefits_key_bug() -> None:
     assert '"aggregate": summary["aggregate"]' in run
     assert 'decision["benefits"]' not in run
     assert 'decision["nll_benefits"]' not in run
-    for key in (
+    run_tree = ast.parse(textwrap.dedent(run))
+    decision_keys = {
+        node.slice.value
+        for node in ast.walk(run_tree)
+        if isinstance(node, ast.Subscript)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "decision"
+        and isinstance(node.slice, ast.Constant)
+        and isinstance(node.slice.value, str)
+    }
+    assert {
         "stage_c_result_changed",
         "first_postmortem_result_changed",
         "new_training_authorized",
         "new_scientific_seed_authorized",
         "stage_d_authorized",
-    ):
-        assert f'decision["{key}"]' in run
+    } <= decision_keys
 
 
 def test_runner_writes_only_own_one_shot_state_and_no_checkpoint() -> None:
