@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "job_id": "rlt-exact15m-fineweb-4m-modal-20260925-a",
+  "task": "exact15m_fineweb_4m_a",
+  "scientific_seed": 20261014,
+  "training_data_seed": 20260924,
+  "requires_prior_scale_reference_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+  "requires_transfer_job_id": "rlt-transfer-wikitext-ab-modal-20260925-a",
+  "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+  "expected_parameters_per_model": 15129344,
+  "token_budget": 4194304,
+  "seq_len": 64,
+  "micro_batch_size": 16,
+  "grad_accum_steps": 1,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "checkpoint_volume": "tam-rlt-exact15m-scientific-checkpoints",
+  "automatic_retry": false
+}
