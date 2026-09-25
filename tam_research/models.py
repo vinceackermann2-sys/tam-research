@@ -25,6 +25,7 @@ class ModelConfig:
     n_heads: int = 8
     max_seq_len: int = 1024
     ff_mult: int = 4
+    ff_inner: int | None = None
     architecture: str = "transformer"
     tamv2_branch_inner: int = 104
     tamv2_state_size: int = 64
@@ -288,7 +289,7 @@ class Block(nn.Module):
             )
         else:
             raise ValueError(f"unknown architecture: {cfg.architecture}")
-        ff = cfg.ff_mult * cfg.d_model
+        ff = cfg.ff_inner if cfg.ff_inner is not None else cfg.ff_mult * cfg.d_model
         self.ff = nn.Sequential(
             nn.Linear(cfg.d_model, ff, bias=False),
             nn.GELU(),
