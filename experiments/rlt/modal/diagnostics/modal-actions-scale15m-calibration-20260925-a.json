@@ -1,0 +1,18 @@
+{
+  "branch": "exp/rlt-colab",
+  "calibration_blob_sha": "938152fdb8dfdb40a5ef7a7ec987f418e08767e9",
+  "calibration_only": true,
+  "classification": "RLT_SCALE15M_CALIBRATION_ZERO_GPU_PREFLIGHT_PASS",
+  "finished_unix": 1790329906.8709729,
+  "job_id_checked": "rlt-scale15m-calibration-modal-20260925-a",
+  "job_source_blob_sha": "b8860949b7152c3d257c6997276419a3240484d2",
+  "launcher_blob_sha": "1130d886d007a171b6942839eefe142349ab92d8",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "1fd42b9129a41eb004df1e5365ecbc156a1108ed",
+  "worker": "modal-control"
+}
