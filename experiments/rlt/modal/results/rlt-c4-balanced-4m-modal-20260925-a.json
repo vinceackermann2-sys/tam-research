@@ -1,0 +1,200 @@
+{
+  "branch": "exp/rlt-colab",
+  "c4_data": {
+    "dataset": "allenai/c4",
+    "dataset_config": "en",
+    "dataset_revision": "1588ec454efa1a09f29cd18ddd04fe05fc8653a2",
+    "raw_tokens_before_truncation": 1065393,
+    "sha256": "5a1b84f5f0c16c2cd7e600f7f46723905fedc0511b2d19865257c0bf319bbd26",
+    "source_rows_consumed": 2293,
+    "split": "validation",
+    "streaming": true,
+    "tokenizer": "gpt2",
+    "tokens_written": 1064960
+  },
+  "c4_hash_matches_claim": true,
+  "evaluation": {
+    "breakthrough_claim_supported": false,
+    "c4": {
+      "batch_size": 64,
+      "dataset": "allenai/c4",
+      "dataset_config": "en",
+      "dataset_revision": "1588ec454efa1a09f29cd18ddd04fe05fc8653a2",
+      "eval_batches": 256,
+      "eval_target_tokens_per_pair": 1048576,
+      "required_tokens": 1064960,
+      "sampling": "deterministic contiguous GPT-2 token stream from pinned C4 English validation, streamed in repository order",
+      "seq_len": 64,
+      "split": "validation",
+      "tokenizer": "gpt2"
+    },
+    "classification": "C4_BALANCED_BOTH_TRAINING_FAMILIES_ALL_RLT_LOWER_NLL",
+    "families": {
+      "fineweb_trained": {
+        "aggregate": {
+          "mean_rlt_minus_transformer_nll": -0.01875386293977499,
+          "pair_count": 2,
+          "rlt_lower_pair_count": 2,
+          "sample_sd_pair_delta_nll": 0.005848508750703227,
+          "se_pair_delta_nll": 0.004135520197451115,
+          "t95_ci_pair_delta_nll_df1": [
+            -0.07130062926023895,
+            0.03379290338068896
+          ]
+        },
+        "pairs": [
+          {
+            "batch_size": 64,
+            "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260920-a",
+            "eval_batches": 256,
+            "eval_target_tokens": 1048576,
+            "label": "FW-A",
+            "paired_batch_delta_normal95_ci": [
+              -0.01665957801879463,
+              -0.012577107465853119
+            ],
+            "paired_batch_delta_sd": 0.01666345130887514,
+            "paired_batch_delta_se": 0.0010414657068046963,
+            "rlt_lower_batch_count": 231,
+            "rlt_minus_transformer_nll": -0.014618342742323875,
+            "rlt_nll": 6.762557813897729,
+            "rlt_perplexity": 864.8514982741807,
+            "seq_len": 64,
+            "transformer_nll": 6.777176156640053,
+            "transformer_perplexity": 877.5870534586147
+          },
+          {
+            "batch_size": 64,
+            "checkpoint_job_id": "rlt-compiled-paired-4m-modal-20260922-b",
+            "eval_batches": 256,
+            "eval_target_tokens": 1048576,
+            "label": "FW-B",
+            "paired_batch_delta_normal95_ci": [
+              -0.026200845889780014,
+              -0.019577920384672196
+            ],
+            "paired_batch_delta_sd": 0.027032845735324166,
+            "paired_batch_delta_se": 0.0016895528584577604,
+            "rlt_lower_batch_count": 244,
+            "rlt_minus_transformer_nll": -0.022889383137226105,
+            "rlt_nll": 6.750136326998472,
+            "rlt_perplexity": 854.1752017304889,
+            "seq_len": 64,
+            "transformer_nll": 6.773025710135698,
+            "transformer_perplexity": 873.9522236415339
+          }
+        ]
+      },
+      "wikitext_trained": {
+        "aggregate": {
+          "mean_rlt_minus_transformer_nll": -0.10327298939228058,
+          "pair_count": 2,
+          "rlt_lower_pair_count": 2,
+          "sample_sd_pair_delta_nll": 0.10114603273935005,
+          "se_pair_delta_nll": 0.07152104564011097,
+          "t95_ci_pair_delta_nll_df1": [
+            -1.0120340382592348,
+            0.8054880594746735
+          ]
+        },
+        "pairs": [
+          {
+            "batch_size": 64,
+            "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+            "eval_batches": 256,
+            "eval_target_tokens": 1048576,
+            "label": "WT-A",
+            "paired_batch_delta_normal95_ci": [
+              -0.18095888581212985,
+              -0.16862918425265325
+            ],
+            "paired_batch_delta_sd": 0.05032623724407873,
+            "paired_batch_delta_se": 0.0031453898277549208,
+            "rlt_lower_batch_count": 256,
+            "rlt_minus_transformer_nll": -0.17479403503239155,
+            "rlt_nll": 8.574236644431949,
+            "rlt_perplexity": 5293.509065912674,
+            "seq_len": 64,
+            "transformer_nll": 8.74903067946434,
+            "transformer_perplexity": 6304.573992259451
+          },
+          {
+            "batch_size": 64,
+            "checkpoint_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260925-b",
+            "eval_batches": 256,
+            "eval_target_tokens": 1048576,
+            "label": "WT-B",
+            "paired_batch_delta_normal95_ci": [
+              -0.0369932913480359,
+              -0.026510596156303315
+            ],
+            "paired_batch_delta_sd": 0.04278729721329065,
+            "paired_batch_delta_se": 0.0026742060758306657,
+            "rlt_lower_batch_count": 198,
+            "rlt_minus_transformer_nll": -0.03175194375216961,
+            "rlt_nll": 8.53850775025785,
+            "rlt_perplexity": 5107.7166829599155,
+            "seq_len": 64,
+            "transformer_nll": 8.57025969401002,
+            "transformer_perplexity": 5272.498848787131
+          }
+        ]
+      }
+    },
+    "family_comparison": {
+      "wikitext_trained_mean_minus_fineweb_trained_mean_relative_delta_nll": -0.08451912645250559
+    },
+    "interpretation_ceiling": "Balanced third-domain evaluation of two FineWeb-Edu-trained and two WikiText-trained ~7M-parameter paired checkpoints on one pinned C4 validation token stream. It tests whether RLT-vs-Transformer quality differences persist on a neutral web-text corpus and whether transfer behavior depends on training corpus. Two seeds per family and one model scale remain insufficient for a general architecture claim.",
+    "status": "complete"
+  },
+  "evaluator_blob_sha": "45b0e11825786edfab1364b1b583e5e4c0616e2b",
+  "finished_unix": 1790329268.462553,
+  "job": {
+    "artifact_digests": [
+      "sha256:684886d8dbeaf09bb25406d760bb4356f1ee72899ba1303a72960a90efee03fb",
+      "sha256:a1747a57e8bf96537e01729b0164bea9db9551415c5ff174bdaa4ee265f3264e",
+      "sha256:2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028",
+      "sha256:0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4"
+    ],
+    "artifact_ids": [
+      10606528515,
+      10707207499,
+      10774574552,
+      10853054614
+    ],
+    "automatic_retry": false,
+    "c4_config": "en",
+    "c4_dataset_id": "allenai/c4",
+    "c4_revision": "1588ec454efa1a09f29cd18ddd04fe05fc8653a2",
+    "c4_split": "validation",
+    "checkpoint_job_ids": [
+      "rlt-compiled-paired-4m-modal-20260920-a",
+      "rlt-compiled-paired-4m-modal-20260922-b",
+      "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+      "rlt-compiled-paired-4m-wikitext-modal-20260925-b"
+    ],
+    "checkpoint_volume": "tam-rlt-portable-c4-balanced-20260925-a",
+    "eval_target_tokens_per_pair": 1048576,
+    "job_id": "rlt-c4-balanced-4m-modal-20260925-a",
+    "schema": 1,
+    "task": "c4_balanced_4m",
+    "tokenizer_id": "gpt2"
+  },
+  "job_id": "rlt-c4-balanced-4m-modal-20260925-a",
+  "job_source_blob_sha": "7976010bcef631144447fde29273792b8e83ddb2",
+  "launcher_blob_sha": "8518b333eda4bdc721e4c2934bf1741470741de0",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790329097.456675,
+  "status": "complete",
+  "trigger_sha": "22abdf138503185bef31c3265f4ad313abf9b39f",
+  "worker": "modal"
+}
