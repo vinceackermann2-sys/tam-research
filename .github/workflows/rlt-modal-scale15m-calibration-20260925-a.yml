@@ -1,0 +1,264 @@
+name: RLT Modal exact-match 15M calibration 20260925 A
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-modal-scale15m-calibration-20260925-a.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-modal-scale15m-calibration-20260925-a
+  cancel-in-progress: false
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-scale15m-calibration-modal-20260925-a
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-scale15m-calibration-modal-20260925-a.json
+      CALIBRATION_PATH: experiments/rlt/scale15m_calibration.py
+      LAUNCHER_PATH: experiments/rlt/modal_scale15m_calibration.py
+      C4_PATH: experiments/rlt/modal/results/rlt-c4-balanced-4m-modal-20260925-a.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-scale15m-calibration-20260925-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-scale15m-calibration-modal-20260925-a.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-scale15m-calibration-modal-20260925-a.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse previously claimed or completed calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          CALIBRATION_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$CALIBRATION_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          {
+            echo "JOB_BLOB_SHA=$JOB_BLOB_SHA"
+            echo "CALIBRATION_BLOB_SHA=$CALIBRATION_BLOB_SHA"
+            echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA"
+          } >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,'job_id':'rlt-scale15m-calibration-modal-20260925-a',
+            'task':'scale15m_calibration_only','attempt_seed':20261014,
+            'requires_c4_job_id':'rlt-c4-balanced-4m-modal-20260925-a',
+            'data_seed':20260927,'train_tokens':500000,'val_tokens':10000,
+            'seq_len':64,'micro_batch_size':16,'probe_steps':32,
+            'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require completed balanced C4 evidence boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$C4_PATH" > /tmp/c4.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/c4.json'))
+          assert r.get('job_id')=='rlt-c4-balanced-4m-modal-20260925-a',r
+          assert r.get('status')=='complete' and r.get('c4_hash_matches_claim') is True,r
+          e=r.get('evaluation'); assert isinstance(e,dict) and e.get('status')=='complete',e
+          assert e.get('classification')=='C4_BALANCED_BOTH_TRAINING_FAMILIES_ALL_RLT_LOWER_NLL',e
+          assert e.get('breakthrough_claim_supported') is False,e
+          for family in ('fineweb_trained','wikitext_trained'):
+              a=e['families'][family]['aggregate']
+              assert a['pair_count']==2 and a['rlt_lower_pair_count']==2,a
+              assert float(a['mean_rlt_minus_transformer_nll'])<0.0,a
+          PY
+
+      - name: Install Modal CLI and select account 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID_2:-}"
+          test -n "${MODAL_TOKEN_SECRET_2:-}"
+          python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+          {
+            echo "MODAL_TOKEN_ID=$MODAL_TOKEN_ID_2"
+            echo "MODAL_TOKEN_SECRET=$MODAL_TOKEN_SECRET_2"
+            echo "MODAL_ACCOUNT_SLOT=2"
+          } >> "$GITHUB_ENV"
+          export MODAL_TOKEN_ID="$MODAL_TOKEN_ID_2"
+          export MODAL_TOKEN_SECRET="$MODAL_TOKEN_SECRET_2"
+          modal token info
+
+      - name: Validate exact-match calibration sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py "$CALIBRATION_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          c=Path('experiments/rlt/scale15m_calibration.py').read_text()
+          m=Path('experiments/rlt/modal_scale15m_calibration.py').read_text()
+          for x in [
+            'EXPECTED_PARAMETERS = 15_129_344',
+            'd_model=256','n_heads=8','n_stages=2',
+            'n_layers=3','ff_inner=938','PROBE_STEPS = 32',
+            '"classification": "SCALE15M_CALIBRATION_PASS"',
+            '"calibration_only": True',
+            '"scientific_quality_claim_supported": False',
+            '"breakthrough_claim_supported": False',
+            'exact parameter match failed',
+          ]: assert x in c,x
+          for x in [
+            'JOB_ID = "rlt-scale15m-calibration-modal-20260925-a"',
+            'ATTEMPT_SEED = 20_261_014','DATA_SEED = 20_260_927',
+            'retries=0','gpu="A100"',
+            'RLT_SCALE15M_CALIBRATION_RESULT_B64=',
+          ]: assert x in m,x
+          PY
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Commit durable zero-GPU calibration preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          p.update({
+            'classification':'RLT_SCALE15M_CALIBRATION_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'calibration_blob_sha':os.environ['CALIBRATION_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,'calibration_only':True,'modal_account_slot':'2',
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH']); path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt scale15m: record zero-GPU calibration preflight'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot calibration claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          payload={
+            'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed','claimed_unix':time.time(),
+            'worker':'github-actions-modal','branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'calibration_blob_sha':os.environ['CALIBRATION_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'attempt_seed':20261014,'modal_account_slot':'2','calibration_only':True,
+            'automatic_retry_authorized':False,'job':json.load(open(os.environ['JOB_PATH'])),
+          }
+          p=pathlib.Path(os.environ['CLAIM_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt scale15m: claim $JOB_ID before A100 calibration"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 15M calibration
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 60m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_SCALE15M_CALIBRATION_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize durable calibration result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then
+            echo "No calibration claim exists."
+            exit 0
+          fi
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64',''); rc=int(os.environ.get('MODAL_RC','999')); payload=None
+          if b:
+              try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception: payload=None
+          if not isinstance(payload,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              payload={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed','finished_unix':time.time(),
+                       'worker':'github-actions-modal','error_type':'ModalInvocationOrTransportError',
+                       'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+                       'log_tail':log[-6000:],'scientific_conclusion':None}
+          payload.update({
+            'modal_cli_rc':rc,'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'calibration_blob_sha':os.environ['CALIBRATION_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'modal_account_slot':'2',
+          })
+          p=pathlib.Path(os.environ['RESULT_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt scale15m: record $JOB_ID terminal calibration result"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize calibration outcome
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f "$RESULT_PATH" ]; then echo "No terminal calibration result."; exit 0; fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          c=r.get('calibration')
+          if not isinstance(c,dict) or c.get('status')!='complete': raise SystemExit(1)
+          assert c.get('classification')=='SCALE15M_CALIBRATION_PASS',c
+          assert c.get('calibration_only') is True,c
+          assert c.get('scientific_quality_claim_supported') is False,c
+          assert c.get('breakthrough_claim_supported') is False,c
+          assert c['semantic_equivalence']['passed'] is True,c
+          assert c['exact_parameter_match']['passed'] is True,c
+          assert c['exact_parameter_match']['delta_parameters']==0,c
+          print('account slot:',r.get('modal_account_slot'))
+          print('params:',c['exact_parameter_match'])
+          print('RLT compile:',c['rlt']['compile_probe'])
+          print('RLT steady:',c['rlt']['steady_probe'])
+          print('Transformer steady:',c['transformer']['steady_probe'])
+          print('Projected RLT 4M hours:',c['derived']['projected_rlt_full_4m_hours_including_compile_excluding_eval'])
+          PY
