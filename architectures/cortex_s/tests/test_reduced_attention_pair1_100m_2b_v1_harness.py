@@ -145,6 +145,7 @@ def test_pair1_workflow_is_exact_owner_only_one_shot_and_dual_account_bound() ->
         in source
     )
     assert "github.event.issue.user.login == github.repository_owner" in source
+    assert 'is:issue is:open in:title "{title}"' in source
     assert 'test "$RUN_ATTEMPT" = "1"' in source
     assert "git merge-base --is-ancestor" in source
     assert "git diff --exit-code" in source
