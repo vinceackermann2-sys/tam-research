@@ -1,0 +1,30 @@
+{
+  "attempt_seed": 20261014,
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "calibration_blob_sha": "938152fdb8dfdb40a5ef7a7ec987f418e08767e9",
+  "calibration_only": true,
+  "claimed_unix": 1790329909.410766,
+  "job": {
+    "attempt_seed": 20261014,
+    "automatic_retry": false,
+    "data_seed": 20260927,
+    "job_id": "rlt-scale15m-calibration-modal-20260925-a",
+    "micro_batch_size": 16,
+    "probe_steps": 32,
+    "requires_c4_job_id": "rlt-c4-balanced-4m-modal-20260925-a",
+    "schema": 1,
+    "seq_len": 64,
+    "task": "scale15m_calibration_only",
+    "train_tokens": 500000,
+    "val_tokens": 10000
+  },
+  "job_id": "rlt-scale15m-calibration-modal-20260925-a",
+  "job_source_blob_sha": "b8860949b7152c3d257c6997276419a3240484d2",
+  "launcher_blob_sha": "1130d886d007a171b6942839eefe142349ab92d8",
+  "modal_account_slot": "2",
+  "schema": 1,
+  "status": "claimed",
+  "trigger_sha": "1fd42b9129a41eb004df1e5365ecbc156a1108ed",
+  "worker": "github-actions-modal"
+}
