@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "recovery_record": true,
+  "source": "github_actions_log_and_durable_claim",
+  "workflow_run_id": 35913688238,
+  "job_id": "rlt-compiled-paired-4m-wikitext-modal-20260923-e",
+  "status": "scientific_execution_completed_but_terminal_git_push_failed",
+  "scientific_seed": 20261012,
+  "duplicate_of_seed_job_id": "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+  "scientific_evidence_eligible_as_independent_seed": false,
+  "reason_not_independent": "Same scientific, paired-batch, paired-eval, compile-probe seeds and same pinned WikiText train/validation bytes as run A.",
+  "automatic_retry_authorized": false,
+  "must_never_rerun": true,
+  "dataset": {
+    "dataset_id": "Salesforce/wikitext",
+    "dataset_config": "wikitext-103-raw-v1",
+    "dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+    "train_bin_sha256": "e4b8e6f129e678d64cf6680ca2d744ba6ddb6c75149050fcfb499fd42e2a1484",
+    "val_bin_sha256": "1b2e9a8837a05fff1045d2c74593d5850439437204356a917f641a9b3ab9e4de"
+  },
+  "recovered_scientific_summary": {
+    "classification": "PAIRED_4M_WIKITEXT_RLT_LOWER_NLL_SINGLE_RUN_HINT",
+    "rlt_final_nll": 6.007093586027622,
+    "transformer_final_nll": 6.024223417043686,
+    "rlt_minus_transformer_final_nll": -0.01712983101606369,
+    "breakthrough_claim_supported": false
+  },
+  "infrastructure_outcome": {
+    "a100_execution": "success",
+    "checkpoint_export": "success",
+    "github_artifact_upload": "success",
+    "terminal_result_git_push": "failed_non_fast_forward",
+    "scientific_conclusion_from_infrastructure_failure": null
+  },
+  "interpretation": "Consumed duplicate-seed attempt retained for provenance only. It is not counted as replication evidence and must not be rerun."
+}
