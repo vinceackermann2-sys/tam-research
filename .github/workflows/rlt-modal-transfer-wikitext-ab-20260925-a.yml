@@ -257,8 +257,8 @@ jobs:
           from datasets import load_dataset
           from transformers import AutoTokenizer
           from tam_research.data import prepare_fineweb
-          from experiments.rlt.eval_crosscorpus_wikitext_4m_abcd import REQUIRED_TEST_TOKENS
-          from experiments.rlt.eval_crossdata_4m_ab import REQUIRED_VAL_TOKENS
+          REQUIRED_TEST_TOKENS=133120
+          REQUIRED_VAL_TOKENS=1064960
 
           def sha(p):
               h=hashlib.sha256()
@@ -377,6 +377,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then
+            echo "No scientific claim exists; no terminal result to materialize."
+            exit 0
+          fi
           python - <<'PY'
           import base64,json,os,pathlib,time
           b=os.environ.get('RESULT_B64',''); rc=int(os.environ.get('MODAL_RC','999')); payload=None
@@ -413,6 +417,10 @@ jobs:
         if: always()
         shell: bash
         run: |
+          if [ ! -f "$RESULT_PATH" ]; then
+            echo "No terminal scientific result exists."
+            exit 0
+          fi
           python - <<'PY'
           import json,os
           r=json.load(open(os.environ['RESULT_PATH']))
