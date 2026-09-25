@@ -7,7 +7,18 @@ import json
 import os
 from pathlib import Path
 
-from tam_research.modal_dual_account import select_from_environment
+import importlib.util
+import sys
+
+_MODULE_PATH = Path(__file__).resolve().parents[1] / "tam_research" / "modal_dual_account.py"
+_MODULE_NAME = "_tam_research_modal_dual_account_standalone"
+_spec = importlib.util.spec_from_file_location(_MODULE_NAME, _MODULE_PATH)
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"cannot load Modal selector module from {_MODULE_PATH}")
+_module = importlib.util.module_from_spec(_spec)
+sys.modules[_MODULE_NAME] = _module
+_spec.loader.exec_module(_module)
+select_from_environment = _module.select_from_environment
 
 
 def _write_github_output(values: dict[str, str]) -> None:
