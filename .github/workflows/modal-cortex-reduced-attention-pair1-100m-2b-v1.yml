@@ -79,7 +79,7 @@ jobs:
           title = "[modal-cortex-reduced-attention-pair1-100m-2b-v1]"
           repo = os.environ["GITHUB_REPOSITORY"]
           number = int(os.environ["ISSUE_NUMBER"])
-          q = f'repo:{repo} is:issue in:title "{title}"'
+          q = f'repo:{repo} is:issue is:open in:title "{title}"'
           found = json.loads(
               subprocess.check_output(
                   ["gh", "api", "search/issues", "-X", "GET", "-f", f"q={q}", "-f", "per_page=100"],
