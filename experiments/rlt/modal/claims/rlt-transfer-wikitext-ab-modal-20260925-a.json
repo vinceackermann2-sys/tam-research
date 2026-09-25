@@ -1,0 +1,62 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "checkpoint_manifest": {
+    "rlt-compiled-paired-4m-wikitext-modal-20260923-a": {
+      "rlt_final.pt": {
+        "bytes": 84126475,
+        "sha256": "cb449de9dd950ff5f4179c2c6d7953634b8a8d105e5a4f76233fe58adb492451"
+      },
+      "transformer_final.pt": {
+        "bytes": 84527675,
+        "sha256": "09e27fa3a310330d12cc90887604d504a2b11bca306fb1237e9ff49a315a9028"
+      }
+    },
+    "rlt-compiled-paired-4m-wikitext-modal-20260925-b": {
+      "rlt_final.pt": {
+        "bytes": 84126475,
+        "sha256": "035e02b4b575e8de2d22080b94ca44fb5ebdc6ce2a7a9028dc6e362a3942ec3c"
+      },
+      "transformer_final.pt": {
+        "bytes": 84527675,
+        "sha256": "12e2f8d330eb10b13a02f8f6b6f6e50801daa38a07fb2786620204ed6cdab2b6"
+      }
+    }
+  },
+  "claimed_unix": 1790327811.4583187,
+  "evaluator_blob_sha": "8364a11485a4c50543eb9fa9e4c73fce86049258",
+  "fineweb_val_sha256": "152fdd06894ab23e6c63b0e27287e6de5b793e149a205f530bc9e08b5b6d1f97",
+  "job": {
+    "artifact_digests": [
+      "sha256:2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028",
+      "sha256:0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4"
+    ],
+    "artifact_ids": [
+      10774574552,
+      10853054614
+    ],
+    "automatic_retry": false,
+    "checkpoint_volume": "tam-rlt-portable-transfer-wikitext-ab-20260925-a",
+    "fineweb_seed": 20260926,
+    "fineweb_train_tokens": 100000,
+    "fineweb_val_tokens": 1100000,
+    "job_id": "rlt-transfer-wikitext-ab-modal-20260925-a",
+    "requires_wikitext_job_ids": [
+      "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+      "rlt-compiled-paired-4m-wikitext-modal-20260925-b"
+    ],
+    "schema": 1,
+    "task": "transfer_wikitext_ab",
+    "wikitext_dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99"
+  },
+  "job_id": "rlt-transfer-wikitext-ab-modal-20260925-a",
+  "job_source_blob_sha": "0fb1c5e70ff377fa0603fd6846de32fbfe2d09a8",
+  "launcher_blob_sha": "2955379eb433afdce7006e682ff9abff9326807a",
+  "modal_account_slot": "2",
+  "portable_volume": "tam-rlt-portable-transfer-wikitext-ab-20260925-a",
+  "schema": 1,
+  "status": "claimed",
+  "trigger_sha": "fdecbbecd889dd7486909b1f2da0181f9699339d",
+  "wikitext_test_sha256": "9ad01fe13ab2249fa2bc1bb95d05a8077211319ca0768b898634c2ade4c0202a",
+  "worker": "github-actions-modal"
+}
