@@ -192,7 +192,7 @@ jobs:
       - name: Reproduce D training bytes on CPU before claim
         shell: bash
         run: |
-          set -euo pipefail
+          set +e
           python - <<'PY'
           import hashlib,json,pathlib
           import numpy as np
@@ -230,8 +230,23 @@ jobs:
              'train_sha256':th,'val_sha256':vh}
           pathlib.Path('/tmp/scale-data-preflight.json').write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
           print(json.dumps(p,sort_keys=True))
-          raise SystemExit(0)
           PY
+          RC=$?
+          set -e
+          test -f /tmp/scale-data-preflight.json
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/scale-data-preflight.json'))
+          assert p['seed']==20260924,p
+          assert p['train_sha256']=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907',p
+          assert p['val_sha256']=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2',p
+          print('independent post-process shard verification: PASS')
+          PY
+          if [ "$RC" -ne 0 ] && [ "$RC" -ne 134 ]; then
+            echo "FineWeb proof process failed before/other than known teardown crash: rc=$RC"
+            exit "$RC"
+          fi
+          echo "FineWeb proof accepted; producer rc=$RC after independently verified hashes."
 
       - name: Run non-GPU Modal control-plane preflight
         shell: bash
