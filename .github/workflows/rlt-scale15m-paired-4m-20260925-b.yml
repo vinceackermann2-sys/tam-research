@@ -1,0 +1,475 @@
+name: RLT exact-matched 15M paired 4M 20260925 B
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-scale15m-paired-4m-20260925-b.yml
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: rlt-scale15m-paired-4m-20260925-b
+  cancel-in-progress: false
+
+jobs:
+  paired:
+    runs-on: ubuntu-latest
+    timeout-minutes: 155
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-scale15m-paired-4m-modal-20260925-b
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-scale15m-paired-4m-modal-20260925-b.json
+      BASE_TRAINER_PATH: experiments/rlt/train_compiled_pair_1m.py
+      TRAINER_PATH: experiments/rlt/train_scale15m_pair_4m_b.py
+      LAUNCHER_PATH: experiments/rlt/modal_scale15m_pair_4m_b.py
+      REFERENCE_PATH: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260923-d.json
+      FAILED_A_PATH: experiments/rlt/modal/results/rlt-scale15m-paired-4m-modal-20260925-a.json
+      C4_PATH: experiments/rlt/modal/results/rlt-c4-balanced-4m-modal-20260925-a.json
+      SYSTEMS_PATH: experiments/rlt/modal/results/rlt-systems-decoder-cache768-modal-20260917-l.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-scale15m-paired-4m-20260925-b.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-scale15m-paired-4m-modal-20260925-b.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-scale15m-paired-4m-modal-20260925-b.json
+      VOLUME_NAME: tam-rlt-scale15m-checkpoints-account2
+      ARTIFACT_NAME: rlt-scale15m-paired-4m-modal-20260925-b-checkpoints
+      EXPECTED_TRAIN_SHA256: 0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907
+      EXPECTED_VAL_SHA256: e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse previously claimed or completed scale attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          BASE_TRAINER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$BASE_TRAINER_PATH")"
+          TRAINER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$TRAINER_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          {
+            echo "JOB_BLOB_SHA=$JOB_BLOB_SHA"
+            echo "BASE_TRAINER_BLOB_SHA=$BASE_TRAINER_BLOB_SHA"
+            echo "TRAINER_BLOB_SHA=$TRAINER_BLOB_SHA"
+            echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA"
+          } >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-scale15m-paired-4m-modal-20260925-b',
+            'task':'scale15m_paired_4m_b',
+            'scientific_seed':20261015,
+            'training_data_seed':20260924,
+            'requires_c4_job_id':'rlt-c4-balanced-4m-modal-20260925-a',
+            'requires_systems_job_id':'rlt-systems-decoder-cache768-modal-20260917-l',
+            'token_budget':4194304,'seq_len':64,'micro_batch_size':16,'grad_accum_steps':1,
+            'train_tokens':6000000,'val_tokens':500000,
+            'expected_parameters_each':15129344,
+            'checkpoint_volume':'tam-rlt-scale15m-checkpoints-account2',
+            'automatic_retry':False,
+            'requires_reference_pair_job_id':'rlt-compiled-paired-4m-modal-20260923-d',
+            'requires_failed_scale_attempt_id':'rlt-scale15m-paired-4m-modal-20260925-a',
+          },j
+          PY
+
+      - name: Require reference D, C4 persistence, and frozen systems semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$REFERENCE_PATH" > /tmp/reference.json
+          git show "origin/$BRANCH:$FAILED_A_PATH" > /tmp/failed-a.json
+          git show "origin/$BRANCH:$C4_PATH" > /tmp/c4.json
+          git show "origin/$BRANCH:$SYSTEMS_PATH" > /tmp/systems.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/reference.json'))
+          fa=json.load(open('/tmp/failed-a.json'))
+          assert fa.get('job_id')=='rlt-scale15m-paired-4m-modal-20260925-a',fa
+          assert fa.get('status')=='failed',fa
+          assert fa.get('scientific_conclusion') is None,fa
+          assert fa.get('error_type')=='RuntimeError',fa
+          assert 'preregistration mismatch' in str(fa.get('error','')),fa
+          assert fa.get('checkpoint_failure_record_committed') is True,fa
+          assert d.get('job_id')=='rlt-compiled-paired-4m-modal-20260923-d',d
+          assert d.get('status')=='complete',d
+          c=d.get('comparison'); assert isinstance(c,dict) and c.get('status')=='complete',c
+          assert c.get('classification')=='PAIRED_4M_INDEPENDENT_TRAIN_SHARD_RLT_LOWER_NLL_SINGLE_RUN_HINT',c
+          assert c.get('breakthrough_claim_supported') is False,c
+          assert float(c['derived']['rlt_minus_transformer_final_nll'])<0.0,c
+          assert d.get('data',{}).get('seed')==20260924,d
+          assert d.get('data_sha256',{}).get('train.bin')=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907',d
+          assert d.get('data_sha256',{}).get('val.bin')=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2',d
+
+          x=json.load(open('/tmp/c4.json'))
+          assert x.get('job_id')=='rlt-c4-balanced-4m-modal-20260925-a',x
+          assert x.get('status')=='complete' and x.get('c4_hash_matches_claim') is True,x
+          e=x.get('evaluation'); assert isinstance(e,dict) and e.get('status')=='complete',e
+          assert e.get('classification')=='C4_BALANCED_BOTH_TRAINING_FAMILIES_ALL_RLT_LOWER_NLL',e
+          assert e.get('breakthrough_claim_supported') is False,e
+
+          s=json.load(open('/tmp/systems.json'))
+          assert s.get('status')=='complete' and s.get('classification')=='PASS_CACHE768_WEAK',s
+          assert s['semantic_equivalence']['passed'] is True,s
+          PY
+
+      - name: Install zero-GPU dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check             'modal>=1.5.4,<1.6' 'numpy>=2.0,<3' 'datasets>=4.0,<5'             'transformers>=4.55,<5' 'tokenizers>=0.21,<1' 'huggingface-hub>=0.34,<1'
+
+      - name: Select Modal account 2 before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLOT=""; ID=""; SECRET=""
+          if [ -n "${MODAL_TOKEN_ID_2:-}" ] && [ -n "${MODAL_TOKEN_SECRET_2:-}" ]; then
+            SLOT="2"; ID="$MODAL_TOKEN_ID_2"; SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "${MODAL_TOKEN_ID_B:-}" ] && [ -n "${MODAL_TOKEN_SECRET_B:-}" ]; then
+            SLOT="B"; ID="$MODAL_TOKEN_ID_B"; SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+            SLOT="A"; ID="$MODAL_TOKEN_ID_A"; SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID"; test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID"; export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          {
+            echo "MODAL_ACCOUNT_SLOT=$SLOT"
+            echo "MODAL_TOKEN_ID=$ID"
+            echo "MODAL_TOKEN_SECRET=$SECRET"
+          } >> "$GITHUB_ENV"
+          echo "Selected Modal account slot $SLOT before claim."
+
+      - name: Validate exact-match scale sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py "$BASE_TRAINER_PATH" "$TRAINER_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          t=Path('experiments/rlt/train_scale15m_pair_4m_b.py').read_text()
+          m=Path('experiments/rlt/modal_scale15m_pair_4m_b.py').read_text()
+          required=[
+            'SCIENTIFIC_SEED = 20_261_015',
+            'PAIRED_BATCH_SEED = 20_271_015',
+            'PAIRED_EVAL_SEED = 20_291_015',
+            'COMPILE_PROBE_SEED = 20_301_015',
+            'EXPECTED_PARAMETERS = 15_129_344',
+            'd_model=256','n_stages=2','n_layers=3','ff_inner=938',
+            'PAIRED_SCALE15M_4M_RLT_LOWER_NLL_SINGLE_RUN_HINT',
+            'parameter_delta_fraction": 0.0',
+          ]
+          for x in required: assert x in t,x
+          for x in [
+            'JOB_ID = "rlt-scale15m-paired-4m-modal-20260925-b"',
+            '"training_data_seed": 20260924',
+            '"requires_reference_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-d"',
+            '"requires_failed_scale_attempt_id": "rlt-scale15m-paired-4m-modal-20260925-a"',
+            '"expected_parameters_each": 15129344',
+            'CHECKPOINT_VOLUME = "tam-rlt-scale15m-checkpoints-account2"',
+            'seed=job["training_data_seed"]','"data_sha256": data_sha256',
+            'timeout=120 * 60','retries=0','gpu="A100"',
+            'RLT_SCALE15M_PAIR_4M_B_RESULT_B64=',
+          ]: assert x in m,x
+
+          vocab=50257; d=256; max_seq=128
+          rlt=vocab*d+max_seq*d
+          per_stage=d+3*d*d+d*d+d+d*d+2*d*d+d*d+d+2*d*(4*d)
+          rlt += 2*per_stage + d + 2*d*d + d + d + d
+          ff=938
+          tr=vocab*d+max_seq*d + 3*(4*d+4*d*d+2*d*ff) + 2*d
+          assert rlt==15129344,(rlt,tr)
+          assert tr==15129344,(rlt,tr)
+          assert rlt==tr
+          print('exact parameter audit:',rlt,tr)
+          PY
+
+      - name: Reproduce D training bytes on CPU before claim
+        shell: bash
+        run: |
+          set +e
+          python - <<'PY'
+          import hashlib,json,pathlib
+          import numpy as np
+          from datasets import load_dataset
+          from transformers import AutoTokenizer
+
+          train_tokens=6000000; val_tokens=500000; seed=20260924
+          tok=AutoTokenizer.from_pretrained('gpt2',use_fast=True)
+          assert tok.vocab_size < 2**16
+          stream=load_dataset('HuggingFaceFW/fineweb-edu',name='sample-10BT',split='train',streaming=True)
+          stream=stream.shuffle(seed=seed,buffer_size=10000)
+          target=train_tokens+val_tokens
+          chunks=[]; total=0
+          for row in stream:
+              text=row.get('text') or ''
+              if not text: continue
+              ids=tok.encode(text,add_special_tokens=False); ids.append(tok.eos_token_id)
+              a=np.asarray(ids,dtype=np.uint16); chunks.append(a); total+=len(a)
+              if total>=target: break
+          assert total>=target,(total,target)
+          all_tokens=np.concatenate(chunks)[:target]
+          train=all_tokens[:train_tokens]; val=all_tokens[train_tokens:]
+          tp=pathlib.Path('/tmp/scale-train.bin'); vp=pathlib.Path('/tmp/scale-val.bin')
+          train.tofile(tp); val.tofile(vp)
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for x in iter(lambda:f.read(8*1024*1024),b''): h.update(x)
+              return h.hexdigest()
+          th,vh=sha(tp),sha(vp)
+          assert th=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907',th
+          assert vh=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2',vh
+          p={'dataset':'HuggingFaceFW/fineweb-edu','dataset_config':'sample-10BT',
+             'seed':seed,'train_tokens':train_tokens,'val_tokens':val_tokens,
+             'train_sha256':th,'val_sha256':vh}
+          pathlib.Path('/tmp/scale-data-preflight.json').write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(p,sort_keys=True))
+          PY
+          RC=$?
+          set -e
+          test -f /tmp/scale-data-preflight.json
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/scale-data-preflight.json'))
+          assert p['seed']==20260924,p
+          assert p['train_sha256']=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907',p
+          assert p['val_sha256']=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2',p
+          print('independent post-process shard verification: PASS')
+          PY
+          if [ "$RC" -ne 0 ] && [ "$RC" -ne 134 ]; then
+            echo "FineWeb proof process failed before/other than known teardown crash: rc=$RC"
+            exit "$RC"
+          fi
+          echo "FineWeb proof accepted; producer rc=$RC after independently verified hashes."
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Commit durable 15M preflight before GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          p.update({
+            'classification':'RLT_SCALE15M_PAIRED_4M_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'base_trainer_blob_sha':os.environ['BASE_TRAINER_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'expected_parameters_each':15129344,
+            'reference_data':json.load(open('/tmp/scale-data-preflight.json')),
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH']); path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt scale15m: record exact-match zero-GPU preflight'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot 15M scientific claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          d=json.load(open(os.environ['DIAGNOSTIC_PATH']))
+          payload={
+            'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed','claimed_unix':time.time(),
+            'worker':'github-actions-modal','branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'base_trainer_blob_sha':os.environ['BASE_TRAINER_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_seed':20261015,'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'expected_parameters_each':15129344,
+            'train_sha256':d['reference_data']['train_sha256'],'val_sha256':d['reference_data']['val_sha256'],
+            'automatic_retry_authorized':False,'job':json.load(open(os.environ['JOB_PATH'])),
+          }
+          p=pathlib.Path(os.environ['CLAIM_PATH']);p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt scale15m: claim $JOB_ID before A100 execution"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 exact-matched 15M attempt
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 132m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_SCALE15M_PAIR_4M_B_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Decode terminal 15M payload
+        id: decode
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64','');rc=int(os.environ.get('MODAL_RC','999'));payload=None
+          if b:
+              try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception: payload=None
+          if not isinstance(payload,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              payload={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed','finished_unix':time.time(),
+                'worker':'github-actions-modal','error_type':'ModalInvocationOrTransportError',
+                'error':f'Modal CLI rc={rc}; no parseable terminal payload','log_tail':log[-6000:],
+                'scientific_conclusion':None}
+          pathlib.Path('/tmp/pair-result.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write('PAIR_STATUS='+str(payload.get('status','unknown'))+'\n')
+          PY
+
+      - name: Export and verify 15M checkpoints
+        id: export
+        if: env.PAIR_STATUS == 'complete'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rlt-checkpoints;mkdir -p /tmp/rlt-checkpoints
+          modal volume get "$VOLUME_NAME" "$JOB_ID" /tmp/rlt-checkpoints
+          python - <<'PY'
+          import hashlib,json,pathlib
+          r=json.load(open('/tmp/pair-result.json'));root=pathlib.Path('/tmp/rlt-checkpoints')
+          def one(n):
+              xs=list(root.rglob(n));assert len(xs)==1,(n,xs);return xs[0]
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for x in iter(lambda:f.read(8*1024*1024),b''):h.update(x)
+              return h.hexdigest()
+          rp,tp=one('rlt_final.pt'),one('transformer_final.pt')
+          assert sha(rp)==r['checkpoint_durability']['rlt']['sha256']
+          assert sha(tp)==r['checkpoint_durability']['transformer']['sha256']
+          assert r['checkpoint_durability']['modal_volume_committed'] is True
+          PY
+
+      - name: Upload 15M checkpoint artifact
+        id: upload
+        if: env.PAIR_STATUS == 'complete' && steps.export.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: /tmp/rlt-checkpoints
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+
+      - name: Materialize durable 15M result
+        if: always()
+        shell: bash
+        env:
+          EXPORT_OUTCOME: ${{ steps.export.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then
+            echo "No scientific claim exists; no terminal result to materialize."
+            exit 0
+          fi
+          python - <<'PY'
+          import json,os,pathlib
+          payload=json.load(open('/tmp/pair-result.json'));claim=json.load(open(os.environ['CLAIM_PATH']))
+          dh=payload.get('data_sha256') or {}
+          c=payload.get('comparison') or {}
+          scale=c.get('scale_test') or {}
+          payload.update({
+            'modal_cli_rc':int(os.environ.get('MODAL_RC','999')),'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'base_trainer_blob_sha':os.environ['BASE_TRAINER_BLOB_SHA'],
+            'trainer_blob_sha':os.environ['TRAINER_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'data_hashes_match_claim':(
+              dh.get('train.bin')==claim['train_sha256'] and dh.get('val.bin')==claim['val_sha256']
+            ),
+            'exact_parameter_match_verified':(
+              scale.get('rlt_parameters')==15129344 and scale.get('transformer_parameters')==15129344
+              and scale.get('parameter_delta')==0
+            ),
+            'checkpoint_export':{
+              'modal_volume_get_outcome':os.environ.get('EXPORT_OUTCOME',''),
+              'github_artifact_upload_outcome':os.environ.get('UPLOAD_OUTCOME',''),
+              'github_artifact_id':os.environ.get('ARTIFACT_ID',''),
+              'github_artifact_digest':os.environ.get('ARTIFACT_DIGEST',''),
+              'github_artifact_name':os.environ['ARTIFACT_NAME'],'github_run_id':os.environ['GITHUB_RUN_ID'],
+            },
+          })
+          p=pathlib.Path(os.environ['RESULT_PATH']);p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt scale15m: record $JOB_ID terminal result"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize 15M scale outcome
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f "$RESULT_PATH" ]; then echo "No terminal scientific result exists."; exit 0; fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete':raise SystemExit(1)
+          if r.get('data_hashes_match_claim') is not True or r.get('exact_parameter_match_verified') is not True:
+              raise SystemExit(1)
+          c=r.get('comparison');assert isinstance(c,dict) and c.get('status')=='complete',c
+          assert c.get('breakthrough_claim_supported') is False,c
+          assert c.get('classification') in {
+            'PAIRED_SCALE15M_4M_RLT_LOWER_NLL_SINGLE_RUN_HINT',
+            'PAIRED_SCALE15M_4M_NO_RLT_QUALITY_ADVANTAGE',
+          },c
+          e=r.get('checkpoint_export',{})
+          assert e.get('modal_volume_get_outcome')=='success' and e.get('github_artifact_upload_outcome')=='success',e
+          print('account slot:',r.get('modal_account_slot'))
+          print('classification:',c['classification'])
+          print('RLT NLL:',c['rlt']['final_eval']['nll'])
+          print('Transformer NLL:',c['transformer']['final_eval']['nll'])
+          print('delta NLL:',c['derived']['rlt_minus_transformer_final_nll'])
+          print('parameter delta:',c['scale_test']['parameter_delta'])
+          print('throughput multiple:',c['derived']['steady_state_transformer_throughput_multiple_vs_rlt'])
+          PY
