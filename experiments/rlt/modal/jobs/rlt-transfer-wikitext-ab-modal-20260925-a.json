@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "job_id": "rlt-transfer-wikitext-ab-modal-20260925-a",
+  "task": "transfer_wikitext_ab",
+  "requires_wikitext_job_ids": [
+    "rlt-compiled-paired-4m-wikitext-modal-20260923-a",
+    "rlt-compiled-paired-4m-wikitext-modal-20260925-b"
+  ],
+  "artifact_ids": [
+    10774574552,
+    10853054614
+  ],
+  "artifact_digests": [
+    "sha256:2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028",
+    "sha256:0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4"
+  ],
+  "checkpoint_volume": "tam-rlt-portable-transfer-wikitext-ab-20260925-a",
+  "wikitext_dataset_revision": "00aa25585682d4957f9e86edc73f59be7419af99",
+  "fineweb_seed": 20260926,
+  "fineweb_train_tokens": 100000,
+  "fineweb_val_tokens": 1100000,
+  "automatic_retry": false
+}
