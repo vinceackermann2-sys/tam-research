@@ -27,7 +27,7 @@ def guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
 builtins.__import__ = guarded_import
 namespace = runpy.run_path({str(SELECTOR)!r}, run_name="selector_import_boundary_test")
 assert callable(namespace["select_from_environment"])
-assert namespace["_MODULE_PATH"] == {str(DUAL)!r}
+assert str(namespace["_MODULE_PATH"]) == {str(DUAL)!r}
 """
     completed = subprocess.run(
         [sys.executable, "-c", script],
