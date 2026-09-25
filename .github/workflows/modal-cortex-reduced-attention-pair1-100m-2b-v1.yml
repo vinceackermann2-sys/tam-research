@@ -123,7 +123,7 @@ jobs:
         id: modal_account
         run: |
           set -euo pipefail
-          python scripts/modal_select_account.py --required-volume tam-research-data
+          PYTHONPATH="$PWD" python scripts/modal_select_account.py --required-volume tam-research-data
 
       - name: Activate selected Modal account
         env:
