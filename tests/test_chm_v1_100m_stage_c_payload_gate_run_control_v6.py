@@ -282,3 +282,17 @@ def test_v6_preserves_aligned_v4_probe_semantics() -> None:
     assert "generate_aligned_probe_suite" in runner
     assert "LONG_RANGE_FAMILIES" in runner
     assert "len(probes) != 384" in runner
+
+
+def test_v6_never_reuses_retired_v5_execution_identity() -> None:
+    runner = RUNNER.read_text(encoding="utf-8")
+    scientific = WORKFLOW.read_text(encoding="utf-8")
+    audit = AUDIT.read_text(encoding="utf-8")
+    assert "/issue-1017/v5" not in runner
+    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-v5]" not in scientific
+    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v5]" not in audit
+    assert "modal_chm_v1_100m_stage_c_payload_gate_1017_v5.py" not in scientific
+    assert "modal_chm_v1_100m_stage_c_payload_gate_1017_v5.py" not in audit
+    assert "/issue-1017/v6" in runner
+    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-v6]" in scientific
+    assert "[modal-chm-v1-100m-stage-c-payload-gate-1017-authority-audit-v6]" in audit
