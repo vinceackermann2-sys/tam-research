@@ -1,0 +1,451 @@
+name: RLT Modal balanced C4 third-domain 4M 20260925 A
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-modal-c4-balanced-4m-20260925-a.yml
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: rlt-modal-c4-balanced-4m-20260925-a
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-c4-balanced-4m-modal-20260925-a
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-c4-balanced-4m-modal-20260925-a.json
+      EVAL_PATH: experiments/rlt/eval_c4_balanced_4m.py
+      LAUNCHER_PATH: experiments/rlt/modal_c4_balanced_4m.py
+      TRANSFER_PATH: experiments/rlt/modal/results/rlt-transfer-wikitext-ab-modal-20260925-a.json
+      FW_A_RESULT: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260920-a.json
+      FW_B_RESULT: experiments/rlt/modal/results/rlt-compiled-paired-4m-modal-20260922-b.json
+      WT_A_RESULT: experiments/rlt/modal/results/rlt-compiled-paired-4m-wikitext-modal-20260923-a.json
+      WT_B_RESULT: experiments/rlt/modal/results/rlt-compiled-paired-4m-wikitext-modal-20260925-b.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-c4-balanced-4m-20260925-a.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-c4-balanced-4m-modal-20260925-a.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-c4-balanced-4m-modal-20260925-a.json
+      PORTABLE_VOLUME: tam-rlt-portable-c4-balanced-20260925-a
+      C4_REVISION: 1588ec454efa1a09f29cd18ddd04fe05fc8653a2
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse previously claimed or completed C4 attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          EVAL_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$EVAL_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          {
+            echo "JOB_BLOB_SHA=$JOB_BLOB_SHA"
+            echo "EVAL_BLOB_SHA=$EVAL_BLOB_SHA"
+            echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA"
+          } >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,'job_id':'rlt-c4-balanced-4m-modal-20260925-a',
+            'task':'c4_balanced_4m',
+            'checkpoint_job_ids':[
+              'rlt-compiled-paired-4m-modal-20260920-a',
+              'rlt-compiled-paired-4m-modal-20260922-b',
+              'rlt-compiled-paired-4m-wikitext-modal-20260923-a',
+              'rlt-compiled-paired-4m-wikitext-modal-20260925-b',
+            ],
+            'artifact_ids':[10606528515,10707207499,10774574552,10853054614],
+            'artifact_digests':[
+              'sha256:684886d8dbeaf09bb25406d760bb4356f1ee72899ba1303a72960a90efee03fb',
+              'sha256:a1747a57e8bf96537e01729b0164bea9db9551415c5ff174bdaa4ee265f3264e',
+              'sha256:2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028',
+              'sha256:0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4',
+            ],
+            'checkpoint_volume':'tam-rlt-portable-c4-balanced-20260925-a',
+            'c4_dataset_id':'allenai/c4','c4_config':'en',
+            'c4_revision':'1588ec454efa1a09f29cd18ddd04fe05fc8653a2',
+            'c4_split':'validation','tokenizer_id':'gpt2',
+            'eval_target_tokens_per_pair':1048576,'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require completed transfer result and four valid source pairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for spec in             "$TRANSFER_PATH:/tmp/transfer.json"             "$FW_A_RESULT:/tmp/fw-a.json"             "$FW_B_RESULT:/tmp/fw-b.json"             "$WT_A_RESULT:/tmp/wt-a.json"             "$WT_B_RESULT:/tmp/wt-b.json"; do
+            src="${spec%%:*}"; dst="${spec#*:}"
+            git show "origin/$BRANCH:$src" > "$dst"
+          done
+          python - <<'PY'
+          import json
+          tr=json.load(open('/tmp/transfer.json'))
+          assert tr.get('job_id')=='rlt-transfer-wikitext-ab-modal-20260925-a',tr
+          assert tr.get('status')=='complete' and tr.get('data_hashes_match_claim') is True,tr
+          assert tr.get('modal_account_slot')=='2',tr
+          te=tr.get('evaluation'); assert isinstance(te,dict) and te.get('status')=='complete',te
+          assert te.get('classification')=='TRANSFER_WIKITEXT_AB_RLT_LOWER_BOTH_DOMAINS',te
+          assert te.get('breakthrough_claim_supported') is False,te
+
+          files=['/tmp/fw-a.json','/tmp/fw-b.json','/tmp/wt-a.json','/tmp/wt-b.json']
+          ids=[
+            'rlt-compiled-paired-4m-modal-20260920-a',
+            'rlt-compiled-paired-4m-modal-20260922-b',
+            'rlt-compiled-paired-4m-wikitext-modal-20260923-a',
+            'rlt-compiled-paired-4m-wikitext-modal-20260925-b',
+          ]
+          seeds=[20261008,20261009,20261012,20261013]
+          artifact_ids=['10606528515','10707207499','10774574552','10853054614']
+          artifact_digests=[
+            '684886d8dbeaf09bb25406d760bb4356f1ee72899ba1303a72960a90efee03fb',
+            'a1747a57e8bf96537e01729b0164bea9db9551415c5ff174bdaa4ee265f3264e',
+            '2e033a74f4db0888941ce569f7d822e81a62109cc275277fd7acfd4ce76df028',
+            '0bc1a55c340a647fd81e0cc5d51a579f2396b0bdaf0e51e10924f70f352f10e4',
+          ]
+          for path,jid,seed,aid,digest in zip(files,ids,seeds,artifact_ids,artifact_digests):
+              r=json.load(open(path))
+              assert r.get('job_id')==jid,r
+              assert r.get('status')=='complete',r
+              c=r.get('comparison'); assert isinstance(c,dict) and c.get('status')=='complete',c
+              assert c.get('scientific_seed')==seed,c
+              assert c.get('breakthrough_claim_supported') is False,c
+              assert float(c['derived']['rlt_minus_transformer_final_nll'])<0.0,c
+              e=r.get('checkpoint_export',{})
+              assert e.get('github_artifact_upload_outcome')=='success',e
+              assert str(e.get('github_artifact_id'))==aid,e
+              assert digest in str(e.get('github_artifact_digest')),e
+          PY
+
+      - name: Install zero-GPU dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check             'modal>=1.5.4,<1.6' 'numpy>=2.0,<3' 'datasets>=4.0,<5'             'transformers>=4.55,<5' 'tokenizers>=0.21,<1' 'huggingface-hub>=0.34,<1'
+
+      - name: Select Modal account 2 before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLOT=""; ID=""; SECRET=""
+          if [ -n "${MODAL_TOKEN_ID_2:-}" ] && [ -n "${MODAL_TOKEN_SECRET_2:-}" ]; then
+            SLOT="2"; ID="$MODAL_TOKEN_ID_2"; SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "${MODAL_TOKEN_ID_B:-}" ] && [ -n "${MODAL_TOKEN_SECRET_B:-}" ]; then
+            SLOT="B"; ID="$MODAL_TOKEN_ID_B"; SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+            SLOT="A"; ID="$MODAL_TOKEN_ID_A"; SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID"; test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID"; export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          {
+            echo "MODAL_ACCOUNT_SLOT=$SLOT"
+            echo "MODAL_TOKEN_ID=$ID"
+            echo "MODAL_TOKEN_SECRET=$SECRET"
+          } >> "$GITHUB_ENV"
+          echo "Selected Modal account slot $SLOT before claim."
+
+      - name: Download FineWeb A artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rlt-compiled-paired-4m-modal-20260920-a-checkpoints
+          path: /tmp/artifacts/fw-a
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: vinceackermann2-sys/tam-research
+          run-id: "35514560795"
+
+      - name: Download FineWeb B artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rlt-compiled-paired-4m-modal-20260922-b-checkpoints
+          path: /tmp/artifacts/fw-b
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: vinceackermann2-sys/tam-research
+          run-id: "35750163637"
+
+      - name: Download WikiText A artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rlt-compiled-paired-4m-wikitext-modal-20260923-a-checkpoints
+          path: /tmp/artifacts/wt-a
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: vinceackermann2-sys/tam-research
+          run-id: "35913832716"
+
+      - name: Download WikiText B artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rlt-compiled-paired-4m-wikitext-modal-20260925-b-checkpoints
+          path: /tmp/artifacts/wt-b
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: vinceackermann2-sys/tam-research
+          run-id: "36111532654"
+
+      - name: Normalize and verify four checkpoint pairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,shutil
+          specs=[
+            ('/tmp/artifacts/fw-a','/tmp/fw-a.json','rlt-compiled-paired-4m-modal-20260920-a'),
+            ('/tmp/artifacts/fw-b','/tmp/fw-b.json','rlt-compiled-paired-4m-modal-20260922-b'),
+            ('/tmp/artifacts/wt-a','/tmp/wt-a.json','rlt-compiled-paired-4m-wikitext-modal-20260923-a'),
+            ('/tmp/artifacts/wt-b','/tmp/wt-b.json','rlt-compiled-paired-4m-wikitext-modal-20260925-b'),
+          ]
+          root=pathlib.Path('/tmp/portable-checkpoints'); root.mkdir(parents=True,exist_ok=True)
+          manifest={}
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for x in iter(lambda:f.read(8*1024*1024),b''): h.update(x)
+              return h.hexdigest()
+          for src,result_path,jid in specs:
+              r=json.load(open(result_path)); dest=root/jid; dest.mkdir(parents=True,exist_ok=False)
+              manifest[jid]={}
+              for model,name in [('rlt','rlt_final.pt'),('transformer','transformer_final.pt')]:
+                  xs=list(pathlib.Path(src).rglob(name)); assert len(xs)==1,(src,name,xs)
+                  out=dest/name; shutil.copy2(xs[0],out)
+                  expected=r['checkpoint_durability'][model]
+                  got=sha(out)
+                  assert got==expected['sha256'],(jid,name,got,expected)
+                  assert out.stat().st_size==expected['bytes'],(jid,name,out.stat().st_size,expected)
+                  manifest[jid][name]={'sha256':got,'bytes':out.stat().st_size}
+          pathlib.Path('/tmp/checkpoint-manifest.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+          PY
+
+      - name: Stage checkpoint pairs into selected Modal workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          modal volume create "$PORTABLE_VOLUME" >/tmp/volume-create.log 2>&1 || true
+          for JID in             rlt-compiled-paired-4m-modal-20260920-a             rlt-compiled-paired-4m-modal-20260922-b             rlt-compiled-paired-4m-wikitext-modal-20260923-a             rlt-compiled-paired-4m-wikitext-modal-20260925-b; do
+            modal volume put -f "$PORTABLE_VOLUME" "/tmp/portable-checkpoints/$JID/rlt_final.pt" "$JID/rlt_final.pt"
+            modal volume put -f "$PORTABLE_VOLUME" "/tmp/portable-checkpoints/$JID/transformer_final.pt" "$JID/transformer_final.pt"
+          done
+
+      - name: Validate C4 evaluation sources locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile experiments/rlt/modal_preflight.py "$EVAL_PATH" "$LAUNCHER_PATH"
+          python - <<'PY'
+          from pathlib import Path
+          e=Path('experiments/rlt/eval_c4_balanced_4m.py').read_text()
+          m=Path('experiments/rlt/modal_c4_balanced_4m.py').read_text()
+          for x in [
+            '1588ec454efa1a09f29cd18ddd04fe05fc8653a2',
+            'C4_BALANCED_BOTH_TRAINING_FAMILIES_ALL_RLT_LOWER_NLL',
+            'fineweb_trained','wikitext_trained','breakthrough_claim_supported',
+          ]: assert x in e,x
+          for x in [
+            'JOB_ID = "rlt-c4-balanced-4m-modal-20260925-a"',
+            'CHECKPOINT_VOLUME = "tam-rlt-portable-c4-balanced-20260925-a"',
+            'streaming=True','retries=0','gpu="A100"',
+            'RLT_C4_BALANCED_4M_RESULT_B64=',
+          ]: assert x in m,x
+          PY
+
+      - name: Prove pinned C4 validation bytes on CPU before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib
+          import numpy as np
+          from datasets import load_dataset
+          from transformers import AutoTokenizer
+
+          REQUIRED_TOKENS=1064960
+          ds=load_dataset(
+              'allenai/c4',name='en',split='validation',
+              revision='1588ec454efa1a09f29cd18ddd04fe05fc8653a2',
+              streaming=True,
+          )
+          tok=AutoTokenizer.from_pretrained('gpt2',use_fast=True)
+          chunks=[]; total=0; rows=0
+          for row in ds:
+              text=row.get('text') or ''
+              if not text: continue
+              ids=tok.encode(text,add_special_tokens=False); ids.append(tok.eos_token_id)
+              a=np.asarray(ids,dtype=np.uint16); chunks.append(a); total+=len(a); rows+=1
+              if total>=REQUIRED_TOKENS: break
+          assert total>=REQUIRED_TOKENS,(total,REQUIRED_TOKENS)
+          tokens=np.concatenate(chunks)[:REQUIRED_TOKENS]
+          p=pathlib.Path('/tmp/c4-validation.bin'); tokens.tofile(p)
+          h=hashlib.sha256()
+          with p.open('rb') as f:
+              for x in iter(lambda:f.read(8*1024*1024),b''): h.update(x)
+          payload={
+            'dataset':'allenai/c4','dataset_config':'en',
+            'dataset_revision':'1588ec454efa1a09f29cd18ddd04fe05fc8653a2',
+            'split':'validation','tokenizer':'gpt2','streaming':True,
+            'source_rows_consumed':rows,'raw_tokens_before_truncation':total,
+            'tokens_written':int(tokens.size),'sha256':h.hexdigest(),
+          }
+          pathlib.Path('/tmp/c4-data-preflight.json').write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(payload,sort_keys=True))
+          raise SystemExit(0)
+          PY
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/modal-preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/modal-preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Commit combined zero-GPU C4 preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          data=json.load(open('/tmp/c4-data-preflight.json'))
+          checkpoints=json.load(open('/tmp/checkpoint-manifest.json'))
+          p.update({
+            'classification':'RLT_C4_BALANCED_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'scientific_execution':False,'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'portable_volume':os.environ['PORTABLE_VOLUME'],
+            'checkpoint_manifest':checkpoints,'c4_data_preflight':data,
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH']); path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt c4: record portable checkpoints and zero-GPU preflight'
+          git push origin "HEAD:$BRANCH"
+
+      - name: Create and commit one-shot C4 evaluation claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          d=json.load(open(os.environ['DIAGNOSTIC_PATH']))
+          payload={
+            'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed','claimed_unix':time.time(),
+            'worker':'github-actions-modal','branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'portable_volume':os.environ['PORTABLE_VOLUME'],'checkpoint_manifest':d['checkpoint_manifest'],
+            'c4_validation_sha256':d['c4_data_preflight']['sha256'],
+            'automatic_retry_authorized':False,'job':json.load(open(os.environ['JOB_PATH'])),
+          }
+          p=pathlib.Path(os.environ['CLAIM_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt c4: claim $JOB_ID before A100 evaluation"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100 balanced C4 evaluation
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 65m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_C4_BALANCED_4M_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize durable C4 result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then
+            echo "No scientific claim exists; no terminal result to materialize."
+            exit 0
+          fi
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64',''); rc=int(os.environ.get('MODAL_RC','999')); payload=None
+          if b:
+              try: payload=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception: payload=None
+          if not isinstance(payload,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              payload={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed','finished_unix':time.time(),
+                       'worker':'github-actions-modal','error_type':'ModalInvocationOrTransportError',
+                       'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+                       'log_tail':log[-6000:],'scientific_conclusion':None}
+          claim=json.load(open(os.environ['CLAIM_PATH']))
+          got=(payload.get('c4_data') or {}).get('sha256')
+          payload.update({
+            'modal_cli_rc':rc,'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'evaluator_blob_sha':os.environ['EVAL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'c4_hash_matches_claim':(got is not None and got==claim['c4_validation_sha256']),
+          })
+          p=pathlib.Path(os.environ['RESULT_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(payload,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt c4: record $JOB_ID terminal result"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize C4 outcome
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f "$RESULT_PATH" ]; then
+            echo "No terminal scientific result exists."
+            exit 0
+          fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete' or r.get('c4_hash_matches_claim') is not True: raise SystemExit(1)
+          e=r.get('evaluation')
+          if not isinstance(e,dict) or e.get('status')!='complete' or e.get('breakthrough_claim_supported') is not False:
+              raise SystemExit(1)
+          allowed={
+            'C4_BALANCED_BOTH_TRAINING_FAMILIES_ALL_RLT_LOWER_NLL',
+            'C4_BALANCED_FINEWEB_FAMILY_RLT_LOWER_WIKITEXT_MIXED',
+            'C4_BALANCED_WIKITEXT_FAMILY_RLT_LOWER_FINEWEB_MIXED',
+            'C4_BALANCED_BOTH_FAMILY_MEANS_RLT_LOWER_MIXED_SEEDS',
+            'C4_BALANCED_NO_CONSISTENT_CROSS_FAMILY_RLT_ADVANTAGE',
+          }
+          if e.get('classification') not in allowed: raise SystemExit(1)
+          print('account slot:',r.get('modal_account_slot'))
+          print('classification:',e['classification'])
+          for family in ('fineweb_trained','wikitext_trained'):
+              f=e['families'][family]
+              print(family,'deltas',[x['rlt_minus_transformer_nll'] for x in f['pairs']])
+              print(family,'mean',f['aggregate']['mean_rlt_minus_transformer_nll'])
+          print('family mean difference:',e['family_comparison']['wikitext_trained_mean_minus_fineweb_trained_mean_relative_delta_nll'])
+          PY
