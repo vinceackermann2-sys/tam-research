@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "job_id": "rlt-scale15m-paired-16m-modal-20260925-a",
+  "task": "scale15m_paired_16m_a",
+  "scientific_seed": 20261016,
+  "training_data_seed": 20260924,
+  "requires_reference_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+  "requires_scale4m_aggregate_id": "rlt-scale15m-4m-ab-aggregate-20260925-a",
+  "requires_c4_job_id": "rlt-c4-balanced-4m-modal-20260925-a",
+  "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
+  "token_budget": 16777216,
+  "seq_len": 64,
+  "micro_batch_size": 16,
+  "grad_accum_steps": 1,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "expected_parameters_each": 15129344,
+  "checkpoint_volume": "tam-rlt-scale15m-checkpoints-account2",
+  "automatic_retry": false
+}
