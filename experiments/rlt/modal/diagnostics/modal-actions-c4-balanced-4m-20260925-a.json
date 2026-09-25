@@ -1,0 +1,72 @@
+{
+  "branch": "exp/rlt-colab",
+  "c4_data_preflight": {
+    "dataset": "allenai/c4",
+    "dataset_config": "en",
+    "dataset_revision": "1588ec454efa1a09f29cd18ddd04fe05fc8653a2",
+    "raw_tokens_before_truncation": 1065393,
+    "sha256": "5a1b84f5f0c16c2cd7e600f7f46723905fedc0511b2d19865257c0bf319bbd26",
+    "source_rows_consumed": 2293,
+    "split": "validation",
+    "streaming": true,
+    "tokenizer": "gpt2",
+    "tokens_written": 1064960
+  },
+  "checkpoint_manifest": {
+    "rlt-compiled-paired-4m-modal-20260920-a": {
+      "rlt_final.pt": {
+        "bytes": 84126475,
+        "sha256": "b8dd6afde732ae188e32cd89f5c228d7d1b9abf2c60ab8ba9d8da8e9986c2e02"
+      },
+      "transformer_final.pt": {
+        "bytes": 84527675,
+        "sha256": "ee601952e688909a2d72314702436ba2a37619d480fc7cf36e9394de08f6bb8f"
+      }
+    },
+    "rlt-compiled-paired-4m-modal-20260922-b": {
+      "rlt_final.pt": {
+        "bytes": 84126475,
+        "sha256": "6174f78dad8c3a086497d9d612c9338738f6b202c4ffddd094030abd662f4812"
+      },
+      "transformer_final.pt": {
+        "bytes": 84527675,
+        "sha256": "25ad1ea3d09a5734265b81a99f4cdb9a2718521b174db7558d26aeb5af122bd1"
+      }
+    },
+    "rlt-compiled-paired-4m-wikitext-modal-20260923-a": {
+      "rlt_final.pt": {
+        "bytes": 84126475,
+        "sha256": "cb449de9dd950ff5f4179c2c6d7953634b8a8d105e5a4f76233fe58adb492451"
+      },
+      "transformer_final.pt": {
+        "bytes": 84527675,
+        "sha256": "09e27fa3a310330d12cc90887604d504a2b11bca306fb1237e9ff49a315a9028"
+      }
+    },
+    "rlt-compiled-paired-4m-wikitext-modal-20260925-b": {
+      "rlt_final.pt": {
+        "bytes": 84126475,
+        "sha256": "035e02b4b575e8de2d22080b94ca44fb5ebdc6ce2a7a9028dc6e362a3942ec3c"
+      },
+      "transformer_final.pt": {
+        "bytes": 84527675,
+        "sha256": "12e2f8d330eb10b13a02f8f6b6f6e50801daa38a07fb2786620204ed6cdab2b6"
+      }
+    }
+  },
+  "classification": "RLT_C4_BALANCED_ZERO_GPU_PREFLIGHT_PASS",
+  "evaluator_blob_sha": "45b0e11825786edfab1364b1b583e5e4c0616e2b",
+  "finished_unix": 1790329083.8796728,
+  "job_id_checked": "rlt-c4-balanced-4m-modal-20260925-a",
+  "job_source_blob_sha": "7976010bcef631144447fde29273792b8e83ddb2",
+  "launcher_blob_sha": "8518b333eda4bdc721e4c2934bf1741470741de0",
+  "modal_account_slot": "2",
+  "portable_volume": "tam-rlt-portable-c4-balanced-20260925-a",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "22abdf138503185bef31c3265f4ad313abf9b39f",
+  "worker": "modal-control"
+}
