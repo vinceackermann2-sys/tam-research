@@ -65,6 +65,7 @@ def run_pair_remote(job_json: str) -> str:
             "scientific_seed": SCIENTIFIC_SEED,
             "training_data_seed": 20260924,
             "requires_reference_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+            "requires_failed_scale_attempt_id": "rlt-scale15m-paired-4m-modal-20260925-a",
             "requires_c4_job_id": "rlt-c4-balanced-4m-modal-20260925-a",
                         "requires_systems_job_id": "rlt-systems-decoder-cache768-modal-20260917-l",
             "token_budget": 4194304,
