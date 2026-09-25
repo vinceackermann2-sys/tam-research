@@ -230,6 +230,7 @@ jobs:
              'train_sha256':th,'val_sha256':vh}
           pathlib.Path('/tmp/scale-data-preflight.json').write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
           print(json.dumps(p,sort_keys=True))
+          raise SystemExit(0)
           PY
 
       - name: Run non-GPU Modal control-plane preflight
