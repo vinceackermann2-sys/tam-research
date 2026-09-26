@@ -93,10 +93,10 @@ jobs:
           test "$DUAL_ACCOUNT_CLI_SHA" = "440292942066d0b3d3a71d40ca8495092674ce6c"
           test "$(git -C source rev-parse "$SOURCE_SHA:modal_runtime_admission_probe_1067_v1.py")" = "$RUNTIME_PROBE_SHA"
           test "$RUNTIME_PROBE_SHA" = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
-          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_payload_integration_1064_v2.py")" = "$RUNNER_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v1_100m_stage_c_payload_integration_1064_v3.py")" = "$RUNNER_SHA"
           test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-v3.yml")" = "$SCIENTIFIC_WORKFLOW_SHA"
           test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v3.yml")" = "$AUDIT_WORKFLOW_SHA"
-          for path in             source/modal_chm_v1_100m_stage_c_payload_integration_1064_v2.py             source/.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-v3.yml             source/.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v3.yml             source/tam_research/chm_v1_100m_stage_c_payload_integration.py; do
+          for path in             source/modal_chm_v1_100m_stage_c_payload_integration_1064_v3.py             source/.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-v3.yml             source/.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v3.yml             source/tam_research/chm_v1_100m_stage_c_payload_integration.py; do
             ! grep -F "/vol/chm-v1/100m-stage-c-payload-gate/issue-1017/v8" "$path"
           done
 
@@ -119,7 +119,7 @@ jobs:
           assert len(exact_title("[modal-chm-v1-100m-stage-c-payload-integration-1064-v3]"))==0
           control=gh(f"repos/{repo}/issues/1064"); assert control["state"]=="open"
           comments=gh(f"repos/{repo}/issues/1064/comments?per_page=100")
-          assert not any("CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_FINAL_LAUNCHER_AUTHORITY_V2" in c["body"] for c in comments)
+          assert not any("CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_FINAL_LAUNCHER_AUTHORITY_V3" in c["body"] for c in comments)
           PY
 
       - uses: actions/setup-python@v6
@@ -223,7 +223,7 @@ jobs:
           ACCOUNT_SELECTION_EVIDENCE_SHA256: ${{ steps.account_binding.outputs.account_selection_evidence_sha256 }}
         run: |
           cd source
-          modal run modal_chm_v1_100m_stage_c_payload_integration_1064_v2.py --phase inspect-source --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --decomposition-sha "$DECOMPOSITION_SHA" --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" --runner-sha "$RUNNER_SHA" --workflow-sha "$SCIENTIFIC_WORKFLOW_SHA" --dual-account-sha "$DUAL_ACCOUNT_SHA" --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA" --selected-modal-account "$SELECTED_MODAL_ACCOUNT" --selected-modal-workspace "$SELECTED_MODAL_WORKSPACE" --account-selection-evidence-sha256 "$ACCOUNT_SELECTION_EVIDENCE_SHA256" | tee ../inspect.log
+          modal run modal_chm_v1_100m_stage_c_payload_integration_1064_v3.py --phase inspect-source --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --decomposition-sha "$DECOMPOSITION_SHA" --scientific-impl-sha "$SCIENTIFIC_IMPL_SHA" --runner-sha "$RUNNER_SHA" --workflow-sha "$SCIENTIFIC_WORKFLOW_SHA" --dual-account-sha "$DUAL_ACCOUNT_SHA" --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA" --selected-modal-account "$SELECTED_MODAL_ACCOUNT" --selected-modal-workspace "$SELECTED_MODAL_WORKSPACE" --account-selection-evidence-sha256 "$ACCOUNT_SELECTION_EVIDENCE_SHA256" | tee ../inspect.log
           cd ..
           python - <<'PY'
           import json
