@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-scale15m-kernel-profile-modal-20260926-o",
+  "task": "systems_scale15m_kernel_profile_o",
+  "engineering_seed": 20261021,
+  "requires_systems_profile_job_id": "rlt-systems-scale15m-batch768-modal-20260926-n",
+  "requires_compute_match_job_id": "rlt-compute-matched-scale15m-60s-modal-20260926-a",
+  "batch_size": 768,
+  "seq_len": 64,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
