@@ -57,12 +57,16 @@ def main() -> None:
     evidence = selection.public_evidence()
     compact = json.dumps(evidence, sort_keys=True, separators=(",", ":"))
     print(compact)
+    secondary_aliases = tuple(
+        selection.accounts.get("secondary", {}).get("credential_aliases", ())
+    )
     _write_github_output(
         {
             "selected_account": selection.selected_account,
             "selected_workspace_name": selection.selected_workspace_name or "",
             "selection_reason": selection.reason,
             "selection_evidence_json": compact,
+            "secondary_credential_aliases": ",".join(str(x) for x in secondary_aliases),
         }
     )
 
