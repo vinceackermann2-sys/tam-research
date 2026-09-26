@@ -39,7 +39,7 @@ def test_v3_runner_preserves_frozen_diagnostic_and_fresh_namespace() -> None:
     assert 'TRIGGER_TITLE = "[modal-chm-v1-100m-stage-c-payload-integration-1064-v3]"' in source
     assert 'RESULT_ROOT = "/vol/chm-v1/100m-stage-c-payload-integration/issue-1064/v3"' in source
     assert 'DECOMPOSITION_BLOB = "8ab98658d4c8ced33623c2d28ec899b35339997e"' in source
-    assert 'DUAL_ACCOUNT_BLOB = "1b830bd8d160d84ee6643317e99205bffdca450c"' in source
+    assert 'DUAL_ACCOUNT_BLOB = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"' in source
     assert 'DUAL_ACCOUNT_CLI_BLOB = "440292942066d0b3d3a71d40ca8495092674ce6c"' in source
     assert "torch.optim" not in source
     assert ".backward(" not in source
@@ -112,6 +112,11 @@ def test_v3_audit_is_cpu_only_fresh_successor_and_alias_aware() -> None:
     source = AUDIT.read_text(encoding="utf-8")
     assert "workflow_dispatch" not in source
     assert "[modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v3]" in source
+    assert '"supersedes_failed_audit_issue":1072' in source
+    assert '"supersedes_failed_audit_run":36256923462' in source
+    assert '"supersedes_duplicate_audit_issue":1073' in source
+    assert '"supersedes_duplicate_audit_run":36257000761' in source
+    assert "CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_AUTHORITY_AUDIT_V3_PASS" in source
     assert "scripts/modal_select_account_v3.py" in source
     assert "modal_chm_v1_100m_stage_c_payload_integration_1064_v3.py" in source
     assert "modal_runtime_admission_probe_1067_v1.py" in source
