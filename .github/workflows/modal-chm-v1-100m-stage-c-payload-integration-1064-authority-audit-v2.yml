@@ -267,6 +267,7 @@ jobs:
           first_postmortem_payload_integration_weak_verified=true
           retired_v8_partial_artifacts_excluded=true
           result_namespace_unused=true
+          runtime_admission_verified=true
           gpu_allocated=false
           diagnostic_attempt_consumed=false
           trigger_authorized=false
