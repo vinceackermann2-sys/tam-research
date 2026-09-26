@@ -1,0 +1,60 @@
+{
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_BATCH768_GAP_GT_3X",
+  "derived": {
+    "rlt_fraction_of_transformer_throughput": 0.32838332332489206,
+    "transformer_throughput_multiple_vs_rlt": 3.0452216326790493
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261019,
+  "finished_unix": 1790439372.7739542,
+  "interpretation_ceiling": "Engineering throughput profile only. Random-token losses are not scientific quality evidence. The result measures whether the exact 15.1M RLT implementation can utilize an A100-80GB at large batch and how much of the microbatch-16 throughput gap is implementation/utilization overhead.",
+  "job_id": "rlt-systems-scale15m-batch768-modal-20260926-n",
+  "job_source_blob_sha": "26c62c835e6c2f8fb82413fd4a990c0547609080",
+  "launcher_blob_sha": "8ebd255b932491964c7251e31dad5de10c0c20e1",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "profile": {
+    "batch_size": 768,
+    "expected_parameters_each": 15129344,
+    "measured_steps": 2,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "rlt": {
+    "first_step_seconds_including_compile": 606.829646691,
+    "last_loss": 10.874157905578613,
+    "measured_seconds": 0.7640366370000038,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 37.21814823150635,
+    "tokens_per_second": 128663.98709097442
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  },
+  "started_unix": 1790438737.4484587,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 19.055052045000025,
+    "last_loss": 10.872058868408203,
+    "measured_seconds": 0.25089689000003546,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 33.95322036743164,
+    "tokens_per_second": 391810.3568361733
+  },
+  "trigger_sha": "04699bfb10eccdafca1a4ccd4d5fb96016cd0afd"
+}
