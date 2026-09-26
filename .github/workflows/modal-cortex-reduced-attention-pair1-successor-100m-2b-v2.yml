@@ -183,7 +183,7 @@ jobs:
         run: |
           gh api --method POST             "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments"             -f body="🟨 Pair-1 successor handoff authenticated — source=${SOURCE_SHA}, tree=${SOURCE_TREE}, harness=${HARNESS_SHA}, Modal account=${SELECTED_ACCOUNT}, workspace=${SELECTED_WORKSPACE}. Secondary account is mandatory. Exactly one fresh seed-59231 matched pair is authorized by this trigger; #1058/seed-58231 is not retried; no replication seed or 250M/5B authority."
 
-      - name: Launch exact one-shot Pair-1 scientific run
+      - name: Launch exact one-shot Pair-1 successor scientific run
         env:
           SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
@@ -192,7 +192,7 @@ jobs:
           set -euo pipefail
           modal run --detach --timestamps modal_cortex_reduced_attention_pair1_successor_100m_2b_v2.py             --source-sha "$SOURCE_SHA"             --source-tree "$SOURCE_TREE"             --harness-sha "$HARNESS_SHA"             --selected-account "$SELECTED_ACCOUNT"
 
-      - name: Record normal Modal return only
+      - name: Record normal successor Modal return only
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
