@@ -110,7 +110,7 @@ jobs:
           audit_title="[modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v2]"
           audit=exact_title(audit_title)
           assert len(audit)==1 and audit[0]["number"]==trigger_number
-          assert len(exact_title("[modal-chm-v1-100m-stage-c-payload-integration-1064-v1]"))==0
+          assert len(exact_title("[modal-chm-v1-100m-stage-c-payload-integration-1064-v2]"))==0
           control=gh(f"repos/{repo}/issues/1064"); assert control["state"]=="open"
           comments=gh(f"repos/{repo}/issues/1064/comments?per_page=100")
           assert not any("CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_FINAL_LAUNCHER_AUTHORITY_V2" in c["body"] for c in comments)
