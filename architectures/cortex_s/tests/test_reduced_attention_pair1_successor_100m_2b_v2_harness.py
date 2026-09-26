@@ -166,11 +166,14 @@ def test_pair1_workflow_is_exact_owner_only_one_shot_and_dual_account_bound() ->
     assert 'test "$RUN_ATTEMPT" = "1"' in source
     assert "git merge-base --is-ancestor" in source
     assert "git diff --exit-code" in source
-    assert "scripts/modal_select_account.py --required-volume tam-research-data --force-account secondary" in source
-    assert 'PYTHONPATH="$PWD" python scripts/modal_select_account.py --required-volume tam-research-data --force-account secondary' in source
+    assert "scripts/modal_select_account_v2.py --required-volume tam-research-data --force-account secondary --runtime-probe-path modal_runtime_admission_probe_1067_v1.py" in source
+    assert 'PYTHONPATH="$PWD" python scripts/modal_select_account_v2.py --required-volume tam-research-data --force-account secondary --runtime-probe-path modal_runtime_admission_probe_1067_v1.py' in source
     assert 'test "$SELECTED" = "secondary"' in source
     assert 'SELECTED" = "primary"' not in source
     assert "modal billing rates --json" in source
+    assert "tam_research/modal_dual_account_v2.py" in source
+    assert "scripts/modal_select_account_v2.py" in source
+    assert "modal_runtime_admission_probe_1067_v1.py" in source
     assert 'modal billing summary --for "this month" --json' in source
     assert "modal volume list --json" in source
     assert '--selected-account "$SELECTED_ACCOUNT"' in source
