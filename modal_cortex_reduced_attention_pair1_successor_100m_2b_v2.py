@@ -266,7 +266,7 @@ def _verify_predecessor() -> dict[str, Any]:
         raise RuntimeError("predecessor Transformer seed mismatch")
     if reduced.get("status") != "ERROR":
         raise RuntimeError("predecessor reduced-attention result is not ERROR")
-    if reduced.get("classification") != "SCIENTIFIC_REDUCED_ATTENTION_PAIR1_SUCCESSOR_ARCHITECTURE_ERROR_NO_RETRY":
+    if reduced.get("classification") != "SCIENTIFIC_REDUCED_ATTENTION_PAIR1_ARCHITECTURE_ERROR_NO_RETRY":
         raise RuntimeError("predecessor reduced-attention classification drift")
     if reduced.get("pair_seed") != 58_231:
         raise RuntimeError("predecessor reduced-attention seed mismatch")
