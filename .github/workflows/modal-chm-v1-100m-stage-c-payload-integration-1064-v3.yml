@@ -200,13 +200,22 @@ jobs:
           SELECTED_MODAL_ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
         run: |
           if [ "$SELECTED_MODAL_ACCOUNT" = "primary" ]; then
+            test -n "$MODAL_TOKEN_ID"
+            test -n "$MODAL_TOKEN_SECRET"
             printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID" >> "$GITHUB_ENV"
             printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET" >> "$GITHUB_ENV"
           elif [ "$SELECTED_MODAL_ACCOUNT" = "secondary" ]; then
-            test -n "$MODAL_TOKEN_ID_SECONDARY"
-            test -n "$MODAL_TOKEN_SECRET_SECONDARY"
-            printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_SECONDARY" >> "$GITHUB_ENV"
-            printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_SECONDARY" >> "$GITHUB_ENV"
+            cd source
+            PYTHONPATH="$PWD" python - <<'PY'
+            import os
+            from tam_research.modal_dual_account_v3 import resolve_secondary_credentials
+            resolved = resolve_secondary_credentials(os.environ)
+            assert resolved.configured, "secondary Modal credentials are not configured"
+            with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+                handle.write(f"MODAL_TOKEN_ID={resolved.token_id}\n")
+                handle.write(f"MODAL_TOKEN_SECRET={resolved.token_secret}\n")
+            PY
+            cd ..
           else
             exit 92
           fi
