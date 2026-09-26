@@ -101,7 +101,7 @@ jobs:
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_chm_v1_100m_stage_c_990_v1_impl.py")" = "$SCIENTIFIC_IMPL_SHA"
           test "$SCIENTIFIC_IMPL_SHA" = "fb7fe5f8c2a597f7de9e4d03c6908dc0db9558ac"
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_dual_account_v3.py")" = "$DUAL_ACCOUNT_SHA"
-          test "$DUAL_ACCOUNT_SHA" = "4120e1e4956c2029d944386911194b2036c2f94c"
+          test "$DUAL_ACCOUNT_SHA" = "d73e8c7c2babcc90897c7bd638883c2b863d7bf0"
           test "$(git -C source rev-parse "$SOURCE_SHA:scripts/modal_select_account_v3.py")" = "$DUAL_ACCOUNT_CLI_SHA"
           test "$DUAL_ACCOUNT_CLI_SHA" = "013ff2c8d918c4690cba0e0ed9ff85a929c7fc65"
           test "$(git -C source rev-parse "$SOURCE_SHA:modal_runtime_admission_probe_1067_v1.py")" = "$RUNTIME_PROBE_SHA"
