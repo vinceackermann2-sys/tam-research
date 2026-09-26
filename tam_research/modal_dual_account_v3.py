@@ -495,6 +495,11 @@ def select_from_environment(
     runtime_probe_path: str = RUNTIME_ADMISSION_PROBE,
 ) -> AccountSelection:
     env = os.environ if environ is None else environ
+    # Resolve every secondary alias before any Modal command. Conflicting or
+    # partial aliases therefore fail closed before probing even the primary.
+    secondary_token_id, secondary_token_secret, secondary_aliases = (
+        resolve_secondary_credentials(env)
+    )
     primary = probe_account(
         label="primary",
         token_id=env.get(PRIMARY_TOKEN_ID_ENV),
@@ -502,9 +507,6 @@ def select_from_environment(
         required_volumes=required_volumes,
         command_runner=command_runner,
         runtime_probe_path=runtime_probe_path,
-    )
-    secondary_token_id, secondary_token_secret, secondary_aliases = (
-        resolve_secondary_credentials(env)
     )
     secondary = probe_account(
         label="secondary",
