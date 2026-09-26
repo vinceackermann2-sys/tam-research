@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-scale15m-q1-attention-modal-20260926-p",
+  "task": "systems_scale15m_q1_attention_p",
+  "engineering_seed": 20261022,
+  "requires_kernel_profile_job_id": "rlt-systems-scale15m-kernel-profile-modal-20260926-o",
+  "batch": 768,
+  "heads": 8,
+  "head_dim": 32,
+  "query_len": 1,
+  "key_lengths": [1, 8, 16, 32, 64],
+  "automatic_retry": false
+}
