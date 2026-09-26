@@ -149,11 +149,37 @@ def test_conflicting_complete_aliases_fail_closed_without_secret_values() -> Non
 )
 def test_partial_alias_fails_closed_before_any_modal_command(partial: dict[str, str]) -> None:
     calls: list[tuple[list[str], str]] = []
-    runner = _runner({}, calls)
+    runner = _runner({"primary-id": True}, calls)
+    env = {
+        "MODAL_TOKEN_ID": "primary-id",
+        "MODAL_TOKEN_SECRET": "primary-secret",
+        **partial,
+    }
     with pytest.raises(RuntimeError, match="incomplete pair"):
         select_from_environment(
             required_volumes=("tam-research-data",),
-            environ=partial,
+            environ=env,
+            command_runner=runner,
+        )
+    assert calls == []
+
+
+
+def test_conflicting_aliases_fail_closed_before_configured_primary_is_probed() -> None:
+    calls: list[tuple[list[str], str]] = []
+    runner = _runner({"primary-id": True}, calls)
+    env = {
+        "MODAL_TOKEN_ID": "primary-id",
+        "MODAL_TOKEN_SECRET": "primary-secret",
+        "MODAL_TOKEN_ID_2": "secondary-a",
+        "MODAL_TOKEN_SECRET_2": "secret-a",
+        "MODAL_TOKEN_ID_B": "secondary-b",
+        "MODAL_TOKEN_SECRET_B": "secret-b",
+    }
+    with pytest.raises(RuntimeError, match="conflicting complete secondary"):
+        select_from_environment(
+            required_volumes=("tam-research-data",),
+            environ=env,
             command_runner=runner,
         )
     assert calls == []
