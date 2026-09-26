@@ -516,6 +516,9 @@ def select_from_environment(
     runtime_probe_path: str = RUNTIME_ADMISSION_PROBE,
 ) -> AccountSelection:
     env = os.environ if environ is None else environ
+    # Resolve all secondary aliases before *any* remote account probe so
+    # partial/conflicting pairs fail closed without touching Modal.
+    secondary_credentials = resolve_secondary_credentials(env)
     primary = probe_account(
         label="primary",
         token_id=env.get(PRIMARY_TOKEN_ID_ENV),
@@ -524,7 +527,6 @@ def select_from_environment(
         command_runner=command_runner,
         runtime_probe_path=runtime_probe_path,
     )
-    secondary_credentials = resolve_secondary_credentials(env)
     secondary = probe_account(
         label="secondary",
         token_id=secondary_credentials.token_id,
