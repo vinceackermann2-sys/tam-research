@@ -1,0 +1,24 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_SCALE15M_TRANSFORMER_QUALITYSEC_BATCH_T_ZERO_GPU_PREFLIGHT_PASS",
+  "engineering_only": true,
+  "finished_unix": 1790524851.236408,
+  "job_id_checked": "rlt-systems-scale15m-transformer-qualitysec-batch-modal-20260927-t",
+  "job_source_blob_sha": "649ba72b3704f882dfbba821c63a33591d85c8f0",
+  "launcher_blob_sha": "bbc86e21ebcc0f37a8939692d3aabeeaeca13c32",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "reference_data": {
+    "seed": 20260924,
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "train_tokens": 6000000,
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+    "val_tokens": 500000
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "db28c656453345cda873052d8fb98cd38dd06e50",
+  "worker": "modal-control"
+}
