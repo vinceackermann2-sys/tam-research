@@ -245,9 +245,6 @@ def test_terminal_serializer_uses_exact_1014_schema_not_retired_v8_schema() -> N
     assert "gh issue comment 1099 --repo" in source
     assert "--payload-gate-sha" in source
     assert "--decomposition-sha" not in source
-    assert "36343365415" in source
-    assert "1101" in source
-    assert "actions: read" in source
     assert "gh issue close 1099 --repo" in source
 
 
@@ -280,6 +277,11 @@ def test_authority_audit_is_cpu_only_and_verifies_prior_authoritative_evidence()
     assert "payload_integration_decomposition_verified=true" in source
     assert "retired_v8_partial_artifacts_excluded=true" in source
     assert "gh issue comment 1099 --repo" in source
+    assert "--payload-gate-sha" in source
+    assert "--decomposition-sha" not in source
+    assert "36343365415" in source
+    assert "1101" in source
+    assert "actions: read" in source
 
 
 def test_audit_may_reject_v8_literal_but_runner_and_launch_never_reference_it() -> None:
