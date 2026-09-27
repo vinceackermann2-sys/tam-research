@@ -1,0 +1,17 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_SCALE15M_REDUCE_OVERHEAD_Q_ZERO_GPU_PREFLIGHT_PASS",
+  "engineering_only": true,
+  "finished_unix": 1790504374.3455954,
+  "job_id_checked": "rlt-systems-scale15m-reduce-overhead-modal-20260927-q",
+  "job_source_blob_sha": "ddbceb49a42360fedd544fa525b0f8b0d75bbd31",
+  "launcher_blob_sha": "c0aa4196830afaf4b9e16168a91469de3e401680",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "5ef0698964f4bca6e81c90569890cfa34dc5531a",
+  "worker": "modal-control"
+}
