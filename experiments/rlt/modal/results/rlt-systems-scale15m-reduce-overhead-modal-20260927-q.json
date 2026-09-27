@@ -1,0 +1,75 @@
+{
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_REDUCE_OVERHEAD_NO_MATERIAL_SPEEDUP",
+  "default": {
+    "error": null,
+    "mark_step_begin": false,
+    "mode": "default",
+    "result": {
+      "first_step_seconds_including_compile": 514.29477338,
+      "last_loss": 10.872669219970703,
+      "measured_seconds": 1.1245493579999675,
+      "measured_tokens": 147456,
+      "peak_vram_gb": 37.22107791900635,
+      "tokens_per_second": 131124.5246382545
+    }
+  },
+  "default_vs_reduce_overhead_exact_equivalence": {
+    "attempted": true,
+    "error": null,
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  },
+  "derived": {
+    "reduce_overhead_speedup_vs_default": 1.003736575433035
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261023,
+  "finished_unix": 1790506455.621651,
+  "interpretation_ceiling": "Engineering-only compile-mode test at the exact 15.1M RLT batch-768 operating point. A candidate is eligible for scientific use only if the compiled default-vs-reduce-overhead logits, loss, and gradients are exactly equal.",
+  "job_id": "rlt-systems-scale15m-reduce-overhead-modal-20260927-q",
+  "job_source_blob_sha": "ddbceb49a42360fedd544fa525b0f8b0d75bbd31",
+  "launcher_blob_sha": "c0aa4196830afaf4b9e16168a91469de3e401680",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "profile": {
+    "batch_size": 768,
+    "expected_parameters": 15129344,
+    "measured_steps": 3,
+    "seq_len": 64,
+    "warmup_steps": 2
+  },
+  "reduce_overhead": {
+    "error": null,
+    "mark_step_begin": true,
+    "mode": "reduce-overhead",
+    "result": {
+      "first_step_seconds_including_compile": 517.0614970409999,
+      "last_loss": 10.872672080993652,
+      "measured_seconds": 1.1203630369998336,
+      "measured_tokens": 147456,
+      "peak_vram_gb": 28.01500940322876,
+      "tokens_per_second": 131614.48131568616
+    }
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100 80GB PCIe",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790504388.3996415,
+  "status": "complete",
+  "trigger_sha": "5ef0698964f4bca6e81c90569890cfa34dc5531a",
+  "wrapper_semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  }
+}
