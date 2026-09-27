@@ -1,0 +1,17 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_SCALE15M_Q1_EFFICIENT_WHOLE_R_ZERO_GPU_PREFLIGHT_PASS",
+  "engineering_only": true,
+  "finished_unix": 1790507221.0204437,
+  "job_id_checked": "rlt-systems-scale15m-q1-efficient-whole-modal-20260927-r",
+  "job_source_blob_sha": "933bafebb0dbbb610df054fa0eab67a0cea40cc2",
+  "launcher_blob_sha": "9daa90fdc63c48925a6c7f06295d901bd34d05ae",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "295d7d8e160cf5941a3a7b66d969ac963b2fcfe6",
+  "worker": "modal-control"
+}
