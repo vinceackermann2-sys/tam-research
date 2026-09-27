@@ -118,7 +118,7 @@ jobs:
           assert p.get('data_hashes_match_claim') is True and p.get('exact_parameter_match_verified') is True,p
           assert p.get('compute_budget_protocol_verified') is True,p
           pc=p['comparison']
-          assert pc['classification']=='COMPUTE_MATCHED_TUNED_SCALE15M_60S_NO_RLT_QUALITY_ADVANTAGE',pc
+          assert pc['classification']=='COMPUTE_MATCHED_SCALE15M_60S_NO_RLT_QUALITY_ADVANTAGE',pc
           assert float(pc['derived']['rlt_minus_transformer_final_nll'])>0.0,pc
 
           v=json.load(open('/tmp/v.json'))
