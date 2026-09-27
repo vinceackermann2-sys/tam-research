@@ -102,7 +102,7 @@ jobs:
           assert u.get('job_id')=='rlt-systems-scale15m-rlt-qualitysec-lowbatch-modal-20260927-u',u
           assert u.get('status')=='failed' and u.get('scientific_conclusion') is None,u
           assert u.get('error_type')=='ModalInvocationOrTransportError',u
-          assert 'preregistration mismatch' in str(u.get('error','')),u
+          assert 'preregistration mismatch' in (str(u.get('error','')) + str(u.get('log_tail',''))),u
           PY
 
       - name: Install zero-GPU dependencies
