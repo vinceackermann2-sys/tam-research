@@ -1,0 +1,152 @@
+{
+  "batch_seed": 20271028,
+  "best_by_final_nll": {
+    "batch_size": 128,
+    "final_nll": 6.698113888502121,
+    "optimizer_steps_per_second": 9.042339931980173,
+    "steps": 543,
+    "tokens_per_second": 74074.84872278158,
+    "tokens_seen": 4448256
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_RLT_QUALITYSEC_LOWBATCH_CALIBRATION",
+  "data": {
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "data_hashes_match_claim": true,
+  "engineering_only": true,
+  "engineering_seed": 20261028,
+  "eval_seed": 20291028,
+  "finished_unix": 1790533207.9174454,
+  "interpretation_ceiling": "Engineering-only RLT low-batch hyperparameter calibration. It selects a batch size for validation quality per fixed post-compile GPU training time at exact 15.1M parameters. It is not architecture-level scientific evidence and does not compare against a Transformer.",
+  "job_id": "rlt-systems-scale15m-rlt-qualitysec-lowbatch-modal-20260927-v",
+  "job_source_blob_sha": "9b6c127da477b0d501cb07d3fb7b657fc8e90cea",
+  "launcher_blob_sha": "44ce43bd5efee1e8e0203e82133c40f61bb28497",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "protocol": {
+    "batch_sizes": [
+      64,
+      128,
+      256
+    ],
+    "compile_time_excluded": true,
+    "learning_rate": 0.0003,
+    "same_batch_stream_seed": true,
+    "same_eval_stream_seed": true,
+    "same_initialization_seed": true,
+    "schedule": "cosine_by_elapsed_post_compile_training_time",
+    "seq_len": 64,
+    "time_budget_seconds_each": 60.0,
+    "validation_execution": "eager_no_grad_to_avoid_per_batch_compile_graphs",
+    "warmup_ratio_by_elapsed_time": 0.02
+  },
+  "results": [
+    {
+      "actual_train_seconds": 60.010113560000036,
+      "batch_size": 64,
+      "compile_training_step_seconds": 323.847565453,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.743541494011879,
+        "perplexity": 848.5605929863787,
+        "seconds": 2.079191736000041
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.891837477684021,
+        "perplexity": 53735.9479157259,
+        "seconds": 2.0878483400000007
+      },
+      "last_train_loss": 6.714433670043945,
+      "optimizer_steps_per_second": 10.898163012907979,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.5419511795043945,
+      "steps": 654,
+      "tokens_per_second": 44638.87570087108,
+      "tokens_seen": 2678784
+    },
+    {
+      "actual_train_seconds": 60.05082800299999,
+      "batch_size": 128,
+      "compile_training_step_seconds": 337.95369244599993,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.698113888502121,
+        "perplexity": 810.8749813246582,
+        "seconds": 1.9870736249999936
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.891837477684021,
+        "perplexity": 53735.9479157259,
+        "seconds": 2.0867569600000024
+      },
+      "last_train_loss": 6.674773216247559,
+      "optimizer_steps_per_second": 9.042339931980173,
+      "parameters": 15129344,
+      "peak_vram_gb": 6.598180294036865,
+      "steps": 543,
+      "tokens_per_second": 74074.84872278158,
+      "tokens_seen": 4448256
+    },
+    {
+      "actual_train_seconds": 60.09716451500003,
+      "batch_size": 256,
+      "compile_training_step_seconds": 341.737301335,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.742100149393082,
+        "perplexity": 847.3384057500409,
+        "seconds": 2.0984598430000005
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.891837477684021,
+        "perplexity": 53735.9479157259,
+        "seconds": 1.9671249429999307
+      },
+      "last_train_loss": 6.721615791320801,
+      "optimizer_steps_per_second": 6.2731745007021456,
+      "parameters": 15129344,
+      "peak_vram_gb": 12.727453708648682,
+      "steps": 377,
+      "tokens_per_second": 102779.69101950395,
+      "tokens_seen": 6176768
+    }
+  ],
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790531982.4123092,
+  "status": "complete",
+  "trigger_sha": "ace773a3420d8ec41d9e2f8ac826c4b2e45dea9b",
+  "wrapper_semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  }
+}
