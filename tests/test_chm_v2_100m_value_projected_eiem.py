@@ -267,7 +267,7 @@ def test_module_contains_no_execution_or_training_loop_surface() -> None:
 def test_projected_values_are_written_only_after_current_chunk_logits() -> None:
     source = inspect.getsource(v2.vp_eiem_flat_training_session_logits)
     logits_index = source.index("logits.append")
-    write_index = source.index("memory_values =")
+    write_index = source.index("memory_values = (")
     assert logits_index < write_index
     assert "values = model.value_for(hidden)" in source
     assert "keys = model.key_for(hidden)" in source
