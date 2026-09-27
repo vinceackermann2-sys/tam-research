@@ -302,7 +302,7 @@ jobs:
 - selected secondary credential alias=account2
 - destination parity re-download: PASS
 - MIRROR_MANIFEST.json uploaded last
-- modal run / remote function allocation: NONE
+- remote Modal function invocation/allocation: NONE
 - GPU allocation: NONE
 - diagnostic result namespace creation: NONE
 - diagnostic attempt consumption: NONE
