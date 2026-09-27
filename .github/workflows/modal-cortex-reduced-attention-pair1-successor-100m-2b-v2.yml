@@ -207,8 +207,10 @@ jobs:
           SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
           HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+          SELECTED_ACCOUNT: ${{ steps.modal_account.outputs.selected_account }}
         run: |
           set -euo pipefail
+          test "$SELECTED_ACCOUNT" = "secondary"
           modal run --detach --timestamps modal_cortex_reduced_attention_pair1_successor_100m_2b_v2.py             --source-sha "$SOURCE_SHA"             --source-tree "$SOURCE_TREE"             --harness-sha "$HARNESS_SHA"             --selected-account "$SELECTED_ACCOUNT"
 
       - name: Record normal successor Modal return only
