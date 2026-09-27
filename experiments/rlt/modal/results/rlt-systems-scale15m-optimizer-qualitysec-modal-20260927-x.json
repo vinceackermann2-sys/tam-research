@@ -1,0 +1,451 @@
+{
+  "batch_seed": 20271031,
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_OPTIMIZER_QUALITYSEC_CALIBRATION",
+  "compile_probe_seed": 20301031,
+  "data": {
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "data_hashes_match_claim": true,
+  "engineering_only": true,
+  "engineering_seed": 20261031,
+  "eval_seed": 20291031,
+  "finished_unix": 1790540388.342529,
+  "interpretation_ceiling": "Engineering-only optimizer/schedule calibration at the independently bracketed quality-per-second batches (RLT 128, Transformer 64). It chooses settings for a later fresh-seed confirmatory equal-time test and is not architecture-level scientific evidence.",
+  "job_id": "rlt-systems-scale15m-optimizer-qualitysec-modal-20260927-x",
+  "job_source_blob_sha": "3eede910f270d449d08ab2e464edb060644d50c9",
+  "launcher_blob_sha": "182893ab34c93f9a3712334e32eee94367436991",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "protocol": {
+    "candidates": [
+      {
+        "learning_rate": 0.0003,
+        "name": "cosine_lr3e-4",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "cosine_lr1e-3",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.003,
+        "name": "cosine_lr3e-3",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.0003,
+        "name": "constant_lr3e-4",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "constant_lr1e-3",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.003,
+        "name": "constant_lr3e-3",
+        "schedule": "constant"
+      }
+    ],
+    "compile_once_per_architecture": true,
+    "reset_identical_initial_weights_before_each_candidate": true,
+    "rlt_batch_size": 128,
+    "same_batch_stream_seed_within_architecture": true,
+    "same_eval_stream_seed": true,
+    "seq_len": 64,
+    "time_budget_seconds_each_candidate": 60.0,
+    "transformer_batch_size": 64,
+    "validation_execution": "eager_no_grad",
+    "warmup_time_ratio_for_cosine": 0.02,
+    "weight_decay": 0.1
+  },
+  "rlt": {
+    "architecture": "rlt",
+    "batch_size": 128,
+    "best_by_final_nll": {
+      "candidate": {
+        "learning_rate": 0.0003,
+        "name": "constant_lr3e-4",
+        "schedule": "constant"
+      },
+      "final_nll": 6.298257127404213,
+      "optimizer_steps_per_second": 9.980377584130506,
+      "steps": 599,
+      "tokens_per_second": 81759.25316919711,
+      "tokens_seen": 4907008
+    },
+    "compile_probe": {
+      "loss": 10.875409126281738,
+      "seconds": 283.83988493100003
+    },
+    "initial_eval": {
+      "eval_tokens": 131072,
+      "execution": "eager_no_grad",
+      "nll": 10.877173364162445,
+      "perplexity": 52953.70732516587,
+      "seconds": 2.1115212159999963
+    },
+    "results": [
+      {
+        "actual_train_seconds": 60.05800616800002,
+        "batch_size": 128,
+        "candidate": {
+          "learning_rate": 0.0003,
+          "name": "cosine_lr3e-4",
+          "schedule": "cosine"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 6.6524064391851425,
+          "perplexity": 774.6462233912483,
+          "seconds": 2.1903754989999698
+        },
+        "finite_final_nll": true,
+        "last_lr": 3.3235997267677673e-10,
+        "last_train_loss": 6.653914451599121,
+        "optimizer_steps_per_second": 9.707281962860646,
+        "parameters": 15129344,
+        "peak_vram_gb": 6.713546276092529,
+        "steps": 583,
+        "tokens_per_second": 79522.05383975442,
+        "tokens_seen": 4775936
+      },
+      {
+        "actual_train_seconds": 60.038455172,
+        "batch_size": 128,
+        "candidate": {
+          "learning_rate": 0.001,
+          "name": "cosine_lr1e-3",
+          "schedule": "cosine"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 6.5465345829725266,
+          "perplexity": 696.8251949556636,
+          "seconds": 2.181022585999983
+        },
+        "finite_final_nll": true,
+        "last_lr": 2.62535195827418e-09,
+        "last_train_loss": 6.558986186981201,
+        "optimizer_steps_per_second": 10.210122799526719,
+        "parameters": 15129344,
+        "peak_vram_gb": 6.704397201538086,
+        "steps": 613,
+        "tokens_per_second": 83641.32597372288,
+        "tokens_seen": 5021696
+      },
+      {
+        "actual_train_seconds": 60.06704395500003,
+        "batch_size": 128,
+        "candidate": {
+          "learning_rate": 0.003,
+          "name": "cosine_lr3e-3",
+          "schedule": "cosine"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 6.867157563567162,
+          "perplexity": 960.2153320874098,
+          "seconds": 2.187057755000012
+        },
+        "finite_final_nll": true,
+        "last_lr": 1.8371962799412778e-09,
+        "last_train_loss": 6.7816481590271,
+        "optimizer_steps_per_second": 10.155319120697683,
+        "parameters": 15129344,
+        "peak_vram_gb": 6.703551769256592,
+        "steps": 610,
+        "tokens_per_second": 83192.37423675542,
+        "tokens_seen": 4997120
+      },
+      {
+        "actual_train_seconds": 60.01776936300001,
+        "batch_size": 128,
+        "candidate": {
+          "learning_rate": 0.0003,
+          "name": "constant_lr3e-4",
+          "schedule": "constant"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 6.298257127404213,
+          "perplexity": 543.6236172841834,
+          "seconds": 2.1816982959999223
+        },
+        "finite_final_nll": true,
+        "last_lr": 0.0003,
+        "last_train_loss": 6.142106056213379,
+        "optimizer_steps_per_second": 9.980377584130506,
+        "parameters": 15129344,
+        "peak_vram_gb": 6.703551769256592,
+        "steps": 599,
+        "tokens_per_second": 81759.25316919711,
+        "tokens_seen": 4907008
+      },
+      {
+        "actual_train_seconds": 60.03287463099991,
+        "batch_size": 128,
+        "candidate": {
+          "learning_rate": 0.001,
+          "name": "constant_lr1e-3",
+          "schedule": "constant"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 6.298565983772278,
+          "perplexity": 543.7915448316234,
+          "seconds": 2.2127587019999737
+        },
+        "finite_final_nll": true,
+        "last_lr": 0.001,
+        "last_train_loss": 6.174954891204834,
+        "optimizer_steps_per_second": 10.261044532455363,
+        "parameters": 15129344,
+        "peak_vram_gb": 6.703551769256592,
+        "steps": 616,
+        "tokens_per_second": 84058.47680987434,
+        "tokens_seen": 5046272
+      },
+      {
+        "actual_train_seconds": 60.072469135999995,
+        "batch_size": 128,
+        "candidate": {
+          "learning_rate": 0.003,
+          "name": "constant_lr3e-3",
+          "schedule": "constant"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 6.727323994040489,
+          "perplexity": 834.9100496186448,
+          "seconds": 2.157023592000087
+        },
+        "finite_final_nll": true,
+        "last_lr": 0.003,
+        "last_train_loss": 6.603826999664307,
+        "optimizer_steps_per_second": 9.621712047351462,
+        "parameters": 15129344,
+        "peak_vram_gb": 6.703551769256592,
+        "steps": 578,
+        "tokens_per_second": 78821.06509190318,
+        "tokens_seen": 4734976
+      }
+    ]
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790539332.210398,
+  "status": "complete",
+  "transformer": {
+    "architecture": "transformer",
+    "batch_size": 64,
+    "best_by_final_nll": {
+      "candidate": {
+        "learning_rate": 0.001,
+        "name": "cosine_lr1e-3",
+        "schedule": "cosine"
+      },
+      "final_nll": 5.50838902592659,
+      "optimizer_steps_per_second": 79.7148923048361,
+      "steps": 4783,
+      "tokens_per_second": 326512.19888060866,
+      "tokens_seen": 19591168
+    },
+    "compile_probe": {
+      "loss": 10.881312370300293,
+      "seconds": 6.81046797800002
+    },
+    "initial_eval": {
+      "eval_tokens": 131072,
+      "execution": "eager_no_grad",
+      "nll": 10.883777290582657,
+      "perplexity": 53304.56696249769,
+      "seconds": 0.19403507600009107
+    },
+    "results": [
+      {
+        "actual_train_seconds": 60.000188444999935,
+        "batch_size": 64,
+        "candidate": {
+          "learning_rate": 0.0003,
+          "name": "cosine_lr3e-4",
+          "schedule": "cosine"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 5.773113027215004,
+          "perplexity": 321.53713010116803,
+          "seconds": 0.18828609199999846
+        },
+        "finite_final_nll": true,
+        "last_lr": 3.4726164876985876e-11,
+        "last_train_loss": 5.50789737701416,
+        "optimizer_steps_per_second": 79.4330838538753,
+        "parameters": 15129344,
+        "peak_vram_gb": 3.3688788414001465,
+        "steps": 4766,
+        "tokens_per_second": 325357.91146547324,
+        "tokens_seen": 19521536
+      },
+      {
+        "actual_train_seconds": 60.001335530999995,
+        "batch_size": 64,
+        "candidate": {
+          "learning_rate": 0.001,
+          "name": "cosine_lr1e-3",
+          "schedule": "cosine"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 5.50838902592659,
+          "perplexity": 246.75329354548794,
+          "seconds": 0.18771654599993326
+        },
+        "finite_final_nll": true,
+        "last_lr": 9.06680870937926e-11,
+        "last_train_loss": 5.133643627166748,
+        "optimizer_steps_per_second": 79.7148923048361,
+        "parameters": 15129344,
+        "peak_vram_gb": 3.367982864379883,
+        "steps": 4783,
+        "tokens_per_second": 326512.19888060866,
+        "tokens_seen": 19591168
+      },
+      {
+        "actual_train_seconds": 60.00004981100005,
+        "batch_size": 64,
+        "candidate": {
+          "learning_rate": 0.003,
+          "name": "cosine_lr3e-3",
+          "schedule": "cosine"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 5.5166303515434265,
+          "perplexity": 248.79527052573863,
+          "seconds": 0.1880022469999858
+        },
+        "finite_final_nll": true,
+        "last_lr": 3.3601548460326923e-10,
+        "last_train_loss": 4.968158721923828,
+        "optimizer_steps_per_second": 78.86660119292873,
+        "parameters": 15129344,
+        "peak_vram_gb": 3.3676581382751465,
+        "steps": 4732,
+        "tokens_per_second": 323037.59848623606,
+        "tokens_seen": 19382272
+      },
+      {
+        "actual_train_seconds": 60.00668573300004,
+        "batch_size": 64,
+        "candidate": {
+          "learning_rate": 0.0003,
+          "name": "constant_lr3e-4",
+          "schedule": "constant"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 5.643485203385353,
+          "perplexity": 282.44538469570546,
+          "seconds": 0.18756929400001354
+        },
+        "finite_final_nll": true,
+        "last_lr": 0.0003,
+        "last_train_loss": 5.277725696563721,
+        "optimizer_steps_per_second": 79.47447758104292,
+        "parameters": 15129344,
+        "peak_vram_gb": 3.3676581382751465,
+        "steps": 4769,
+        "tokens_per_second": 325527.4601719518,
+        "tokens_seen": 19533824
+      },
+      {
+        "actual_train_seconds": 60.000942829999985,
+        "batch_size": 64,
+        "candidate": {
+          "learning_rate": 0.001,
+          "name": "constant_lr1e-3",
+          "schedule": "constant"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 5.614425599575043,
+          "perplexity": 274.3557438709473,
+          "seconds": 0.18669978299999457
+        },
+        "finite_final_nll": true,
+        "last_lr": 0.001,
+        "last_train_loss": 5.24929666519165,
+        "optimizer_steps_per_second": 79.78207965103073,
+        "parameters": 15129344,
+        "peak_vram_gb": 3.3676581382751465,
+        "steps": 4787,
+        "tokens_per_second": 326787.39825062186,
+        "tokens_seen": 19607552
+      },
+      {
+        "actual_train_seconds": 60.002226575999885,
+        "batch_size": 64,
+        "candidate": {
+          "learning_rate": 0.003,
+          "name": "constant_lr3e-3",
+          "schedule": "constant"
+        },
+        "final_eval": {
+          "eval_tokens": 131072,
+          "execution": "eager_no_grad",
+          "nll": 5.679304093122482,
+          "perplexity": 292.74563531876026,
+          "seconds": 0.18622526500007552
+        },
+        "finite_final_nll": true,
+        "last_lr": 0.003,
+        "last_train_loss": 5.235818862915039,
+        "optimizer_steps_per_second": 79.44705175168846,
+        "parameters": 15129344,
+        "peak_vram_gb": 3.3676581382751465,
+        "steps": 4767,
+        "tokens_per_second": 325415.12397491594,
+        "tokens_seen": 19525632
+      }
+    ]
+  },
+  "trigger_sha": "b86187f39029fb66f2266d5a9edbe785c1fee2c9",
+  "wrapper_semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  }
+}
