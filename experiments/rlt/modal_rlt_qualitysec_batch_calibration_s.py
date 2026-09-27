@@ -166,7 +166,7 @@ def run_profile_remote(job_json: str) -> str:
             scale = 0.5 * (1.0 + math.cos(math.pi * progress))
         return 3e-4 * scale
 
-    def evaluate(callable_model: Any, model: nn.Module) -> dict[str, float]:
+    def evaluate_eager(model: nn.Module) -> dict[str, float]:
         model.eval()
         gen = torch.Generator(device="cpu").manual_seed(EVAL_SEED)
         losses: list[float] = []
@@ -175,7 +175,7 @@ def run_profile_remote(job_json: str) -> str:
             for _ in range(EVAL_BATCHES):
                 x, y = val_data.batch(EVAL_BATCH_SIZE, SEQ_LEN, gen, device)
                 with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-                    logits = callable_model(x)
+                    logits = model(x)
                     loss = F.cross_entropy(logits.float().reshape(-1, cfg.vocab_size), y.reshape(-1))
                 losses.append(float(loss.detach().cpu()))
         torch.cuda.synchronize(device)
@@ -185,10 +185,12 @@ def run_profile_remote(job_json: str) -> str:
             "perplexity": math.exp(min(nll, 20.0)),
             "eval_tokens": EVAL_BATCHES * EVAL_BATCH_SIZE * SEQ_LEN,
             "seconds": time.perf_counter() - t0,
+            "execution": "eager_no_grad",
         }
 
     def calibrate(batch_size: int) -> dict[str, Any]:
         base = new_base()
+        initial_eval = evaluate_eager(base)
         module = CompilableRLT(base)
         compiled = torch.compile(module, fullgraph=True, dynamic=False, mode="default")
         opt = torch.optim.AdamW(
@@ -196,46 +198,21 @@ def run_profile_remote(job_json: str) -> str:
         )
         batch_gen = torch.Generator(device="cpu").manual_seed(BATCH_SEED)
 
-        initial_eval = evaluate(compiled, base)
-
-        # Compile one full training step without counting it in the time budget.
-        base.train()
-        opt.zero_grad(set_to_none=True)
+        # Compile forward/backward without changing model or optimizer state.
         x, y = train_data.batch(batch_size, SEQ_LEN, batch_gen, device)
+        base.zero_grad(set_to_none=True)
         torch.cuda.synchronize(device)
         ct0 = time.perf_counter()
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
             logits = compiled(x)
             loss = F.cross_entropy(logits.float().reshape(-1, cfg.vocab_size), y.reshape(-1))
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(base.parameters(), 1.0)
-        opt.step()
         torch.cuda.synchronize(device)
         compile_step_seconds = time.perf_counter() - ct0
+        base.zero_grad(set_to_none=True)
 
-        # Reset to identical initial weights and optimizer state after compile.
-        del compiled, opt, base, module
-        torch.cuda.empty_cache()
-        torch._dynamo.reset()
-
-        base = new_base()
-        module = CompilableRLT(base)
-        compiled = torch.compile(module, fullgraph=True, dynamic=False, mode="default")
-        opt = torch.optim.AdamW(
-            base.parameters(), lr=3e-4, betas=(0.9, 0.95), weight_decay=0.1, fused=True
-        )
+        # Reset only the random batch stream; weights are still at the common initialization.
         batch_gen = torch.Generator(device="cpu").manual_seed(BATCH_SEED)
-
-        # Force graph compilation again, but do not update weights.
-        x, y = train_data.batch(batch_size, SEQ_LEN, batch_gen, device)
-        base.zero_grad(set_to_none=True)
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-            logits = compiled(x)
-            loss = F.cross_entropy(logits.float().reshape(-1, cfg.vocab_size), y.reshape(-1))
-        loss.backward()
-        torch.cuda.synchronize(device)
-        base.zero_grad(set_to_none=True)
-
         base.train()
         torch.cuda.reset_peak_memory_stats(device)
         torch.cuda.synchronize(device)
@@ -264,7 +241,7 @@ def run_profile_remote(job_json: str) -> str:
         torch.cuda.synchronize(device)
         train_seconds = time.perf_counter() - t0
         peak = torch.cuda.max_memory_allocated(device) / (1024**3)
-        final_eval = evaluate(compiled, base)
+        final_eval = evaluate_eager(base)
 
         out = {
             "batch_size": batch_size,
@@ -326,6 +303,7 @@ def run_profile_remote(job_json: str) -> str:
             "warmup_ratio_by_elapsed_time": 0.02,
             "schedule": "cosine_by_elapsed_post_compile_training_time",
             "compile_time_excluded": True,
+            "validation_execution": "eager_no_grad_to_avoid_per_batch_compile_graphs",
             "same_initialization_seed": True,
             "same_batch_stream_seed": True,
             "same_eval_stream_seed": True,
