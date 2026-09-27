@@ -1,0 +1,17 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_SCALE15M_Q1_ATTENTION_P_ZERO_GPU_PREFLIGHT_PASS",
+  "engineering_only": true,
+  "finished_unix": 1790503935.8923264,
+  "job_id_checked": "rlt-systems-scale15m-q1-attention-modal-20260926-p",
+  "job_source_blob_sha": "a29d031d4c313df5a7d4cd3cc893e07f78e9bdb6",
+  "launcher_blob_sha": "02c5dda6501a7a2b2cfb89165919903c491a0c0d",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "d16f56a178d93020f8291138691f8799a1e19fee",
+  "worker": "modal-control"
+}
