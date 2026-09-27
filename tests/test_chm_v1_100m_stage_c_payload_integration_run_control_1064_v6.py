@@ -6,10 +6,10 @@ import textwrap
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER_V4 = ROOT / "modal_chm_v1_100m_stage_c_payload_integration_1064_v4.py"
-RUNNER_V5 = ROOT / "modal_chm_v1_100m_stage_c_payload_integration_1064_v6.py"
-WORKFLOW_V5 = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-v5.yml"
-AUDIT_V5 = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v5.yml"
+RUNNER_V5 = ROOT / "modal_chm_v1_100m_stage_c_payload_integration_1064_v5.py"
+RUNNER_V6 = ROOT / "modal_chm_v1_100m_stage_c_payload_integration_1064_v6.py"
+WORKFLOW_V6 = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-v6.yml"
+AUDIT_V6 = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v6.yml"
 MIRROR_V5 = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5.yml"
 
 
