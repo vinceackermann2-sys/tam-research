@@ -1,0 +1,24 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_SCALE15M_RLT_QUALITYSEC_LOWBATCH_V_ZERO_GPU_PREFLIGHT_PASS",
+  "engineering_only": true,
+  "finished_unix": 1790531968.1334236,
+  "job_id_checked": "rlt-systems-scale15m-rlt-qualitysec-lowbatch-modal-20260927-v",
+  "job_source_blob_sha": "9b6c127da477b0d501cb07d3fb7b657fc8e90cea",
+  "launcher_blob_sha": "44ce43bd5efee1e8e0203e82133c40f61bb28497",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "reference_data": {
+    "seed": 20260924,
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "train_tokens": 6000000,
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+    "val_tokens": 500000
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "ace773a3420d8ec41d9e2f8ac826c4b2e45dea9b",
+  "worker": "modal-control"
+}
