@@ -112,10 +112,8 @@ def test_v4_audit_is_cpu_only_fresh_successor_and_alias_aware() -> None:
     source = AUDIT.read_text(encoding="utf-8")
     assert "workflow_dispatch" not in source
     assert "[modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v4]" in source
-    assert '"supersedes_failed_audit_issue":1072' in source
-    assert '"supersedes_failed_audit_run":36256923462' in source
-    assert '"supersedes_duplicate_audit_issue":1073' in source
-    assert '"supersedes_duplicate_audit_run":36257000761' in source
+    assert '\"supersedes_failed_audit_issue\":1081' in source
+    assert '\"supersedes_failed_audit_run\":36311737537' in source
     assert "CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_AUTHORITY_AUDIT_V4_PASS" in source
     assert "scripts/modal_select_account_v3.py" in source
     assert "modal_chm_v1_100m_stage_c_payload_integration_1064_v4.py" in source
