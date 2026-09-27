@@ -1,0 +1,24 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_SCALE15M_OPTIMIZER_QUALITYSEC_X_ZERO_GPU_PREFLIGHT_PASS",
+  "engineering_only": true,
+  "finished_unix": 1790539318.49052,
+  "job_id_checked": "rlt-systems-scale15m-optimizer-qualitysec-modal-20260927-x",
+  "job_source_blob_sha": "3eede910f270d449d08ab2e464edb060644d50c9",
+  "launcher_blob_sha": "182893ab34c93f9a3712334e32eee94367436991",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "reference_data": {
+    "seed": 20260924,
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "train_tokens": 6000000,
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+    "val_tokens": 500000
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "b86187f39029fb66f2266d5a9edbe785c1fee2c9",
+  "worker": "modal-control"
+}
