@@ -1,0 +1,59 @@
+{
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_Q1_EFFICIENT_WHOLE_MATERIAL_SPEEDUP",
+  "default": {
+    "first_step_seconds_including_compile": 624.277739904,
+    "last_loss": 10.870722770690918,
+    "measured_seconds": 4.3267239560000235,
+    "measured_tokens": 147456,
+    "peak_vram_gb": 37.21961307525635,
+    "tokens_per_second": 34080.28834275815
+  },
+  "derived": {
+    "q1_efficient_speedup_vs_default": 4.970348025007672
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261024,
+  "finished_unix": 1790508442.4112678,
+  "interpretation_ceiling": "Engineering-only approximate-numerics implementation profile. Decoder q_len=1 attention uses PyTorch memory-efficient SDPA while encoder math is unchanged. Any nonzero full-model logit/loss/gradient drift makes this ineligible for the exact-semantics scientific lane until quality is independently revalidated.",
+  "job_id": "rlt-systems-scale15m-q1-efficient-whole-modal-20260927-r",
+  "job_source_blob_sha": "933bafebb0dbbb610df054fa0eab67a0cea40cc2",
+  "launcher_blob_sha": "9daa90fdc63c48925a6c7f06295d901bd34d05ae",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "numerical_vs_default": {
+    "bit_exact": false,
+    "grad_max_abs": 0.0005239164456725121,
+    "logits_max_abs": 0.0078125,
+    "loss_abs": 3.0517578125e-05
+  },
+  "profile": {
+    "batch_size": 768,
+    "decoder_q1_backend": "EFFICIENT_ATTENTION",
+    "encoder_backend": "default",
+    "expected_parameters": 15129344,
+    "measured_steps": 3,
+    "seq_len": 64,
+    "warmup_steps": 2
+  },
+  "q1_efficient": {
+    "first_step_seconds_including_compile": 563.961183156,
+    "last_loss": 10.870722770690918,
+    "measured_seconds": 0.87050724300002,
+    "measured_tokens": 147456,
+    "peak_vram_gb": 37.44491195678711,
+    "tokens_per_second": 169390.89385611995
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790507236.9834716,
+  "status": "complete",
+  "trigger_sha": "295d7d8e160cf5941a3a7b66d969ac963b2fcfe6"
+}
