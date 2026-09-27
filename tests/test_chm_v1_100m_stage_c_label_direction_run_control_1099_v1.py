@@ -9,7 +9,7 @@ import textwrap
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "modal_chm_v1_100m_stage_c_label_direction_1099_v1.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-label-direction-1099-v1.yml"
-AUDIT = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-label-direction-1099-authority-audit-v1.yml"
+AUDIT = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-label-direction-1099-authority-audit-v2.yml"
 PAYLOAD_GATE = ROOT / "tam_research" / "chm_v1_100m_stage_c_payload_gate_diagnostic.py"
 MIRROR = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5.yml"
 
@@ -243,14 +243,16 @@ def test_terminal_serializer_uses_exact_1014_schema_not_retired_v8_schema() -> N
     assert 'result["benefits"]' not in source
     assert 'result["aggregate"]' not in source
     assert "gh issue comment 1099 --repo" in source
+    assert "--payload-gate-sha" in source
+    assert "--decomposition-sha" not in source
     assert "gh issue close 1099 --repo" in source
 
 
 def test_authority_audit_is_cpu_only_and_verifies_prior_authoritative_evidence() -> None:
     source = AUDIT.read_text(encoding="utf-8")
     assert "workflow_dispatch" not in source
-    assert "[modal-chm-v1-100m-stage-c-label-direction-1099-authority-audit-v1]" in source
-    assert '"phase":"chm-v1-100m-stage-c-label-direction-1099-authority-audit-v1"' in source
+    assert "[modal-chm-v1-100m-stage-c-label-direction-1099-authority-audit-v2]" in source
+    assert '"phase":"chm-v1-100m-stage-c-label-direction-1099-authority-audit-v2"' in source
     assert '"control_issue":1099' in source
     assert '"prereg_issue":1014' in source
     assert 'test "$RUN_ATTEMPT" = "1"' in source
@@ -275,6 +277,11 @@ def test_authority_audit_is_cpu_only_and_verifies_prior_authoritative_evidence()
     assert "payload_integration_decomposition_verified=true" in source
     assert "retired_v8_partial_artifacts_excluded=true" in source
     assert "gh issue comment 1099 --repo" in source
+    assert "--payload-gate-sha" in source
+    assert "--decomposition-sha" not in source
+    assert "36343365415" in source
+    assert "1101" in source
+    assert "actions: read" in source
 
 
 def test_audit_may_reject_v8_literal_but_runner_and_launch_never_reference_it() -> None:
@@ -349,3 +356,14 @@ def test_authority_audit_durable_record_exports_every_shell_variable_it_uses() -
             env_keys.add(key)
     referenced = set(re.findall(r"\$([A-Z][A-Z0-9_]*)", run_part))
     assert referenced - {"GITHUB_REPOSITORY"} <= env_keys
+
+
+def test_runner_cli_flag_matches_all_executable_workflows() -> None:
+    runner = RUNNER.read_text(encoding="utf-8")
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    audit = AUDIT.read_text(encoding="utf-8")
+    assert "payload_gate_sha: str" in runner
+    assert "--payload-gate-sha" in workflow
+    assert "--payload-gate-sha" in audit
+    assert "--decomposition-sha" not in workflow
+    assert "--decomposition-sha" not in audit
