@@ -75,7 +75,6 @@ jobs:
           DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
           DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
           RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
-          MIRROR_WORKFLOW_SHA: ${{ steps.cfg.outputs.mirror_workflow_sha }}
         run: |
           test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
           test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
