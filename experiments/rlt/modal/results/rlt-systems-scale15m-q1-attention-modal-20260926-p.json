@@ -1,0 +1,412 @@
+{
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_Q1_ATTENTION_BACKEND_PROFILE",
+  "engineering_only": true,
+  "engineering_seed": 20261022,
+  "finished_unix": 1790503954.7076788,
+  "interpretation_ceiling": "Engineering microbenchmark only. It identifies whether PyTorch SDPA backends are better suited than FlashAttention for RLT's repeated q_len=1 decoder attention. Numerical comparisons are reported explicitly; no scientific quality claim is implied.",
+  "job_id": "rlt-systems-scale15m-q1-attention-modal-20260926-p",
+  "job_source_blob_sha": "a29d031d4c313df5a7d4cd3cc893e07f78e9bdb6",
+  "launcher_blob_sha": "02c5dda6501a7a2b2cfb89165919903c491a0c0d",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "numerical_vs_flash": {
+    "32": {
+      "cudnn": {
+        "bit_identical_output": false,
+        "k_grad_max_abs_vs_flash": 2.384185791015625e-07,
+        "loss_abs_vs_flash": 2.9802322387695312e-08,
+        "output_max_abs_vs_flash": 0.00390625,
+        "q_grad_max_abs_vs_flash": 2.384185791015625e-07,
+        "supported": true,
+        "v_grad_max_abs_vs_flash": 1.1175870895385742e-08
+      },
+      "efficient": {
+        "bit_identical_output": false,
+        "k_grad_max_abs_vs_flash": 2.384185791015625e-07,
+        "loss_abs_vs_flash": 2.9802322387695312e-08,
+        "output_max_abs_vs_flash": 0.00390625,
+        "q_grad_max_abs_vs_flash": 2.384185791015625e-07,
+        "supported": true,
+        "v_grad_max_abs_vs_flash": 1.1175870895385742e-08
+      },
+      "flash_loss": 0.07319375872612,
+      "math": {
+        "bit_identical_output": false,
+        "k_grad_max_abs_vs_flash": 1.1920928955078125e-07,
+        "loss_abs_vs_flash": 1.087784767150879e-06,
+        "output_max_abs_vs_flash": 0.0078125,
+        "q_grad_max_abs_vs_flash": 2.384185791015625e-07,
+        "supported": true,
+        "v_grad_max_abs_vs_flash": 1.1920928955078125e-07
+      }
+    },
+    "64": {
+      "cudnn": {
+        "bit_identical_output": false,
+        "k_grad_max_abs_vs_flash": 1.1920928955078125e-07,
+        "loss_abs_vs_flash": 2.2351741790771484e-08,
+        "output_max_abs_vs_flash": 0.001953125,
+        "q_grad_max_abs_vs_flash": 1.1920928955078125e-07,
+        "supported": true,
+        "v_grad_max_abs_vs_flash": 3.725290298461914e-09
+      },
+      "efficient": {
+        "bit_identical_output": false,
+        "k_grad_max_abs_vs_flash": 1.1920928955078125e-07,
+        "loss_abs_vs_flash": 2.9802322387695312e-08,
+        "output_max_abs_vs_flash": 0.001953125,
+        "q_grad_max_abs_vs_flash": 1.1920928955078125e-07,
+        "supported": true,
+        "v_grad_max_abs_vs_flash": 3.725290298461914e-09
+      },
+      "flash_loss": 0.039399996399879456,
+      "math": {
+        "bit_identical_output": false,
+        "k_grad_max_abs_vs_flash": 1.1920928955078125e-07,
+        "loss_abs_vs_flash": 6.668269634246826e-07,
+        "output_max_abs_vs_flash": 0.0078125,
+        "q_grad_max_abs_vs_flash": 1.1920928955078125e-07,
+        "supported": true,
+        "v_grad_max_abs_vs_flash": 5.960464477539063e-08
+      }
+    }
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "shape": {
+    "batch": 768,
+    "head_dim": 32,
+    "heads": 8,
+    "key_lengths": [
+      1,
+      8,
+      16,
+      32,
+      64
+    ],
+    "query_len": 1
+  },
+  "started_unix": 1790503949.2053144,
+  "status": "complete",
+  "steady_state_len32_ranking": [
+    {
+      "backend": "efficient",
+      "mean_forward_backward_ms": 0.5592063903808594,
+      "speedup_vs_flash": 1.7475737179093624
+    },
+    {
+      "backend": "cudnn",
+      "mean_forward_backward_ms": 0.572979211807251,
+      "speedup_vs_flash": 1.7055669221125236
+    },
+    {
+      "backend": "flash",
+      "mean_forward_backward_ms": 0.9772543907165527,
+      "speedup_vs_flash": 1.0
+    },
+    {
+      "backend": "math",
+      "mean_forward_backward_ms": 1.186201572418213,
+      "speedup_vs_flash": 0.8238518759710489
+    }
+  ],
+  "timings": {
+    "1": {
+      "cudnn": {
+        "forward": {
+          "error": "No available kernel. Aborting execution.",
+          "error_type": "RuntimeError",
+          "supported": false
+        },
+        "forward_backward": {
+          "error": "No available kernel. Aborting execution.",
+          "error_type": "RuntimeError",
+          "supported": false
+        }
+      },
+      "efficient": {
+        "forward": {
+          "mean_ms": 0.12835839986801148,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 2.5671679973602295
+        },
+        "forward_backward": {
+          "mean_ms": 0.5236224174499512,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 10.472448348999023
+        }
+      },
+      "flash": {
+        "forward": {
+          "mean_ms": 0.21647360324859619,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 4.329472064971924
+        },
+        "forward_backward": {
+          "mean_ms": 0.9565695762634278,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 19.131391525268555
+        }
+      },
+      "math": {
+        "forward": {
+          "mean_ms": 0.2741760015487671,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 5.483520030975342
+        },
+        "forward_backward": {
+          "mean_ms": 1.050163173675537,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 21.003263473510742
+        }
+      }
+    },
+    "16": {
+      "cudnn": {
+        "forward": {
+          "mean_ms": 0.07900159955024719,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 1.5800319910049438
+        },
+        "forward_backward": {
+          "mean_ms": 0.5807104110717773,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 11.614208221435547
+        }
+      },
+      "efficient": {
+        "forward": {
+          "mean_ms": 0.12620799541473388,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 2.5241599082946777
+        },
+        "forward_backward": {
+          "mean_ms": 0.5313536167144776,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 10.62707233428955
+        }
+      },
+      "flash": {
+        "forward": {
+          "mean_ms": 0.21688320636749267,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 4.3376641273498535
+        },
+        "forward_backward": {
+          "mean_ms": 0.972492790222168,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 19.44985580444336
+        }
+      },
+      "math": {
+        "forward": {
+          "mean_ms": 0.27878398895263673,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 5.575679779052734
+        },
+        "forward_backward": {
+          "mean_ms": 1.153228759765625,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 23.0645751953125
+        }
+      }
+    },
+    "32": {
+      "cudnn": {
+        "forward": {
+          "mean_ms": 0.07910400032997131,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 1.5820800065994263
+        },
+        "forward_backward": {
+          "mean_ms": 0.572979211807251,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 11.45958423614502
+        }
+      },
+      "efficient": {
+        "forward": {
+          "mean_ms": 0.1270784020423889,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 2.5415680408477783
+        },
+        "forward_backward": {
+          "mean_ms": 0.5592063903808594,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 11.184127807617188
+        }
+      },
+      "flash": {
+        "forward": {
+          "mean_ms": 0.2209791898727417,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 4.419583797454834
+        },
+        "forward_backward": {
+          "mean_ms": 0.9772543907165527,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 19.545087814331055
+        }
+      },
+      "math": {
+        "forward": {
+          "mean_ms": 0.27985920906066897,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 5.597184181213379
+        },
+        "forward_backward": {
+          "mean_ms": 1.186201572418213,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 23.724031448364258
+        }
+      }
+    },
+    "64": {
+      "cudnn": {
+        "forward": {
+          "mean_ms": 0.09185280203819275,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 1.837056040763855
+        },
+        "forward_backward": {
+          "mean_ms": 0.5536767959594726,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 11.073535919189453
+        }
+      },
+      "efficient": {
+        "forward": {
+          "mean_ms": 0.1346560001373291,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 2.693120002746582
+        },
+        "forward_backward": {
+          "mean_ms": 0.5970431804656983,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 11.940863609313965
+        }
+      },
+      "flash": {
+        "forward": {
+          "mean_ms": 0.22174720764160155,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 4.434944152832031
+        },
+        "forward_backward": {
+          "mean_ms": 0.9665023803710937,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 19.330047607421875
+        }
+      },
+      "math": {
+        "forward": {
+          "mean_ms": 0.36664319038391113,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 7.332863807678223
+        },
+        "forward_backward": {
+          "mean_ms": 1.0438655853271483,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 20.87731170654297
+        }
+      }
+    },
+    "8": {
+      "cudnn": {
+        "forward": {
+          "mean_ms": 0.0772607982158661,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 1.5452159643173218
+        },
+        "forward_backward": {
+          "mean_ms": 0.5559296131134033,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 11.118592262268066
+        }
+      },
+      "efficient": {
+        "forward": {
+          "mean_ms": 0.1260543942451477,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 2.521087884902954
+        },
+        "forward_backward": {
+          "mean_ms": 0.5695487976074218,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 11.390975952148438
+        }
+      },
+      "flash": {
+        "forward": {
+          "mean_ms": 0.2160640001296997,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 4.321280002593994
+        },
+        "forward_backward": {
+          "mean_ms": 0.9717247962951661,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 19.43449592590332
+        }
+      },
+      "math": {
+        "forward": {
+          "mean_ms": 0.2847232103347778,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 5.694464206695557
+        },
+        "forward_backward": {
+          "mean_ms": 1.0774016380310059,
+          "repeats": 20,
+          "supported": true,
+          "total_ms": 21.548032760620117
+        }
+      }
+    }
+  },
+  "trigger_sha": "d16f56a178d93020f8291138691f8799a1e19fee"
+}
