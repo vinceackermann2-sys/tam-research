@@ -293,20 +293,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TRIGGER_ISSUE: ${{ github.event.issue.number }}
         run: |
-          gh issue comment 1085 --repo "$GITHUB_REPOSITORY" --body "CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_SOURCE_MIRROR_V5_PASS
+          cat > mirror-comment.md <<'EOF'
+          CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_SOURCE_MIRROR_V5_PASS
 
-- source Stage-C RESULT + EIEM step-2048 checkpoint copied from primary storage only
-- checkpoint_sha256=846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831
-- checkpoint_bytes=407424818
-- destination=/chm-v1/source-mirror/issue-1064/v5
-- selected secondary credential alias=account2
-- destination parity re-download: PASS
-- MIRROR_MANIFEST.json uploaded last
-- remote Modal function invocation/allocation: NONE
-- GPU allocation: NONE
-- diagnostic result namespace creation: NONE
-- diagnostic attempt consumption: NONE
-- training/new seed/Stage D authority: NONE
-- final #1064 diagnostic trigger authority remains withheld pending fresh v5 CPU audit."
+          - source Stage-C RESULT + EIEM step-2048 checkpoint copied from primary storage only
+          - checkpoint_sha256=846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831
+          - checkpoint_bytes=407424818
+          - destination=/chm-v1/source-mirror/issue-1064/v5
+          - selected secondary credential alias=account2
+          - destination parity re-download: PASS
+          - MIRROR_MANIFEST.json uploaded last
+          - remote Modal function invocation/allocation: NONE
+          - GPU allocation: NONE
+          - diagnostic result namespace creation: NONE
+          - diagnostic attempt consumption: NONE
+          - training/new seed/Stage D authority: NONE
+          - final #1064 diagnostic trigger authority remains withheld pending fresh v5 CPU audit.
+          EOF
+          gh issue comment 1085 --repo "$GITHUB_REPOSITORY" -F mirror-comment.md
           gh issue close 1085 --repo "$GITHUB_REPOSITORY" --reason completed
           gh issue close "$TRIGGER_ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed
