@@ -330,7 +330,6 @@ jobs:
           payload_integration_decomposition_verified=true
           source_mirror_verified=true
           source_mirror_repair_issue=1085
-          payload_integration_decomposition_verified=true
           retired_v8_partial_artifacts_excluded=true
           result_namespace_unused=true
           runtime_admission_verified=true
