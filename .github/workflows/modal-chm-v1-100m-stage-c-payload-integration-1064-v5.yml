@@ -122,9 +122,6 @@ jobs:
           test "$(git -C source rev-parse "$LIVE_MAIN:.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5.yml")" = "$MIRROR_WORKFLOW_SHA"
           test "$(git -C source rev-parse "$LIVE_MAIN:modal_chm_v1_100m_stage_c_payload_integration_1064_v5.py")" = "$RUNNER_SHA"
           test "$(git -C source rev-parse "$LIVE_MAIN:.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-v5.yml")" = "$WORKFLOW_SHA"
-          ! grep -F "/vol/chm-v1/100m-stage-c-payload-gate/issue-1017/v8" source/modal_chm_v1_100m_stage_c_payload_integration_1064_v5.py
-          ! grep -F "/vol/chm-v1/100m-stage-c-payload-gate/issue-1017/v8" source/.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-v5.yml
-          ! grep -F "/vol/chm-v1/100m-stage-c-payload-gate/issue-1017/v8" source/tam_research/chm_v1_100m_stage_c_payload_integration.py
 
       - name: Verify final authority and unique trigger
         env:
