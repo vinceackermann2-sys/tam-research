@@ -87,7 +87,7 @@ jobs:
           assert t.get('classification')=='PASS_SCALE15M_TRANSFORMER_QUALITYSEC_BATCH_CALIBRATION',t
           assert t.get('data_hashes_match_claim') is True,t
           assert t['best_by_final_nll']['batch_size']==64,t
-          rows=t['results']; assert [x['batch_size'] for x in rows]==[16,32,64],rows
+          rows=t['results']; assert [x['batch_size'] for x in rows]==[64,128,256,512,768],rows
           assert float(rows[0]['final_eval']['nll']) < float(rows[1]['final_eval']['nll']),rows
 
           c=json.load(open('/tmp/compute.json'))
