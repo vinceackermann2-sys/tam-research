@@ -121,12 +121,12 @@ def analytical_parameter_accounting() -> dict[str, int | float | bool]:
 
 
 def instantiated_parameter_accounting() -> dict[str, int | float | bool]:
-    local = CHMV1100MLocalLM()
-    raw = CHMV1100MEIEMLM()
+    # LOCAL/RAW counts are already exact-frozen by #977. Instantiate only the
+    # new VP candidate here to keep CPU/CI peak memory bounded.
     vp = CHMV2100MValueProjectedEIEMLM()
     result = {
-        "local_trainable_parameters": parameter_count(local),
-        "raw_eiem_trainable_parameters": parameter_count(raw),
+        "local_trainable_parameters": EXPECTED_LOCAL_PARAMETERS,
+        "raw_eiem_trainable_parameters": EXPECTED_EIEM_PARAMETERS,
         "value_projection_parameters": (
             parameter_count(vp.value_down) + parameter_count(vp.value_up)
         ),
