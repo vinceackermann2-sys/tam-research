@@ -177,3 +177,42 @@ def test_v5_files_preserve_no_training_no_new_seed_no_stage_d() -> None:
         assert forbidden not in combined
     assert "new_scientific_seed_authorized=false" in combined
     assert "stage_d_authorized=false" in combined
+
+
+def _duplicate_direct_env_keys(source: str) -> list[tuple[int, str, int, int]]:
+    lines = source.splitlines()
+    duplicates: list[tuple[int, str, int, int]] = []
+    for index, line in enumerate(lines):
+        if line.strip() != "env:":
+            continue
+        base = len(line) - len(line.lstrip())
+        seen: dict[str, int] = {}
+        for child_index in range(index + 1, len(lines)):
+            child = lines[child_index]
+            if not child.strip():
+                continue
+            indent = len(child) - len(child.lstrip())
+            if indent <= base:
+                break
+            if indent != base + 2 or ":" not in child.strip():
+                continue
+            key = child.strip().split(":", 1)[0]
+            if key in seen:
+                duplicates.append((index + 1, key, seen[key], child_index + 1))
+            else:
+                seen[key] = child_index + 1
+    return duplicates
+
+
+def test_v5_workflow_registration_regressions_are_blocked() -> None:
+    for path in (MIRROR_V5, WORKFLOW_V5, AUDIT_V5):
+        source = path.read_text(encoding="utf-8")
+        assert _duplicate_direct_env_keys(source) == [], path
+        assert not any(
+            line.startswith("- ") for line in source.splitlines()
+        ), f"{path.name} contains a zero-indented sequence item outside a run block"
+
+    mirror = MIRROR_V5.read_text(encoding="utf-8")
+    assert "cat > mirror-comment.md <<'EOF'" in mirror
+    assert 'gh issue comment 1085 --repo "$GITHUB_REPOSITORY" -F mirror-comment.md' in mirror
+    assert '\n- source Stage-C RESULT + EIEM step-2048 checkpoint' not in mirror
