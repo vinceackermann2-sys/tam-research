@@ -7,7 +7,7 @@ import textwrap
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "modal_chm_v1_100m_stage_c_payload_integration_1064_v5.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-v5.yml"
-AUDIT = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v5.yml"
+AUDIT = ROOT / ".github" / "workflows" / "modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v5.yml"\nAUDIT_WORKFLOW = AUDIT
 PROBE = ROOT / "modal_runtime_admission_probe_1067_v1.py"
 SELECTOR = ROOT / "tam_research" / "modal_dual_account_v3.py"
 CLI = ROOT / "scripts" / "modal_select_account_v3.py"
