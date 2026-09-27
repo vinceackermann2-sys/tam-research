@@ -1,0 +1,312 @@
+name: CHM-v1 100M Stage-C payload/integration source mirror v5
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  mirror:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Resolve immutable mirror payload and refuse reruns
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg=json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected={
+            "phase":"chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5",
+            "repair_issue":1085,
+            "control_issue":1064,
+            "source_result_path":"/chm-v1/100m-stage-c/issue-988/seed-977001-v1/RESULT.json",
+            "source_checkpoint_path":"/chm-v1/100m-stage-c/issue-988/seed-977001-v1/checkpoints/eiem/step-2048.pt",
+            "mirror_root":"/chm-v1/source-mirror/issue-1064/v5",
+            "checkpoint_sha256":"846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831",
+            "checkpoint_bytes":407424818,
+            "selected_modal_account":"secondary",
+            "selected_credential_alias":"account2",
+          }
+          for k,v in expected.items():
+              assert cfg.get(k)==v, f"{k} mismatch: {cfg.get(k)!r} != {v!r}"
+          for k in ("source_sha","source_tree","mirror_workflow_sha","dual_account_sha","dual_account_cli_sha","runtime_probe_sha"):
+              value=str(cfg.get(k,"")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}",value), k
+              print(f"{k}={value}")
+          PY
+
+      - name: Checkout exact repair boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Verify live main ancestry and frozen infrastructure blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MIRROR_WORKFLOW_SHA: ${{ steps.cfg.outputs.mirror_workflow_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          LIVE_MAIN="$(git -C source rev-parse origin/main)"
+          git -C source merge-base --is-ancestor "$SOURCE_SHA" "$LIVE_MAIN"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_dual_account_v3.py")" = "$DUAL_ACCOUNT_SHA"
+          test "$DUAL_ACCOUNT_SHA" = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:scripts/modal_select_account_v3.py")" = "$DUAL_ACCOUNT_CLI_SHA"
+          test "$DUAL_ACCOUNT_CLI_SHA" = "440292942066d0b3d3a71d40ca8495092674ce6c"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_runtime_admission_probe_1067_v1.py")" = "$RUNTIME_PROBE_SHA"
+          test "$RUNTIME_PROBE_SHA" = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5.yml")" = "$MIRROR_WORKFLOW_SHA"
+          test "$(git -C source rev-parse "$LIVE_MAIN:tam_research/modal_dual_account_v3.py")" = "$DUAL_ACCOUNT_SHA"
+          test "$(git -C source rev-parse "$LIVE_MAIN:scripts/modal_select_account_v3.py")" = "$DUAL_ACCOUNT_CLI_SHA"
+          test "$(git -C source rev-parse "$LIVE_MAIN:modal_runtime_admission_probe_1067_v1.py")" = "$RUNTIME_PROBE_SHA"
+          test "$(git -C source rev-parse "$LIVE_MAIN:.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5.yml")" = "$MIRROR_WORKFLOW_SHA"
+
+      - name: Verify unique mirror trigger and frozen v4 evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo=os.environ["GITHUB_REPOSITORY"]; trigger=int(os.environ["TRIGGER_ISSUE"])
+          def gh(path,*extra):
+              return json.loads(subprocess.check_output(["gh","api",path,*extra],text=True))
+          title="[modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5]"
+          q=f'repo:{repo} is:issue in:title "{title}"'
+          found=gh("search/issues","-X","GET","-f",f"q={q}","-f","per_page=100")
+          exact=[x for x in found["items"] if x["title"]==title]
+          assert len(exact)==1 and exact[0]["number"]==trigger, exact
+          repair=gh(f"repos/{repo}/issues/1085"); assert repair["state"]=="open"
+          comments=gh(f"repos/{repo}/issues/1064/comments?per_page=100")
+          v4=[c for c in comments if int(c["id"])==5855202840]
+          assert len(v4)==1
+          body=v4[0]["body"]
+          for required in (
+              "AUTHORITY_AUDIT_V4_PREALLOCATION_FAILURE",
+              "secondary via credential alias `account2`",
+              "selected workspace authentication: PASS (`vinceackermann2`)",
+              "diagnostic attempt remains UNCONSUMED",
+              "final launcher authority: NONE",
+              "diagnostic trigger: NONE",
+          ):
+              assert required in body, required
+          for forbidden in (
+              "[modal-chm-v1-100m-stage-c-payload-integration-1064-authority-audit-v5]",
+              "[modal-chm-v1-100m-stage-c-payload-integration-1064-v5]",
+          ):
+              q=f'repo:{repo} is:issue in:title "{forbidden}"'
+              result=gh("search/issues","-X","GET","-f",f"q={q}","-f","per_page=100")
+              assert not [x for x in result["items"] if x["title"]==forbidden]
+          PY
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify primary storage access
+        run: |
+          modal token info
+          modal volume list --json > primary-volumes.json
+          python - <<'PY'
+          import json
+          payload=json.load(open("primary-volumes.json",encoding="utf-8"))
+          text=json.dumps(payload)
+          assert "tam-research-data" in text
+          PY
+
+      - name: Download only frozen Stage-C result and checkpoint from primary
+        run: |
+          mkdir -p mirror-src
+          modal volume get tam-research-data /chm-v1/100m-stage-c/issue-988/seed-977001-v1/RESULT.json mirror-src/RESULT.json
+          modal volume get tam-research-data /chm-v1/100m-stage-c/issue-988/seed-977001-v1/checkpoints/eiem/step-2048.pt mirror-src/step-2048.pt
+
+      - name: Verify source bytes and scientific provenance locally
+        id: source
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import hashlib, json
+          from pathlib import Path
+          result=Path("mirror-src/RESULT.json")
+          ckpt=Path("mirror-src/step-2048.pt")
+          payload=json.loads(result.read_text(encoding="utf-8"))
+          assert payload["status"]=="COMPLETE"
+          assert payload["classification"]=="CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH"
+          assert payload["scientific_seed"]==977001
+          assert payload["scientific_seed_consumed"] is True
+          assert payload["automatic_retry_authorized"] is False
+          assert payload["checkpoint_resume_authorized"] is False
+          assert payload["stage_d_automatically_authorized"] is False
+          def sha(path):
+              h=hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda:f.read(8*1024*1024),b""): h.update(chunk)
+              return h.hexdigest()
+          ckpt_sha=sha(ckpt); ckpt_bytes=ckpt.stat().st_size; result_sha=sha(result)
+          assert ckpt_sha=="846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831"
+          assert ckpt_bytes==407424818
+          print(f"source_result_sha256={result_sha}")
+          print(f"checkpoint_sha256={ckpt_sha}")
+          print(f"checkpoint_bytes={ckpt_bytes}")
+          PY
+
+      - name: Activate frozen secondary account2 credentials
+        run: |
+          test -n "$MODAL_TOKEN_ID_2"
+          test -n "$MODAL_TOKEN_SECRET_2"
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+
+      - name: Verify secondary storage access without remote function
+        run: |
+          modal token info | tee secondary-token-info.txt
+          grep -F "vinceackermann2" secondary-token-info.txt
+          modal volume list --json > secondary-volumes.json
+          python - <<'PY'
+          import json
+          payload=json.load(open("secondary-volumes.json",encoding="utf-8"))
+          assert "tam-research-data" in json.dumps(payload)
+          PY
+
+      - name: Fail closed if any v5 destination file already exists
+        run: |
+          mkdir -p preexisting
+          for remote in \
+            /chm-v1/source-mirror/issue-1064/v5/RESULT.json \
+            /chm-v1/source-mirror/issue-1064/v5/checkpoints/eiem/step-2048.pt \
+            /chm-v1/source-mirror/issue-1064/v5/MIRROR_MANIFEST.json; do
+            name="$(basename "$remote")"
+            if modal volume get tam-research-data "$remote" "preexisting/$name" >/tmp/get.out 2>/tmp/get.err; then
+              echo "v5 mirror destination already exists: $remote" >&2
+              exit 81
+            fi
+          done
+
+      - name: Upload result and checkpoint to fresh secondary mirror
+        run: |
+          modal volume put tam-research-data mirror-src/RESULT.json /chm-v1/source-mirror/issue-1064/v5/RESULT.json
+          modal volume put tam-research-data mirror-src/step-2048.pt /chm-v1/source-mirror/issue-1064/v5/checkpoints/eiem/step-2048.pt
+
+      - name: Re-download secondary mirror and verify exact parity
+        run: |
+          mkdir -p mirror-verify
+          modal volume get tam-research-data /chm-v1/source-mirror/issue-1064/v5/RESULT.json mirror-verify/RESULT.json
+          modal volume get tam-research-data /chm-v1/source-mirror/issue-1064/v5/checkpoints/eiem/step-2048.pt mirror-verify/step-2048.pt
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          def sha(path):
+              h=hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda:f.read(8*1024*1024),b""): h.update(chunk)
+              return h.hexdigest()
+          pairs=[
+              (Path("mirror-src/RESULT.json"),Path("mirror-verify/RESULT.json")),
+              (Path("mirror-src/step-2048.pt"),Path("mirror-verify/step-2048.pt")),
+          ]
+          for src,dst in pairs:
+              assert src.stat().st_size==dst.stat().st_size
+              assert sha(src)==sha(dst)
+          assert sha(Path("mirror-verify/step-2048.pt"))=="846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831"
+          assert Path("mirror-verify/step-2048.pt").stat().st_size==407424818
+          PY
+
+      - name: Build immutable mirror manifest after parity succeeds
+        env:
+          SOURCE_RESULT_SHA256: ${{ steps.source.outputs.source_result_sha256 }}
+          CHECKPOINT_SHA256: ${{ steps.source.outputs.checkpoint_sha256 }}
+          CHECKPOINT_BYTES: ${{ steps.source.outputs.checkpoint_bytes }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MIRROR_WORKFLOW_SHA: ${{ steps.cfg.outputs.mirror_workflow_sha }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload={
+              "status":"MIRROR_COMPLETE",
+              "classification":"CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_SOURCE_MIRROR_V5_PASS",
+              "repair_issue":1085,
+              "control_issue":1064,
+              "source_sha":os.environ["SOURCE_SHA"],
+              "source_tree":os.environ["SOURCE_TREE"],
+              "mirror_workflow_blob_sha":os.environ["MIRROR_WORKFLOW_SHA"],
+              "selected_modal_account":"secondary",
+              "selected_credential_alias":"account2",
+              "selected_modal_workspace":"vinceackermann2",
+              "source_result_path":"/chm-v1/100m-stage-c/issue-988/seed-977001-v1/RESULT.json",
+              "source_checkpoint_path":"/chm-v1/100m-stage-c/issue-988/seed-977001-v1/checkpoints/eiem/step-2048.pt",
+              "mirror_result_path":"/chm-v1/source-mirror/issue-1064/v5/RESULT.json",
+              "mirror_checkpoint_path":"/chm-v1/source-mirror/issue-1064/v5/checkpoints/eiem/step-2048.pt",
+              "source_result_sha256":os.environ["SOURCE_RESULT_SHA256"],
+              "checkpoint_sha256":os.environ["CHECKPOINT_SHA256"],
+              "checkpoint_bytes":int(os.environ["CHECKPOINT_BYTES"]),
+              "stage_c_stop_verified":True,
+              "historical_seed_consumed_verified":True,
+              "source_and_mirror_byte_identical":True,
+              "remote_function_allocated":False,
+              "gpu_allocated":False,
+              "diagnostic_attempt_consumed":False,
+              "training_authorized":False,
+              "new_scientific_seed_authorized":False,
+              "stage_d_authorized":False,
+              "automatic_retry_authorized":False,
+          }
+          Path("MIRROR_MANIFEST.json").write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+          PY
+
+      - name: Upload manifest last and verify it
+        run: |
+          modal volume put tam-research-data MIRROR_MANIFEST.json /chm-v1/source-mirror/issue-1064/v5/MIRROR_MANIFEST.json
+          modal volume get tam-research-data /chm-v1/source-mirror/issue-1064/v5/MIRROR_MANIFEST.json mirror-verify/MIRROR_MANIFEST.json
+          cmp MIRROR_MANIFEST.json mirror-verify/MIRROR_MANIFEST.json
+
+      - name: Record terminal source-mirror success
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment 1085 --repo "$GITHUB_REPOSITORY" --body "CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_SOURCE_MIRROR_V5_PASS
+
+- source Stage-C RESULT + EIEM step-2048 checkpoint copied from primary storage only
+- checkpoint_sha256=846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831
+- checkpoint_bytes=407424818
+- destination=/chm-v1/source-mirror/issue-1064/v5
+- selected secondary credential alias=account2
+- destination parity re-download: PASS
+- MIRROR_MANIFEST.json uploaded last
+- modal run / remote function allocation: NONE
+- GPU allocation: NONE
+- diagnostic result namespace creation: NONE
+- diagnostic attempt consumption: NONE
+- training/new seed/Stage D authority: NONE
+- final #1064 diagnostic trigger authority remains withheld pending fresh v5 CPU audit."
+          gh issue close 1085 --repo "$GITHUB_REPOSITORY" --reason completed
+          gh issue close "$TRIGGER_ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed
