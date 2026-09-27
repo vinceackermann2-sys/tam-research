@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "job_id": "rlt-compute-matched-tuned-scale15m-60s-modal-20260927-a",
+  "task": "compute_matched_tuned_scale15m_60s_a",
+  "scientific_seed": 20261030,
+  "training_data_seed": 20260924,
+  "requires_scale16m_aggregate_id": "rlt-scale15m-16m-ab-aggregate-20260926-a",
+  "requires_prior_compute_match_job_id": "rlt-compute-matched-scale15m-60s-modal-20260926-a",
+  "requires_rlt_tuning_job_id": "rlt-systems-scale15m-rlt-qualitysec-lowbatch-modal-20260927-v",
+  "requires_transformer_tuning_job_id": "rlt-systems-scale15m-transformer-qualitysec-lowbatch-modal-20260927-w",
+  "time_budget_seconds_each": 60.0,
+  "rlt_train_batch_size": 128,
+  "transformer_train_batch_size": 64,
+  "seq_len": 64,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "expected_parameters_each": 15129344,
+  "checkpoint_volume": "tam-rlt-compute-matched-tuned-scale15m-account2",
+  "automatic_retry": false
+}
