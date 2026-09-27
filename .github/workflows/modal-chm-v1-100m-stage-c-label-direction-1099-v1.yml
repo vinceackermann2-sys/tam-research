@@ -315,7 +315,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue comment 1099 --repo "$GITHUB_REPOSITORY" --body "CHM-v1 #1064 payload/integration diagnostic dispatch reserved. Once the L4 function begins, this attempt is permanently consumed; no retry, rerun, redispatch, resume, rescue, or account switch is authorized."
+          gh issue comment 1099 --repo "$GITHUB_REPOSITORY" --body "CHM-v1 #1099 label-direction diagnostic dispatch reserved. Once the L4 function begins, this attempt is permanently consumed; no retry, rerun, redispatch, resume, rescue, or account switch is authorized."
 
       - name: Launch payload/integration diagnostic exactly once
         id: launch
