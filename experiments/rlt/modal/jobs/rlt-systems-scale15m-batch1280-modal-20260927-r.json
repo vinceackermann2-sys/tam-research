@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-scale15m-batch1280-modal-20260927-r",
+  "task": "systems_scale15m_batch1280_r",
+  "engineering_seed": 20261024,
+  "requires_batch768_job_id": "rlt-systems-scale15m-batch768-modal-20260926-n",
+  "requires_reduce_overhead_job_id": "rlt-systems-scale15m-reduce-overhead-modal-20260927-q",
+  "batch_size": 1280,
+  "seq_len": 64,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
