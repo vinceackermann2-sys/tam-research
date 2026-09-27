@@ -1,0 +1,352 @@
+name: CORTEX Pair-1 successor preflight storage mirror v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  mirror:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-pair1-successor-preflight-storage-mirror-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Resolve immutable storage-mirror payload and refuse reruns
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg=json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected={
+              "phase":"cortex-pair1-successor-preflight-storage-mirror-v1",
+              "frozen_successor_issue":1088,
+              "frozen_successor_run":36329665101,
+              "source_volume":"tam-research-data",
+              "destination_volume":"tam-research-data",
+              "selected_modal_account":"secondary",
+              "selected_credential_alias":"account2",
+              "file_count":7,
+          }
+          for key,value in expected.items():
+              assert cfg.get(key)==value, f"{key} mismatch: {cfg.get(key)!r} != {value!r}"
+          sha_keys=(
+              "source_sha","source_tree","mirror_workflow_sha",
+              "runner_sha","scientific_workflow_sha","scientific_harness_sha",
+              "dual_account_sha","dual_account_cli_sha","runtime_probe_sha",
+          )
+          for key in sha_keys:
+              value=str(cfg.get(key,"")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}",value), key
+              print(f"{key}={value}")
+          PY
+
+      - name: Checkout exact mirror source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Verify source tree ancestry and protected Pair-1 bytes
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          MIRROR_WORKFLOW_SHA: ${{ steps.cfg.outputs.mirror_workflow_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
+          SCIENTIFIC_HARNESS_SHA: ${{ steps.cfg.outputs.scientific_harness_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          LIVE_MAIN="$(git -C source rev-parse origin/main)"
+          git -C source merge-base --is-ancestor "$SOURCE_SHA" "$LIVE_MAIN"
+
+          verify_blob() {
+            path="$1"
+            expected="$2"
+            test "$(git -C source rev-parse "$SOURCE_SHA:$path")" = "$expected"
+            test "$(git -C source rev-parse "$LIVE_MAIN:$path")" = "$expected"
+          }
+
+          verify_blob "modal_cortex_reduced_attention_pair1_successor_100m_2b_v2.py" "$RUNNER_SHA"
+          verify_blob ".github/workflows/modal-cortex-reduced-attention-pair1-successor-100m-2b-v2.yml" "$SCIENTIFIC_WORKFLOW_SHA"
+          verify_blob "architectures/cortex_s/tests/test_reduced_attention_pair1_successor_100m_2b_v2_harness.py" "$SCIENTIFIC_HARNESS_SHA"
+          verify_blob "tam_research/modal_dual_account_v3.py" "$DUAL_ACCOUNT_SHA"
+          verify_blob "scripts/modal_select_account_v3.py" "$DUAL_ACCOUNT_CLI_SHA"
+          verify_blob "modal_runtime_admission_probe_1067_v1.py" "$RUNTIME_PROBE_SHA"
+          verify_blob ".github/workflows/modal-cortex-pair1-successor-preflight-storage-mirror-v1.yml" "$MIRROR_WORKFLOW_SHA"
+
+          test "$RUNNER_SHA" = "78a3133fd1d1b6a14117c751f68cb5746536fb6a"
+          test "$SCIENTIFIC_WORKFLOW_SHA" = "02ece24c6873a70d1d3e9270332a6f51af585b30"
+          test "$SCIENTIFIC_HARNESS_SHA" = "796af6832e7687eddba298e65fcdfbdffd7bd885"
+          test "$DUAL_ACCOUNT_SHA" = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"
+          test "$DUAL_ACCOUNT_CLI_SHA" = "440292942066d0b3d3a71d40ca8495092674ce6c"
+          test "$RUNTIME_PROBE_SHA" = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
+
+      - name: Verify unique mirror trigger and frozen pre-reservation evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, subprocess
+          repo=os.environ["GITHUB_REPOSITORY"]
+          trigger=int(os.environ["TRIGGER_ISSUE"])
+          def gh(path,*extra):
+              return json.loads(subprocess.check_output(["gh","api",path,*extra],text=True))
+          title="[modal-cortex-pair1-successor-preflight-storage-mirror-v1]"
+          q=f'repo:{repo} is:issue in:title "{title}"'
+          found=gh("search/issues","-X","GET","-f",f"q={q}","-f","per_page=100")
+          exact=[item for item in found["items"] if item["title"]==title]
+          assert len(exact)==1 and exact[0]["number"]==trigger, exact
+
+          frozen=gh(f"repos/{repo}/issues/1088")
+          assert frozen["state"]=="closed"
+          comments=gh(f"repos/{repo}/issues/1088/comments?per_page=100")
+          body="\n".join(comment["body"] for comment in comments)
+          for required in (
+              "before durable reservation",
+              "reserve_pair_dispatch",
+              "59231",
+              "MUST NOT be rerun",
+          ):
+              assert required in body, required
+
+          sci="[modal-cortex-reduced-attention-pair1-successor-100m-2b-v2]"
+          q=f'repo:{repo} is:issue is:open in:title "{sci}"'
+          found=gh("search/issues","-X","GET","-f",f"q={q}","-f","per_page=100")
+          assert not [item for item in found["items"] if item["title"]==sci]
+          PY
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Mirror exactly seven frozen pre-reservation files with parity
+        env:
+          PRIMARY_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          PRIMARY_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          SECONDARY_ID: ${{ secrets.MODAL_TOKEN_ID_2 }}
+          SECONDARY_SECRET: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+        run: |
+          set -euo pipefail
+          test -n "$PRIMARY_ID"
+          test -n "$PRIMARY_SECRET"
+          test -n "$SECONDARY_ID"
+          test -n "$SECONDARY_SECRET"
+          mkdir -p mirror-work
+          : > mirror-work/hashes.txt
+
+          use_primary() {
+            export MODAL_TOKEN_ID="$PRIMARY_ID"
+            export MODAL_TOKEN_SECRET="$PRIMARY_SECRET"
+          }
+          use_secondary() {
+            export MODAL_TOKEN_ID="$SECONDARY_ID"
+            export MODAL_TOKEN_SECRET="$SECONDARY_SECRET"
+          }
+          sha_file() {
+            sha256sum "$1" | awk '{print $1}'
+          }
+          verify_hash_size() {
+            file="$1"; expected_sha="$2"; expected_bytes="$3"
+            test "$(sha_file "$file")" = "$expected_sha"
+            if test "$expected_bytes" != "0"; then
+              test "$(stat -c %s "$file")" = "$expected_bytes"
+            fi
+          }
+          mirror_fixed() {
+            remote="$1"; expected_sha="$2"; expected_bytes="$3"; label="$4"
+            src="mirror-work/src"
+            dst="mirror-work/dst"
+            rm -f "$src" "$dst"
+
+            use_primary
+            modal volume get tam-research-data "$remote" "$src"
+            verify_hash_size "$src" "$expected_sha" "$expected_bytes"
+
+            use_secondary
+            if modal volume get tam-research-data "$remote" "$dst" >/tmp/mirror-get.out 2>/tmp/mirror-get.err; then
+              verify_hash_size "$dst" "$expected_sha" "$expected_bytes"
+            else
+              modal volume put tam-research-data "$src" "$remote"
+              rm -f "$dst"
+              modal volume get tam-research-data "$remote" "$dst"
+              verify_hash_size "$dst" "$expected_sha" "$expected_bytes"
+            fi
+            printf '%s %s %s\n' "$label" "$expected_sha" "$(stat -c %s "$dst")" >> mirror-work/hashes.txt
+            rm -f "$src" "$dst"
+          }
+          validate_json() {
+            role="$1"; file="$2"
+            python - "$role" "$file" <<'PY'
+          import json, math, sys
+          role,path=sys.argv[1:3]
+          payload=json.load(open(path,encoding="utf-8"))
+          if role=="meta":
+              expected={
+                  "assembly_version":3,
+                  "train_tokens":2_000_000_000,
+                  "val_tokens":5_000_000,
+                  "seed":8100,
+                  "tokenizer":"gpt2",
+                  "dtype":"uint16",
+              }
+              for k,v in expected.items(): assert payload.get(k)==v, (k,payload.get(k),v)
+          elif role=="calibration":
+              assert payload.get("status")=="CALIBRATION_PASS"
+              decision=payload.get("decision") or {}
+              assert decision.get("classification")=="PAIR1_PREPARATION_ALLOWED"
+              assert decision.get("pair1_preparation_allowed") is True
+              assert payload.get("engineering_seed")==2_026_092_001
+              assert payload.get("scientific_seeds_consumed") is False
+              assert payload.get("scientific_training_authorized") is False
+          elif role=="reservation":
+              assert payload.get("status")=="PAIR1_DISPATCH_RESERVED"
+              assert payload.get("pair_seed")==58_231
+              assert payload.get("pair_seed_consumed") is True
+          elif role=="transformer":
+              assert payload.get("status")=="COMPLETE"
+              assert payload.get("pair_seed")==58_231
+              nll=payload["training"]["final_eval"]["nll"]
+              assert math.isfinite(nll)
+              assert abs(nll-2.694100785255432) < 1e-12
+          elif role=="reduced":
+              assert payload.get("status")=="ERROR"
+              assert payload.get("classification")=="SCIENTIFIC_REDUCED_ATTENTION_PAIR1_ARCHITECTURE_ERROR_NO_RETRY"
+              assert payload.get("pair_seed")==58_231
+              assert payload.get("automatic_retry_authorized") is False
+              assert payload.get("resume_authorized") is False
+          else:
+              raise AssertionError(role)
+          PY
+          }
+          mirror_json() {
+            remote="$1"; role="$2"; fixed_sha="$3"; label="$4"
+            src="mirror-work/src"
+            dst="mirror-work/dst"
+            rm -f "$src" "$dst"
+
+            use_primary
+            modal volume get tam-research-data "$remote" "$src"
+            validate_json "$role" "$src"
+            source_sha="$(sha_file "$src")"
+            source_bytes="$(stat -c %s "$src")"
+            if test -n "$fixed_sha"; then
+              test "$source_sha" = "$fixed_sha"
+            fi
+
+            use_secondary
+            if modal volume get tam-research-data "$remote" "$dst" >/tmp/mirror-get.out 2>/tmp/mirror-get.err; then
+              test "$(sha_file "$dst")" = "$source_sha"
+              test "$(stat -c %s "$dst")" = "$source_bytes"
+            else
+              modal volume put tam-research-data "$src" "$remote"
+              rm -f "$dst"
+              modal volume get tam-research-data "$remote" "$dst"
+              test "$(sha_file "$dst")" = "$source_sha"
+              test "$(stat -c %s "$dst")" = "$source_bytes"
+            fi
+            validate_json "$role" "$dst"
+            printf '%s %s %s\n' "$label" "$source_sha" "$source_bytes" >> mirror-work/hashes.txt
+            rm -f "$src" "$dst"
+          }
+
+          use_primary
+          modal token info
+          modal volume list --json > mirror-work/primary-volumes.json
+          grep -F 'tam-research-data' mirror-work/primary-volumes.json
+
+          use_secondary
+          modal token info | tee mirror-work/secondary-token-info.txt
+          grep -F 'vinceackermann2' mirror-work/secondary-token-info.txt
+          modal volume list --json > mirror-work/secondary-volumes.json
+          grep -F 'tam-research-data' mirror-work/secondary-volumes.json
+
+          mirror_fixed \
+            /data/tam100m-2b-curated-v1/train.bin \
+            93e9cb0b7076a4ddd855fc696f657ea62592b8a03a05220be99c402f9043265b \
+            4000000000 \
+            train.bin
+          mirror_fixed \
+            /data/tam100m-2b-curated-v1/val.bin \
+            ae0bc5adf36d0aa8e55e5e3903401d3f114b93037f43221944b4e88c5d1a5760 \
+            10000000 \
+            val.bin
+          mirror_json \
+            /data/tam100m-2b-curated-v1/meta.json \
+            meta \
+            14bbbcf0ab0b8cba374074ef8ccb80a04ecead06c74780f35a1becd5aef1b8f3 \
+            meta.json
+          mirror_json \
+            /cortex-s-v0/100m-2b/reduced-attention-calibration-v1/RESULT.json \
+            calibration \
+            "" \
+            calibration_RESULT.json
+          mirror_json \
+            /cortex-s-v0/100m-2b/reduced-attention-pair1-v1/PAIR1_DISPATCH_RESERVED.json \
+            reservation \
+            "" \
+            predecessor_reservation.json
+          mirror_json \
+            /cortex-s-v0/100m-2b/reduced-attention-pair1-v1/transformer/RESULT.json \
+            transformer \
+            "" \
+            predecessor_transformer_RESULT.json
+          mirror_json \
+            /cortex-s-v0/100m-2b/reduced-attention-pair1-v1/reduced_attention/RESULT.json \
+            reduced \
+            "" \
+            predecessor_reduced_attention_RESULT.json
+
+          test "$(wc -l < mirror-work/hashes.txt)" = "7"
+
+      - name: Record terminal storage-mirror success
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          {
+            echo 'PAIR1_SUCCESSOR_PREFLIGHT_STORAGE_MIRROR_V1_PASS'
+            echo
+            echo '- primary -> secondary account2 storage parity: PASS'
+            echo '- exactly seven frozen pre-reservation files processed'
+            echo '- mismatched pre-existing destination files: fail closed'
+            echo '- modal run / remote function allocation: NONE'
+            echo '- GPU allocation: NONE'
+            echo '- Pair-1 reservation: NONE'
+            echo '- seed 59231 consumption: NONE'
+            echo '- scientific trigger authority: NONE'
+            echo
+            echo 'Verified destination hashes:'
+            sed 's/^/- /' mirror-work/hashes.txt
+          } > mirror-work/success-comment.md
+          gh issue comment "$TRIGGER_ISSUE" --repo "$GITHUB_REPOSITORY" -F mirror-work/success-comment.md
+          gh issue close "$TRIGGER_ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed
