@@ -150,8 +150,8 @@ def _validate_bindings(
         if bindings[key] != value:
             raise RuntimeError(f"#1099 immutable blob drift at {key}")
     if (CONTROL_ISSUE, PREREG_ISSUE, SOURCE_SCIENTIFIC_ISSUE, SOURCE_POSTMORTEM_ISSUE) != (
-        1064,
-        1037,
+        1099,
+        1014,
         990,
         1008,
     ):
