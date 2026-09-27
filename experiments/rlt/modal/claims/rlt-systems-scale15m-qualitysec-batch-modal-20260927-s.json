@@ -1,0 +1,42 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_seed": 20271025,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1790523179.0405803,
+  "engineering_only": true,
+  "engineering_seed": 20261025,
+  "eval_seed": 20291025,
+  "job": {
+    "automatic_retry": false,
+    "batch_seed": 20271025,
+    "batch_sizes": [
+      256,
+      512,
+      768
+    ],
+    "engineering_seed": 20261025,
+    "eval_seed": 20291025,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-scale15m-qualitysec-batch-modal-20260927-s",
+    "requires_batch1280_job_id": "rlt-systems-scale15m-batch1280-modal-20260927-r",
+    "requires_compute_match_job_id": "rlt-compute-matched-scale15m-60s-modal-20260926-a",
+    "schema": 1,
+    "seq_len": 64,
+    "task": "systems_scale15m_qualitysec_batch_s",
+    "time_budget_seconds_each": 60.0,
+    "train_tokens": 6000000,
+    "training_data_seed": 20260924,
+    "val_tokens": 500000
+  },
+  "job_id": "rlt-systems-scale15m-qualitysec-batch-modal-20260927-s",
+  "job_source_blob_sha": "6970f4f9655ada433f5f5107cccb41f68fd5ba81",
+  "launcher_blob_sha": "a8449c75ac88624d4feb511a988ed473c6bf1b2a",
+  "modal_account_slot": "2",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+  "trigger_sha": "e37fd1e31d5ee02dfedbe57b54141774f978e0e6",
+  "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+  "worker": "github-actions-modal"
+}
