@@ -42,7 +42,8 @@ jobs:
             "control_issue":1064,
             "prereg_issue":1037,
             "result_root":"/vol/chm-v1/100m-stage-c-payload-integration/issue-1064/v6",
-            "supersedes_incomplete_audit_issue":1092,\n            "supersedes_incomplete_audit_run":36331605001,
+            "supersedes_incomplete_audit_issue":1092,
+            "supersedes_incomplete_audit_run":36331605001,
           }
           for k,v in expected.items():
               assert cfg.get(k)==v, f"{k} mismatch"
@@ -282,7 +283,8 @@ jobs:
           RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
           SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
           AUDIT_WORKFLOW_SHA: ${{ steps.cfg.outputs.audit_workflow_sha }}
-          MIRROR_WORKFLOW_SHA: ${{ steps.cfg.outputs.mirror_workflow_sha }}\n          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          MIRROR_WORKFLOW_SHA: ${{ steps.cfg.outputs.mirror_workflow_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
           DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
           SELECTED_MODAL_ACCOUNT: ${{ steps.account_binding.outputs.selected_modal_account }}
           SELECTED_MODAL_WORKSPACE: ${{ steps.account_binding.outputs.selected_modal_workspace }}
