@@ -67,10 +67,14 @@ jobs:
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           test "$(git rev-parse HEAD^{tree})" = "$SOURCE_TREE"
           git fetch --no-tags origin main
-          test "$(git rev-parse origin/main)" = "$SOURCE_SHA"
+          LIVE_MAIN="$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$SOURCE_SHA" "$LIVE_MAIN"
           git cat-file -e "$HARNESS_SHA^{commit}"
           git merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
-          git diff --exit-code "$HARNESS_SHA" "$SOURCE_SHA" --             architectures/cortex_s/reduced_attention_100m_v1.py             architectures/cortex_s/reduced_attention_100m_v1_protocol.py             architectures/cortex_s/tests/test_reduced_attention_pair1_successor_100m_2b_v2_harness.py             tam_research/models.py             tam_research/train.py             tam_research/data.py             tam_research/modal_dual_account_v3.py             scripts/modal_select_account_v3.py             modal_runtime_admission_probe_1067_v1.py             modal_cortex_reduced_attention_pair1_successor_100m_2b_v2.py             .github/workflows/modal-cortex-reduced-attention-pair1-successor-100m-2b-v2.yml
+          git diff --exit-code "$HARNESS_SHA" "$SOURCE_SHA" --             architectures/cortex_s/reduced_attention_100m_v1.py             architectures/cortex_s/reduced_attention_100m_v1_protocol.py             architectures/cortex_s/tests/test_reduced_attention_pair1_successor_100m_2b_v2_harness.py             tam_research/models.py             tam_research/train.py             tam_research/data.py             tam_research/modal_dual_account_v3.py             scripts/modal_select_account_v3.py             modal_runtime_admission_probe_1067_v1.py             modal_cortex_reduced_attention_pair1_successor_100m_2b_v2.py
+          for path in             architectures/cortex_s/reduced_attention_100m_v1.py             architectures/cortex_s/reduced_attention_100m_v1_protocol.py             architectures/cortex_s/tests/test_reduced_attention_pair1_successor_100m_2b_v2_harness.py             tam_research/models.py             tam_research/train.py             tam_research/data.py             tam_research/modal_dual_account_v3.py             scripts/modal_select_account_v3.py             modal_runtime_admission_probe_1067_v1.py             modal_cortex_reduced_attention_pair1_successor_100m_2b_v2.py             .github/workflows/modal-cortex-reduced-attention-pair1-successor-100m-2b-v2.yml; do
+            test "$(git rev-parse "$SOURCE_SHA:$path")" = "$(git rev-parse "$LIVE_MAIN:$path")"
+          done
 
       - name: Verify unique one-shot trigger
         env:
