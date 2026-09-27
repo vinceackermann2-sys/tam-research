@@ -1,0 +1,301 @@
+name: CHM-v1 100M Stage-C payload/integration source mirror v5
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  mirror:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_LOW_CREDIT_ACCOUNT: ${{ secrets.MODAL_LOW_CREDIT_ACCOUNT }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Refuse reruns and resolve immutable mirror payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg=json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected={
+            "phase":"chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5",
+            "control_issue":1064,
+            "repair_issue":1085,
+            "volume":"tam-research-data",
+            "mirror_root":"/chm-v1/source-mirror/issue-1064/v5",
+            "checkpoint_sha256":"846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831",
+            "checkpoint_bytes":407424818,
+          }
+          for k,v in expected.items():
+              assert cfg.get(k)==v, f"{k} mismatch: {cfg.get(k)!r}"
+          for k in ("source_sha","source_tree","selector_sha","selector_cli_sha","runtime_probe_sha","mirror_workflow_sha"):
+              v=str(cfg.get(k,"")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}",v), k
+              print(f"{k}={v}")
+          PY
+
+      - name: Checkout exact implementation boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Verify current main and frozen mirror dependencies
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          SELECTOR_SHA: ${{ steps.cfg.outputs.selector_sha }}
+          SELECTOR_CLI_SHA: ${{ steps.cfg.outputs.selector_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          MIRROR_WORKFLOW_SHA: ${{ steps.cfg.outputs.mirror_workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_dual_account_v3.py")" = "$SELECTOR_SHA"
+          test "$SELECTOR_SHA" = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:scripts/modal_select_account_v3.py")" = "$SELECTOR_CLI_SHA"
+          test "$SELECTOR_CLI_SHA" = "440292942066d0b3d3a71d40ca8495092674ce6c"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_runtime_admission_probe_1067_v1.py")" = "$RUNTIME_PROBE_SHA"
+          test "$RUNTIME_PROBE_SHA" = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5.yml")" = "$MIRROR_WORKFLOW_SHA"
+
+      - name: Verify unique mirror trigger and no v5 diagnostic trigger
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo=os.environ["GITHUB_REPOSITORY"]
+          n=int(os.environ["TRIGGER_ISSUE"])
+          def gh(path,*extra):
+              return json.loads(subprocess.check_output(["gh","api",path,*extra],text=True))
+          def exact(title):
+              q=f'repo:{repo} is:issue in:title "{title}"'
+              found=gh("search/issues","-X","GET","-f",f"q={q}","-f","per_page=100")
+              return [x for x in found["items"] if x["title"]==title]
+          mirror="[modal-chm-v1-100m-stage-c-payload-integration-1064-source-mirror-v5]"
+          xs=exact(mirror)
+          assert len(xs)==1 and xs[0]["number"]==n, xs
+          assert len(exact("[modal-chm-v1-100m-stage-c-payload-integration-1064-v5]"))==0
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify primary authentication and download exactly frozen source files
+        run: |
+          modal token info
+          rm -rf mirror-src mirror-dst
+          mkdir -p mirror-src mirror-dst
+          modal volume get tam-research-data /chm-v1/100m-stage-c/issue-988/seed-977001-v1/RESULT.json mirror-src/RESULT.json
+          modal volume get tam-research-data /chm-v1/100m-stage-c/issue-988/seed-977001-v1/checkpoints/eiem/step-2048.pt mirror-src/step-2048.pt
+
+      - name: Verify downloaded source identities
+        id: source_identity
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import hashlib, json
+          from pathlib import Path
+          result_path=Path("mirror-src/RESULT.json")
+          checkpoint=Path("mirror-src/step-2048.pt")
+          result=json.loads(result_path.read_text(encoding="utf-8"))
+          assert result["status"]=="COMPLETE"
+          assert result["classification"]=="CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH"
+          assert result["scientific_seed"]==977001
+          assert result["scientific_seed_consumed"] is True
+          assert result["automatic_retry_authorized"] is False
+          assert result["checkpoint_resume_authorized"] is False
+          assert result["stage_d_automatically_authorized"] is False
+          cp_sha=hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+          cp_bytes=checkpoint.stat().st_size
+          assert cp_sha=="846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831"
+          assert cp_bytes==407424818
+          result_bytes=result_path.read_bytes()
+          print(f"source_result_sha256={hashlib.sha256(result_bytes).hexdigest()}")
+          print(f"source_result_bytes={len(result_bytes)}")
+          PY
+
+      - name: Select runtime-admissible destination account
+        id: account
+        run: |
+          cd source
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py --required-volume tam-research-data --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+          cd ..
+
+      - name: Freeze destination account and require secondary
+        id: account_binding
+        env:
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+          SELECTED_MODAL_WORKSPACE: ${{ steps.account.outputs.selected_workspace_name }}
+          ACCOUNT_SELECTION_EVIDENCE_JSON: ${{ steps.account.outputs.selection_evidence_json }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import hashlib, os
+          account=os.environ["SELECTED_MODAL_ACCOUNT"].strip()
+          workspace=os.environ["SELECTED_MODAL_WORKSPACE"].strip()
+          evidence=os.environ["ACCOUNT_SELECTION_EVIDENCE_JSON"]
+          assert account=="secondary", f"v5 mirror destination must be secondary, got {account!r}"
+          assert workspace and evidence
+          print(f"selected_modal_account={account}")
+          print(f"selected_modal_workspace={workspace}")
+          print(f"account_selection_evidence_sha256={hashlib.sha256(evidence.encode()).hexdigest()}")
+          PY
+
+      - name: Activate selected secondary account
+        env:
+          SECONDARY_CREDENTIAL_ALIASES: ${{ steps.account.outputs.secondary_credential_aliases }}
+        run: |
+          case ",$SECONDARY_CREDENTIAL_ALIASES," in
+            *,secondary,*)
+              SECONDARY_ID="$MODAL_TOKEN_ID_SECONDARY"
+              SECONDARY_SECRET="$MODAL_TOKEN_SECRET_SECONDARY"
+              ;;
+            *,account2,*)
+              SECONDARY_ID="$MODAL_TOKEN_ID_2"
+              SECONDARY_SECRET="$MODAL_TOKEN_SECRET_2"
+              ;;
+            *,b,*)
+              SECONDARY_ID="$MODAL_TOKEN_ID_B"
+              SECONDARY_SECRET="$MODAL_TOKEN_SECRET_B"
+              ;;
+            *) echo "no supported secondary credential alias"; exit 92 ;;
+          esac
+          test -n "$SECONDARY_ID" && test -n "$SECONDARY_SECRET"
+          printf 'MODAL_TOKEN_ID=%s\n' "$SECONDARY_ID" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$SECONDARY_SECRET" >> "$GITHUB_ENV"
+
+      - name: Verify secondary authentication and fresh destination
+        run: |
+          modal token info
+          if modal volume ls tam-research-data /chm-v1/source-mirror/issue-1064/v5 >/tmp/mirror-ls.out 2>/tmp/mirror-ls.err; then
+            echo "v5 mirror root already exists; fail closed"
+            cat /tmp/mirror-ls.out
+            exit 93
+          fi
+
+      - name: Upload only frozen result and checkpoint
+        run: |
+          modal volume put tam-research-data mirror-src/RESULT.json /chm-v1/source-mirror/issue-1064/v5/RESULT.json
+          modal volume put tam-research-data mirror-src/step-2048.pt /chm-v1/source-mirror/issue-1064/v5/checkpoints/eiem/step-2048.pt
+
+      - name: Re-download destination and verify byte/hash parity
+        run: |
+          modal volume get tam-research-data /chm-v1/source-mirror/issue-1064/v5/RESULT.json mirror-dst/RESULT.json
+          modal volume get tam-research-data /chm-v1/source-mirror/issue-1064/v5/checkpoints/eiem/step-2048.pt mirror-dst/step-2048.pt
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          for name in ("RESULT.json","step-2048.pt"):
+              a=Path("mirror-src")/name
+              b=Path("mirror-dst")/name
+              assert a.read_bytes()==b.read_bytes(), f"mirror byte mismatch: {name}"
+          cp=Path("mirror-dst/step-2048.pt")
+          assert cp.stat().st_size==407424818
+          assert hashlib.sha256(cp.read_bytes()).hexdigest()=="846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831"
+          PY
+
+      - name: Write manifest only after parity succeeds
+        env:
+          SOURCE_RESULT_SHA256: ${{ steps.source_identity.outputs.source_result_sha256 }}
+          SOURCE_RESULT_BYTES: ${{ steps.source_identity.outputs.source_result_bytes }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account_binding.outputs.selected_modal_account }}
+          SELECTED_MODAL_WORKSPACE: ${{ steps.account_binding.outputs.selected_modal_workspace }}
+          ACCOUNT_SELECTION_EVIDENCE_SHA256: ${{ steps.account_binding.outputs.account_selection_evidence_sha256 }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          manifest={
+            "status":"COMPLETE",
+            "classification":"CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_SOURCE_MIRROR_V5",
+            "control_issue":1064,
+            "repair_issue":1085,
+            "source_stage_c_classification":"CHM_V1_100M_STAGE_C_STOP_SCALE_BRANCH",
+            "source_seed":977001,
+            "source_seed_historical_only":True,
+            "source_result_sha256":os.environ["SOURCE_RESULT_SHA256"],
+            "source_result_bytes":int(os.environ["SOURCE_RESULT_BYTES"]),
+            "checkpoint_sha256":"846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831",
+            "checkpoint_bytes":407424818,
+            "destination_volume":"tam-research-data",
+            "destination_root":"/chm-v1/source-mirror/issue-1064/v5",
+            "selected_modal_account":os.environ["SELECTED_MODAL_ACCOUNT"],
+            "selected_modal_workspace":os.environ["SELECTED_MODAL_WORKSPACE"],
+            "account_selection_evidence_sha256":os.environ["ACCOUNT_SELECTION_EVIDENCE_SHA256"],
+            "source_files_exactly":["RESULT.json","checkpoints/eiem/step-2048.pt"],
+            "remote_function_used":False,
+            "gpu_allocated":False,
+            "diagnostic_attempt_consumed":False,
+            "training_authorized":False,
+            "stage_d_authorized":False,
+          }
+          Path("MIRROR_MANIFEST.json").write_text(json.dumps(manifest,indent=2,sort_keys=True),encoding="utf-8")
+          PY
+          modal volume put tam-research-data MIRROR_MANIFEST.json /chm-v1/source-mirror/issue-1064/v5/MIRROR_MANIFEST.json
+          rm -f mirror-dst/MIRROR_MANIFEST.json
+          modal volume get tam-research-data /chm-v1/source-mirror/issue-1064/v5/MIRROR_MANIFEST.json mirror-dst/MIRROR_MANIFEST.json
+          cmp MIRROR_MANIFEST.json mirror-dst/MIRROR_MANIFEST.json
+
+      - name: Record successful infrastructure-only mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account_binding.outputs.selected_modal_account }}
+          SELECTED_MODAL_WORKSPACE: ${{ steps.account_binding.outputs.selected_modal_workspace }}
+          ACCOUNT_SELECTION_EVIDENCE_SHA256: ${{ steps.account_binding.outputs.account_selection_evidence_sha256 }}
+        run: |
+          cat > mirror-comment.md <<EOF
+          CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_SOURCE_MIRROR_V5_COMPLETE
+
+          repair_issue=1085
+          control_issue=1064
+          selected_modal_account=$SELECTED_MODAL_ACCOUNT
+          selected_modal_workspace=$SELECTED_MODAL_WORKSPACE
+          account_selection_evidence_sha256=$ACCOUNT_SELECTION_EVIDENCE_SHA256
+          mirror_root=/chm-v1/source-mirror/issue-1064/v5
+          checkpoint_sha256=846721098816af9aedd5bd9eb9bf855fdeb7a6f402cd3582912ee5775db64831
+          checkpoint_bytes=407424818
+          byte_parity_verified=true
+          remote_function_used=false
+          gpu_allocated=false
+          reservation_exists=false
+          diagnostic_attempt_consumed=false
+          trigger_authorized=false
+          training_authorized=false
+          new_scientific_seed_authorized=false
+          stage_d_authorized=false
+
+          A separate fresh v5 CPU authority audit remains required.
+          EOF
+          gh issue comment 1085 --repo "$GITHUB_REPOSITORY" -F mirror-comment.md
+          gh issue comment 1064 --repo "$GITHUB_REPOSITORY" -F mirror-comment.md
+          gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --reason completed
