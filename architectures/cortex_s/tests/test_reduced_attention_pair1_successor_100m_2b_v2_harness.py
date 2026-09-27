@@ -189,6 +189,8 @@ def test_pair1_workflow_is_exact_owner_only_one_shot_and_dual_account_bound() ->
     )[1]
     launch = launch.split("\n      - name: Record normal successor Modal return only", 1)[0]
     assert launch.count("modal run --detach --timestamps") == 1
+    assert "SELECTED_ACCOUNT: ${{ steps.modal_account.outputs.selected_account }}" in launch
+    assert 'test "$SELECTED_ACCOUNT" = "secondary"' in launch
     assert "modal_cortex_reduced_attention_pair1_successor_100m_2b_v2.py" in launch
 
 
