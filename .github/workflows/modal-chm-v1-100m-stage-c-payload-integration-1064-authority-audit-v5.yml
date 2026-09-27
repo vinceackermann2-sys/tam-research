@@ -130,7 +130,14 @@ jobs:
           assert len(exact_title("[modal-chm-v1-100m-stage-c-payload-integration-1064-v5]"))==0
           control=gh(f"repos/{repo}/issues/1064"); assert control["state"]=="open"
           comments=gh(f"repos/{repo}/issues/1064/comments?per_page=100")
-          assert not any("CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_FINAL_LAUNCHER_AUTHORITY_V3" in c["body"] for c in comments)
+          assert not any("CHM_V1_100M_STAGE_C_PAYLOAD_INTEGRATION_FINAL_LAUNCHER_AUTHORITY_V5" in c["body"] for c in comments)
+          post=gh(f"repos/{repo}/issues/1008/comments?per_page=100")
+          authoritative=[c for c in post if "CHM_V1_100M_STAGE_C_POSTMORTEM_AUTHORITATIVE_RESULT" in c["body"]]
+          assert len(authoritative)==1, authoritative
+          body=authoritative[0]["body"]
+          assert 'tags=["PAYLOAD_INTEGRATION_WEAK_SIGNAL"]' in body
+          assert "stage_c_result_changed=false" in body
+          assert "stage_d_authorized=false" in body
           PY
 
       - uses: actions/setup-python@v6
