@@ -86,7 +86,7 @@ jobs:
           assert s.get('data_hashes_match_claim') is True,s
           assert s['best_by_final_nll']['batch_size']==256,s
           rows=s['results']
-          assert [x['batch_size'] for x in rows]==[64,128,256],rows
+          assert [x['batch_size'] for x in rows]==[256,512,768],rows
           assert float(rows[0]['final_eval']['nll']) < float(rows[1]['final_eval']['nll']) < float(rows[2]['final_eval']['nll']),rows
           PY
 
