@@ -34,7 +34,7 @@ AUDIT_WORKFLOW = (
     ROOT
     / ".github"
     / "workflows"
-    / "modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v1.yml"
+    / "modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2.yml"
 )
 
 
@@ -76,7 +76,7 @@ def test_run_control_manifest_freezes_single_use_identity_without_execution_auth
     assert PHASE == "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1"
     assert RESULT_ROOT == "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1"
     assert TRIGGER_TITLE == "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]"
-    assert AUDIT_TITLE == "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v1]"
+    assert AUDIT_TITLE == "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2]"
     assert manifest["scientific_seed_authorized"] is False
     assert manifest["trigger_authorized_by_module"] is False
     assert manifest["gpu_allocation_authorized_by_module"] is False
@@ -227,6 +227,9 @@ def test_runner_records_required_projection_and_label_direction_diagnostics() ->
 def test_scientific_workflow_has_exact_authority_account_and_one_shot_guards() -> None:
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "workflow_dispatch" not in source
+    assert "&bindings" not in source
+    assert "*bindings" not in source
+    assert "<<:" not in source
     assert "types: [opened]" in source
     assert TRIGGER_TITLE in source
     assert "github.run_attempt" in source
