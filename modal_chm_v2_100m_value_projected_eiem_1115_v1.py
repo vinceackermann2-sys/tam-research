@@ -17,30 +17,36 @@ from typing import Any, Sequence
 
 import modal
 
-from tam_research.chm_v2_100m_value_projected_eiem_run_control import (
-    AUDIT_TITLE,
-    CHM_V2_MODULE_BLOB,
-    CONTROL_ISSUE,
-    CPU_CORES,
-    DATA_DIR,
-    DUAL_ACCOUNT_BLOB,
-    DUAL_ACCOUNT_CLI_BLOB,
-    EVALUATOR_BLOB,
-    GPU_CLASS,
-    MAX_GPU_SECONDS,
-    MODEL_CONTRACT_BLOB,
-    PHASE,
-    PREREG_ISSUE,
-    RESULT_ROOT,
-    RETRIES,
-    RUNTIME_ADMISSION_PROBE_BLOB,
-    SCIENTIFIC_SEED,
-    STAGE_C_EXECUTION_BLOB,
-    STAGE_C_PREP_BLOB,
-    TRIGGER_TITLE,
-    VOLUME_NAME,
-    validate_contract,
-)
+# Host-safe mirror of the frozen #1115 constants. PyTorch-dependent project
+# modules are imported only inside Modal image functions.
+CONTROL_ISSUE = 1115
+PREREG_ISSUE = 1112
+SCIENTIFIC_SEED = 2_011_121
+PHASE = "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1"
+RESULT_ROOT = "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1"
+TRIGGER_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]"
+AUDIT_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v1]"
+DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
+VOLUME_NAME = "tam-research-data"
+GPU_CLASS = "L4"
+CPU_CORES = 4
+MAX_GPU_SECONDS = 14_400
+RETRIES = 0
+
+CHM_V2_MODULE_BLOB = "d0c2186231cead2a7c851d776d21e6ab6f73ec43"
+MODEL_CONTRACT_BLOB = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
+EVALUATOR_BLOB = "863bd038e60da5511503adb0c8e1046a680ed3bd"
+STAGE_C_EXECUTION_BLOB = "26668b37a6062c641275e177b622948b36d0f227"
+STAGE_C_PREP_BLOB = "bc4ed60885aaf991a2d6b9fe8f634ff973f3f722"
+DUAL_ACCOUNT_BLOB = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"
+DUAL_ACCOUNT_CLI_BLOB = "440292942066d0b3d3a71d40ca8495092674ce6c"
+RUNTIME_ADMISSION_PROBE_BLOB = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
+
+
+def _validate_contract_runtime() -> dict[str, Any]:
+    from tam_research.chm_v2_100m_value_projected_eiem_run_control import validate_contract
+
+    return _validate_contract_runtime()
 
 APP_NAME = "chm-v2-100m-value-projected-eiem-1115-v1"
 RAM_MIB = 16 * 1024
@@ -204,7 +210,7 @@ def inspect_source(
 ) -> str:
     from tam_research.chm_v1_corpus_fingerprint import fingerprint_frozen_corpus
 
-    validate_contract()
+    _validate_contract_runtime()
     bindings = _validate_bindings(
         source_sha=source_sha,
         source_tree=source_tree,
@@ -272,7 +278,7 @@ def verify_zero_gpu(
 ) -> str:
     from tam_research.chm_v1_corpus_fingerprint import fingerprint_frozen_corpus
 
-    validate_contract()
+    _validate_contract_runtime()
     if int(authority_comment_id) <= 0:
         raise RuntimeError("#1115 final authority comment ID must be positive")
     bindings = _validate_bindings(
@@ -1031,7 +1037,7 @@ def run_scientific(
         )
         from tam_research.data import TokenBin
 
-        contract = validate_contract()
+        contract = _validate_contract_runtime()
         rate_guard = validate_live_rate_cap(float(live_hourly_resource_usd))
 
         zero_path = root / "ZERO_GPU_GATE.json"
