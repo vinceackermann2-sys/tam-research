@@ -188,7 +188,7 @@ jobs:
             'TIME_BUDGET_SECONDS = 60.0',
             'EXPECTED_PARAMETERS = 15_129_344',
             'ff_inner=938',
-            'cosine_by_elapsed_post_compile_training_time',
+            'optimizer_selection',
             'COMPUTE_MATCHED_OPTIMIZER_TUNED_SCALE15M_60S_RLT_LOWER_NLL_SINGLE_RUN_HINT',
           ]: assert x in t,x
           for x in [
