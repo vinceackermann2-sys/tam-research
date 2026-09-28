@@ -52,9 +52,17 @@ class BlockRecurrentLoopedTransformer(RecurrentLoopedTransformer):
         v_all = torch.cat((old_v, v_new), dim=2)
         old_len = old_k.size(2)
         q_len = q.size(2)
+
+        # Crop keys that are outside the window even for the first query in the
+        # block. For block_size=1 this makes the SDPA input shape exactly match
+        # the frozen token-step implementation before attention is called.
+        crop_start = max(0, old_len - self.cfg.swa_window + 1)
+        if crop_start:
+            k_all = k_all[:, :, crop_start:, :]
+            v_all = v_all[:, :, crop_start:, :]
         total_len = k_all.size(2)
 
-        q_pos = old_len + torch.arange(q_len, device=x.device)
+        q_pos = old_len + torch.arange(q_len, device=x.device) - crop_start
         k_pos = torch.arange(total_len, device=x.device)
         causal = k_pos[None, :] <= q_pos[:, None]
         local = k_pos[None, :] >= (q_pos[:, None] - self.cfg.swa_window + 1)
