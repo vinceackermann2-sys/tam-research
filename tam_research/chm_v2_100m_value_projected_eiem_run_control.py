@@ -71,10 +71,10 @@ SCIENTIFIC_SEED = RESERVED_DEVELOPMENT_SEED
 PERMANENTLY_CONSUMED_CHM_V1_SEED = 977_001
 TRAIN_STREAM_GENERATOR_SEED = 987_001
 
-PHASE = "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1"
-RESULT_ROOT = "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1"
-TRIGGER_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]"
-AUDIT_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2]"
+PHASE = "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2"
+RESULT_ROOT = "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v2"
+TRIGGER_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2]"
+AUDIT_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v3]"
 
 DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
 VOLUME_NAME = "tam-research-data"
