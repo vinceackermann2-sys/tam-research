@@ -1,4 +1,4 @@
-name: CHM-v2 100M value-projected EIEM development screen v1
+name: CHM-v2 100M value-projected EIEM development screen v2
 
 on:
   issues:
@@ -12,7 +12,7 @@ jobs:
   launch:
     if: >-
       github.event.issue.user.login == github.repository_owner &&
-      github.event.issue.title == '[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]'
+      github.event.issue.title == '[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2]'
     runs-on: ubuntu-latest
     timeout-minutes: 330
     env:
@@ -38,11 +38,11 @@ jobs:
           import json, os, re
           cfg=json.loads(os.environ.get("ISSUE_BODY") or "{}")
           expected={
-            "phase":"chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1",
+            "phase":"chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2",
             "control_issue":1115,
             "prereg_issue":1112,
             "scientific_seed":2011121,
-            "result_root":"/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1",
+            "result_root":"/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v2",
           }
           for key,value in expected.items():
               assert cfg.get(key)==value, f"{key} mismatch: {cfg.get(key)!r}"
@@ -113,7 +113,7 @@ jobs:
             "tam_research/chm_v2_100m_value_projected_eiem_run_control.py:$CORE_SHA" \
             "modal_chm_v2_100m_value_projected_eiem_1115_v1.py:$RUNNER_SHA" \
             ".github/workflows/modal-chm-v2-100m-value-projected-eiem-1115-v1.yml:$WORKFLOW_SHA" \
-            ".github/workflows/modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v1.yml:$AUDIT_WORKFLOW_SHA"
+            ".github/workflows/modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v3.yml:$AUDIT_WORKFLOW_SHA"
           do
             path="${spec%%:*}"; expected="${spec##*:}"
             test "$(git -C source rev-parse "$SOURCE_SHA:$path")" = "$expected"
@@ -145,7 +145,7 @@ jobs:
           owner=os.environ["REPO_OWNER"]
           def gh(path,*extra):
               return json.loads(subprocess.check_output(["gh","api",path,*extra],text=True))
-          title="[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]"
+          title="[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2]"
           trigger=gh(f"repos/{repo}/issues/{trigger_number}")
           assert trigger["title"]==title
           q=f'repo:{repo} is:issue in:title "{title}"'
