@@ -22,10 +22,10 @@ import modal
 CONTROL_ISSUE = 1115
 PREREG_ISSUE = 1112
 SCIENTIFIC_SEED = 2_011_121
-PHASE = "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1"
-RESULT_ROOT = "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1"
-TRIGGER_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]"
-AUDIT_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2]"
+PHASE = "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2"
+RESULT_ROOT = "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v2"
+TRIGGER_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2]"
+AUDIT_TITLE = "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v3]"
 DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
 VOLUME_NAME = "tam-research-data"
 GPU_CLASS = "L4"

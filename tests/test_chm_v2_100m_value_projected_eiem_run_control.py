@@ -34,7 +34,7 @@ AUDIT_WORKFLOW = (
     ROOT
     / ".github"
     / "workflows"
-    / "modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2.yml"
+    / "modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v3.yml"
 )
 
 
@@ -73,10 +73,10 @@ def test_run_control_manifest_freezes_single_use_identity_without_execution_auth
     assert manifest["control_issue"] == 1115
     assert manifest["prereg_issue"] == 1112
     assert SCIENTIFIC_SEED == 2_011_121
-    assert PHASE == "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1"
-    assert RESULT_ROOT == "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1"
-    assert TRIGGER_TITLE == "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]"
-    assert AUDIT_TITLE == "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2]"
+    assert PHASE == "chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2"
+    assert RESULT_ROOT == "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v2"
+    assert TRIGGER_TITLE == "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v2]"
+    assert AUDIT_TITLE == "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v3]"
     assert manifest["scientific_seed_authorized"] is False
     assert manifest["trigger_authorized_by_module"] is False
     assert manifest["gpu_allocation_authorized_by_module"] is False
@@ -296,3 +296,25 @@ def test_only_scientific_workflow_can_reach_reservation_or_gpu_phase() -> None:
     assert "--phase reserve" not in audit and "--phase run" not in audit
     assert "scientific_seed=2011121" in audit
     assert "seed_2011121_consumed=false" in audit
+
+
+def test_v2_successor_workflows_exclude_retired_preallocation_identities() -> None:
+    scientific = WORKFLOW.read_text(encoding="utf-8")
+    audit = AUDIT_WORKFLOW.read_text(encoding="utf-8")
+    core = (ROOT / "tam_research" / "chm_v2_100m_value_projected_eiem_run_control.py").read_text(encoding="utf-8")
+    runner = RUNNER.read_text(encoding="utf-8")
+
+    retired_scientific_title = "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]"
+    retired_result_root = "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1"
+    retired_audit_v1_path = ".github/workflows/modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v1.yml"
+    retired_audit_v2_title = "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2]"
+
+    for source in (scientific, audit, core, runner):
+        assert retired_scientific_title not in source
+        assert retired_result_root not in source
+
+    assert retired_audit_v1_path not in scientific
+    assert retired_audit_v2_title not in scientific
+    assert retired_audit_v2_title not in audit
+    assert "modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v3.yml" in scientific
+    assert "CHM_V2_100M_VALUE_PROJECTED_EIEM_AUTHORITY_AUDIT_V3_PASS" in audit
