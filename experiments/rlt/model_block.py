@@ -134,6 +134,11 @@ class BlockRecurrentLoopedTransformer(RecurrentLoopedTransformer):
         return x, new_cache
 
     def forward(self, tokens: torch.Tensor) -> torch.Tensor:
+        # Exact fallback used only as an implementation invariant: block_size=1
+        # is the frozen token-recurrent RLT, including its original autograd graph.
+        if self.block_size == 1:
+            return super().forward(tokens)
+
         b, t = tokens.shape
         memory = self.encode(tokens)
         memory_kv = [
