@@ -68,7 +68,10 @@ class BlockRecurrentLoopedTransformer(RecurrentLoopedTransformer):
         local = k_pos[None, :] >= (q_pos[:, None] - self.cfg.swa_window + 1)
         mask = causal & local
 
-        y = F.scaled_dot_product_attention(q, k_all, v_all, attn_mask=mask)
+        if q_len == 1:
+            y = F.scaled_dot_product_attention(q, k_all, v_all, is_causal=False)
+        else:
+            y = F.scaled_dot_product_attention(q, k_all, v_all, attn_mask=mask)
         b = x.size(0)
         y = y.transpose(1, 2).contiguous().view(b, q_len, attn.d_model)
         y = attn.out(y)
@@ -99,7 +102,10 @@ class BlockRecurrentLoopedTransformer(RecurrentLoopedTransformer):
         k_global = torch.arange(prefix_end, device=x.device)
         mask = k_global[None, :] <= q_global[:, None]
 
-        y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+        if q_len == 1:
+            y = F.scaled_dot_product_attention(q, k, v, is_causal=False)
+        else:
+            y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
         b = x.size(0)
         y = y.transpose(1, 2).contiguous().view(b, q_len, cross.d_model)
         return cross.out(y)
