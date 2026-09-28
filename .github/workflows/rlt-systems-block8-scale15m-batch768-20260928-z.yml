@@ -1,0 +1,298 @@
+name: RLT systems block8 exact15M batch768 20260928 Z
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-systems-block8-scale15m-batch768-20260928-z.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-systems-block8-scale15m-batch768-20260928-z
+  cancel-in-progress: false
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-systems-block8-scale15m-batch768-modal-20260928-z
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-systems-block8-scale15m-batch768-modal-20260928-z.json
+      MODEL_PATH: experiments/rlt/model_block.py
+      LAUNCHER_PATH: experiments/rlt/modal_block8_scale15m_batch768_profile_z.py
+      PRIOR_Y_PATH: experiments/rlt/modal/results/rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a.json
+      REFERENCE_N_PATH: experiments/rlt/modal/results/rlt-systems-scale15m-batch768-modal-20260926-n.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-block8-scale15m-batch768-20260928-z.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-block8-scale15m-batch768-modal-20260928-z.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-systems-block8-scale15m-batch768-modal-20260928-z.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse previously claimed or completed block8 attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          MODEL_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$MODEL_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          {
+            echo "JOB_BLOB_SHA=$JOB_BLOB_SHA"
+            echo "MODEL_BLOB_SHA=$MODEL_BLOB_SHA"
+            echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA"
+          } >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" >/tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-systems-block8-scale15m-batch768-modal-20260928-z',
+            'task':'systems_block8_scale15m_batch768_z',
+            'engineering_seed':20261033,
+            'requires_optimizer_tuned_compute_match_job_id':'rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a',
+            'requires_reference_batch768_job_id':'rlt-systems-scale15m-batch768-modal-20260926-n',
+            'block_size':8,'batch_size':768,'seq_len':64,
+            'expected_parameters_each':15129344,'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require optimizer-tuned practical result and frozen batch768 baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$PRIOR_Y_PATH" >/tmp/y.json
+          git show "origin/$BRANCH:$REFERENCE_N_PATH" >/tmp/n.json
+          python - <<'PY'
+          import json
+          y=json.load(open('/tmp/y.json'))
+          assert y.get('job_id')=='rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a',y
+          assert y.get('status')=='complete' and y.get('data_hashes_match_claim') is True,y
+          assert y.get('exact_parameter_match_verified') is True and y.get('compute_budget_protocol_verified') is True,y
+          yc=y.get('comparison'); assert isinstance(yc,dict) and yc.get('status')=='complete',yc
+          assert yc.get('classification')=='COMPUTE_MATCHED_OPTIMIZER_TUNED_SCALE15M_60S_NO_RLT_QUALITY_ADVANTAGE',yc
+          assert float(yc['derived']['rlt_minus_transformer_final_nll'])>0.0,yc
+          assert yc.get('semantic_equivalence',{}).get('passed') is True,yc
+
+          n=json.load(open('/tmp/n.json'))
+          assert n.get('job_id')=='rlt-systems-scale15m-batch768-modal-20260926-n',n
+          assert n.get('status')=='complete' and n.get('engineering_only') is True,n
+          assert n.get('scientific_execution') is False,n
+          assert n.get('semantic_equivalence',{}).get('passed') is True,n
+          assert n['profile']['batch_size']==768 and n['profile']['seq_len']==64,n
+          assert n['rlt']['parameters']==15129344 and n['transformer']['parameters']==15129344,n
+          gap=float(n['derived']['transformer_throughput_multiple_vs_rlt'])
+          assert 2.0 < gap < 5.0,gap
+          PY
+
+      - name: Install Modal
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+
+      - name: Select Modal account 2 before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLOT=""; ID=""; SECRET=""
+          if [ -n "${MODAL_TOKEN_ID_2:-}" ] && [ -n "${MODAL_TOKEN_SECRET_2:-}" ]; then
+            SLOT="2"; ID="$MODAL_TOKEN_ID_2"; SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "${MODAL_TOKEN_ID_B:-}" ] && [ -n "${MODAL_TOKEN_SECRET_B:-}" ]; then
+            SLOT="B"; ID="$MODAL_TOKEN_ID_B"; SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+            SLOT="A"; ID="$MODAL_TOKEN_ID_A"; SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID"; test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID"; export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          {
+            echo "MODAL_ACCOUNT_SLOT=$SLOT"
+            echo "MODAL_TOKEN_ID=$ID"
+            echo "MODAL_TOKEN_SECRET=$SECRET"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate block8 profile sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$MODEL_PATH" "$LAUNCHER_PATH" experiments/rlt/modal_preflight.py
+          python - <<'PY'
+          from pathlib import Path
+          m=Path('experiments/rlt/model_block.py').read_text()
+          p=Path('experiments/rlt/modal_block8_scale15m_batch768_profile_z.py').read_text()
+          for x in [
+            'class BlockRecurrentLoopedTransformer',
+            'block_size=1',
+            'attn_mask=mask',
+            'if q_len == 1:',
+            'state = hidden[:, -1, :]',
+            'return torch.cat(logits_blocks, dim=1)',
+          ]: assert x in m,x
+          for x in [
+            'JOB_ID = "rlt-systems-block8-scale15m-batch768-modal-20260928-z"',
+            'ENGINEERING_SEED = 20_261_033',
+            'BLOCK_SIZE = 8','BATCH_SIZE = 768','SEQ_LEN = 64',
+            'EXPECTED_PARAMETERS = 15_129_344',
+            'block_size=1 failed exact frozen-RLT equivalence',
+            'block_size=8 causality guard failed',
+            'PASS_BLOCK8_SCALE15M_GAP_LE_1_5X',
+            'RLT_SYSTEMS_BLOCK8_SCALE15M_BATCH768_Z_RESULT_B64=',
+            'gpu="A100-80GB"','retries=0',
+          ]: assert x in p,x
+          vocab=50257; d=256; max_seq=128
+          rlt=vocab*d+max_seq*d
+          per_stage=d+3*d*d+d*d+d+d*d+2*d*d+d*d+d+2*d*(4*d)
+          rlt += 2*per_stage + d + 2*d*d + d + d + d
+          tr=vocab*d+max_seq*d + 3*(4*d+4*d*d+2*d*938) + 2*d
+          assert rlt==tr==15129344,(rlt,tr)
+          PY
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Commit block8 engineering preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          p.update({
+            'classification':'RLT_SYSTEMS_BLOCK8_SCALE15M_BATCH768_Z_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'model_blob_sha':os.environ['MODEL_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'engineering_only':True,'scientific_execution':False,
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'block_size':8,'batch_size':768,'expected_parameters_each':15129344,
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH']); path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt systems: record block8 batch768 zero-GPU preflight'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Claim one-shot block8 engineering attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          p=pathlib.Path(os.environ['CLAIM_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps({
+            'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed','claimed_unix':time.time(),
+            'worker':'github-actions-modal','branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'engineering_seed':20261033,
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],'engineering_only':True,
+            'scientific_execution':False,'block_size':8,'batch_size':768,
+            'automatic_retry_authorized':False,'job':json.load(open(os.environ['JOB_PATH'])),
+          },indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt systems: claim $JOB_ID before A100-80GB block8 profile"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100-80GB block8 profile
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 68m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_SYSTEMS_BLOCK8_SCALE15M_BATCH768_Z_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize durable block8 result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64',''); rc=int(os.environ.get('MODAL_RC','999')); p=None
+          if b:
+              try:p=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception:p=None
+          if not isinstance(p,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              p={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed','finished_unix':time.time(),
+                 'worker':'github-actions-modal','error_type':'ModalInvocationOrTransportError',
+                 'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+                 'log_tail':log[-6000:],'scientific_conclusion':None}
+          p.update({
+            'modal_cli_rc':rc,'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+          })
+          out=pathlib.Path(os.environ['RESULT_PATH']); out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt systems: record $JOB_ID terminal result"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize block8 profile
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f "$RESULT_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          assert r.get('engineering_only') is True and r.get('scientific_execution') is False,r
+          assert r.get('classification') in {
+            'PASS_BLOCK8_SCALE15M_GAP_LE_1_5X',
+            'PASS_BLOCK8_SCALE15M_GAP_LE_2X',
+            'PASS_BLOCK8_SCALE15M_GAP_GT_2X',
+          },r
+          v=r['implementation_validation']
+          assert v['block_size_1_exact_reference_equivalence']['passed'] is True,v
+          assert v['block_size_8_future_token_causality']['passed'] is True,v
+          a=r['architecture']
+          assert a['parameter_neutral'] is True and a['state_schema_equal_to_frozen_rlt'] is True,a
+          assert a['block_size']==8 and a['parameters']==15129344,a
+          assert r['block8']['parameters']==15129344 and r['transformer']['parameters']==15129344,r
+          print('classification:',r['classification'])
+          print('block8 tok/s:',r['block8']['tokens_per_second'])
+          print('transformer tok/s:',r['transformer']['tokens_per_second'])
+          print('gap:',r['derived']['transformer_throughput_multiple_vs_block8'])
+          PY
