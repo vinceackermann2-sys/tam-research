@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-block8-scale15m-batch768-modal-20260928-z",
+  "task": "systems_block8_scale15m_batch768_z",
+  "engineering_seed": 20261033,
+  "requires_optimizer_tuned_compute_match_job_id": "rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a",
+  "requires_reference_batch768_job_id": "rlt-systems-scale15m-batch768-modal-20260926-n",
+  "block_size": 8,
+  "batch_size": 768,
+  "seq_len": 64,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
