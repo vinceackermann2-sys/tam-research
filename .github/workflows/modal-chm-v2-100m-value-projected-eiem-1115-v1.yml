@@ -237,7 +237,7 @@ jobs:
 
       - name: Zero-GPU source and corpus preflight
         id: preflight
-        env: &bindings
+        env:
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
           V2_MODULE_SHA: ${{ steps.cfg.outputs.v2_module_sha }}
@@ -278,7 +278,23 @@ jobs:
       - name: Reserve scientific dispatch exactly once
         id: reserve
         env:
-          <<: *bindings
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          V2_MODULE_SHA: ${{ steps.cfg.outputs.v2_module_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          EXECUTION_SHA: ${{ steps.cfg.outputs.execution_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          SELECTED_MODAL_WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          ACCOUNT_SELECTION_EVIDENCE_SHA256: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
         run: |
           cd source
           modal run modal_chm_v2_100m_value_projected_eiem_1115_v1.py \
@@ -305,7 +321,23 @@ jobs:
         if: steps.reserve.outcome == 'success'
         continue-on-error: true
         env:
-          <<: *bindings
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          V2_MODULE_SHA: ${{ steps.cfg.outputs.v2_module_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          EXECUTION_SHA: ${{ steps.cfg.outputs.execution_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          SELECTED_MODAL_WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          ACCOUNT_SELECTION_EVIDENCE_SHA256: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
           LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
         run: |
           cd source
@@ -325,7 +357,23 @@ jobs:
         id: inspect
         if: always() && steps.reserve.outcome == 'success'
         env:
-          <<: *bindings
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          V2_MODULE_SHA: ${{ steps.cfg.outputs.v2_module_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          EXECUTION_SHA: ${{ steps.cfg.outputs.execution_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          SELECTED_MODAL_WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          ACCOUNT_SELECTION_EVIDENCE_SHA256: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
         run: |
           cd source
           modal run modal_chm_v2_100m_value_projected_eiem_1115_v1.py \
