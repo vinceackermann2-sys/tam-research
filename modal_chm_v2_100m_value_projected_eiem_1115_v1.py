@@ -46,7 +46,8 @@ RUNTIME_ADMISSION_PROBE_BLOB = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
 def _validate_contract_runtime() -> dict[str, Any]:
     from tam_research.chm_v2_100m_value_projected_eiem_run_control import validate_contract
 
-    return _validate_contract_runtime()
+    return validate_contract()
+
 
 APP_NAME = "chm-v2-100m-value-projected-eiem-1115-v1"
 RAM_MIB = 16 * 1024
