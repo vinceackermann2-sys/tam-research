@@ -136,7 +136,15 @@ jobs:
           control=gh(f"repos/{repo}/issues/1115")
           assert control["state"]=="open"
           comments=gh(f"repos/{repo}/issues/1115/comments?per_page=100")
-          assert not any("CHM_V2_100M_VALUE_PROJECTED_EIEM_FINAL_LAUNCHER_AUTHORITY_V1" in c["body"] for c in comments)
+          authority_marker="CHM_V2_100M_VALUE_PROJECTED_EIEM_FINAL_LAUNCHER_AUTHORITY_V1"
+          authority_comments=[c for c in comments if authority_marker in c["body"]]
+          assert len(authority_comments)==1, authority_comments
+          historical=authority_comments[0]
+          assert int(historical["id"])==5876072499, historical["id"]
+          historical_body=historical["body"]
+          assert "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]" in historical_body
+          assert "result_root=/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1" in historical_body
+          assert "seed_2011121_consumed=false" in historical_body
           PY
 
       - uses: actions/setup-python@v6

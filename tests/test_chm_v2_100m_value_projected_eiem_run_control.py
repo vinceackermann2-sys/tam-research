@@ -309,9 +309,18 @@ def test_v2_successor_workflows_exclude_retired_preallocation_identities() -> No
     retired_audit_v1_path = ".github/workflows/modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v1.yml"
     retired_audit_v2_title = "[modal-chm-v2-100m-value-projected-eiem-1115-authority-audit-v2]"
 
-    for source in (scientific, audit, core, runner):
+    # Retired v1 scientific identities must never be executable again.
+    for source in (scientific, core, runner):
         assert retired_scientific_title not in source
         assert retired_result_root not in source
+
+    # Audit-v3 may name retired v1 only as immutable historical authority evidence.
+    assert retired_scientific_title in audit
+    assert retired_result_root in audit
+    assert "5876072499" in audit
+    assert 'assert len(authority_comments)==1' in audit
+    assert 'assert int(historical["id"])==5876072499' in audit
+    assert 'assert not any("CHM_V2_100M_VALUE_PROJECTED_EIEM_FINAL_LAUNCHER_AUTHORITY_V1"' not in audit
 
     assert retired_audit_v1_path not in scientific
     assert retired_audit_v2_title not in scientific
