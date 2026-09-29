@@ -161,3 +161,116 @@ def test_helper_has_no_modal_or_scientific_execution_surface() -> None:
     assert "_device_tokens(" not in source
     assert "scientific_execution_authorized" in source
     assert "fresh_scientific_seed_authorized" in source
+
+
+def _python_heredocs(source: str) -> list[str]:
+    import textwrap
+
+    lines = source.splitlines()
+    blocks: list[str] = []
+    index = 0
+    while index < len(lines):
+        if "python - <<'PY'" not in lines[index]:
+            index += 1
+            continue
+        index += 1
+        block: list[str] = []
+        while index < len(lines) and lines[index].strip() != "PY":
+            block.append(lines[index])
+            index += 1
+        assert index < len(lines), "unterminated Python heredoc"
+        blocks.append(textwrap.dedent("\n".join(block)))
+        index += 1
+    return blocks
+
+
+def test_modal_harness_preserves_host_staged_one_shot_boundary() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "modal_chm_v2_100m_host_staged_preflight_1133_v1.py").read_text(
+        encoding="utf-8"
+    )
+    ast.parse(source)
+    assert "_device_tokens(" not in source
+    assert "host_staged_gather(" in source
+    assert "ENGINEERING_SEED = 1_133_201" in source
+    assert "CONSUMED_SCIENTIFIC_SEED = 2_011_121" in source
+    assert "gpu=GPU_CLASS" in source
+    assert "timeout=MAX_SECONDS" in source
+    assert "retries=0" in source
+    assert "_atomic_write(consumed, attempt)" in source
+    assert source.index("_atomic_write(consumed, attempt)") < source.index(
+        "CHMV1100MEIEMLM"
+    )
+    assert "torch.save(" not in source
+    assert "checkpoint_resume" not in source
+    assert '"scientific_seed_created": False' in source
+    assert '"fresh_scientific_seed_authorized": False' in source
+
+
+def test_engineering_workflow_is_issue_only_exact_authority_and_no_manual_rerun() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    path = root / ".github" / "workflows" / "modal-chm-v2-100m-host-staged-l4-preflight-1133-v1.yml"
+    source = path.read_text(encoding="utf-8")
+    assert "workflow_dispatch" not in source
+    assert "issues:" in source and "types: [opened]" in source
+    assert "[modal-chm-v2-100m-host-staged-l4-preflight-1133-v1]" in source
+    assert "github.run_attempt" in source
+    assert 'test "$RUN_ATTEMPT" = "1"' in source
+    assert "CHM_V2_100M_HOST_STAGED_CORPUS_L4_FINAL_ENGINEERING_AUTHORITY_V1" in source
+    assert "--phase inspect" in source
+    assert "--phase reserve" in source
+    assert "--phase run" in source
+    assert "--phase state" in source
+    assert "steps.reserve.outcome == 'success'" in source
+    assert "engineering_seed=1133201" in source
+    assert "fresh_scientific_seed_authorized=false" in source
+    assert "scientific_rerun_authorized=false" in source
+    assert "stage_d_authorized=false" in source
+    assert "MODAL_TOKEN_ID=%s" not in source
+    assert "MODAL_TOKEN_SECRET=%s" not in source
+
+
+def test_authority_audit_is_read_only_and_never_reserves_or_launches() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    path = (
+        root
+        / ".github"
+        / "workflows"
+        / "modal-chm-v2-100m-host-staged-l4-preflight-1133-authority-audit-v1.yml"
+    )
+    source = path.read_text(encoding="utf-8")
+    assert "workflow_dispatch" not in source
+    assert "[modal-chm-v2-100m-host-staged-l4-preflight-1133-authority-audit-v1]" in source
+    assert "modal_select_account_v3.py" in source
+    assert "--phase inspect" in source
+    assert "--phase reserve" not in source
+    assert "--phase run" not in source
+    assert "--phase state" not in source
+    assert "result_namespace_unused=true" in source
+    assert "engineering_attempt_consumed=false" in source
+    assert "trigger_authorized=false" in source
+    assert "fresh_scientific_seed_authorized=false" in source
+
+
+def test_all_1133_embedded_workflow_python_compiles() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    paths = (
+        root / ".github" / "workflows" / "modal-chm-v2-100m-host-staged-l4-preflight-1133-v1.yml",
+        root
+        / ".github"
+        / "workflows"
+        / "modal-chm-v2-100m-host-staged-l4-preflight-1133-authority-audit-v1.yml",
+    )
+    for path in paths:
+        blocks = _python_heredocs(path.read_text(encoding="utf-8"))
+        assert blocks, path
+        for block in blocks:
+            ast.parse(block)
