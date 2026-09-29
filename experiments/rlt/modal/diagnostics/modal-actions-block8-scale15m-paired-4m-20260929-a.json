@@ -1,0 +1,29 @@
+{
+  "base_trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "block_model_blob_sha": "0c2e53ce7c2208e322de3a05e3d3e6fea2acfeb9",
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_BLOCK8_SCALE15M_PAIRED_4M_ZERO_GPU_PREFLIGHT_PASS",
+  "expected_parameters_each": 15129344,
+  "finished_unix": 1790681235.122177,
+  "job_id_checked": "rlt-block8-scale15m-paired-4m-modal-20260929-a",
+  "job_source_blob_sha": "da6954057488da40148a8ce2eaf6d0db5e0bc6d2",
+  "launcher_blob_sha": "8cf96819a211c82211aa195dbcf58867d8a3995b",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "reference_data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "seed": 20260924,
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "train_tokens": 6000000,
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+    "val_tokens": 500000
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trainer_blob_sha": "cef55aac17072a58aa025f6a8310c56b6c3867dd",
+  "trigger_sha": "a99e0f5e9232fad673942014772417b1d99b8d7d",
+  "worker": "modal-control"
+}
