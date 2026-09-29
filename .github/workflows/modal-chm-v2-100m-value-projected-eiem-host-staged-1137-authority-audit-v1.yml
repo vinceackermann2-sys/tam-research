@@ -133,18 +133,12 @@ jobs:
           hits=exact(audit_title)
           assert len(hits)==1 and hits[0]["number"]==trigger_number, hits
           assert not exact("[modal-chm-v2-100m-value-projected-eiem-host-staged-1137-seed-2011371-v1]")
-          control=gh(f"repos/{repo}/issues/1115")
+          control=gh(f"repos/{repo}/issues/1139")
           assert control["state"]=="open"
-          comments=gh(f"repos/{repo}/issues/1115/comments?per_page=100")
-          authority_marker="CHM_V2_100M_VALUE_PROJECTED_EIEM_FINAL_LAUNCHER_AUTHORITY_V1"
+          comments=gh(f"repos/{repo}/issues/1139/comments?per_page=100")
+          authority_marker="CHM_V2_100M_HOST_STAGED_RERUN_FINAL_LAUNCHER_AUTHORITY_V1"
           authority_comments=[c for c in comments if authority_marker in c["body"]]
-          assert len(authority_comments)==1, authority_comments
-          historical=authority_comments[0]
-          assert int(historical["id"])==5876072499, historical["id"]
-          historical_body=historical["body"]
-          assert "[modal-chm-v2-100m-value-projected-eiem-1115-seed-2011121-v1]" in historical_body
-          assert "result_root=/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v1" in historical_body
-          assert "seed_2011371_consumed=false" in historical_body
+          assert len(authority_comments)==0, authority_comments
           PY
 
       - uses: actions/setup-python@v6
@@ -267,7 +261,7 @@ jobs:
           matches=[x.split("CHM_V2_100M_VALUE_PROJECTED_EIEM_SOURCE=",1)[1] for x in lines if "CHM_V2_100M_VALUE_PROJECTED_EIEM_SOURCE=" in x]
           assert len(matches)==1, len(matches)
           state=json.loads(matches[0])
-          assert state["scientific_seed"]==2011121
+          assert state["scientific_seed"]==2011371
           assert state["result_namespace_unused"] is True
           assert state["seed_2011371_consumed"] is False
           assert state["gpu_allocated"] is False
