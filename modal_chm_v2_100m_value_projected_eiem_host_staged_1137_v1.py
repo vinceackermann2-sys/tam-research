@@ -553,7 +553,8 @@ def _train_model(
     import torch.nn.functional as F
 
     from tam_research.chm_v1_100m_scale import VOCAB_SIZE
-    from tam_research.chm_v1_100m_stage_c_execution import autocast_context\n    from tam_research.chm_v2_100m_host_staged_preflight import host_staged_gather
+    from tam_research.chm_v1_100m_stage_c_execution import autocast_context
+    from tam_research.chm_v2_100m_host_staged_preflight import host_staged_gather
     from tam_research.chm_v1_100m_stage_c_run_control_prep import (
         CHECKPOINT_STEPS,
         GRAD_ACCUM,
