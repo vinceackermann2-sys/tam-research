@@ -1,0 +1,251 @@
+name: CHM-v2 100M host-staged L4 pre-authority audit v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v2-100m-host-staged-l4-preflight-1133-authority-audit-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_LOW_CREDIT_ACCOUNT: ${{ secrets.MODAL_LOW_CREDIT_ACCOUNT }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Resolve exact audit payload and refuse reruns
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg=json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected={
+            "phase":"chm-v2-100m-host-staged-l4-preflight-1133-authority-audit-v1",
+            "control_issue":1133,
+            "engineering_seed":1133201,
+            "result_root":"/vol/chm-v2/100m-host-staged-l4-preflight/issue-1133/attempt-1133201-v1",
+          }
+          for k,v in expected.items():
+              assert cfg.get(k)==v, (k,cfg.get(k),v)
+          for k in (
+              "source_sha","source_tree","v2_module_sha","model_sha","evaluator_sha",
+              "prep_sha","dual_account_sha","dual_account_cli_sha","runtime_probe_sha",
+              "core_sha","runner_sha","scientific_workflow_sha","audit_workflow_sha",
+          ):
+              v=str(cfg.get(k,"")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}",v), k
+              print(f"{k}={v}")
+          PY
+
+      - name: Checkout exact merged implementation
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Verify current main and exact protected blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          V2_MODULE_SHA: ${{ steps.cfg.outputs.v2_module_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
+          AUDIT_WORKFLOW_SHA: ${{ steps.cfg.outputs.audit_workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          for spec in \
+            "tam_research/chm_v2_100m_value_projected_eiem.py:$V2_MODULE_SHA" \
+            "tam_research/chm_v1_100m_scale.py:$MODEL_SHA" \
+            "tam_research/chm_v1_100m_stage_c_eval.py:$EVALUATOR_SHA" \
+            "tam_research/chm_v1_100m_stage_c_run_control_prep.py:$PREP_SHA" \
+            "tam_research/modal_dual_account_v3.py:$DUAL_ACCOUNT_SHA" \
+            "scripts/modal_select_account_v3.py:$DUAL_ACCOUNT_CLI_SHA" \
+            "modal_runtime_admission_probe_1067_v1.py:$RUNTIME_PROBE_SHA" \
+            "tam_research/chm_v2_100m_host_staged_preflight.py:$CORE_SHA" \
+            "modal_chm_v2_100m_host_staged_preflight_1133_v1.py:$RUNNER_SHA" \
+            ".github/workflows/modal-chm-v2-100m-host-staged-l4-preflight-1133-v1.yml:$SCIENTIFIC_WORKFLOW_SHA" \
+            ".github/workflows/modal-chm-v2-100m-host-staged-l4-preflight-1133-authority-audit-v1.yml:$AUDIT_WORKFLOW_SHA"
+          do
+            path="${spec%%:*}"; expected="${spec##*:}"
+            test "$(git -C source rev-parse "$SOURCE_SHA:$path")" = "$expected"
+          done
+
+      - name: Verify unique audit and trigger absence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUDIT_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo=os.environ["GITHUB_REPOSITORY"]
+          def exact(title):
+              q=f'repo:{repo} is:issue in:title "{title}"'
+              x=json.loads(subprocess.check_output(["gh","api","search/issues","-X","GET","-f",f"q={q}","-f","per_page=100"],text=True))
+              return [i for i in x["items"] if i["title"]==title]
+          audit=exact("[modal-chm-v2-100m-host-staged-l4-preflight-1133-authority-audit-v1]")
+          assert len(audit)==1 and audit[0]["number"]==int(os.environ["AUDIT_ISSUE"])
+          assert len(exact("[modal-chm-v2-100m-host-staged-l4-preflight-1133-v1]"))==0
+          comments=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/issues/1133/comments?per_page=100"],text=True))
+          assert not any("CHM_V2_100M_HOST_STAGED_CORPUS_L4_FINAL_ENGINEERING_AUTHORITY_V1" in c["body"] for c in comments)
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Select runtime-eligible Modal account
+        id: account
+        run: |
+          cd source
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py \
+            --required-volume tam-research-data \
+            --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+          cd ..
+
+      - name: Freeze selected account evidence
+        id: binding
+        env:
+          ACCOUNT: ${{ steps.account.outputs.selected_account }}
+          WORKSPACE: ${{ steps.account.outputs.selected_workspace_name }}
+          EVIDENCE: ${{ steps.account.outputs.selection_evidence_json }}
+          ALIASES: ${{ steps.account.outputs.secondary_credential_aliases }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import hashlib, os
+          account=os.environ["ACCOUNT"].strip(); workspace=os.environ["WORKSPACE"].strip()
+          evidence=os.environ["EVIDENCE"]; aliases=os.environ.get("ALIASES","").strip()
+          assert account in {"primary","secondary"} and workspace and evidence
+          if account=="secondary":
+              assert "account2" in {x for x in aliases.split(",") if x}, "v1 launch workflow binds secondary to account2 secrets"
+          print(f"selected_modal_account={account}")
+          print(f"selected_modal_workspace={workspace}")
+          print(f"account_selection_evidence_sha256={hashlib.sha256(evidence.encode()).hexdigest()}")
+          print(f"secondary_credential_aliases={aliases}")
+          PY
+
+      - name: Verify selected account, rates, corpus, and unused namespace
+        env:
+          MODAL_TOKEN_ID: ${{ steps.binding.outputs.selected_modal_account == 'secondary' && secrets.MODAL_TOKEN_ID_2 || secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ steps.binding.outputs.selected_modal_account == 'secondary' && secrets.MODAL_TOKEN_SECRET_2 || secrets.MODAL_TOKEN_SECRET }}
+          EXPECTED_WORKSPACE: ${{ steps.binding.outputs.selected_modal_workspace }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          V2_MODULE_SHA: ${{ steps.cfg.outputs.v2_module_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          PREP_SHA: ${{ steps.cfg.outputs.prep_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
+        run: |
+          modal token info
+          ACTUAL="$(python -c 'import modal; print(modal.Workspace.from_context().name)')"
+          test "$ACTUAL" = "$EXPECTED_WORKSPACE"
+          modal billing rates --json > modal-rates.json
+          python - <<'PY'
+          import json
+          r=json.load(open("modal-rates.json",encoding="utf-8"))
+          hourly=float(r["gpu_hour_cost_l4"])+4*float(r["cpu_hour_cost"])+16*float(r["mem_gib_hour_cost"])
+          assert hourly>0 and hourly*0.5<=1.00
+          open("rate.txt","w").write(f"{hourly:.12f}")
+          PY
+          cd source
+          modal run modal_chm_v2_100m_host_staged_preflight_1133_v1.py --phase inspect \
+            --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE" --v2-module-sha "$V2_MODULE_SHA" \
+            --model-sha "$MODEL_SHA" --evaluator-sha "$EVALUATOR_SHA" --prep-sha "$PREP_SHA" \
+            --dual-account-sha "$DUAL_ACCOUNT_SHA" --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA" \
+            --runtime-probe-sha "$RUNTIME_PROBE_SHA" --core-sha "$CORE_SHA" \
+            --runner-sha "$RUNNER_SHA" --workflow-sha "$SCIENTIFIC_WORKFLOW_SHA" | tee ../inspect.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          hits=[x.split("CHM_V2_1133_INSPECT=",1)[1] for x in Path("inspect.log").read_text().splitlines() if "CHM_V2_1133_INSPECT=" in x]
+          assert len(hits)==1
+          s=json.loads(hits[0])
+          assert s["result_namespace_unused"] is True
+          assert s["tokenbin_device_cache_empty"] is True
+          assert s["gpu_allocated"] is False
+          assert s["engineering_attempt_consumed"] is False
+          Path("audit-state.json").write_text(json.dumps(s,indent=2,sort_keys=True))
+          PY
+
+      - name: Record immutable audit on control issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          SCIENTIFIC_WORKFLOW_SHA: ${{ steps.cfg.outputs.scientific_workflow_sha }}
+          AUDIT_WORKFLOW_SHA: ${{ steps.cfg.outputs.audit_workflow_sha }}
+          ACCOUNT: ${{ steps.binding.outputs.selected_modal_account }}
+          WORKSPACE: ${{ steps.binding.outputs.selected_modal_workspace }}
+          EVIDENCE_SHA: ${{ steps.binding.outputs.account_selection_evidence_sha256 }}
+          ALIASES: ${{ steps.binding.outputs.secondary_credential_aliases }}
+        run: |
+          HOURLY="$(cat rate.txt)"
+          cat > audit.md <<EOF
+          CHM_V2_100M_HOST_STAGED_CORPUS_L4_AUTHORITY_AUDIT_V1_PASS
+
+          source_sha=$SOURCE_SHA
+          source_tree=$SOURCE_TREE
+          core_blob=$CORE_SHA
+          runner_blob=$RUNNER_SHA
+          workflow_blob=$SCIENTIFIC_WORKFLOW_SHA
+          audit_workflow_blob=$AUDIT_WORKFLOW_SHA
+          selected_modal_account=$ACCOUNT
+          selected_modal_workspace=$WORKSPACE
+          account_selection_evidence_sha256=$EVIDENCE_SHA
+          secondary_credential_aliases=$ALIASES
+          live_hourly_resource_usd=$HOURLY
+          engineering_seed=1133201
+          result_namespace_unused=true
+          tokenbin_device_cache_empty=true
+          gpu_allocated=false
+          engineering_attempt_consumed=false
+          trigger_authorized=false
+          fresh_scientific_seed_authorized=false
+          scientific_rerun_authorized=false
+          automatic_retry_authorized=false
+          stage_d_authorized=false
+          EOF
+          gh issue comment 1133 --repo "$GITHUB_REPOSITORY" -F audit.md
+          gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --reason completed
