@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab",
+  "task": "systems_block_sweep_scale15m_batch768_ab",
+  "engineering_seed": 20261036,
+  "requires_block8_profile_job_id": "rlt-systems-block8-scale15m-batch768-modal-20260928-aa",
+  "requires_block8_quality_job_id": "rlt-block8-scale15m-paired-4m-modal-20260929-a",
+  "block_sizes": [2, 4, 8],
+  "batch_size": 768,
+  "seq_len": 64,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
