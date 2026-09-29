@@ -160,7 +160,7 @@ def test_protocol_manifest_remains_one_seed_development_only() -> None:
     assert manifest["training"]["micro_batch"] == 4
     assert manifest["training"]["grad_accum"] == 4
     assert manifest["training"]["session_len"] == 1024
-    assert manifest["training"]["soft_retrieval_temperature"] == 0.10
+    assert manifest["training"]["soft_temperature"] == 0.10
     assert manifest["resource_envelope"]["gpu"] == "L4"
     assert manifest["resource_envelope"]["retries"] == 0
     assert manifest["resource_envelope"]["max_compute_usd"] == 6.00
