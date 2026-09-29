@@ -52,7 +52,9 @@ from .chm_v2_100m_value_projected_eiem import (
 )
 
 CONTROL_ISSUE = 1137
-PREREG_ISSUE = 1137\nPARENT_ARCHITECTURE_ISSUE = 1112\nSYSTEMS_EVIDENCE_ISSUE = 1133
+PREREG_ISSUE = 1137
+PARENT_ARCHITECTURE_ISSUE = 1112
+SYSTEMS_EVIDENCE_ISSUE = 1133
 IMPLEMENTATION_PR = 1138
 
 ARCHITECTURE_BASE_SHA = "fb8afc3ba1cc155201c260287be88c194dd97cd3"
@@ -67,7 +69,8 @@ DUAL_ACCOUNT_BLOB = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"
 DUAL_ACCOUNT_CLI_BLOB = "440292942066d0b3d3a71d40ca8495092674ce6c"
 RUNTIME_ADMISSION_PROBE_BLOB = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
 
-SCIENTIFIC_SEED = 2_011_371\nPERMANENTLY_CONSUMED_CHM_V2_SEED = 2_011_121
+SCIENTIFIC_SEED = 2_011_371
+PERMANENTLY_CONSUMED_CHM_V2_SEED = 2_011_121
 PERMANENTLY_CONSUMED_CHM_V1_SEED = 977_001
 TRAIN_STREAM_GENERATOR_SEED = 987_001
 
@@ -99,7 +102,12 @@ def protocol_manifest() -> dict[str, Any]:
         "architecture_base_tree": ARCHITECTURE_BASE_TREE,
         "scientific_seed": SCIENTIFIC_SEED,
         "scientific_seed_authorized": False,
-        "permanently_consumed_chm_v1_seed": PERMANENTLY_CONSUMED_CHM_V1_SEED,\n        "permanently_consumed_chm_v2_seed": PERMANENTLY_CONSUMED_CHM_V2_SEED,\n        "parent_architecture_issue": PARENT_ARCHITECTURE_ISSUE,\n        "systems_evidence_issue": SYSTEMS_EVIDENCE_ISSUE,\n        "host_staged_transport_required": True,\n        "full_source_cuda_cache_authorized": False,
+        "permanently_consumed_chm_v1_seed": PERMANENTLY_CONSUMED_CHM_V1_SEED,
+        "permanently_consumed_chm_v2_seed": PERMANENTLY_CONSUMED_CHM_V2_SEED,
+        "parent_architecture_issue": PARENT_ARCHITECTURE_ISSUE,
+        "systems_evidence_issue": SYSTEMS_EVIDENCE_ISSUE,
+        "host_staged_transport_required": True,
+        "full_source_cuda_cache_authorized": False,
         "phase": PHASE,
         "result_root": RESULT_ROOT,
         "trigger_title": TRIGGER_TITLE,
@@ -167,7 +175,7 @@ def validate_contract() -> dict[str, Any]:
     if SCIENTIFIC_SEED != 2_011_371:
         raise RuntimeError("#1137 reserved development seed drift")
     if SCIENTIFIC_SEED in {PERMANENTLY_CONSUMED_CHM_V1_SEED, PERMANENTLY_CONSUMED_CHM_V2_SEED}:
-        raise RuntimeError("#1137 seed aliases consumed CHM-v1 seed")
+        raise RuntimeError("#1137 seed aliases a consumed scientific seed")
     if TRAINING_TOKENS_PER_MODEL != 33_554_432:
         raise RuntimeError("#1137 token budget drift")
     if TOKENS_PER_OPTIMIZER_STEP != 16_384:
