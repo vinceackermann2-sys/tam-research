@@ -1,0 +1,122 @@
+{
+  "blocks": [
+    {
+      "block_recurrences_per_seq64": 32,
+      "block_size": 2,
+      "first_step_seconds_including_compile": 270.154558406,
+      "fraction_of_transformer_throughput": 0.6426687185788935,
+      "last_loss": 10.87498950958252,
+      "measured_seconds": 0.3860853699999893,
+      "measured_tokens": 98304,
+      "parameters": 15129344,
+      "peak_vram_gb": 36.15445375442505,
+      "tokens_per_second": 254617.26249819493,
+      "transformer_throughput_multiple_vs_block": 1.5560116294616892
+    },
+    {
+      "block_recurrences_per_seq64": 16,
+      "block_size": 4,
+      "first_step_seconds_including_compile": 166.736173403,
+      "fraction_of_transformer_throughput": 0.7938647112355555,
+      "last_loss": 10.874821662902832,
+      "measured_seconds": 0.31255324300002485,
+      "measured_tokens": 98304,
+      "parameters": 15129344,
+      "peak_vram_gb": 35.57151174545288,
+      "tokens_per_second": 314519.212971315,
+      "transformer_throughput_multiple_vs_block": 1.259660475956438
+    },
+    {
+      "block_recurrences_per_seq64": 8,
+      "block_size": 8,
+      "first_step_seconds_including_compile": 80.98510907100001,
+      "fraction_of_transformer_throughput": 0.7890043258838932,
+      "last_loss": 10.874449729919434,
+      "measured_seconds": 0.3144786179999528,
+      "measured_tokens": 98304,
+      "parameters": 15129344,
+      "peak_vram_gb": 35.24094200134277,
+      "tokens_per_second": 312593.5894313004,
+      "transformer_throughput_multiple_vs_block": 1.26742017400188
+    }
+  ],
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_BLOCK_SWEEP_SCALE15M_BATCH768",
+  "derived": {
+    "fastest_block_size": 4,
+    "fastest_block_tokens_per_second": 314519.212971315,
+    "smallest_tested_block_size": 2
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261036,
+  "finished_unix": 1790709247.4452662,
+  "implementation_validation": {
+    "block_size_1_exact_reference_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "future_token_causality_by_block_size": {
+      "2": {
+        "mutated_position_logits_max_abs": 0.7578125,
+        "mutation_index": 37,
+        "passed": true,
+        "prefix_logits_max_abs": 0.0
+      },
+      "4": {
+        "mutated_position_logits_max_abs": 1.109375,
+        "mutation_index": 37,
+        "passed": true,
+        "prefix_logits_max_abs": 0.0
+      },
+      "8": {
+        "mutated_position_logits_max_abs": 0.80078125,
+        "mutation_index": 37,
+        "passed": true,
+        "prefix_logits_max_abs": 0.0
+      }
+    },
+    "parameter_neutral_and_state_schema_equal": true
+  },
+  "interpretation_ceiling": "Engineering-only speed/causality sweep across parameter-neutral block-recurrent RLT variants. Random-token losses are not quality evidence. Use this only to choose a block size for a fresh equal-parameter/equal-token quality experiment.",
+  "job_id": "rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab",
+  "job_source_blob_sha": "afe4c42930dbdb26923648eff44d7212736936fc",
+  "launcher_blob_sha": "891743289a07f307c85d059b06c71ff0c51ab71b",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "0c2e53ce7c2208e322de3a05e3d3e6fea2acfeb9",
+  "profile": {
+    "batch_size": 768,
+    "block_sizes": [
+      2,
+      4,
+      8
+    ],
+    "expected_parameters_each": 15129344,
+    "measured_steps": 2,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790708701.8125803,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 16.26920288000008,
+    "last_loss": 10.872772216796875,
+    "measured_seconds": 0.24812498999995114,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 33.95322132110596,
+    "tokens_per_second": 396187.421508891
+  },
+  "trigger_sha": "b30c0b1be1a0ea708d5cf4de82991de01c632131"
+}
