@@ -1,0 +1,79 @@
+{
+  "architecture": {
+    "block_size": 8,
+    "frozen_reference_token_recurrences_per_seq64": 64,
+    "parameter_neutral": true,
+    "parameters": 15129344,
+    "state_schema_equal_to_frozen_rlt": true,
+    "token_recurrences_per_seq64": 8,
+    "variant": "block_recurrent_rlt"
+  },
+  "block8": {
+    "first_step_seconds_including_compile": 85.90706466799999,
+    "last_loss": 10.875685691833496,
+    "measured_seconds": 0.331127500000008,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 35.24094295501709,
+    "tokens_per_second": 296876.5807732599
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_BLOCK8_SCALE15M_GAP_LE_1_5X",
+  "derived": {
+    "block8_fraction_of_transformer_throughput": 0.7709978603407736,
+    "transformer_throughput_multiple_vs_block8": 1.2970204606767777
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261034,
+  "finished_unix": 1790673206.0031745,
+  "implementation_validation": {
+    "block_size_1_exact_reference_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "block_size_8_future_token_causality": {
+      "mutated_position_logits_max_abs": 0.953125,
+      "mutation_index": 37,
+      "passed": true,
+      "prefix_logits_max_abs": 0.0
+    }
+  },
+  "interpretation_ceiling": "Engineering-only throughput and causality profile for a parameter-neutral block-recurrent RLT research variant. Random-token losses are not quality evidence. block_size=1 must exactly reproduce the frozen RLT; block_size=8 is a deliberate architectural change and requires separate matched training before any scientific quality conclusion.",
+  "job_id": "rlt-systems-block8-scale15m-batch768-modal-20260928-aa",
+  "job_source_blob_sha": "f67caaee0a347b7768beb23e3a2e0448d7040904",
+  "launcher_blob_sha": "b8baf5dedfc5ca97cbf8b1eaff4d361dba190622",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "0c2e53ce7c2208e322de3a05e3d3e6fea2acfeb9",
+  "profile": {
+    "batch_size": 768,
+    "block_size": 8,
+    "expected_parameters_each": 15129344,
+    "measured_steps": 2,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100 80GB PCIe",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790673097.8624144,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 14.274857984000008,
+    "last_loss": 10.874836921691895,
+    "measured_seconds": 0.25529859399999566,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 33.95651817321777,
+    "tokens_per_second": 385054.99955868017
+  },
+  "trigger_sha": "800168646154c0222d9725dc0a747ac7bc8d2648"
+}
