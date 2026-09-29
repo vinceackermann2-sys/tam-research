@@ -1,0 +1,195 @@
+name: CHM-v2 100M consumed OOM read-only attribution v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  inspect:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v2-100m-oom-attribution-1127-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Refuse reruns and resolve immutable payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v2-100m-oom-attribution-1127-v1",
+              "control_issue": 1127,
+              "source_control_issue": 1115,
+              "source_trigger_issue": 1126,
+              "source_seed": 2011121,
+              "source_result_root": "/vol/chm-v2/100m-value-projected-eiem/issue-1115/seed-2011121-v2",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r} != {value!r}"
+          for key in ("source_sha", "source_tree", "runner_sha", "workflow_sha"):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
+              print(f"{key}={value}")
+          PY
+
+      - name: Checkout exact inspector boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Verify current main, tree, runner and workflow
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v2_100m_oom_attribution_1127_v1.py")" = "$RUNNER_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v2-100m-oom-attribution-1127-v1.yml")" = "$WORKFLOW_SHA"
+
+      - name: Verify unique inspector trigger
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo = os.environ["GITHUB_REPOSITORY"]
+          number = int(os.environ["TRIGGER_ISSUE"])
+          title = "[modal-chm-v2-100m-oom-attribution-1127-v1]"
+          query = f'repo:{repo} is:issue in:title "{title}"'
+          found = json.loads(subprocess.check_output(
+              ["gh", "api", "-X", "GET", "search/issues", "-f", f"q={query}", "-f", "per_page=100"],
+              text=True,
+          ))
+          exact = [item for item in found["items"] if item["title"] == title]
+          assert len(exact) == 1, f"exact inspector trigger count={len(exact)}"
+          assert exact[0]["number"] == number
+          control = json.loads(subprocess.check_output(
+              ["gh", "api", f"repos/{repo}/issues/1127"], text=True
+          ))
+          assert control["state"] == "open"
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI only
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Run CPU-only read-only OOM inspector
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          cd source
+          modal run modal_chm_v2_100m_oom_attribution_1127_v1.py \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --runner-sha "$RUNNER_SHA" \
+            --workflow-sha "$WORKFLOW_SHA" | tee ../inspect.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("inspect.log").read_text(encoding="utf-8").splitlines()
+          matches = [
+              line.split("CHM_V2_100M_OOM_ATTRIBUTION=", 1)[1]
+              for line in lines
+              if "CHM_V2_100M_OOM_ATTRIBUTION=" in line
+          ]
+          assert len(matches) == 1, len(matches)
+          state = json.loads(matches[0])
+          assert state["gpu_allocated"] is False
+          assert state["checkpoint_loaded"] is False
+          assert state["writes_performed"] is False
+          assert state["scientific_interpretation"] is False
+          assert state["source_seed_consumed"] is True
+          Path("attribution.json").write_text(
+              json.dumps(state, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          PY
+
+      - name: Record immutable attribution
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          state = json.loads(Path("attribution.json").read_text(encoding="utf-8"))
+          lines = [
+              "CHM_V2_100M_VALUE_PROJECTED_EIEM_OOM_READONLY_ATTRIBUTION_COMPLETE",
+              "",
+              f"inventory_file_count={state['inventory_file_count']}",
+              f"inventory_total_bytes={state['inventory_total_bytes']}",
+              f"failure_error_type={state['markers']['ATTEMPT_FAILURE.json'].get('error_type')}",
+              f"failure_error={state['markers']['ATTEMPT_FAILURE.json'].get('error')}",
+          ]
+          for kind in ("local", "raw_eiem", "vp_eiem"):
+              records = state["checkpoints"][kind]
+              complete = [
+                  str(item["step"])
+                  for item in records
+                  if item["metadata_exists"] and item["checkpoint_exists"]
+              ]
+              metadata_only = [
+                  str(item["step"])
+                  for item in records
+                  if item["metadata_exists"] and not item["checkpoint_exists"]
+              ]
+              checkpoint_only = [
+                  str(item["step"])
+                  for item in records
+                  if item["checkpoint_exists"] and not item["metadata_exists"]
+              ]
+              lines.extend([
+                  f"{kind}_complete_steps={','.join(complete) if complete else 'none'}",
+                  f"{kind}_metadata_only_steps={','.join(metadata_only) if metadata_only else 'none'}",
+                  f"{kind}_checkpoint_only_steps={','.join(checkpoint_only) if checkpoint_only else 'none'}",
+              ])
+          lines.extend([
+              "gpu_allocated_by_inspector=false",
+              "checkpoint_loaded=false",
+              "writes_performed=false",
+              "source_seed_2011121_consumed=true",
+              "scientific_interpretation=false",
+              "retry_authorized=false",
+              "stage_d_authorized=false",
+              "",
+              "This is infrastructure attribution only. Any memory correction/fresh-seed run requires separate preregistration.",
+          ])
+          Path("comment.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+          gh issue comment 1127 --repo "$GITHUB_REPOSITORY" -F comment.md
+          gh issue close 1127 --repo "$GITHUB_REPOSITORY" --reason completed
+          gh issue close "$TRIGGER_ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed
