@@ -119,6 +119,8 @@ jobs:
             test "$(git -C source rev-parse "$SOURCE_SHA:$path")" = "$expected"
             test "$(git -C source rev-parse "$LIVE_MAIN:$path")" = "$expected"
           done
+          test "$CORE_SHA" = "3d8da59bc09552954d6c15270266b7cc4fd0738e"
+          test "$RUNNER_SHA" = "f8be5c97eb7da4538565e3e08bd6591907a92505"
 
       - name: Verify final authority and unique post-authority trigger
         env:
