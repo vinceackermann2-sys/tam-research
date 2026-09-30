@@ -1,0 +1,314 @@
+{
+  "base_trainer_blob_sha": "0fb04fd23da959febd152a7d3239569ea59fccbc",
+  "block_model_blob_sha": "0c2e53ce7c2208e322de3a05e3d3e6fea2acfeb9",
+  "branch": "exp/rlt-colab",
+  "checkpoint_durability": {
+    "modal_volume_committed": true,
+    "remote_dir": "rlt-block4-scale15m-paired-4m-modal-20260930-b",
+    "rlt": {
+      "bytes": 181587467,
+      "filename": "rlt_final.pt",
+      "sha256": "a35704f3a558be93ba561495ed0497e12538da090fea8f9c8a14c9d4f4b2e6c4"
+    },
+    "transformer": {
+      "bytes": 181589307,
+      "filename": "transformer_final.pt",
+      "sha256": "6e580bb88f572a9e42d01ffd493f92e014caca50ad8d38e87007daf4347b71c8"
+    },
+    "volume": "tam-rlt-block4-scale15m-checkpoints-b-account2"
+  },
+  "checkpoint_export": {
+    "github_artifact_digest": "b15212d4393f014db747c4d475a8e7e2778b29889a19456d2ae4591added0654",
+    "github_artifact_id": "11084817208",
+    "github_artifact_name": "rlt-block4-scale15m-paired-4m-modal-20260930-b-checkpoints",
+    "github_artifact_upload_outcome": "success",
+    "github_run_id": "36688010409",
+    "modal_volume_get_outcome": "success"
+  },
+  "comparison": {
+    "architecture_test": {
+      "block4_parameters": 15129344,
+      "block_recurrences_per_seq64": 16,
+      "block_size": 4,
+      "parameter_delta": 0,
+      "parameter_delta_fraction": 0.0,
+      "rlt_d_model": 256,
+      "rlt_stages": 2,
+      "token_recurrences_in_frozen_rlt_per_seq64": 64,
+      "transformer_d_model": 256,
+      "transformer_ff_inner": 938,
+      "transformer_layers": 3,
+      "transformer_parameters": 15129344,
+      "variant": "block_recurrent_rlt"
+    },
+    "breakthrough_claim_supported": false,
+    "classification": "PAIRED_BLOCK4_SCALE15M_4M_NO_RLT_QUALITY_ADVANTAGE",
+    "compile_probe_seed": 20301039,
+    "derived": {
+      "effective_transformer_throughput_multiple_vs_rlt_including_compile_and_eval": 4.522708779831141,
+      "evaluation_points_total": 5,
+      "evaluation_points_where_rlt_lower_nll": [],
+      "rlt_minus_transformer_final_nll": 0.022173352539539337,
+      "rlt_minus_transformer_final_perplexity": 12.88522806042647,
+      "steady_state_transformer_throughput_multiple_vs_rlt": 3.67400299487004,
+      "transformer_parameter_delta_fraction": 0.0
+    },
+    "interpretation_ceiling": "Fresh-seed exact-parameter/equal-token 4M comparison of the parameter-neutral block-recurrent RLT variant (block_size=4) against the matched Transformer. This tests whether the systems speedup preserves useful quality at the established 15.1M scale. A single positive seed is only a hint; it requires replication and longer-budget testing before any practical or breakthrough claim.",
+    "matched_conditions": {
+      "compile_dynamic": false,
+      "compile_fullgraph": true,
+      "compile_mode": "default",
+      "cuda_graphs": false,
+      "eval_batches_per_checkpoint": 64,
+      "evaluation_fractions": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "grad_accum_steps": 1,
+      "learning_rate": 0.0003,
+      "micro_batch_size": 16,
+      "optimizer_steps": 4096,
+      "same_batch_stream": true,
+      "same_eval_stream": true,
+      "same_model_seed": true,
+      "seq_len": 64,
+      "token_budget": 4194304,
+      "warmup_ratio": 0.02,
+      "weight_decay": 0.1
+    },
+    "paired_batch_seed": 20271039,
+    "paired_eval_seed": 20291039,
+    "rlt": {
+      "checkpoint": {
+        "bytes": 181587467,
+        "filename": "rlt_final.pt",
+        "sha256": "a35704f3a558be93ba561495ed0497e12538da090fea8f9c8a14c9d4f4b2e6c4"
+      },
+      "compile": {
+        "loss": 10.883050918579102,
+        "peak_vram_gb": 0.8482580184936523,
+        "seconds_forward_backward_no_update": 72.108254348
+      },
+      "config": {
+        "d_model": 256,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 8,
+        "n_stages": 2,
+        "rms_eps": 1e-06,
+        "swa_window": 32,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 24634.412848479085,
+      "final_eval": {
+        "eval_tokens": 65536,
+        "nll": 6.376011781394482,
+        "perplexity": 587.5796324298823,
+        "seconds": 0.588945544000012,
+        "step": 4096,
+        "tokens_seen": 4194304
+      },
+      "last_train_loss": 6.217592716217041,
+      "learning_curve": [
+        {
+          "eval_tokens": 65536,
+          "nll": 10.88450787961483,
+          "perplexity": 53343.524923882025,
+          "seconds": 32.91218513199999,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.73088039457798,
+          "perplexity": 837.8846103974588,
+          "seconds": 0.5855651090000151,
+          "step": 1024,
+          "tokens_seen": 1048576
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.514221355319023,
+          "perplexity": 674.6684299641269,
+          "seconds": 0.592440866000004,
+          "step": 2048,
+          "tokens_seen": 2097152
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.419834420084953,
+          "perplexity": 613.9014559585839,
+          "seconds": 0.5908327590000226,
+          "step": 3072,
+          "tokens_seen": 3145728
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.376011781394482,
+          "perplexity": 587.5796324298823,
+          "seconds": 0.588945544000012,
+          "step": 4096,
+          "tokens_seen": 4194304
+        }
+      ],
+      "parameters": 15129344,
+      "status": "complete",
+      "steps": 4096,
+      "tokens_per_second_excluding_compile_and_eval": 43783.732127137046,
+      "tokens_seen": 4194304,
+      "train_peak_vram_gb": 0.964179515838623,
+      "train_seconds_excluding_scheduled_eval": 95.79594511999997,
+      "wall_seconds_training_and_scheduled_eval": 98.15372939800002
+    },
+    "scientific_seed": 20261039,
+    "semantic_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "status": "complete",
+    "transformer": {
+      "checkpoint": {
+        "bytes": 181589307,
+        "filename": "transformer_final.pt",
+        "sha256": "6e580bb88f572a9e42d01ffd493f92e014caca50ad8d38e87007daf4347b71c8"
+      },
+      "compile": {
+        "loss": 10.850234985351562,
+        "peak_vram_gb": 0.8238515853881836,
+        "seconds_forward_backward_no_update": 10.994672732999987
+      },
+      "config": {
+        "architecture": "transformer",
+        "d_model": 256,
+        "ff_inner": 938,
+        "ff_mult": 4,
+        "max_seq_len": 128,
+        "n_heads": 8,
+        "n_layers": 3,
+        "tamv2_branch_inner": 104,
+        "tamv2_state_size": 64,
+        "tamv3_attn_inner": 208,
+        "vocab_size": 50257
+      },
+      "effective_tokens_per_second_including_compile_and_eval": 111414.27527580142,
+      "final_eval": {
+        "eval_tokens": 65536,
+        "nll": 6.353838428854942,
+        "perplexity": 574.6944043694558,
+        "seconds": 0.144637911000018,
+        "step": 4096,
+        "tokens_seen": 4194304
+      },
+      "last_train_loss": 6.190787315368652,
+      "learning_curve": [
+        {
+          "eval_tokens": 65536,
+          "nll": 10.87318405508995,
+          "perplexity": 52742.879428534914,
+          "seconds": 4.664563497999978,
+          "step": 0,
+          "tokens_seen": 0
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.714769005775452,
+          "perplexity": 824.4932917104356,
+          "seconds": 0.14372120199999472,
+          "step": 1024,
+          "tokens_seen": 1048576
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.505835384130478,
+          "perplexity": 669.0343366386442,
+          "seconds": 0.14604940899999974,
+          "step": 2048,
+          "tokens_seen": 2097152
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.4012062177062035,
+          "perplexity": 602.5714320198225,
+          "seconds": 0.14294086900002867,
+          "step": 3072,
+          "tokens_seen": 3145728
+        },
+        {
+          "eval_tokens": 65536,
+          "nll": 6.353838428854942,
+          "perplexity": 574.6944043694558,
+          "seconds": 0.144637911000018,
+          "step": 4096,
+          "tokens_seen": 4194304
+        }
+      ],
+      "parameters": 15129344,
+      "status": "complete",
+      "steps": 4096,
+      "tokens_per_second_excluding_compile_and_eval": 160861.56296168908,
+      "tokens_seen": 4194304,
+      "train_peak_vram_gb": 0.9365835189819336,
+      "train_seconds_excluding_scheduled_eval": 26.073997558999963,
+      "wall_seconds_training_and_scheduled_eval": 26.651346950000004
+    }
+  },
+  "data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 20260924,
+    "tokenizer": "gpt2",
+    "train_tokens": 6000000,
+    "val_tokens": 500000
+  },
+  "data_hashes_match_claim": true,
+  "data_sha256": {
+    "train.bin": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val.bin": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "exact_parameter_match_verified": true,
+  "finished_unix": 1790756180.199162,
+  "job": {
+    "automatic_retry": false,
+    "checkpoint_volume": "tam-rlt-block4-scale15m-checkpoints-b-account2",
+    "expected_parameters_each": 15129344,
+    "grad_accum_steps": 1,
+    "job_id": "rlt-block4-scale15m-paired-4m-modal-20260930-b",
+    "micro_batch_size": 16,
+    "requires_block_sweep_job_id": "rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab",
+    "requires_optimizer_tuned_compute_match_job_id": "rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a",
+    "requires_prior_block4_job_id": "rlt-block4-scale15m-paired-4m-modal-20260929-a",
+    "requires_reference_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+    "schema": 1,
+    "scientific_seed": 20261039,
+    "seq_len": 64,
+    "task": "block4_scale15m_paired_4m_b",
+    "token_budget": 4194304,
+    "train_tokens": 6000000,
+    "training_data_seed": 20260924,
+    "val_tokens": 500000
+  },
+  "job_id": "rlt-block4-scale15m-paired-4m-modal-20260930-b",
+  "job_source_blob_sha": "a2cdec66e5c92591ed9a15b167fde9eea31b6c53",
+  "launcher_blob_sha": "b967264d8b898972a61c47bedc588808c8783f43",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790755898.783132,
+  "status": "complete",
+  "trainer_blob_sha": "2de1a8dfaaeac4d95f7cf01cda47c14ffaade0b2",
+  "trigger_sha": "c97090410636471c7f06c76d4c7aacbf72455619",
+  "worker": "modal"
+}
