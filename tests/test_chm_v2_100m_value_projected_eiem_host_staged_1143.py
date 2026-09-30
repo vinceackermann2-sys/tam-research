@@ -91,7 +91,7 @@ def test_core_grants_no_gpu_training_trigger_or_seed_consumption_authority() -> 
         {"gpu": True},
         {"training": True},
         {"trigger_creation": True},
-        {"seed_consumption": True},
+        {"scientific_seed_consumption": True},
     ):
         with pytest.raises(RuntimeError):
             assert_no_execution_authority(**kwargs)
