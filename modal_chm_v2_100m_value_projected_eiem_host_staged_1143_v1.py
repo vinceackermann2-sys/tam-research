@@ -1047,7 +1047,7 @@ def run_scientific(
             EXPECTED_VP_EIEM_PARAMETERS,
             classify_development_gate,
         )
-        from tam_research.chm_v2_100m_value_projected_eiem_host_staged_rerun import (
+        from tam_research.chm_v2_100m_value_projected_eiem_host_staged_1143 import (
             plan_digest,
             summarize_three_way_probe_rows,
             training_plan_for_tokens,
