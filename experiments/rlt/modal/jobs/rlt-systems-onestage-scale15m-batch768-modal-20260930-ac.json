@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-onestage-scale15m-batch768-modal-20260930-ac",
+  "task": "systems_onestage_scale15m_batch768_ac",
+  "engineering_seed": 20261040,
+  "requires_reference_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+  "requires_block4_replication_job_id": "rlt-block4-scale15m-paired-4m-modal-20260930-b",
+  "requires_reference_batch768_job_id": "rlt-systems-scale15m-batch768-modal-20260926-n",
+  "batch_size": 768,
+  "seq_len": 64,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
