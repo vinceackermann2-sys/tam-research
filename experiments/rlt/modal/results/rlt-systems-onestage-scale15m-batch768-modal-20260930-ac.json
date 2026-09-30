@@ -1,0 +1,81 @@
+{
+  "architecture": {
+    "d_model": 256,
+    "decoder_stage_applications_per_seq64": 64,
+    "ff_inner": 3073,
+    "frozen_two_stage_decoder_stage_applications_per_seq64": 128,
+    "n_heads": 8,
+    "n_stages": 1,
+    "parameters": 15129344,
+    "state_gate_parameters": 256,
+    "state_schema_parameter_count": 19,
+    "token_recurrences_per_seq64": 64,
+    "variant": "one_stage_token_recurrent_rlt"
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_ONESTAGE_SCALE15M_GAP_GT_2X",
+  "derived": {
+    "rlt_fraction_of_transformer_throughput": 0.4556948789070527,
+    "transformer_throughput_multiple_vs_rlt": 2.194450818491573
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261040,
+  "finished_unix": 1790772349.4481812,
+  "interpretation_ceiling": "Engineering-only throughput/causality profile for an exact-parameter one-stage token-recurrent RLT. Random-token losses are not quality evidence. A matched equal-token training run is required before any scientific conclusion.",
+  "job_id": "rlt-systems-onestage-scale15m-batch768-modal-20260930-ac",
+  "job_source_blob_sha": "6f91e3c942bdfa73a9672b9f90680dc8bd09b51b",
+  "launcher_blob_sha": "a5b70c6a8fe78e5dd68ff4f3dea1223282573108",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "24714d75af830f5cb47ef1326928ef57a86cb509",
+  "profile": {
+    "batch_size": 768,
+    "measured_steps": 2,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "rlt": {
+    "first_step_seconds_including_compile": 326.104355162,
+    "last_loss": 10.874279975891113,
+    "measured_seconds": 0.54857039999996,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 35.678966999053955,
+    "tokens_per_second": 179200.33600064306
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790772001.4836311,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 14.066723884999988,
+    "last_loss": 10.873303413391113,
+    "measured_seconds": 0.24998072199997523,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 33.83961534500122,
+    "tokens_per_second": 393246.32401057606
+  },
+  "trigger_sha": "e20c8517946ad77944671ff7b2f6777b7d5ab46c",
+  "validation": {
+    "exact_parameter_match": true,
+    "future_token_causality": {
+      "mutated_position_logits_max_abs": 0.9140625,
+      "mutation_index": 37,
+      "passed": true,
+      "prefix_logits_max_abs": 0.0
+    },
+    "state_gate_active": {
+      "grad_l1": 0.3377990126609802,
+      "grad_max_abs": 0.005029059946537018,
+      "passed": true
+    }
+  }
+}
