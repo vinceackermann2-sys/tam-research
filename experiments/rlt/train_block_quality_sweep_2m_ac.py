@@ -79,6 +79,9 @@ def train_block_quality_sweep_2m_ac(
     base.PAIRED_EVAL_SEED = PAIRED_EVAL_SEED
     base.COMPILE_PROBE_SEED = COMPILE_PROBE_SEED
     base.TOKEN_BUDGET = TOKEN_BUDGET
+    base.SEQ_LEN = seq_len
+    base.MICRO_BATCH_SIZE = micro_batch_size
+    base.GRAD_ACCUM_STEPS = grad_accum_steps
     base.EVAL_BATCHES = EVAL_BATCHES
     base.rlt_config = rlt_config
     base.transformer_config = transformer_config
