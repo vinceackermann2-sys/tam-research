@@ -16,7 +16,7 @@ from tam_research.chm_v2_100m_value_projected_eiem_host_staged_1143 import (
     assert_no_execution_authority,
     protocol_manifest,
     validate_contract,
-    validate_seed_request,
+    validate_seed_for_preparation,
 )
 
 
@@ -77,12 +77,12 @@ def test_successor_identity_is_fresh_and_has_no_execution_authority() -> None:
 
 
 def test_consumed_scientific_seeds_are_explicitly_refused() -> None:
-    assert validate_seed_request(FRESH_SEED, request_execution=False) == FRESH_SEED
+    assert validate_seed_for_preparation(FRESH_SEED, request_execution=False) == FRESH_SEED
     for consumed in (977_001, 2_011_121, 2_011_371):
         with pytest.raises(RuntimeError, match="consumed"):
-            validate_seed_request(consumed, request_execution=False)
+            validate_seed_for_preparation(consumed, request_execution=False)
     with pytest.raises(RuntimeError, match="grants no scientific execution authority"):
-        validate_seed_request(FRESH_SEED, request_execution=True)
+        validate_seed_for_preparation(FRESH_SEED, request_execution=True)
 
 
 def test_core_grants_no_gpu_training_trigger_or_seed_consumption_authority() -> None:
