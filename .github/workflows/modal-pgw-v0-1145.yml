@@ -1,0 +1,138 @@
+name: PGW-v0 25M matched Transformer screen
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  pgw:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-pgw-v0-25m-1145]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_LOW_CREDIT_ACCOUNT: ${{ secrets.MODAL_LOW_CREDIT_ACCOUNT }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Validate immutable trigger
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          TRIGGER_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re, subprocess
+          cfg=json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          assert cfg.get("phase") == "pgw-v0-25m-full-screen-1145"
+          assert cfg.get("prereg_issue") == 1145
+          source=str(cfg.get("source_sha","")).lower()
+          assert re.fullmatch(r"[0-9a-f]{40}", source)
+          repo=os.environ["GITHUB_REPOSITORY"]
+          title="[modal-pgw-v0-25m-1145]"
+          q=f'repo:{repo} is:issue in:title "{title}"'
+          found=json.loads(subprocess.check_output(
+              ["gh","api","search/issues","-X","GET","-f",f"q={q}","-f","per_page=100"],
+              text=True,
+          ))
+          hits=[x for x in found["items"] if x["title"]==title]
+          trigger=int(os.environ["TRIGGER_NUMBER"])
+          assert len(hits)==1 and hits[0]["number"]==trigger, hits
+          print(f"source_sha={source}")
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Verify source ancestry and PGW contract
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor 3fd7229531ae2fa99c3a98f34118eecb34014112 "$SOURCE_SHA"
+          python - <<'PY'
+          from tam_research.pgw_v0.protocol import (
+              ISSUE, SMOKE_SEED, REPLICATION_SEEDS, TRIGGER_TITLE
+          )
+          assert ISSUE == 1145
+          assert SMOKE_SEED == 1145001
+          assert REPLICATION_SEEDS == (1145101,1145102,1145103)
+          assert TRIGGER_TITLE == "[modal-pgw-v0-25m-1145]"
+          PY
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Run PGW CPU contract before paid compute
+        run: |
+          pip install -e '.[test]'
+          pytest -q tests/test_pgw_v0_1145.py
+
+      - name: Install Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Select an eligible Modal account
+        id: account
+        run: |
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py             --required-volume tam-research-data             --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+
+      - name: Activate selected Modal account
+        env:
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+          SECONDARY_CREDENTIAL_ALIASES: ${{ steps.account.outputs.secondary_credential_aliases }}
+        run: |
+          if [ "$SELECTED_MODAL_ACCOUNT" = "primary" ]; then
+            printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET" >> "$GITHUB_ENV"
+          elif [ "$SELECTED_MODAL_ACCOUNT" = "secondary" ]; then
+            case ",$SECONDARY_CREDENTIAL_ALIASES," in
+              *,secondary,*) SECONDARY_ID="$MODAL_TOKEN_ID_SECONDARY"; SECONDARY_SECRET="$MODAL_TOKEN_SECRET_SECONDARY" ;;
+              *,account2,*) SECONDARY_ID="$MODAL_TOKEN_ID_2"; SECONDARY_SECRET="$MODAL_TOKEN_SECRET_2" ;;
+              *,legacy_b,*) SECONDARY_ID="$MODAL_TOKEN_ID_B"; SECONDARY_SECRET="$MODAL_TOKEN_SECRET_B" ;;
+              *) echo "No resolved secondary credential alias" >&2; exit 93 ;;
+            esac
+            test -n "$SECONDARY_ID"; test -n "$SECONDARY_SECRET"
+            printf 'MODAL_TOKEN_ID=%s\n' "$SECONDARY_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$SECONDARY_SECRET" >> "$GITHUB_ENV"
+          else
+            echo "No eligible Modal account selected" >&2
+            exit 92
+          fi
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record launch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body             "PGW-v0 launcher validated CPU contracts and selected Modal account `$SELECTED_MODAL_ACCOUNT`. Launching the preregistered H100 smoke → conditional replication from `$SOURCE_SHA`."
+
+      - name: Run one-shot PGW screen
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+        run: |
+          modal run --timestamps modal_pgw_v0_app.py             --repo-full-name "$GITHUB_REPOSITORY"             --issue-number "$ISSUE_NUMBER"             --source-sha "$SOURCE_SHA"
