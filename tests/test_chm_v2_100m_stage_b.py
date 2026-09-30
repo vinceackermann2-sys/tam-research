@@ -197,7 +197,18 @@ def test_runner_has_one_shot_gpu_boundary_and_no_scientific_seed_surface() -> No
     assert '"automatic_retry_authorized": False' in source
     assert "torch.compile" not in source
     assert "977_001" in source
-    assert "scientific_seed =" not in source.lower()
+
+    tree = ast.parse(source)
+    assigned_names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    assigned_names.add(target.id)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            assigned_names.add(node.target.id)
+    assert "scientific_seed" not in assigned_names
+    assert "SCIENTIFIC_SEED" not in assigned_names
 
 
 def test_runner_regenerates_cpu_plan_for_each_model_and_requires_identity() -> None:
