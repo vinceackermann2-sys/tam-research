@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "analysis_id": "rlt-block4-scale15m-4m-ab-aggregate-20260930-a",
+  "status": "complete",
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "source_jobs": [
+    "rlt-block4-scale15m-paired-4m-modal-20260929-a",
+    "rlt-block4-scale15m-paired-4m-modal-20260930-b"
+  ],
+  "exact_parameter_match": {
+    "block4_parameters": 15129344,
+    "transformer_parameters": 15129344,
+    "parameter_delta": 0
+  },
+  "deltas_rlt_minus_transformer_nll": [
+    0.010018035769462585,
+    0.022173352539539337
+  ],
+  "aggregate_across_model_seeds": {
+    "pair_count": 2,
+    "rlt_lower_pair_count": 0,
+    "transformer_lower_pair_count": 2,
+    "mean_rlt_minus_transformer_nll": 0.01609569415450096,
+    "sample_sd": 0.008595106915591833,
+    "standard_error": 0.006077658385038375,
+    "t95_ci_df1": [
+      -0.06112827760388988,
+      0.0933196659128918
+    ]
+  },
+  "interpretation_ceiling": "Both independent 4M block-size-4 seeds have higher validation NLL than the exact-parameter Transformer. With only two seeds, the seed-level t interval is broad; this is replicated directional evidence against an equal-token quality advantage at this scale, not a universal architecture conclusion."
+}
