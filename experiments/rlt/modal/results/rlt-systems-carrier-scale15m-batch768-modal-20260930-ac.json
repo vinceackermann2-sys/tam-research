@@ -1,0 +1,73 @@
+{
+  "architecture": {
+    "expensive_decoder_stages_inside_recurrence": 0,
+    "parallel_decoder_stages": 2,
+    "parameter_neutral": true,
+    "parameters": 15129344,
+    "state_schema_equal_to_frozen_rlt": true,
+    "token_recurrent_carrier_updates_per_seq64": 64,
+    "variant": "token_carrier_recurrent_rlt"
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "carrier": {
+    "first_step_seconds_including_compile": 71.427399208,
+    "last_loss": 10.876797676086426,
+    "measured_seconds": 0.26116173300000867,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 34.66761350631714,
+    "tokens_per_second": 376410.4291649678
+  },
+  "classification": "PASS_CARRIER_SCALE15M_GAP_LE_1_25X",
+  "derived": {
+    "carrier_fraction_of_transformer_throughput": 0.9446415336813139,
+    "transformer_throughput_multiple_vs_carrier": 1.0586026173367071
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261040,
+  "finished_unix": 1790759334.7464724,
+  "implementation_validation": {
+    "future_token_causality_and_state_propagation": {
+      "downstream_logits_max_abs": 0.6328125,
+      "mutated_position_logits_max_abs": 0.76171875,
+      "mutation_index": 37,
+      "passed": true,
+      "prefix_logits_max_abs": 0.0
+    }
+  },
+  "interpretation_ceiling": "Engineering-only throughput/causality profile for a parameter-neutral token-carrier recurrent RLT variant. It preserves one recurrent carrier update per token while moving the expensive shared decoder stages out of the serial recurrence. Random-token losses are not quality evidence.",
+  "job_id": "rlt-systems-carrier-scale15m-batch768-modal-20260930-ac",
+  "job_source_blob_sha": "356387e7217680716017c2ce7538febd2dab71da",
+  "launcher_blob_sha": "0fca07f131287ec411228ad3191f0e310aa0fc5a",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "216f6e9dd8d27558834d90f14143b3e896935d0e",
+  "profile": {
+    "batch_size": 768,
+    "expected_parameters_each": 15129344,
+    "measured_steps": 2,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790759245.8215923,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 10.726202428000008,
+    "last_loss": 10.873295783996582,
+    "measured_seconds": 0.24670421999999803,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 33.72674083709717,
+    "tokens_per_second": 398469.06550686806
+  },
+  "trigger_sha": "aac2deee15a792c43265f08356647e04ae681ebe"
+}
