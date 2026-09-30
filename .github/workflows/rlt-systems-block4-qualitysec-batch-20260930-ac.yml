@@ -1,0 +1,337 @@
+name: RLT systems block4 exact15M quality-sec batch calibration 20260930 AC
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-systems-block4-qualitysec-batch-20260930-ac.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-systems-block4-qualitysec-batch-20260930-ac
+  cancel-in-progress: false
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-systems-block4-qualitysec-batch-modal-20260930-ac
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-systems-block4-qualitysec-batch-modal-20260930-ac.json
+      LAUNCHER_PATH: experiments/rlt/modal_block4_qualitysec_batch_calibration_ac.py
+      BLOCK_SWEEP_PATH: experiments/rlt/modal/results/rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab.json
+      BLOCK4_AGG_PATH: experiments/rlt/analysis/rlt-block4-scale15m-4m-ab-aggregate-20260930-a.json
+      OPTIMIZER_TUNED_PATH: experiments/rlt/modal/results/rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-block4-qualitysec-batch-20260930-ac.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-block4-qualitysec-batch-modal-20260930-ac.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-systems-block4-qualitysec-batch-modal-20260930-ac.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse previously claimed or completed calibration attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          {
+            echo "JOB_BLOB_SHA=$JOB_BLOB_SHA"
+            echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA"
+          } >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" >/tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-systems-block4-qualitysec-batch-modal-20260930-ac',
+            'task':'systems_block4_qualitysec_batch_ac',
+            'engineering_seed':20261040,'batch_seed':20271040,'eval_seed':20291040,
+            'requires_block_sweep_job_id':'rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab',
+            'requires_block4_aggregate_id':'rlt-block4-scale15m-4m-ab-aggregate-20260930-a',
+            'requires_optimizer_tuned_compute_match_job_id':'rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a',
+            'batch_sizes':[64,128,256,512],'time_budget_seconds_each':60.0,
+            'seq_len':64,'train_tokens':6000000,'val_tokens':500000,
+            'training_data_seed':20260924,'expected_parameters_each':15129344,
+            'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require block4 systems evidence, replicated equal-token deficit, and practical baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$BLOCK_SWEEP_PATH" >/tmp/ab.json
+          git show "origin/$BRANCH:$BLOCK4_AGG_PATH" >/tmp/agg.json
+          git show "origin/$BRANCH:$OPTIMIZER_TUNED_PATH" >/tmp/y.json
+          python - <<'PY'
+          import json
+          ab=json.load(open('/tmp/ab.json'))
+          assert ab.get('job_id')=='rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab',ab
+          assert ab.get('status')=='complete' and ab.get('engineering_only') is True,ab
+          assert ab.get('scientific_execution') is False,ab
+          assert ab.get('classification')=='PASS_BLOCK_SWEEP_SCALE15M_BATCH768',ab
+          assert ab['implementation_validation']['block_size_1_exact_reference_equivalence']['passed'] is True,ab
+          assert ab['implementation_validation']['future_token_causality_by_block_size']['4']['passed'] is True,ab
+          rows={int(x['block_size']):x for x in ab['blocks']}
+          b4=rows[4]
+          assert b4['parameters']==15129344,b4
+          assert float(b4['transformer_throughput_multiple_vs_block']) < 1.35,b4
+
+          agg=json.load(open('/tmp/agg.json'))
+          assert agg.get('analysis_id')=='rlt-block4-scale15m-4m-ab-aggregate-20260930-a',agg
+          assert agg.get('status')=='complete' and agg.get('scientific_execution') is False,agg
+          aa=agg['aggregate_across_model_seeds']
+          assert aa['pair_count']==2 and aa['rlt_lower_pair_count']==0 and aa['transformer_lower_pair_count']==2,aa
+          assert float(aa['mean_rlt_minus_transformer_nll'])>0.0,aa
+          ep=agg['exact_parameter_match']
+          assert ep['block4_parameters']==15129344 and ep['transformer_parameters']==15129344 and ep['parameter_delta']==0,ep
+
+          y=json.load(open('/tmp/y.json'))
+          assert y.get('job_id')=='rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a',y
+          assert y.get('status')=='complete' and y.get('data_hashes_match_claim') is True,y
+          assert y.get('exact_parameter_match_verified') is True and y.get('compute_budget_protocol_verified') is True,y
+          yc=y['comparison']
+          assert yc['classification']=='COMPUTE_MATCHED_OPTIMIZER_TUNED_SCALE15M_60S_NO_RLT_QUALITY_ADVANTAGE',yc
+          assert float(yc['derived']['rlt_minus_transformer_final_nll'])>0.0,yc
+          PY
+
+      - name: Install zero-GPU dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check             'modal>=1.5.4,<1.6' 'numpy>=2.0,<3' 'datasets>=4.0,<5'             'transformers>=4.55,<5' 'tokenizers>=0.21,<1' 'huggingface-hub>=0.34,<1'
+
+      - name: Select Modal account 2 before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLOT=""; ID=""; SECRET=""
+          if [ -n "${MODAL_TOKEN_ID_2:-}" ] && [ -n "${MODAL_TOKEN_SECRET_2:-}" ]; then
+            SLOT="2"; ID="$MODAL_TOKEN_ID_2"; SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "${MODAL_TOKEN_ID_B:-}" ] && [ -n "${MODAL_TOKEN_SECRET_B:-}" ]; then
+            SLOT="B"; ID="$MODAL_TOKEN_ID_B"; SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+            SLOT="A"; ID="$MODAL_TOKEN_ID_A"; SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID"; test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID"; export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          {
+            echo "MODAL_ACCOUNT_SLOT=$SLOT"
+            echo "MODAL_TOKEN_ID=$ID"
+            echo "MODAL_TOKEN_SECRET=$SECRET"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate block4 quality-sec calibration source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$LAUNCHER_PATH" experiments/rlt/modal_preflight.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('experiments/rlt/modal_block4_qualitysec_batch_calibration_ac.py').read_text()
+          for x in [
+            'JOB_ID = "rlt-systems-block4-qualitysec-batch-modal-20260930-ac"',
+            'ENGINEERING_SEED = 20_261_040','BATCH_SEED = 20_271_040','EVAL_SEED = 20_291_040',
+            'BATCH_SIZES = (64, 128, 256, 512)','TIME_BUDGET_SECONDS = 60.0',
+            'EXPECTED_PARAMETERS = 15_129_344','d_model=256','n_stages=2',
+            'FixedBlock4RLT','CompilableBlockRLT',
+            'cosine_by_elapsed_post_compile_training_time','eager_no_grad',
+            'PASS_SCALE15M_BLOCK4_QUALITYSEC_BATCH_CALIBRATION',
+            'RLT_SYSTEMS_BLOCK4_QUALITYSEC_BATCH_AC_RESULT_B64=',
+            'gpu="A100-80GB"','retries=0',
+          ]: assert x in s,x
+          PY
+
+      - name: Reproduce D data bytes before claim
+        shell: bash
+        run: |
+          set +e
+          python - <<'PY'
+          import hashlib,json,pathlib
+          import numpy as np
+          from datasets import load_dataset
+          from transformers import AutoTokenizer
+          train_tokens=6000000; val_tokens=500000; seed=20260924
+          tok=AutoTokenizer.from_pretrained('gpt2',use_fast=True)
+          stream=load_dataset('HuggingFaceFW/fineweb-edu',name='sample-10BT',split='train',streaming=True)
+          stream=stream.shuffle(seed=seed,buffer_size=10000)
+          target=train_tokens+val_tokens
+          chunks=[]; total=0
+          for row in stream:
+              text=row.get('text') or ''
+              if not text: continue
+              ids=tok.encode(text,add_special_tokens=False); ids.append(tok.eos_token_id)
+              a=np.asarray(ids,dtype=np.uint16); chunks.append(a); total+=len(a)
+              if total>=target: break
+          assert total>=target,(total,target)
+          all_tokens=np.concatenate(chunks)[:target]
+          tp=pathlib.Path('/tmp/s-train.bin'); vp=pathlib.Path('/tmp/s-val.bin')
+          all_tokens[:train_tokens].tofile(tp); all_tokens[train_tokens:].tofile(vp)
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for x in iter(lambda:f.read(8*1024*1024),b''): h.update(x)
+              return h.hexdigest()
+          th,vh=sha(tp),sha(vp)
+          assert th=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907',th
+          assert vh=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2',vh
+          pathlib.Path('/tmp/s-data.json').write_text(json.dumps({
+            'seed':seed,'train_sha256':th,'val_sha256':vh,
+            'train_tokens':train_tokens,'val_tokens':val_tokens
+          },indent=2,sort_keys=True)+'\n')
+          PY
+          RC=$?
+          set -e
+          test -f /tmp/s-data.json
+          if [ "$RC" -ne 0 ] && [ "$RC" -ne 134 ]; then exit "$RC"; fi
+
+      - name: Run non-GPU Modal preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Commit calibration preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          p.update({
+            'classification':'RLT_SYSTEMS_BLOCK4_QUALITYSEC_BATCH_AC_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],'engineering_only':True,
+            'scientific_execution':False,'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'reference_data':json.load(open('/tmp/s-data.json')),
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH']); path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt systems: record quality-sec batch calibration preflight'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Claim one-shot paid calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          d=json.load(open(os.environ['DIAGNOSTIC_PATH']))
+          p=pathlib.Path(os.environ['CLAIM_PATH']); p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps({
+            'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed','claimed_unix':time.time(),
+            'worker':'github-actions-modal','branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'engineering_seed':20261040,'batch_seed':20271040,'eval_seed':20291040,
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'engineering_only':True,'scientific_execution':False,
+            'train_sha256':d['reference_data']['train_sha256'],
+            'val_sha256':d['reference_data']['val_sha256'],
+            'automatic_retry_authorized':False,'job':json.load(open(os.environ['JOB_PATH'])),
+          },indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt systems: claim $JOB_ID before A100-80GB calibration"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal quality-sec batch calibration
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 108m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_SYSTEMS_BLOCK4_QUALITYSEC_BATCH_AC_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize durable calibration result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64',''); rc=int(os.environ.get('MODAL_RC','999')); p=None
+          if b:
+              try:p=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception:p=None
+          if not isinstance(p,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              p={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed','finished_unix':time.time(),
+                 'worker':'github-actions-modal','error_type':'ModalInvocationOrTransportError',
+                 'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+                 'log_tail':log[-6000:],'scientific_conclusion':None}
+          claim=json.load(open(os.environ['CLAIM_PATH']))
+          d=p.get('data') or {}
+          p.update({
+            'modal_cli_rc':rc,'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'data_hashes_match_claim':(
+              d.get('train_sha256')==claim['train_sha256'] and d.get('val_sha256')==claim['val_sha256']
+            ),
+          })
+          out=pathlib.Path(os.environ['RESULT_PATH']); out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt systems: record $JOB_ID terminal result"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize quality-sec calibration
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f "$RESULT_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          assert r.get('classification')=='PASS_SCALE15M_BLOCK4_QUALITYSEC_BATCH_CALIBRATION',r
+          assert r.get('engineering_only') is True and r.get('scientific_execution') is False,r
+          assert r.get('wrapper_semantic_equivalence',{}).get('passed') is True,r
+          assert r.get('data_hashes_match_claim') is True,r
+          rows=r['results']; assert [x['batch_size'] for x in rows]==[64,128,256,512],rows
+          print('best:',r['best_by_final_nll'])
+          for x in rows:
+              print(x['batch_size'],x['final_eval']['nll'],x['tokens_seen'],x['steps'],
+                    x['tokens_per_second'],x['optimizer_steps_per_second'])
+          PY
