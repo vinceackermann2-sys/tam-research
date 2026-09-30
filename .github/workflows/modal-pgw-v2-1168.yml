@@ -86,11 +86,11 @@ jobs:
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           PROTECTED="09fb7b4cf7906db859a1797ad7f056b4cb751aaf"
           git merge-base --is-ancestor "$PROTECTED" "$SOURCE_SHA"
-          git diff --exit-code "$PROTECTED" "$SOURCE_SHA" --             tam_research/pgw_v2/__init__.py             tam_research/pgw_v2/model.py             tam_research/pgw_v2/protocol.py             tam_research/pgw_v2/train.py             tam_research/models.py             tam_research/train.py             tam_research/data.py             tests/test_pgw_v2_1168.py
+          git diff --exit-code "$PROTECTED" "$SOURCE_SHA" --             tam_research/pgw_v2/__init__.py             tam_research/pgw_v2/model.py             tam_research/pgw_v2/protocol.py             tam_research/pgw_v2/train.py             tam_research/pgw_v1             tam_research/models.py             tam_research/train.py             tam_research/data.py             tests/test_pgw_v2_1168.py
           git fetch --no-tags origin main
           LIVE_MAIN="$(git rev-parse origin/main)"
           git merge-base --is-ancestor "$SOURCE_SHA" "$LIVE_MAIN"
-          git diff --exit-code "$SOURCE_SHA" "$LIVE_MAIN" --             tam_research/pgw_v2/__init__.py             tam_research/pgw_v2/model.py             tam_research/pgw_v2/protocol.py             tam_research/pgw_v2/train.py             tam_research/models.py             tam_research/train.py             tam_research/data.py             tests/test_pgw_v2_1168.py
+          git diff --exit-code "$SOURCE_SHA" "$LIVE_MAIN" --             tam_research/pgw_v2/__init__.py             tam_research/pgw_v2/model.py             tam_research/pgw_v2/protocol.py             tam_research/pgw_v2/train.py             tam_research/pgw_v1             tam_research/models.py             tam_research/train.py             tam_research/data.py             tests/test_pgw_v2_1168.py
           python - <<'PY'
           from tam_research.pgw_v2.protocol import (
               ISSUE,

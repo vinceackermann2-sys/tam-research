@@ -45,6 +45,7 @@ def test_run_control_static_contract() -> None:
     assert "[modal-pgw-v2-25m-1168]" in workflow
     assert "09fb7b4cf7906db859a1797ad7f056b4cb751aaf" in workflow
     assert "git diff --exit-code" in workflow
+    assert workflow.count("tam_research/pgw_v1") >= 2
     assert "tests/test_pgw_v2_1168.py" in workflow
     assert "tests/test_pgw_v2_run_control_1174.py" in workflow
     assert workflow.count("modal run --timestamps") == 1
