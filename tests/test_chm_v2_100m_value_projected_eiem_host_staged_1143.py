@@ -164,17 +164,25 @@ def test_successor_runner_uses_fresh_core_and_retired_seed_only_as_provenance() 
     assert "[modal-chm-v2-100m-value-projected-eiem-host-staged-1137-seed-2011371-v1]" not in source
 
 
-def test_repair_does_not_add_workflow_or_manual_execution_authority() -> None:
-    # #1143's first implementation layer is intentionally runner/core/tests only.
-    assert not (
-        ROOT
-        / ".github"
-        / "workflows"
-        / "modal-chm-v2-100m-value-projected-eiem-host-staged-1143-v1.yml"
-    ).exists()
-    assert not (
-        ROOT
-        / ".github"
-        / "workflows"
-        / "modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v1.yml"
-    ).exists()
+def test_repair_module_never_self_authorizes_later_execution_control() -> None:
+    # #1187 may add separately governed workflow files, but the frozen #1143
+    # implementation module itself must remain incapable of granting execution.
+    manifest = protocol_manifest()
+    assert manifest["scientific_seed_authorized"] is False
+    assert manifest["trigger_authorized_by_module"] is False
+    assert manifest["gpu_allocation_authorized_by_module"] is False
+    assert manifest["scientific_seed_consumed_by_module"] is False
+    assert manifest["stage_d_authorized"] is False
+    assert manifest["scale_up_authorized"] is False
+    assert manifest["multi_seed_replication_authorized"] is False
+
+    assert_no_execution_authority()
+    for request in (
+        {"gpu": True},
+        {"training": True},
+        {"trigger_creation": True},
+        {"scientific_seed_consumption": True},
+        {"stage_d": True},
+    ):
+        with pytest.raises(RuntimeError, match="refuses execution authority"):
+            assert_no_execution_authority(**request)
