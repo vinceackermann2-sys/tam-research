@@ -136,9 +136,9 @@ jobs:
           hits=exact(audit_title)
           assert len(hits)==1 and hits[0]["number"]==trigger_number, hits
           assert not exact("[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-seed-2011431-v1]")
-          control=gh(f"repos/{repo}/issues/1139")
+          control=gh(f"repos/{repo}/issues/1187")
           assert control["state"]=="open"
-          comments=gh(f"repos/{repo}/issues/1139/comments?per_page=100")
+          comments=gh(f"repos/{repo}/issues/1187/comments?per_page=100")
           authority_marker="CHM_V2_100M_HOST_STAGED_RERUN_FINAL_LAUNCHER_AUTHORITY_V1"
           authority_comments=[c for c in comments if authority_marker in c["body"]]
           assert len(authority_comments)==0, authority_comments
