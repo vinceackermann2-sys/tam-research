@@ -34,7 +34,7 @@ AUDIT_WORKFLOW = (
     ROOT
     / ".github"
     / "workflows"
-    / "modal-chm-v2-100m-qva-stage-b-1155-authority-audit-v1.yml"
+    / "modal-chm-v2-100m-qva-stage-b-1155-authority-audit-v2.yml"
 )
 
 
@@ -250,10 +250,23 @@ def test_launch_workflow_requires_exact_authority_unique_trigger_and_live_rate()
     assert "[modal-chm-v2-100m-qva-stage-b-parent-1147-v1]" in source
     assert "github.run_attempt" in source
     assert 'test "$RUN_ATTEMPT" = "1"' in source
-    assert "CHM_V2_1155_FINAL_LAUNCHER_AUTHORITY_V1" in source
+    assert "CHM_V2_1155_FINAL_LAUNCHER_AUTHORITY_V2" in source
+    assert "CHM_V2_1155_FINAL_LAUNCHER_AUTHORITY_V1" not in source
     assert "authority_comment_id" in source
+    assert "transport_repair_issue" in source
+    assert "selected_modal_account" in source
+    assert "selected_modal_workspace" in source
+    assert "account_selection_evidence_sha256" in source
+    assert "dual_account_sha" in source
+    assert "dual_account_cli_sha" in source
+    assert "runtime_probe_sha" in source
     assert "engineering_seed=1147201" in source
     assert "scientific_seed_authorized=false" in source
+    assert "MODAL_TOKEN_ID_2" in source
+    assert "MODAL_TOKEN_SECRET_2" in source
+    assert "|| secrets.MODAL_TOKEN_ID" not in source
+    assert "|| secrets.MODAL_TOKEN_SECRET" not in source
+    assert 'account == "secondary"' in source
     assert "modal billing rates --json" in source
     assert "worst <= 0.50" in source
     assert "--phase preflight" in source
@@ -268,15 +281,31 @@ def test_launch_workflow_requires_exact_authority_unique_trigger_and_live_rate()
 def test_authority_audit_is_cpu_inspect_only_and_cannot_launch() -> None:
     source = AUDIT_WORKFLOW.read_text(encoding="utf-8")
     assert "workflow_dispatch" not in source
-    assert "[modal-chm-v2-100m-qva-stage-b-1155-authority-audit-v1]" in source
+    assert "[modal-chm-v2-100m-qva-stage-b-1155-authority-audit-v2]" in source
     assert "github.run_attempt" in source
     assert 'test "$RUN_ATTEMPT" = "1"' in source
+    assert "actions: read" in source
+    assert "36701640502" in source
+    assert "modal_select_account_v3.py" in source
+    assert "--force-account secondary" in source
+    assert "--low-credit-account primary" in source
+    assert "--required-volume tam-research-data" in source
+    assert "--runtime-probe-path modal_runtime_admission_probe_1067_v1.py" in source
+    assert "MODAL_TOKEN_ID_2" in source
+    assert "MODAL_TOKEN_SECRET_2" in source
+    assert '"account2" in aliases' in source
+    assert "selected_modal_account=secondary" in source
+    assert "account_selection_evidence_sha256" in source
     assert "modal billing rates --json" in source
     assert "worst <= 0.50" in source
     assert "--phase inspect" in source
     assert "--phase preflight" not in source
     assert "--phase reserve" not in source
     assert "--phase run" not in source
+    assert "CHM_V2_1155_STAGE_B_AUTHORITY_AUDIT_V2_PASS" in source
+    assert "primary_marked_low_credit=true" in source
+    assert "runtime_admission_verified=true" in source
+    assert "required_volume=tam-research-data" in source
     assert "result_namespace_unused=true" in source
     assert "gpu_allocated=false" in source
     assert "engineering_attempt_consumed=false" in source
