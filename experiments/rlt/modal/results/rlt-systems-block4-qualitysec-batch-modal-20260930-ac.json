@@ -1,0 +1,182 @@
+{
+  "batch_seed": 20271040,
+  "best_by_final_nll": {
+    "batch_size": 256,
+    "final_nll": 6.328629240393639,
+    "optimizer_steps_per_second": 14.535414949273493,
+    "steps": 873,
+    "tokens_per_second": 238148.2385288969,
+    "tokens_seen": 14303232
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_BLOCK4_QUALITYSEC_BATCH_CALIBRATION",
+  "data": {
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "data_hashes_match_claim": true,
+  "engineering_only": true,
+  "engineering_seed": 20261040,
+  "eval_seed": 20291040,
+  "finished_unix": 1790768379.2291207,
+  "interpretation_ceiling": "Engineering-only block-size-4 RLT batch calibration. It selects a batch size for validation quality per fixed post-compile GPU training time at exact 15.1M parameters. It follows two equal-token block4 seeds that both lost to the Transformer, so this tests only whether improved large-batch utilization creates a practical quality-per-second lane. It is not scientific evidence.",
+  "job_id": "rlt-systems-block4-qualitysec-batch-modal-20260930-ac",
+  "job_source_blob_sha": "614dde609644b98cd38406cf91e5a6440cb4f591",
+  "launcher_blob_sha": "539de96ffa0f5ef5bf9bb1174db720fd1b6d5dbf",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "protocol": {
+    "architecture": "block_recurrent_rlt",
+    "batch_sizes": [
+      64,
+      128,
+      256,
+      512
+    ],
+    "block_recurrences_per_seq64": 16,
+    "block_size": 4,
+    "compile_time_excluded": true,
+    "learning_rate": 0.0003,
+    "same_batch_stream_seed": true,
+    "same_eval_stream_seed": true,
+    "same_initialization_seed": true,
+    "schedule": "cosine_by_elapsed_post_compile_training_time",
+    "seq_len": 64,
+    "time_budget_seconds_each": 60.0,
+    "validation_execution": "eager_no_grad_to_avoid_per_batch_compile_graphs",
+    "warmup_ratio_by_elapsed_time": 0.02
+  },
+  "results": [
+    {
+      "actual_train_seconds": 60.001063601,
+      "batch_size": 64,
+      "compile_training_step_seconds": 191.465051978,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.479388386011124,
+        "perplexity": 651.5723136371658,
+        "seconds": 1.6484139709999681
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.866450875997543,
+        "perplexity": 52388.94506437795,
+        "seconds": 1.6816825239999957
+      },
+      "last_train_loss": 6.537879467010498,
+      "optimizer_steps_per_second": 19.28299150984912,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.399244785308838,
+      "steps": 1157,
+      "tokens_per_second": 78983.13322434199,
+      "tokens_seen": 4739072
+    },
+    {
+      "actual_train_seconds": 60.02233380900009,
+      "batch_size": 128,
+      "compile_training_step_seconds": 220.94620618700003,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.328931108117104,
+        "perplexity": 560.5570985796816,
+        "seconds": 1.6702093040000818
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.866450875997543,
+        "perplexity": 52388.94506437795,
+        "seconds": 1.73587758299999
+      },
+      "last_train_loss": 6.2339935302734375,
+      "optimizer_steps_per_second": 19.25949770094849,
+      "parameters": 15129344,
+      "peak_vram_gb": 6.315573215484619,
+      "steps": 1156,
+      "tokens_per_second": 157773.80516617003,
+      "tokens_seen": 9469952
+    },
+    {
+      "actual_train_seconds": 60.06020488900003,
+      "batch_size": 256,
+      "compile_training_step_seconds": 227.820686433,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.328629240393639,
+        "perplexity": 560.3879100220283,
+        "seconds": 1.653127048999977
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.866450875997543,
+        "perplexity": 52388.94506437795,
+        "seconds": 1.682798954999953
+      },
+      "last_train_loss": 6.174096584320068,
+      "optimizer_steps_per_second": 14.535414949273493,
+      "parameters": 15129344,
+      "peak_vram_gb": 12.162950038909912,
+      "steps": 873,
+      "tokens_per_second": 238148.2385288969,
+      "tokens_seen": 14303232
+    },
+    {
+      "actual_train_seconds": 60.08821061100002,
+      "batch_size": 512,
+      "compile_training_step_seconds": 225.47667929599993,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.554880693554878,
+        "perplexity": 702.6653123213509,
+        "seconds": 1.6688034170001629
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.866450875997543,
+        "perplexity": 52388.94506437795,
+        "seconds": 1.6677820490000386
+      },
+      "last_train_loss": 6.51627254486084,
+      "optimizer_steps_per_second": 8.670586038463648,
+      "parameters": 15129344,
+      "peak_vram_gb": 23.854670524597168,
+      "steps": 521,
+      "tokens_per_second": 284117.76330837683,
+      "tokens_seen": 17072128
+    }
+  ],
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790767222.650705,
+  "status": "complete",
+  "trigger_sha": "82379c097a9c4aa523ea84dc65a4b8b9d321b703",
+  "wrapper_semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  }
+}
