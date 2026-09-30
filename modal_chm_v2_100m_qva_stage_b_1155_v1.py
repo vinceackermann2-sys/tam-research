@@ -429,10 +429,17 @@ def run_stage_b(
         assert_fingerprint_matches(actual_fingerprint, zero["corpus_fingerprint"])
         train_data = TokenBin(str(Path(DATA_DIR) / "train.bin"))
 
-        start_plan = build_start_plan()
-        plan_digest = start_plan_sha256(start_plan)
-        if plan_digest != contract["stream_plan"]["sha256"]:
+        # Rebuild the deterministic CPU start plan independently for each
+        # model, resetting the same frozen CPU generator seed each time.
+        v1_start_plan = build_start_plan()
+        qva_start_plan = build_start_plan()
+        v1_plan_digest = start_plan_sha256(v1_start_plan)
+        qva_plan_digest = start_plan_sha256(qva_start_plan)
+        expected_plan_digest = contract["stream_plan"]["sha256"]
+        if v1_plan_digest != expected_plan_digest or qva_plan_digest != expected_plan_digest:
             raise RuntimeError("#1155 start-plan digest drift")
+        if not torch.equal(v1_start_plan, qva_start_plan):
+            raise RuntimeError("#1155 regenerated paired start plans differ")
 
         _seed_all(ENGINEERING_SEED)
         v1 = CHMV1100MEIEMLM()
@@ -459,8 +466,8 @@ def run_stage_b(
             model=v1,
             train_data=train_data,
             device=device,
-            start_plan=start_plan,
-            start_plan_digest=plan_digest,
+            start_plan=v1_start_plan,
+            start_plan_digest=v1_plan_digest,
         )
         del v1
         torch.cuda.empty_cache()
@@ -471,8 +478,8 @@ def run_stage_b(
             model=qva,
             train_data=train_data,
             device=device,
-            start_plan=start_plan,
-            start_plan_digest=plan_digest,
+            start_plan=qva_start_plan,
+            start_plan_digest=qva_plan_digest,
         )
         del qva
         torch.cuda.empty_cache()
@@ -494,9 +501,12 @@ def run_stage_b(
                 "chm_v1_eiem": v1_result,
                 "chm_v2_qva": qva_result,
             },
-            "start_plan_sha256": plan_digest,
+            "start_plan_sha256": expected_plan_digest,
             "paired_start_plan_identical": (
-                v1_result["start_plan_sha256"] == qva_result["start_plan_sha256"] == plan_digest
+                v1_result["start_plan_sha256"]
+                == qva_result["start_plan_sha256"]
+                == expected_plan_digest
+                and torch.equal(v1_start_plan, qva_start_plan)
             ),
             "corpus_fingerprint": actual_fingerprint,
             "device_name": device_name,
