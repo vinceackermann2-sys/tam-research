@@ -66,6 +66,7 @@ def run_pair_remote(job_json: str) -> str:
             "training_data_seed": 20260924,
             "requires_reference_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
             "requires_block_sweep_job_id": "rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab",
+            "requires_block4_quality_job_id": "rlt-block4-scale15m-paired-4m-modal-20260929-a",
             "requires_optimizer_tuned_compute_match_job_id": "rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a",
             "token_budget": 4194304,
             "seq_len": 64,
