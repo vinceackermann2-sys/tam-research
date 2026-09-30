@@ -1,0 +1,31 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_size": 768,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1790771990.5452125,
+  "engineering_only": true,
+  "engineering_seed": 20261040,
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 768,
+    "engineering_seed": 20261040,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-onestage-scale15m-batch768-modal-20260930-ac",
+    "requires_block4_replication_job_id": "rlt-block4-scale15m-paired-4m-modal-20260930-b",
+    "requires_reference_batch768_job_id": "rlt-systems-scale15m-batch768-modal-20260926-n",
+    "requires_reference_pair_job_id": "rlt-compiled-paired-4m-modal-20260923-d",
+    "schema": 1,
+    "seq_len": 64,
+    "task": "systems_onestage_scale15m_batch768_ac"
+  },
+  "job_id": "rlt-systems-onestage-scale15m-batch768-modal-20260930-ac",
+  "job_source_blob_sha": "6f91e3c942bdfa73a9672b9f90680dc8bd09b51b",
+  "launcher_blob_sha": "a5b70c6a8fe78e5dd68ff4f3dea1223282573108",
+  "modal_account_slot": "2",
+  "model_blob_sha": "24714d75af830f5cb47ef1326928ef57a86cb509",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "trigger_sha": "e20c8517946ad77944671ff7b2f6777b7d5ab46c",
+  "worker": "github-actions-modal"
+}
