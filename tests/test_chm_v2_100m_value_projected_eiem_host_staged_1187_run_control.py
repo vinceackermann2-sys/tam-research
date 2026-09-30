@@ -129,7 +129,7 @@ def test_authority_audit_is_cpu_preallocation_only_and_bound_to_1187() -> None:
     assert "--phase state" not in source
     assert "result_namespace_unused" in source
     assert "gpu_allocated" in source
-    assert "scientific_seed_consumed" in source
+    assert 'state["seed_2011431_consumed"] is False' in source
     assert "trigger_authorized=false" in source
 
     for stale in (
