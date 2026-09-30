@@ -16,8 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
       MODAL_MAX_THROTTLE_WAIT: "0"
 
     steps:
@@ -36,20 +34,31 @@ jobs:
               "engineering_seed": 1147201,
               "parent_hypothesis_issue": 1147,
               "systems_issue": 1155,
+              "transport_repair_issue": 1166,
               "result_root": "/vol/chm-v2/100m-qva-stage-b/parent-1147/seed-1147201-v1",
           }
           for key, value in expected.items():
               assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r} != {value!r}"
           for key in (
               "source_sha", "source_tree", "qva_sha", "contract_sha",
-              "harness_sha", "workflow_sha",
+              "harness_sha", "workflow_sha", "dual_account_sha",
+              "dual_account_cli_sha", "runtime_probe_sha",
           ):
               value = str(cfg.get(key, "")).strip().lower()
               assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
               print(f"{key}={value}")
           authority = cfg.get("authority_comment_id")
+          account = str(cfg.get("selected_modal_account", "")).strip()
+          workspace = str(cfg.get("selected_modal_workspace", "")).strip()
+          evidence = str(cfg.get("account_selection_evidence_sha256", "")).strip().lower()
           assert isinstance(authority, int) and authority > 0, "authority_comment_id must be positive"
+          assert account == "secondary", "Stage-B v2 transport requires secondary Modal account"
+          assert workspace, "selected_modal_workspace must be non-empty"
+          assert re.fullmatch(r"[0-9a-f]{64}", evidence), "account_selection_evidence_sha256 must be 64-hex"
           print(f"authority_comment_id={authority}")
+          print(f"selected_modal_account={account}")
+          print(f"selected_modal_workspace={workspace}")
+          print(f"account_selection_evidence_sha256={evidence}")
           PY
 
       - name: Checkout exact authorized boundary
@@ -67,6 +76,9 @@ jobs:
           CONTRACT_SHA: ${{ steps.cfg.outputs.contract_sha }}
           HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
           WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
         run: |
           test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
           test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
@@ -79,6 +91,12 @@ jobs:
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_small_lm_protocol.py")" = "d5c2e405b5306f556e7fbe70aacd552867e69d3e"
           test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v2_100m_stage_b.py")" = "$CONTRACT_SHA"
           test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v2_100m_qva_stage_b_1155_v1.py")" = "$HARNESS_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_dual_account_v3.py")" = "$DUAL_ACCOUNT_SHA"
+          test "$DUAL_ACCOUNT_SHA" = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:scripts/modal_select_account_v3.py")" = "$DUAL_ACCOUNT_CLI_SHA"
+          test "$DUAL_ACCOUNT_CLI_SHA" = "440292942066d0b3d3a71d40ca8495092674ce6c"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_runtime_admission_probe_1067_v1.py")" = "$RUNTIME_PROBE_SHA"
+          test "$RUNTIME_PROBE_SHA" = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
           test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v2-100m-qva-stage-b-1155-v1.yml")" = "$WORKFLOW_SHA"
 
       - name: Verify final authority and unique post-authority trigger
@@ -91,6 +109,12 @@ jobs:
           CONTRACT_SHA: ${{ steps.cfg.outputs.contract_sha }}
           HARNESS_SHA: ${{ steps.cfg.outputs.harness_sha }}
           WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          EVIDENCE_SHA: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
           AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
           REPO_OWNER: ${{ github.repository_owner }}
         run: |
@@ -113,13 +137,20 @@ jobs:
           assert authority["user"]["login"] == owner
           body = authority["body"]
           for needle in (
-              "CHM_V2_1155_FINAL_LAUNCHER_AUTHORITY_V1",
+              "CHM_V2_1155_FINAL_LAUNCHER_AUTHORITY_V2",
               f"source_sha={os.environ['SOURCE_SHA']}",
               f"source_tree={os.environ['SOURCE_TREE']}",
               f"qva_blob={os.environ['QVA_SHA']}",
               f"contract_blob={os.environ['CONTRACT_SHA']}",
               f"harness_blob={os.environ['HARNESS_SHA']}",
               f"workflow_blob={os.environ['WORKFLOW_SHA']}",
+              f"dual_account_blob={os.environ['DUAL_ACCOUNT_SHA']}",
+              f"dual_account_cli_blob={os.environ['DUAL_ACCOUNT_CLI_SHA']}",
+              f"runtime_probe_blob={os.environ['RUNTIME_PROBE_SHA']}",
+              f"selected_modal_account={os.environ['ACCOUNT']}",
+              f"selected_modal_workspace={os.environ['WORKSPACE']}",
+              f"account_selection_evidence_sha256={os.environ['EVIDENCE_SHA']}",
+              "transport_repair_issue=1166",
               "engineering_seed=1147201",
               "gpu=1x NVIDIA L4",
               "max_gpu_seconds=1200",
@@ -149,12 +180,16 @@ jobs:
       - name: Install pinned Modal CLI
         run: pip install 'modal>=1.5.4,<1.6'
 
-      - name: Verify Modal authentication
-        run: modal token info
-
-      - name: Fail closed on live Modal rates and 20-minute cap
+      - name: Verify authority-bound secondary Modal account and live rate
         id: rates
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID_2 }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+          EXPECTED_WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
         run: |
+          modal token info
+          ACTUAL="$(python -c 'import modal; print(modal.Workspace.from_context().name)')"
+          test "$ACTUAL" = "$EXPECTED_WORKSPACE"
           modal billing rates --json > modal-rates.json
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
@@ -174,6 +209,8 @@ jobs:
       - name: Run zero-GPU corpus and protocol preflight
         id: preflight
         env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID_2 }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
           QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
@@ -213,6 +250,8 @@ jobs:
       - name: Write durable dispatch marker before L4 allocation
         id: reserve
         env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID_2 }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
           QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
@@ -239,6 +278,8 @@ jobs:
         if: steps.reserve.outcome == 'success'
         continue-on-error: true
         env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID_2 }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
           QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
@@ -259,6 +300,8 @@ jobs:
         id: inspect
         if: always() && steps.reserve.outcome == 'success'
         env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID_2 }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
           SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
           SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
           QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
