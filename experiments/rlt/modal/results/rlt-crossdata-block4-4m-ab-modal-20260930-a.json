@@ -1,0 +1,121 @@
+{
+  "branch": "exp/rlt-colab",
+  "evaluation": {
+    "aggregate_across_model_seeds": {
+      "mean_rlt_minus_transformer_nll": 0.019349721260368824,
+      "pair_count": 2,
+      "rlt_higher_nll_pair_count": 2,
+      "sample_sd_pair_delta_nll": 0.010052941380892355,
+      "se_pair_delta_nll": 0.007108503021299839,
+      "t95_ci_pair_delta_nll_df1": [
+        -0.07097237349781305,
+        0.1096718160185507
+      ]
+    },
+    "architecture": {
+      "block_size": 4,
+      "parameters_each": 15129344,
+      "variant": "block_recurrent_rlt"
+    },
+    "breakthrough_claim_supported": false,
+    "classification": "CROSSDATA_BLOCK4_4M_AB_BOTH_RLT_HIGHER_NLL",
+    "fresh_data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "eval_target_tokens_per_pair": 1048576,
+      "required_val_tokens": 1064960,
+      "sampling": "deterministic non-overlapping 64-token next-token sequences from a new validation shard",
+      "shuffle_seed": 20260930
+    },
+    "interpretation_ceiling": "Fresh-data evaluation of two independently trained block4/Transformer checkpoint pairs. This tests whether the observed 4M-token block4 quality penalty persists off the original validation stream. Two seeds on one dataset family remain insufficient for broad claims.",
+    "pairs": [
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-block4-scale15m-paired-4m-modal-20260929-a",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "A",
+        "paired_batch_delta_normal95_ci": [
+          0.010675673327751073,
+          0.013806763150386897
+        ],
+        "paired_batch_delta_sd": 0.012780193298789003,
+        "paired_batch_delta_se": 0.0007987620811743127,
+        "rlt_lower_batch_count": 36,
+        "rlt_minus_transformer_nll": 0.012241218239068985,
+        "rlt_nll": 6.366911610588431,
+        "rlt_perplexity": 582.2568134268776,
+        "seq_len": 64,
+        "transformer_nll": 6.354670392349362,
+        "transformer_perplexity": 575.172728080682
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-block4-scale15m-paired-4m-modal-20260930-b",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "B",
+        "paired_batch_delta_normal95_ci": [
+          0.024904032601025326,
+          0.028012415962312
+        ],
+        "paired_batch_delta_sd": 0.012687512161673202,
+        "paired_batch_delta_se": 0.0007929695101045751,
+        "rlt_lower_batch_count": 3,
+        "rlt_minus_transformer_nll": 0.026458224281668663,
+        "rlt_nll": 6.3702304400503635,
+        "rlt_perplexity": 584.1924347154905,
+        "seq_len": 64,
+        "transformer_nll": 6.343772215768695,
+        "transformer_perplexity": 568.938427086225
+      }
+    ],
+    "status": "complete"
+  },
+  "evaluator_blob_sha": "e20f2f96f72a9dc5d4441093d488ef4f94d75ecb",
+  "finished_unix": 1790774662.252195,
+  "fresh_data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 20260930,
+    "tokenizer": "gpt2",
+    "train_tokens": 100000,
+    "val_tokens": 1100000
+  },
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 64,
+    "checkpoint_volume_a": "tam-rlt-block4-scale15m-checkpoints-account2",
+    "checkpoint_volume_b": "tam-rlt-block4-scale15m-checkpoints-b-account2",
+    "eval_batches": 256,
+    "eval_target_tokens_per_pair": 1048576,
+    "fresh_data_seed": 20260930,
+    "fresh_train_tokens": 100000,
+    "fresh_val_tokens": 1100000,
+    "job_id": "rlt-crossdata-block4-4m-ab-modal-20260930-a",
+    "requires_checkpoint_job_ids": [
+      "rlt-block4-scale15m-paired-4m-modal-20260929-a",
+      "rlt-block4-scale15m-paired-4m-modal-20260930-b"
+    ],
+    "schema": 1,
+    "seq_len": 64,
+    "task": "crossdata_block4_4m_ab"
+  },
+  "job_id": "rlt-crossdata-block4-4m-ab-modal-20260930-a",
+  "job_source_blob_sha": "d27a60fb9a2fccb844b869ef38228adf37910e8d",
+  "launcher_blob_sha": "7ffccb41cc1609f09a30b117f63761656c17a440",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1790774595.597439,
+  "status": "complete",
+  "trigger_sha": "9be94a2393db93e43c2ed393c1a6bb4a46c38c46",
+  "worker": "modal"
+}
