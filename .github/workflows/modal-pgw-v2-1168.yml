@@ -1,0 +1,181 @@
+name: PGW-v2 25M matched Transformer screen
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  pgw:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-pgw-v2-25m-1168]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_LOW_CREDIT_ACCOUNT: ${{ secrets.MODAL_LOW_CREDIT_ACCOUNT }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Validate immutable PGW-v2 trigger
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          TRIGGER_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re, subprocess
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          assert set(cfg) == {
+              "phase", "prereg_issue", "run_control_issue", "source_sha"
+          }
+          assert cfg["phase"] == "pgw-v2-25m-full-screen-1168"
+          assert cfg["prereg_issue"] == 1168
+          assert cfg["run_control_issue"] == 1174
+          source = str(cfg["source_sha"]).lower()
+          assert re.fullmatch(r"[0-9a-f]{40}", source)
+          repo = os.environ["GITHUB_REPOSITORY"]
+          title = "[modal-pgw-v2-25m-1168]"
+          q = f'repo:{repo} is:issue in:title "{title}"'
+          found = json.loads(subprocess.check_output(
+              ["gh", "api", "search/issues", "-X", "GET",
+               "-f", f"q={q}", "-f", "per_page=100"],
+              text=True,
+          ))
+          exact = [item for item in found["items"] if item["title"] == title]
+          trigger = int(os.environ["TRIGGER_NUMBER"])
+          assert len(exact) == 1 and exact[0]["number"] == trigger, exact
+          print(f"source_sha={source}")
+          PY
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU PyTorch before importing PGW-v2
+        run: pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install repository test dependencies
+        run: pip install -e '.[test]'
+
+      - name: Verify protected architecture and merged source
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          PROTECTED="09fb7b4cf7906db859a1797ad7f056b4cb751aaf"
+          git merge-base --is-ancestor "$PROTECTED" "$SOURCE_SHA"
+          git diff --exit-code "$PROTECTED" "$SOURCE_SHA" --             tam_research/pgw_v2/__init__.py             tam_research/pgw_v2/model.py             tam_research/pgw_v2/protocol.py             tam_research/pgw_v2/train.py             tam_research/models.py             tam_research/train.py             tam_research/data.py             tests/test_pgw_v2_1168.py
+          git fetch --no-tags origin main
+          LIVE_MAIN="$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$SOURCE_SHA" "$LIVE_MAIN"
+          git diff --exit-code "$SOURCE_SHA" "$LIVE_MAIN" --             tam_research/pgw_v2/__init__.py             tam_research/pgw_v2/model.py             tam_research/pgw_v2/protocol.py             tam_research/pgw_v2/train.py             tam_research/models.py             tam_research/train.py             tam_research/data.py             tests/test_pgw_v2_1168.py
+          python - <<'PY'
+          from tam_research.pgw_v2.protocol import (
+              ISSUE,
+              SMOKE_SEED,
+              REPLICATION_SEEDS,
+              EXPECTED_PARAMETERS,
+              EXPECTED_SELECTED_FRACTION,
+          )
+          assert ISSUE == 1168
+          assert SMOKE_SEED == 1170001
+          assert REPLICATION_SEEDS == (1170101, 1170102, 1170103)
+          assert EXPECTED_PARAMETERS == 24940288
+          assert EXPECTED_SELECTED_FRACTION == 0.0625
+          PY
+
+      - name: Run PGW-v2 zero-GPU contracts
+        run: pytest -q tests/test_pgw_v2_1168.py tests/test_pgw_v2_run_control_1174.py
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Select an eligible Modal account
+        id: account
+        run: |
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py             --required-volume tam-research-data             --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+
+      - name: Activate selected Modal account
+        env:
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+          SECONDARY_CREDENTIAL_ALIASES: ${{ steps.account.outputs.secondary_credential_aliases }}
+        run: |
+          set -euo pipefail
+          if [ "$SELECTED_MODAL_ACCOUNT" = "primary" ]; then
+            printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET" >> "$GITHUB_ENV"
+          elif [ "$SELECTED_MODAL_ACCOUNT" = "secondary" ]; then
+            case ",$SECONDARY_CREDENTIAL_ALIASES," in
+              *,secondary,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_SECONDARY"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_SECONDARY"
+                ;;
+              *,account2,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_2"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_2"
+                ;;
+              *,legacy_b,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_B"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_B"
+                ;;
+              *)
+                echo "No resolved secondary credential alias" >&2
+                exit 93
+                ;;
+            esac
+            test -n "$SECONDARY_ID"
+            test -n "$SECONDARY_SECRET"
+            printf 'MODAL_TOKEN_ID=%s\n' "$SECONDARY_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$SECONDARY_SECRET" >> "$GITHUB_ENV"
+          else
+            echo "No eligible Modal account selected" >&2
+            exit 92
+          fi
+
+      - name: Verify selected Modal authentication
+        run: modal token info
+
+      - name: Record authenticated PGW-v2 launch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+        run: |
+          gh api --method POST             "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments"             -f body="PGW-v2 launcher passed CPU contracts. Modal account=${SELECTED_MODAL_ACCOUNT}; source=${SOURCE_SHA}. Launching one-shot preregistered H100 smoke -> conditional replication."
+
+      - name: Run one-shot PGW-v2 screen
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+        run: |
+          modal run --timestamps modal_pgw_v2_app.py             --source-sha "$SOURCE_SHA"
+
+      - name: Record normal Modal return
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api --method POST             "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments"             -f body="PGW-v2 Modal call returned normally. The authoritative terminal payload is PGW_V2_RESULT in Actions and RESULT.json on the Modal volume."
