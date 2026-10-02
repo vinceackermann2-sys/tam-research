@@ -217,6 +217,7 @@ def test_control_causality_for_all_custom_modes() -> None:
                 layer_index=4,
                 control_mode="fixed_random",
             ).eval()
+            torch.nn.init.normal_(module.workspace_init, mean=0.0, std=0.02)
             x = torch.randn(1, 128, 256)
             local = torch.randn_like(x)
             changed_x = x.clone()
@@ -226,6 +227,8 @@ def test_control_causality_for_all_custom_modes() -> None:
             with torch.no_grad():
                 left = module(x, local)
                 right = module(changed_x, changed_local)
+            assert torch.isfinite(left).all()
+            assert torch.isfinite(right).all()
             assert torch.equal(left[:, :100], right[:, :100])
             continue
 
