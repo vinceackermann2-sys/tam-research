@@ -19,18 +19,19 @@ def test_health_snapshot_is_read_only_zero_gpu() -> None:
     assert '"seed_consumed": False' in script
 
     forbidden = (
-        "modal volume put",
-        "modal volume delete",
-        'gpu="',
+        "modal volume " + "put",
+        "modal volume " + "delete",
+        'gpu' + '="',
         "h100",
         "PAIR1_DISPATCH_RESERVED",
         "ENGINEERING_PANEL_DISPATCH_RESERVED",
+        "modal " + "run ",
     )
     for needle in forbidden:
-        assert needle not in workflow.lower() if needle == "h100" else needle not in workflow
+        haystack = workflow.lower() if needle == "h100" else workflow
+        assert needle not in haystack
 
     assert "workflow_dispatch:" not in workflow.split("\njobs:", 1)[0]
-    assert "modal run " not in workflow
 
 
 def test_health_snapshot_probes_both_accounts_and_required_volume() -> None:
