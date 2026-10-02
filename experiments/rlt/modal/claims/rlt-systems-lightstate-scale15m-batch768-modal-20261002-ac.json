@@ -1,0 +1,29 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1790962704.5464206,
+  "engineering_only": true,
+  "engineering_seed": 20261040,
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 768,
+    "engineering_seed": 20261040,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-lightstate-scale15m-batch768-modal-20261002-ac",
+    "requires_block4_replication_job_id": "rlt-block4-scale15m-paired-4m-modal-20260930-b",
+    "requires_block_sweep_job_id": "rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab",
+    "schema": 1,
+    "seq_len": 64,
+    "task": "systems_lightstate_scale15m_batch768_ac"
+  },
+  "job_id": "rlt-systems-lightstate-scale15m-batch768-modal-20261002-ac",
+  "job_source_blob_sha": "cde8130c479d79008248d82aa65cf4ee8a361518",
+  "launcher_blob_sha": "f23d03c0d2fcee00a4edd53dfd0e2c8ef8cd1e38",
+  "modal_account_slot": "2",
+  "model_blob_sha": "7a0967fd174945a99af6d7b919dc27140b109e7f",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "trigger_sha": "63fdc062b80bcd21079c1e262fed7b8b45ba97e3",
+  "worker": "github-actions-modal"
+}
