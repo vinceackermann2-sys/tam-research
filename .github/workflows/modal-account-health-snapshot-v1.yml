@@ -1,0 +1,85 @@
+name: Modal account health snapshot v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  snapshot:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-account-health-snapshot-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+
+    steps:
+      - name: Refuse reruns
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+
+      - name: Check out current main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Static zero-GPU authority check
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            scripts/modal_account_health_snapshot_v1.py \
+            modal_runtime_admission_probe_1067_v1.py
+          python - <<'PY'
+          from pathlib import Path
+          script = Path("scripts/modal_account_health_snapshot_v1.py").read_text()
+          probe = Path("modal_runtime_admission_probe_1067_v1.py").read_text()
+          workflow = Path(".github/workflows/modal-account-health-snapshot-v1.yml").read_text()
+          top = workflow.split("\njobs:", 1)[0]
+          assert "workflow_dispatch:" not in top
+          assert 'gpu_allocated": False' in script
+          assert 'writes_performed": False' in script
+          assert 'seed_consumed": False' in script
+          assert "modal volume put" not in workflow
+          assert "modal volume delete" not in workflow
+          assert "modal run " not in workflow
+          assert "gpu=" not in workflow
+          assert "gpu=" not in script
+          assert "gpu=" not in probe
+          PY
+
+      - name: Install pinned Modal CLI
+        run: python -m pip install 'modal>=1.5.4,<1.6'
+
+      - name: Probe both Modal accounts
+        id: health
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$PWD" python scripts/modal_account_health_snapshot_v1.py
+
+      - name: Record public health snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SNAPSHOT_JSON: ${{ steps.health.outputs.snapshot_json }}
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="MODAL_ACCOUNT_HEALTH_SNAPSHOT_V1 ${SNAPSHOT_JSON}"
+          gh issue close "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --reason completed
