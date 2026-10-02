@@ -60,6 +60,9 @@ def test_mechanism_run_control_static_contract() -> None:
     assert 'cfg["prereg_issue"] == 1181' in workflow
     assert 'cfg["run_control_issue"] == 1184' in workflow
     assert "0dba13099fdb323fa26b14621da7af726a1574cc" in workflow
+    assert "f9b87bff04da0088839dd8dc32a838636c58714f" in workflow
+    assert 'PANEL_BASE="0dba13099fdb323fa26b14621da7af726a1574cc"' in workflow
+    assert 'PROTECTED="f9b87bff04da0088839dd8dc32a838636c58714f"' in workflow
     assert "tam_research/pgw_v1" in workflow
     assert "tam_research/pgw_v2" in workflow
     assert "tam_research/pgw_v2_mechanism" in workflow

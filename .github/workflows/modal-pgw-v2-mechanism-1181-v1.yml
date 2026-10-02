@@ -84,7 +84,9 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
-          PROTECTED="0dba13099fdb323fa26b14621da7af726a1574cc"
+          PANEL_BASE="0dba13099fdb323fa26b14621da7af726a1574cc"
+          PROTECTED="f9b87bff04da0088839dd8dc32a838636c58714f"
+          git merge-base --is-ancestor "$PANEL_BASE" "$SOURCE_SHA"
           git merge-base --is-ancestor "$PROTECTED" "$SOURCE_SHA"
           PROTECTED_PATHS=(
             tam_research/pgw_v1
