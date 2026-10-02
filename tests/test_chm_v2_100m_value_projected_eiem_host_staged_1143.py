@@ -30,6 +30,7 @@ FRESH_SEED = 2_011_431
 FRESH_ROOT = "/vol/chm-v2/100m-value-projected-eiem-host-staged/issue-1143/seed-2011431-v1"
 FRESH_TRIGGER = "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-seed-2011431-v1]"
 FRESH_AUDIT = "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v1]"
+REPAIRED_EXECUTION_AUDIT = "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v2]"
 
 
 def _function_source(source: str, name: str) -> str:
@@ -158,8 +159,11 @@ def test_successor_runner_uses_fresh_core_and_retired_seed_only_as_provenance() 
     assert "tam_research.chm_v2_100m_value_projected_eiem_host_staged_1143" in source
     assert FRESH_ROOT in source
     assert FRESH_TRIGGER in source
-    assert FRESH_AUDIT in source
+    assert REPAIRED_EXECUTION_AUDIT in source
+    assert FRESH_AUDIT not in source
     assert "SCIENTIFIC_SEED = 2_011_431" in source
+    assert '"seed_2011431_consumed": False' in source
+    assert "seed_2011371_consumed" not in source
     assert "seed-2011371-v1" not in source
     assert "[modal-chm-v2-100m-value-projected-eiem-host-staged-1137-seed-2011371-v1]" not in source
 
