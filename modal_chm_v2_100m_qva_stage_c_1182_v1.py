@@ -825,20 +825,37 @@ def run_scientific(
     _atomic_write(consumed_path, raw_entry)
     volume.commit()
 
-    import torch
-    bindings = _validate_bindings(
-        source_sha=source_sha, source_tree=source_tree, qva_sha=qva_sha,
-        stage_c_protocol_sha=stage_c_protocol_sha, model_sha=model_sha,
-        small_protocol_sha=small_protocol_sha, evaluator_sha=evaluator_sha,
-        dual_account_sha=dual_account_sha, dual_account_cli_sha=dual_account_cli_sha,
-        runtime_probe_sha=runtime_probe_sha, core_sha=core_sha,
-        runner_sha=runner_sha, workflow_sha=workflow_sha,
-    )
-    account = _validate_account_binding(
-        selected_modal_account, selected_modal_workspace, account_selection_evidence_sha256
-    )
-    evidence = _evidence(bindings, account, int(authority_comment_id))
+    # Keep enough provenance for a durable failure record even if exact
+    # binding validation itself is what fails after allocation begins.
+    failure_evidence = {
+        "phase": PHASE,
+        "control_issue": CONTROL_ISSUE,
+        "prereg_issue": PREREG_ISSUE,
+        "hypothesis_issue": HYPOTHESIS_ISSUE,
+        "systems_issue": SYSTEMS_ISSUE,
+        "scientific_seed": SCIENTIFIC_SEED,
+        "result_root": RESULT_ROOT,
+        "source_sha": str(source_sha),
+        "source_tree": str(source_tree),
+        "selected_modal_account": str(selected_modal_account),
+        "selected_modal_workspace": str(selected_modal_workspace),
+        "final_authority_comment_id": int(authority_comment_id),
+    }
     try:
+        import torch
+        bindings = _validate_bindings(
+            source_sha=source_sha, source_tree=source_tree, qva_sha=qva_sha,
+            stage_c_protocol_sha=stage_c_protocol_sha, model_sha=model_sha,
+            small_protocol_sha=small_protocol_sha, evaluator_sha=evaluator_sha,
+            dual_account_sha=dual_account_sha, dual_account_cli_sha=dual_account_cli_sha,
+            runtime_probe_sha=runtime_probe_sha, core_sha=core_sha,
+            runner_sha=runner_sha, workflow_sha=workflow_sha,
+        )
+        account = _validate_account_binding(
+            selected_modal_account, selected_modal_workspace, account_selection_evidence_sha256
+        )
+        evidence = _evidence(bindings, account, int(authority_comment_id))
+        failure_evidence = evidence
         from tam_research.chm_v1_100m_scale import (
             CHMV1100MEIEMLM, CHMV1100MLocalLM,
             EXPECTED_EIEM_PARAMETERS, EXPECTED_LOCAL_PARAMETERS,
@@ -1057,7 +1074,7 @@ def run_scientific(
         failure = {
             "status": "ATTEMPT_FAILED",
             "classification": "CHM_V2_100M_QVA_STAGE_C_INFRASTRUCTURE_OR_RUNTIME_FAILURE",
-            **evidence,
+            **failure_evidence,
             "error_type": type(exc).__name__,
             "error": str(exc),
             "failed_unix": time.time(),
