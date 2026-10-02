@@ -55,12 +55,12 @@ jobs:
           assert 'gpu_allocated": False' in script
           assert 'writes_performed": False' in script
           assert 'seed_consumed": False' in script
-          assert "modal volume put" not in workflow
-          assert "modal volume delete" not in workflow
-          assert "modal run " not in workflow
-          assert "gpu=" not in workflow
-          assert "gpu=" not in script
-          assert "gpu=" not in probe
+          assert ("modal volume " + "put") not in workflow
+          assert ("modal volume " + "delete") not in workflow
+          assert ("modal " + "run ") not in workflow
+          assert ("gpu" + "=") not in workflow
+          assert ("gpu" + "=") not in script
+          assert ("gpu" + "=") not in probe
           PY
 
       - name: Install pinned Modal CLI
