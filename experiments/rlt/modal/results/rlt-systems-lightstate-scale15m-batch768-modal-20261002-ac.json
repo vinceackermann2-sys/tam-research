@@ -1,0 +1,73 @@
+{
+  "architecture": {
+    "heavy_decoder_execution": "parallel_causal_full_sequence",
+    "parameter_neutral": true,
+    "parameters": 15129344,
+    "serial_transition": "merge_plus_rmsnorm_only",
+    "state_schema_equal_to_frozen_rlt": true,
+    "token_recurrent_updates_per_seq64": 64,
+    "variant": "light_state_recurrent_rlt"
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_LIGHTSTATE_SCALE15M_GAP_LE_1_25X",
+  "derived": {
+    "light_state_fraction_of_transformer_throughput": 0.9205449602022029,
+    "transformer_throughput_multiple_vs_light_state": 1.0863130463289314
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261040,
+  "finished_unix": 1790962805.504995,
+  "implementation_validation": {
+    "future_token_causality": {
+      "mutated_position_logits_max_abs": 0.76171875,
+      "mutation_index": 37,
+      "passed": true,
+      "prefix_logits_max_abs": 0.0
+    },
+    "parameter_neutral_and_state_schema_equal": true
+  },
+  "interpretation_ceiling": "Engineering-only throughput/causality profile for a parameter-neutral architecture that preserves per-token recurrent state while moving attention/cross-attention/FFN out of the serial loop. Random-token loss is not quality evidence. A fresh matched training run is required before any scientific quality conclusion.",
+  "job_id": "rlt-systems-lightstate-scale15m-batch768-modal-20261002-ac",
+  "job_source_blob_sha": "cde8130c479d79008248d82aa65cf4ee8a361518",
+  "launcher_blob_sha": "f23d03c0d2fcee00a4edd53dfd0e2c8ef8cd1e38",
+  "light_state": {
+    "first_step_seconds_including_compile": 70.02019775299999,
+    "last_loss": 10.876805305480957,
+    "measured_seconds": 0.26930605100000093,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 34.66760778427124,
+    "tokens_per_second": 365027.0747165635
+  },
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "7a0967fd174945a99af6d7b919dc27140b109e7f",
+  "profile": {
+    "batch_size": 768,
+    "expected_parameters_each": 15129344,
+    "measured_steps": 2,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1790962719.6943247,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 10.201518387999997,
+    "last_loss": 10.873295783996582,
+    "measured_seconds": 0.24790832800000828,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 33.72521495819092,
+    "tokens_per_second": 396533.67352788855
+  },
+  "trigger_sha": "63fdc062b80bcd21079c1e262fed7b8b45ba97e3"
+}
