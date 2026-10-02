@@ -790,6 +790,41 @@ def run_scientific(
     authority_comment_id: int,
     live_hourly_resource_usd: float,
 ) -> str:
+    root = Path(RESULT_ROOT)
+    volume.reload()
+    consumed_path = root / "ATTEMPT_CONSUMED.json"
+    result_path = root / "RESULT.json"
+    failure_path = root / "ATTEMPT_FAILURE.json"
+    if consumed_path.exists() or result_path.exists() or failure_path.exists():
+        raise RuntimeError("#1182 scientific attempt already consumed; no retry/resume/redispatch")
+
+    # The GPU function has begun: consume the one-shot attempt before any
+    # source/account/model/CUDA validation that could fail.
+    raw_entry = {
+        "status": "SCIENTIFIC_ATTEMPT_CONSUMED",
+        "classification": "CHM_V2_100M_QVA_STAGE_C_GPU_FUNCTION_BEGAN",
+        "phase": PHASE,
+        "control_issue": CONTROL_ISSUE,
+        "prereg_issue": PREREG_ISSUE,
+        "scientific_seed": SCIENTIFIC_SEED,
+        "result_root": RESULT_ROOT,
+        "source_sha": str(source_sha),
+        "source_tree": str(source_tree),
+        "selected_modal_account": str(selected_modal_account),
+        "selected_modal_workspace": str(selected_modal_workspace),
+        "final_authority_comment_id": int(authority_comment_id),
+        "consumed_unix": time.time(),
+        "gpu_allocation_started": True,
+        "scientific_seed_consumed": True,
+        "automatic_retry_authorized": False,
+        "checkpoint_resume_authorized": False,
+        "replication_authorized": False,
+        "stage_d_authorized": False,
+        "scale_up_authorized": False,
+    }
+    _atomic_write(consumed_path, raw_entry)
+    volume.commit()
+
     import torch
     bindings = _validate_bindings(
         source_sha=source_sha, source_tree=source_tree, qva_sha=qva_sha,
@@ -803,25 +838,6 @@ def run_scientific(
         selected_modal_account, selected_modal_workspace, account_selection_evidence_sha256
     )
     evidence = _evidence(bindings, account, int(authority_comment_id))
-    root = Path(RESULT_ROOT)
-    volume.reload()
-    consumed_path = root / "ATTEMPT_CONSUMED.json"
-    result_path = root / "RESULT.json"
-    failure_path = root / "ATTEMPT_FAILURE.json"
-    if consumed_path.exists() or result_path.exists() or failure_path.exists():
-        raise RuntimeError("#1182 scientific attempt already consumed; no retry/resume/redispatch")
-
-    consumed = {
-        "status": "SCIENTIFIC_ATTEMPT_CONSUMED",
-        "classification": "CHM_V2_100M_QVA_STAGE_C_GPU_FUNCTION_BEGAN",
-        **evidence,
-        "consumed_unix": time.time(),
-        "gpu_allocation_started": True,
-        "scientific_seed_consumed": True,
-    }
-    _atomic_write(consumed_path, consumed)
-    volume.commit()
-
     try:
         from tam_research.chm_v1_100m_scale import (
             CHMV1100MEIEMLM, CHMV1100MLocalLM,
