@@ -111,7 +111,7 @@ jobs:
             test "$(git -C source rev-parse "$LIVE_MAIN:$path")" = "$expected"
           done
           test "$CORE_SHA" = "c6c2ec21126f6c8492475a43e39ef87f1279d0b9"
-          test "$RUNNER_SHA" = "ed4eb4f50067eecbac9304c6ec53f2a403e2cee3"
+          test "$RUNNER_SHA" = "5aafacab5804f364701f5ef6d9ee9200db493458"
           test "$V2_MODULE_SHA" = "d0c2186231cead2a7c851d776d21e6ab6f73ec43"
           test "$MODEL_SHA" = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
           test "$EVALUATOR_SHA" = "863bd038e60da5511503adb0c8e1046a680ed3bd"
