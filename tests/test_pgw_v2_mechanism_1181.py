@@ -217,6 +217,7 @@ def test_control_causality_for_all_custom_modes() -> None:
                 layer_index=4,
                 control_mode="fixed_random",
             ).eval()
+            torch.nn.init.normal_(module.workspace_init, mean=0.0, std=0.02)
             x = torch.randn(1, 128, 256)
             local = torch.randn_like(x)
             changed_x = x.clone()
@@ -247,6 +248,7 @@ def test_recency_selected_fraction_and_finite_backward() -> None:
         layer_index=0,
         control_mode="recency",
     )
+    torch.nn.init.normal_(module.workspace_init, mean=0.0, std=0.02)
     x = torch.randn(1, 128, cfg.d_model, requires_grad=True)
     local = torch.randn_like(x, requires_grad=True)
     out = module(x, local)
