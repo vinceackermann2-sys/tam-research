@@ -1,0 +1,429 @@
+name: CHM-v2 100M QVA Stage-C one-seed development screen v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-chm-v2-100m-qva-stage-c-1182-seed-2011761-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - name: Refuse reruns and resolve immutable scientific payload
+        id: cfg
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re
+          cfg = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          expected = {
+              "phase": "chm-v2-100m-qva-stage-c-1182-seed-2011761-v1",
+              "control_issue": 1182,
+              "prereg_issue": 1176,
+              "scientific_seed": 2011761,
+              "result_root": "/vol/chm-v2/100m-qva-stage-c/issue-1182/seed-2011761-v1",
+          }
+          for key, value in expected.items():
+              assert cfg.get(key) == value, f"{key} mismatch: {cfg.get(key)!r} != {value!r}"
+          for key in (
+              "source_sha", "source_tree", "qva_sha", "stage_c_protocol_sha",
+              "model_sha", "small_protocol_sha", "evaluator_sha", "dual_account_sha",
+              "dual_account_cli_sha", "runtime_probe_sha", "core_sha", "runner_sha",
+              "workflow_sha",
+          ):
+              value = str(cfg.get(key, "")).strip().lower()
+              assert re.fullmatch(r"[0-9a-f]{40}", value), f"{key} must be full lowercase SHA"
+              print(f"{key}={value}")
+          authority = cfg.get("authority_comment_id")
+          account = str(cfg.get("selected_modal_account", "")).strip().lower()
+          workspace = str(cfg.get("selected_modal_workspace", "")).strip()
+          evidence = str(cfg.get("account_selection_evidence_sha256", "")).strip().lower()
+          assert isinstance(authority, int) and authority > 0, "authority_comment_id must be positive"
+          assert account in {"primary", "secondary"}, "selected_modal_account must be primary or secondary"
+          assert workspace, "selected_modal_workspace must be non-empty"
+          assert re.fullmatch(r"[0-9a-f]{64}", evidence), "account_selection_evidence_sha256 must be 64-hex"
+          print(f"authority_comment_id={authority}")
+          print(f"selected_modal_account={account}")
+          print(f"selected_modal_workspace={workspace}")
+          print(f"account_selection_evidence_sha256={evidence}")
+          PY
+
+      - name: Checkout exact authorized boundary
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.cfg.outputs.source_sha }}
+          fetch-depth: 0
+          path: source
+
+      - name: Fail closed on current main and frozen blobs
+        env:
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
+          STAGE_C_PROTOCOL_SHA: ${{ steps.cfg.outputs.stage_c_protocol_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          SMALL_PROTOCOL_SHA: ${{ steps.cfg.outputs.small_protocol_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git -C source rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git -C source fetch --no-tags origin main
+          test "$(git -C source rev-parse origin/main)" = "$SOURCE_SHA"
+
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v2_100m_qva.py")" = "$QVA_SHA"
+          test "$QVA_SHA" = "a34a8dffc2c2c1702a909782c3aba2593e90947c"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v2_100m_qva_stage_c.py")" = "$STAGE_C_PROTOCOL_SHA"
+          test "$STAGE_C_PROTOCOL_SHA" = "05e905937ff3a39276462a47fe93e8a499682d1a"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_scale.py")" = "$MODEL_SHA"
+          test "$MODEL_SHA" = "b9b141c0e52d4fd0fff28b12a3588b2adc659b8f"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_small_lm_protocol.py")" = "$SMALL_PROTOCOL_SHA"
+          test "$SMALL_PROTOCOL_SHA" = "d5c2e405b5306f556e7fbe70aacd552867e69d3e"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v1_100m_stage_c_eval.py")" = "$EVALUATOR_SHA"
+          test "$EVALUATOR_SHA" = "863bd038e60da5511503adb0c8e1046a680ed3bd"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/modal_dual_account_v3.py")" = "$DUAL_ACCOUNT_SHA"
+          test "$DUAL_ACCOUNT_SHA" = "adb979e2ecaa7cdf1c0ee36e7a4d929783e078d6"
+          test "$(git -C source rev-parse "$SOURCE_SHA:scripts/modal_select_account_v3.py")" = "$DUAL_ACCOUNT_CLI_SHA"
+          test "$DUAL_ACCOUNT_CLI_SHA" = "440292942066d0b3d3a71d40ca8495092674ce6c"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_runtime_admission_probe_1067_v1.py")" = "$RUNTIME_PROBE_SHA"
+          test "$RUNTIME_PROBE_SHA" = "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc"
+          test "$(git -C source rev-parse "$SOURCE_SHA:tam_research/chm_v2_100m_qva_stage_c_execution.py")" = "$CORE_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:modal_chm_v2_100m_qva_stage_c_1182_v1.py")" = "$RUNNER_SHA"
+          test "$(git -C source rev-parse "$SOURCE_SHA:.github/workflows/modal-chm-v2-100m-qva-stage-c-1182-v1.yml")" = "$WORKFLOW_SHA"
+
+      - name: Verify final authority and unique trigger
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          EVIDENCE_SHA: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          repo = os.environ["GITHUB_REPOSITORY"]
+          owner = os.environ["REPO_OWNER"]
+          trigger_number = int(os.environ["TRIGGER_ISSUE"])
+          authority_id = int(os.environ["AUTHORITY_COMMENT_ID"])
+          title = "[modal-chm-v2-100m-qva-stage-c-1182-seed-2011761-v1]"
+
+          def gh(path, *extra):
+              return json.loads(subprocess.check_output(["gh", "api", path, *extra], text=True))
+
+          trigger = gh(f"repos/{repo}/issues/{trigger_number}")
+          assert trigger["title"] == title
+          q = f'repo:{repo} is:issue in:title "{title}"'
+          found = gh("search/issues", "-X", "GET", "-f", f"q={q}", "-f", "per_page=100")
+          exact = [x for x in found["items"] if x["title"] == title]
+          assert len(exact) == 1 and exact[0]["number"] == trigger_number, exact
+
+          comments = gh(f"repos/{repo}/issues/1182/comments?per_page=100")
+          matches = [c for c in comments if int(c["id"]) == authority_id]
+          assert len(matches) == 1, "final authority comment not found"
+          comment = matches[0]
+          assert comment["user"]["login"] == owner, "authority comment must be repository-owner authored"
+          body = comment["body"]
+          required = [
+              "CHM_V2_1182_FINAL_LAUNCHER_AUTHORITY_V1",
+              f"source_sha={os.environ['SOURCE_SHA']}",
+              f"source_tree={os.environ['SOURCE_TREE']}",
+              f"core_blob={os.environ['CORE_SHA']}",
+              f"runner_blob={os.environ['RUNNER_SHA']}",
+              f"workflow_blob={os.environ['WORKFLOW_SHA']}",
+              "scientific_seed=2011761",
+              f"selected_modal_account={os.environ['ACCOUNT']}",
+              f"selected_modal_workspace={os.environ['WORKSPACE']}",
+              f"account_selection_evidence_sha256={os.environ['EVIDENCE_SHA']}",
+              "trigger_authorized=true",
+              "automatic_retry_authorized=false",
+              "checkpoint_resume_authorized=false",
+              "replication_authorized=false",
+              "stage_d_authorized=false",
+          ]
+          for item in required:
+              assert item in body, f"authority comment missing {item!r}"
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Bind selected credentials and verify workspace
+        id: account
+        env:
+          ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          EXPECTED_WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          PRIMARY_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          PRIMARY_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          SECONDARY_ID: ${{ secrets.MODAL_TOKEN_ID_2 }}
+          SECONDARY_SECRET: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+        run: |
+          if [ "$ACCOUNT" = "secondary" ]; then
+            echo "modal_token_id=$SECONDARY_ID" >> "$GITHUB_OUTPUT"
+            echo "modal_token_secret=$SECONDARY_SECRET" >> "$GITHUB_OUTPUT"
+            export MODAL_TOKEN_ID="$SECONDARY_ID"; export MODAL_TOKEN_SECRET="$SECONDARY_SECRET"
+          else
+            echo "modal_token_id=$PRIMARY_ID" >> "$GITHUB_OUTPUT"
+            echo "modal_token_secret=$PRIMARY_SECRET" >> "$GITHUB_OUTPUT"
+            export MODAL_TOKEN_ID="$PRIMARY_ID"; export MODAL_TOKEN_SECRET="$PRIMARY_SECRET"
+          fi
+          modal token info
+          ACTUAL="$(python -c 'import modal; print(modal.Workspace.from_context().name)')"
+          test "$ACTUAL" = "$EXPECTED_WORKSPACE"
+
+      - name: Zero-GPU scientific preflight
+        id: preflight
+        env:
+          MODAL_TOKEN_ID: ${{ steps.account.outputs.modal_token_id }}
+          MODAL_TOKEN_SECRET: ${{ steps.account.outputs.modal_token_secret }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
+          STAGE_C_PROTOCOL_SHA: ${{ steps.cfg.outputs.stage_c_protocol_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          SMALL_PROTOCOL_SHA: ${{ steps.cfg.outputs.small_protocol_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          EVIDENCE_SHA: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+        run: |
+          cd source
+          modal run modal_chm_v2_100m_qva_stage_c_1182_v1.py             --phase preflight             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE"             --qva-sha "$QVA_SHA" --stage-c-protocol-sha "$STAGE_C_PROTOCOL_SHA"             --model-sha "$MODEL_SHA" --small-protocol-sha "$SMALL_PROTOCOL_SHA"             --evaluator-sha "$EVALUATOR_SHA"             --dual-account-sha "$DUAL_ACCOUNT_SHA" --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA"             --runtime-probe-sha "$RUNTIME_PROBE_SHA" --core-sha "$CORE_SHA"             --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA"             --selected-modal-account "$ACCOUNT" --selected-modal-workspace "$WORKSPACE"             --account-selection-evidence-sha256 "$EVIDENCE_SHA"             --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../preflight.log
+
+      - name: Record zero-GPU preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 1182 --repo "$GITHUB_REPOSITORY" --body "CHM-v2 #1182 zero-GPU QVA Stage-C preflight PASS. Seed 2011761 remains unconsumed; no scientific GPU allocation occurred."
+
+      - name: Reserve one-shot scientific dispatch
+        id: reserve
+        env:
+          MODAL_TOKEN_ID: ${{ steps.account.outputs.modal_token_id }}
+          MODAL_TOKEN_SECRET: ${{ steps.account.outputs.modal_token_secret }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
+          STAGE_C_PROTOCOL_SHA: ${{ steps.cfg.outputs.stage_c_protocol_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          SMALL_PROTOCOL_SHA: ${{ steps.cfg.outputs.small_protocol_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          EVIDENCE_SHA: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+        run: |
+          cd source
+          modal run modal_chm_v2_100m_qva_stage_c_1182_v1.py             --phase reserve             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE"             --qva-sha "$QVA_SHA" --stage-c-protocol-sha "$STAGE_C_PROTOCOL_SHA"             --model-sha "$MODEL_SHA" --small-protocol-sha "$SMALL_PROTOCOL_SHA"             --evaluator-sha "$EVALUATOR_SHA"             --dual-account-sha "$DUAL_ACCOUNT_SHA" --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA"             --runtime-probe-sha "$RUNTIME_PROBE_SHA" --core-sha "$CORE_SHA"             --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA"             --selected-modal-account "$ACCOUNT" --selected-modal-workspace "$WORKSPACE"             --account-selection-evidence-sha256 "$EVIDENCE_SHA"             --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../reserve.log
+
+      - name: Record durable scientific dispatch reservation
+        if: steps.reserve.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 1182 --repo "$GITHUB_REPOSITORY" --body "CHM-v2 #1182 scientific dispatch reserved. The next step is the one authorized L4 allocation. Once the GPU function begins, seed 2011761 is permanently consumed; no retry, rerun, redispatch, rescue, resume, or replacement seed is authorized."
+
+      - name: Re-read live rates immediately before L4 allocation
+        id: rates
+        if: steps.reserve.outcome == 'success'
+        env:
+          MODAL_TOKEN_ID: ${{ steps.account.outputs.modal_token_id }}
+          MODAL_TOKEN_SECRET: ${{ steps.account.outputs.modal_token_secret }}
+          EXPECTED_WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+        run: |
+          ACTUAL="$(python -c 'import modal; print(modal.Workspace.from_context().name)')"
+          test "$ACTUAL" = "$EXPECTED_WORKSPACE"
+          modal billing rates --json > modal-rates.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          rates = json.load(open("modal-rates.json", encoding="utf-8"))
+          l4 = float(rates["gpu_hour_cost_l4"])
+          cpu = float(rates["cpu_hour_cost"])
+          ram = float(rates["mem_gib_hour_cost"])
+          for name, value in (("l4", l4), ("cpu", cpu), ("ram", ram)):
+              assert value > 0.0, f"invalid {name} rate"
+          hourly = l4 + 4 * cpu + 16 * ram
+          worst = hourly * 3.0
+          assert worst <= 3.00, f"live 3h worst-case ${worst:.6f} exceeds $3 cap"
+          print(f"hourly_resource_usd={hourly:.12f}")
+          print(f"worst_case_usd={worst:.12f}")
+          PY
+
+      - name: Launch QVA Stage-C scientific attempt exactly once
+        id: launch
+        if: steps.reserve.outcome == 'success' && steps.rates.outcome == 'success'
+        continue-on-error: true
+        env:
+          MODAL_TOKEN_ID: ${{ steps.account.outputs.modal_token_id }}
+          MODAL_TOKEN_SECRET: ${{ steps.account.outputs.modal_token_secret }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
+          STAGE_C_PROTOCOL_SHA: ${{ steps.cfg.outputs.stage_c_protocol_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          SMALL_PROTOCOL_SHA: ${{ steps.cfg.outputs.small_protocol_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          EVIDENCE_SHA: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+          LIVE_HOURLY_RESOURCE_USD: ${{ steps.rates.outputs.hourly_resource_usd }}
+        run: |
+          cd source
+          modal run modal_chm_v2_100m_qva_stage_c_1182_v1.py             --phase run             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE"             --qva-sha "$QVA_SHA" --stage-c-protocol-sha "$STAGE_C_PROTOCOL_SHA"             --model-sha "$MODEL_SHA" --small-protocol-sha "$SMALL_PROTOCOL_SHA"             --evaluator-sha "$EVALUATOR_SHA"             --dual-account-sha "$DUAL_ACCOUNT_SHA" --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA"             --runtime-probe-sha "$RUNTIME_PROBE_SHA" --core-sha "$CORE_SHA"             --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA"             --selected-modal-account "$ACCOUNT" --selected-modal-workspace "$WORKSPACE"             --account-selection-evidence-sha256 "$EVIDENCE_SHA"             --authority-comment-id "$AUTHORITY_COMMENT_ID"             --live-hourly-resource-usd "$LIVE_HOURLY_RESOURCE_USD" | tee ../run.log
+
+      - name: Inspect durable scientific state
+        id: inspect
+        if: always() && steps.reserve.outcome == 'success'
+        env:
+          MODAL_TOKEN_ID: ${{ steps.account.outputs.modal_token_id }}
+          MODAL_TOKEN_SECRET: ${{ steps.account.outputs.modal_token_secret }}
+          SOURCE_SHA: ${{ steps.cfg.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.cfg.outputs.source_tree }}
+          QVA_SHA: ${{ steps.cfg.outputs.qva_sha }}
+          STAGE_C_PROTOCOL_SHA: ${{ steps.cfg.outputs.stage_c_protocol_sha }}
+          MODEL_SHA: ${{ steps.cfg.outputs.model_sha }}
+          SMALL_PROTOCOL_SHA: ${{ steps.cfg.outputs.small_protocol_sha }}
+          EVALUATOR_SHA: ${{ steps.cfg.outputs.evaluator_sha }}
+          DUAL_ACCOUNT_SHA: ${{ steps.cfg.outputs.dual_account_sha }}
+          DUAL_ACCOUNT_CLI_SHA: ${{ steps.cfg.outputs.dual_account_cli_sha }}
+          RUNTIME_PROBE_SHA: ${{ steps.cfg.outputs.runtime_probe_sha }}
+          CORE_SHA: ${{ steps.cfg.outputs.core_sha }}
+          RUNNER_SHA: ${{ steps.cfg.outputs.runner_sha }}
+          WORKFLOW_SHA: ${{ steps.cfg.outputs.workflow_sha }}
+          ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
+          WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
+          EVIDENCE_SHA: ${{ steps.cfg.outputs.account_selection_evidence_sha256 }}
+          AUTHORITY_COMMENT_ID: ${{ steps.cfg.outputs.authority_comment_id }}
+        run: |
+          cd source
+          modal run modal_chm_v2_100m_qva_stage_c_1182_v1.py             --phase state             --source-sha "$SOURCE_SHA" --source-tree "$SOURCE_TREE"             --qva-sha "$QVA_SHA" --stage-c-protocol-sha "$STAGE_C_PROTOCOL_SHA"             --model-sha "$MODEL_SHA" --small-protocol-sha "$SMALL_PROTOCOL_SHA"             --evaluator-sha "$EVALUATOR_SHA"             --dual-account-sha "$DUAL_ACCOUNT_SHA" --dual-account-cli-sha "$DUAL_ACCOUNT_CLI_SHA"             --runtime-probe-sha "$RUNTIME_PROBE_SHA" --core-sha "$CORE_SHA"             --runner-sha "$RUNNER_SHA" --workflow-sha "$WORKFLOW_SHA"             --selected-modal-account "$ACCOUNT" --selected-modal-workspace "$WORKSPACE"             --account-selection-evidence-sha256 "$EVIDENCE_SHA"             --authority-comment-id "$AUTHORITY_COMMENT_ID" | tee ../state.log
+          cd ..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines = Path("state.log").read_text(encoding="utf-8").splitlines()
+          matches = [x.split("CHM_V2_100M_QVA_STAGE_C_STATE=", 1)[1]
+                     for x in lines if "CHM_V2_100M_QVA_STAGE_C_STATE=" in x]
+          assert len(matches) == 1, len(matches)
+          state = json.loads(matches[0])
+          Path("state.json").write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+          PY
+
+      - name: Record authoritative terminal state
+        if: always() && steps.inspect.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRIGGER_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          state = json.loads(Path("state.json").read_text(encoding="utf-8"))
+          consumed = state["files"].get("ATTEMPT_CONSUMED.json")
+          result = state["files"].get("RESULT.json")
+          failure = state["files"].get("ATTEMPT_FAILURE.json")
+          assert consumed is not None and consumed["scientific_seed_consumed"] is True
+          if result is not None:
+              metrics = result["metrics"]["aggregate_long_range"]
+              lines = [
+                  "CHM_V2_1182_AUTHORITATIVE_RESULT",
+                  "",
+                  f"classification={result['classification']}",
+                  f"passed={str(result['passed']).lower()}",
+                  f"stop_reasons={json.dumps(result['stop_reasons'], sort_keys=True)}",
+                  f"qva_vs_local_accuracy_gain={metrics['qva_vs_local']['accuracy_gain']:.12f}",
+                  f"qva_vs_local_candidate_nll_benefit={metrics['qva_vs_local']['candidate_nll_benefit']:.12f}",
+                  f"qva_vs_raw_accuracy_gain={metrics['qva_vs_raw']['accuracy_gain']:.12f}",
+                  f"qva_vs_raw_candidate_nll_benefit={metrics['qva_vs_raw']['candidate_nll_benefit']:.12f}",
+                  f"scientific_seed={result['scientific_seed']}",
+                  "scientific_seed_consumed=true",
+                  "replication_authorized=false",
+                  "stage_d_authorized=false",
+                  "scale_up_authorized=false",
+                  "automatic_retry_authorized=false",
+                  "",
+                  "One-seed development evidence only. No automatic replication, Stage D, scale-up, or breakthrough claim is authorized.",
+              ]
+              terminal = "result"
+          elif failure is not None:
+              lines = [
+                  "CHM_V2_1182_TERMINAL_INFRASTRUCTURE_OR_RUNTIME_FAILURE",
+                  "",
+                  f"error_type={failure['error_type']}",
+                  f"error={failure['error']}",
+                  "scientific_seed=2011761",
+                  "scientific_seed_consumed=true",
+                  "scientific_interpretation=false",
+                  "automatic_retry_authorized=false",
+                  "checkpoint_resume_authorized=false",
+                  "replication_authorized=false",
+                  "stage_d_authorized=false",
+              ]
+              terminal = "failure"
+          else:
+              raise RuntimeError("reserved #1182 run ended without RESULT.json or ATTEMPT_FAILURE.json")
+          Path("terminal-comment.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          Path("terminal-kind.txt").write_text(terminal, encoding="utf-8")
+          PY
+          gh issue comment 1182 --repo "$GITHUB_REPOSITORY" -F terminal-comment.md
+          gh issue close 1182 --repo "$GITHUB_REPOSITORY" --reason completed
+          gh issue close "$TRIGGER_ISSUE" --repo "$GITHUB_REPOSITORY" --reason completed
+          test "$(cat terminal-kind.txt)" = "result"
+
+      - name: Fail workflow if one-shot scientific function failed
+        if: always() && steps.reserve.outcome == 'success'
+        run: |
+          test "${{ steps.launch.outcome }}" = "success"
