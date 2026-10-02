@@ -4,7 +4,7 @@ from __future__ import annotations
 
 The issue-trigger workflows provide the final authority boundary. This module
 implements zero-GPU inspection/reservation and the single L4 scientific
-function, but it cannot create its trigger or authorize seed 2011371.
+function, but it cannot create its trigger or authorize seed 2011431.
 """
 
 import hashlib
