@@ -114,14 +114,14 @@ jobs:
             "tam_research/chm_v2_100m_value_projected_eiem_host_staged_1143.py:$CORE_SHA" \
             "modal_chm_v2_100m_value_projected_eiem_host_staged_1143_v1.py:$RUNNER_SHA" \
             ".github/workflows/modal-chm-v2-100m-value-projected-eiem-host-staged-1143-v1.yml:$WORKFLOW_SHA" \
-            ".github/workflows/modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v1.yml:$AUDIT_WORKFLOW_SHA"
+            ".github/workflows/modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v2.yml:$AUDIT_WORKFLOW_SHA"
           do
             path="${spec%%:*}"; expected="${spec##*:}"
             test "$(git -C source rev-parse "$SOURCE_SHA:$path")" = "$expected"
             test "$(git -C source rev-parse "$LIVE_MAIN:$path")" = "$expected"
           done
           test "$CORE_SHA" = "c6c2ec21126f6c8492475a43e39ef87f1279d0b9"
-          test "$RUNNER_SHA" = "1df51fea0ea8e58f9c057ef853fda1e9dacaffd4"
+          test "$RUNNER_SHA" = "5aafacab5804f364701f5ef6d9ee9200db493458"
 
       - name: Verify final authority and unique post-authority trigger
         env:
