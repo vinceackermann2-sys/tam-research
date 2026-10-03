@@ -1,0 +1,124 @@
+{
+  "branch": "exp/rlt-colab",
+  "evaluation": {
+    "aggregate_across_model_seeds": {
+      "mean_rlt_minus_transformer_nll": -0.011381479911506176,
+      "pair_count": 2,
+      "rlt_higher_nll_pair_count": 0,
+      "rlt_lower_nll_pair_count": 2,
+      "sample_sd_pair_delta_nll": 0.005025631046198499,
+      "se_pair_delta_nll": 0.0035536577925086017,
+      "t95_ci_pair_delta_nll_df1": [
+        -0.05653498338633779,
+        0.03377202356332544
+      ]
+    },
+    "architecture": {
+      "heavy_decoder_execution": "parallel_causal_full_sequence",
+      "parameters_each": 15129344,
+      "serial_transition": "merge_plus_rmsnorm_only",
+      "token_recurrent_updates_per_seq64": 64,
+      "variant": "light_state_recurrent_rlt"
+    },
+    "breakthrough_claim_supported": false,
+    "classification": "CROSSDATA_LIGHTSTATE_4M_AB_BOTH_RLT_LOWER_NLL",
+    "fresh_data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "eval_target_tokens_per_pair": 1048576,
+      "required_val_tokens": 1064960,
+      "sampling": "deterministic non-overlapping 64-token next-token sequences from a new validation shard",
+      "shuffle_seed": 20261003
+    },
+    "interpretation_ceiling": "Fresh-data evaluation of two independently trained light-state/Transformer checkpoint pairs. This tests whether the replicated 4M equal-token light-state quality edge persists off the original validation stream. Two seeds on one dataset family remain insufficient for broad or breakthrough claims.",
+    "pairs": [
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-lightstate-scale15m-paired-4m-modal-20261002-a",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "A",
+        "paired_batch_delta_normal95_ci": [
+          -0.016384330380290805,
+          -0.013485945027738753
+        ],
+        "paired_batch_delta_sd": 0.011830361681802909,
+        "paired_batch_delta_se": 0.0007393976051126818,
+        "rlt_lower_batch_count": 236,
+        "rlt_minus_transformer_nll": -0.014935137704014778,
+        "rlt_nll": 6.3631849847733974,
+        "rlt_perplexity": 580.0909982528732,
+        "seq_len": 64,
+        "transformer_nll": 6.378120122477412,
+        "transformer_perplexity": 588.8197575524258
+      },
+      {
+        "batch_size": 64,
+        "checkpoint_job_id": "rlt-lightstate-scale15m-paired-4m-modal-20261002-b",
+        "eval_batches": 256,
+        "eval_target_tokens": 1048576,
+        "label": "B",
+        "paired_batch_delta_normal95_ci": [
+          -0.009300276307107704,
+          -0.006355367930887444
+        ],
+        "paired_batch_delta_sd": 0.01202025506366166,
+        "paired_batch_delta_se": 0.0007512659414788537,
+        "rlt_lower_batch_count": 200,
+        "rlt_minus_transformer_nll": -0.007827822118997574,
+        "rlt_nll": 6.361290123313665,
+        "rlt_perplexity": 578.9928469280336,
+        "seq_len": 64,
+        "transformer_nll": 6.369117945432663,
+        "transformer_perplexity": 583.5428851533567
+      }
+    ],
+    "status": "complete"
+  },
+  "evaluator_blob_sha": "e9bbe3b1d5cdd0178ed28add89c9aef844ee9c45",
+  "finished_unix": 1791062264.2416754,
+  "fresh_data": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "dataset_config": "sample-10BT",
+    "dtype": "uint16",
+    "seed": 20261003,
+    "tokenizer": "gpt2",
+    "train_tokens": 100000,
+    "val_tokens": 1100000
+  },
+  "job": {
+    "automatic_retry": false,
+    "batch_size": 64,
+    "checkpoint_volume_a": "tam-rlt-lightstate-scale15m-checkpoints-account2",
+    "checkpoint_volume_b": "tam-rlt-lightstate-scale15m-checkpoints-b-account2",
+    "eval_batches": 256,
+    "eval_target_tokens_per_pair": 1048576,
+    "fresh_data_seed": 20261003,
+    "fresh_train_tokens": 100000,
+    "fresh_val_tokens": 1100000,
+    "job_id": "rlt-crossdata-lightstate-4m-ab-modal-20261003-a",
+    "requires_checkpoint_job_ids": [
+      "rlt-lightstate-scale15m-paired-4m-modal-20261002-a",
+      "rlt-lightstate-scale15m-paired-4m-modal-20261002-b"
+    ],
+    "schema": 1,
+    "seq_len": 64,
+    "task": "crossdata_lightstate_4m_ab"
+  },
+  "job_id": "rlt-crossdata-lightstate-4m-ab-modal-20261003-a",
+  "job_source_blob_sha": "6bafd9ede2a350b58291804d5bbd1493eeda6f43",
+  "launcher_blob_sha": "ad5ea542807698c5a93254d9fcd03df4126ad637",
+  "modal_cli_rc": 0,
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_available": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "started_unix": 1791062227.4449625,
+  "status": "complete",
+  "trigger_sha": "b6d26a030e91cb507ff76f0e421cc50dcf43434b",
+  "worker": "modal"
+}
