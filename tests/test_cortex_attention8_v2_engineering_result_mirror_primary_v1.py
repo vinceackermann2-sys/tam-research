@@ -80,3 +80,9 @@ def test_engineering_result_mirror_preserves_no_new_authority() -> None:
     assert '"remote_function_allocated":False' in workflow
     assert '"gpu_allocated":False' in workflow
     assert '"automatic_retry_authorized":False' in workflow
+
+
+def test_engineering_result_mirror_static_gpu_guard_targets_allocation_syntax() -> None:
+    workflow = _text()
+    assert 'assert ("gpu" + "=\\\"") not in workflow' in workflow
+    assert "gpu=NONE" in workflow
