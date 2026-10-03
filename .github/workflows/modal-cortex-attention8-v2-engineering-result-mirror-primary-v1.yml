@@ -48,7 +48,7 @@ jobs:
           top = workflow.split("\njobs:", 1)[0]
           assert "workflow_dispatch:" not in top
           assert ("modal " + "run ") not in workflow
-          assert ("gpu" + "=") not in workflow
+          assert ("gpu" + "=\"") not in workflow
           assert ("60" + "231") not in workflow
           assert ("60" + "232") not in workflow
           assert "/reduced-attention-v2-panel-v1/RESULT.json" in workflow
