@@ -18,7 +18,7 @@ AUDIT_WORKFLOW = (
     ROOT
     / ".github"
     / "workflows"
-    / "modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v1.yml"
+    / "modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v2.yml"
 )
 
 
@@ -63,7 +63,7 @@ def test_execution_contract_is_frozen_and_never_self_authorizes() -> None:
     assert manifest["train_stream_generator_seed"] == 2_021_761
     assert manifest["result_root"] == "/vol/chm-v2/100m-qva-stage-c/issue-1182/seed-2011761-v1"
     assert manifest["trigger_title"] == "[modal-chm-v2-100m-qva-stage-c-1182-seed-2011761-v1]"
-    assert manifest["audit_title"] == "[modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v1]"
+    assert manifest["audit_title"] == "[modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v2]"
     assert manifest["training_tokens_per_model"] == 33_554_432
     assert manifest["optimizer_steps_per_model"] == 2_048
     assert manifest["warmup_steps"] == 40
@@ -71,7 +71,7 @@ def test_execution_contract_is_frozen_and_never_self_authorizes() -> None:
     assert manifest["gpu_class"] == "L4"
     assert manifest["cpu_cores"] == 4
     assert manifest["ram_gib"] == 16
-    assert manifest["max_gpu_seconds"] == 10_800
+    assert manifest["max_gpu_seconds"] == 9_600
     assert manifest["max_billed_compute_usd"] == 3.0
     assert manifest["trigger_authorized_by_module"] is False
     assert manifest["gpu_allocation_authorized_by_module"] is False
@@ -91,12 +91,12 @@ def test_training_plan_is_exact_deterministic_three_way_stream() -> None:
     assert int(plan_a.min()) >= 0
 
 
-def test_live_rate_cap_is_exact_three_hour_envelope() -> None:
-    at_cap = execution.validate_live_rate_cap(1.0)
+def test_live_rate_cap_is_exact_9600_second_envelope() -> None:
+    at_cap = execution.validate_live_rate_cap(1.125)
     assert at_cap["worst_case_usd"] == pytest.approx(3.0)
-    assert at_cap["max_gpu_seconds"] == 10_800.0
+    assert at_cap["max_gpu_seconds"] == 9_600.0
     with pytest.raises(RuntimeError, match="exceeds"):
-        execution.validate_live_rate_cap(1.000001)
+        execution.validate_live_rate_cap(1.125001)
     with pytest.raises(RuntimeError):
         execution.validate_live_rate_cap(0.0)
 
@@ -111,7 +111,7 @@ def test_runner_is_syntax_valid_and_bound_to_frozen_qva_protocol() -> None:
         'PHASE = "chm-v2-100m-qva-stage-c-1182-seed-2011761-v1"',
         'RESULT_ROOT = "/vol/chm-v2/100m-qva-stage-c/issue-1182/seed-2011761-v1"',
         'GPU_CLASS = "L4"',
-        'MAX_GPU_SECONDS = 10_800',
+        'MAX_GPU_SECONDS = 9_600',
         'MAX_BILLED_COMPUTE_USD = 3.00',
         'QVA_BLOB = "a34a8dffc2c2c1702a909782c3aba2593e90947c"',
         'STAGE_C_PROTOCOL_BLOB = "05e905937ff3a39276462a47fe93e8a499682d1a"',
@@ -218,6 +218,9 @@ def test_scientific_workflow_is_issue_only_final_authority_one_shot() -> None:
     assert "checkpoint_resume_authorized=false" in source
     assert "replication_authorized=false" in source
     assert "stage_d_authorized=false" in source
+    assert "modal token info | tee" in source
+    assert "modal.Workspace.from_context" not in source
+    assert "(?:Workspace|User)" in source
 
 
 def test_scientific_workflow_rechecks_rates_after_reservation_before_launch() -> None:
@@ -228,14 +231,14 @@ def test_scientific_workflow_rechecks_rates_after_reservation_before_launch() ->
     assert reserve < rates < launch
     rate_block = source[rates:launch]
     assert "modal billing rates --json" in rate_block
-    assert "worst = hourly * 3.0" in rate_block
+    assert "worst = hourly * (9600.0 / 3600.0)" in rate_block
     assert "worst <= 3.00" in rate_block
 
 
 def test_authority_audit_is_cpu_only_account_binding_inspection() -> None:
     source = AUDIT_WORKFLOW.read_text(encoding="utf-8")
     assert "workflow_dispatch" not in source
-    assert "[modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v1]" in source
+    assert "[modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v2]" in source
     assert "github.run_attempt" in source
     assert 'test "$RUN_ATTEMPT" = "1"' in source
     assert "scripts/modal_select_account_v3.py" in source
@@ -244,7 +247,7 @@ def test_authority_audit_is_cpu_only_account_binding_inspection() -> None:
     assert "selected_modal_workspace" in source
     assert "account_selection_evidence_sha256" in source
     assert "modal billing rates --json" in source
-    assert "worst = hourly * 3.0" in source
+    assert "worst = hourly * (9600.0 / 3600.0)" in source
     assert "worst <= 3.00" in source
     assert "--phase inspect-source" in source
     assert "--phase preflight" not in source
@@ -254,6 +257,12 @@ def test_authority_audit_is_cpu_only_account_binding_inspection() -> None:
     assert "gpu_allocated=false" in source
     assert "scientific_seed_consumed=false" in source
     assert "trigger_authorized=false" in source
+    assert "modal token info | tee" in source
+    assert "modal.Workspace.from_context" not in source
+    assert "selected_workspace_name" not in source
+    assert "(?:Workspace|User)" in source
+    assert "37063049449" in source
+    assert "modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v1.yml" in source
 
 
 def test_all_embedded_workflow_python_is_syntax_valid() -> None:
