@@ -25,7 +25,7 @@ SCIENTIFIC_SEED = 2_011_431
 PHASE = "chm-v2-100m-value-projected-eiem-host-staged-1143-seed-2011431-v1"
 RESULT_ROOT = "/vol/chm-v2/100m-value-projected-eiem-host-staged/issue-1143/seed-2011431-v1"
 TRIGGER_TITLE = "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-seed-2011431-v1]"
-AUDIT_TITLE = "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v1]"
+AUDIT_TITLE = "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v2]"
 DATA_DIR = "/vol/data/tam100m-2b-curated-v1"
 VOLUME_NAME = "tam-research-data"
 GPU_CLASS = "L4"
@@ -240,7 +240,7 @@ def inspect_source(
         **_evidence(bindings, account, 0),
         "corpus_fingerprint": corpus,
         "result_namespace_unused": not root.exists(),
-        "seed_2011371_consumed": False,
+        "seed_2011431_consumed": False,
         "gpu_allocated": False,
         "writes_performed": False,
         "trigger_authorized": False,
