@@ -1,0 +1,16 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_CROSSDATA_LIGHTSTATE_4M_AB_ZERO_GPU_PREFLIGHT_PASS",
+  "evaluator_blob_sha": "e9bbe3b1d5cdd0178ed28add89c9aef844ee9c45",
+  "finished_unix": 1791062214.618929,
+  "job_id_checked": "rlt-crossdata-lightstate-4m-ab-modal-20261003-a",
+  "job_source_blob_sha": "6bafd9ede2a350b58291804d5bbd1493eeda6f43",
+  "launcher_blob_sha": "ad5ea542807698c5a93254d9fcd03df4126ad637",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "b6d26a030e91cb507ff76f0e421cc50dcf43434b",
+  "worker": "modal-control"
+}
