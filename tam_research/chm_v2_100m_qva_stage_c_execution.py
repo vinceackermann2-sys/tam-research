@@ -38,13 +38,13 @@ SYSTEMS_ISSUE = 1155
 
 RESULT_ROOT = "/vol/chm-v2/100m-qva-stage-c/issue-1182/seed-2011761-v1"
 TRIGGER_TITLE = "[modal-chm-v2-100m-qva-stage-c-1182-seed-2011761-v1]"
-AUDIT_TITLE = "[modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v1]"
+AUDIT_TITLE = "[modal-chm-v2-100m-qva-stage-c-1182-authority-audit-v2]"
 
 TRAIN_STREAM_GENERATOR_SEED = 2_021_761
 GPU_CLASS = "L4"
 CPU_CORES = 4
 RAM_GIB = 16
-MAX_GPU_SECONDS = 10_800
+MAX_GPU_SECONDS = 9_600
 MAX_BILLED_COMPUTE_USD = 3.00
 
 QVA_BLOB = "a34a8dffc2c2c1702a909782c3aba2593e90947c"
@@ -85,7 +85,7 @@ def validate_execution_contract() -> dict[str, Any]:
         raise RuntimeError("#1182 aligned-v4 generator drift")
     if (GPU_CLASS, CPU_CORES, RAM_GIB) != ("L4", 4, 16):
         raise RuntimeError("#1182 resource geometry drift")
-    if MAX_GPU_SECONDS != 10_800 or MAX_BILLED_COMPUTE_USD != 3.00:
+    if MAX_GPU_SECONDS != 9_600 or MAX_BILLED_COMPUTE_USD != 3.00:
         raise RuntimeError("#1182 runtime/cost envelope drift")
     if any(
         (
@@ -152,7 +152,7 @@ def validate_live_rate_cap(hourly_resource_usd: float) -> dict[str, float]:
     worst = hourly * (MAX_GPU_SECONDS / 3600.0)
     if worst > MAX_BILLED_COMPUTE_USD:
         raise RuntimeError(
-            f"#1182 live 3h worst-case ${worst:.6f} exceeds "
+            f"#1182 live timeout worst-case ${worst:.6f} exceeds "
             f"${MAX_BILLED_COMPUTE_USD:.2f} cap"
         )
     return {
