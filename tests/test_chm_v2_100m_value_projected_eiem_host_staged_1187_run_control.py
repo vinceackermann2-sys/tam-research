@@ -16,7 +16,7 @@ AUDIT_WORKFLOW = (
     ROOT
     / ".github"
     / "workflows"
-    / "modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v1.yml"
+    / "modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v2.yml"
 )
 
 
@@ -66,7 +66,7 @@ def test_scientific_workflow_is_fresh_1143_seed_and_1187_authority_only() -> Non
     assert "modal_chm_v2_100m_value_projected_eiem_host_staged_1143_v1.py" in source
     assert "tam_research/chm_v2_100m_value_projected_eiem_host_staged_1143.py" in source
     assert "c6c2ec21126f6c8492475a43e39ef87f1279d0b9" in source
-    assert "1df51fea0ea8e58f9c057ef853fda1e9dacaffd4" in source
+    assert "ed4eb4f50067eecbac9304c6ec53f2a403e2cee3" in source
     assert "modal billing rates --json" in source
     assert "worst=hourly*4.0" in source
     assert "worst<=6.00" in source
@@ -100,9 +100,9 @@ def test_authority_audit_is_cpu_preallocation_only_and_bound_to_1187() -> None:
     source = AUDIT_WORKFLOW.read_text(encoding="utf-8")
 
     assert "workflow_dispatch" not in source
-    assert "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v1]" in source
+    assert "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v2]" in source
     assert "[modal-chm-v2-100m-value-projected-eiem-host-staged-1143-seed-2011431-v1]" in source
-    assert '"phase":"chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v1"' in source
+    assert '"phase":"chm-v2-100m-value-projected-eiem-host-staged-1143-authority-audit-v2"' in source
     assert '"control_issue":1187' in source
     assert '"repair_issue":1143' in source
     assert '"prereg_issue":1137' in source
@@ -112,12 +112,12 @@ def test_authority_audit_is_cpu_preallocation_only_and_bound_to_1187() -> None:
     assert 'test "$RUN_ATTEMPT" = "1"' in source
     assert "repos/{repo}/issues/1187" in source
     assert "repos/{repo}/issues/1187/comments?per_page=100" in source
-    assert "CHM_V2_100M_HOST_STAGED_1143_AUTHORITY_AUDIT_V1_PASS" in source
+    assert "CHM_V2_100M_HOST_STAGED_1143_AUTHORITY_AUDIT_V2_PASS" in source
 
     assert "modal_chm_v2_100m_value_projected_eiem_host_staged_1143_v1.py" in source
     assert "tam_research/chm_v2_100m_value_projected_eiem_host_staged_1143.py" in source
     assert "c6c2ec21126f6c8492475a43e39ef87f1279d0b9" in source
-    assert "1df51fea0ea8e58f9c057ef853fda1e9dacaffd4" in source
+    assert "ed4eb4f50067eecbac9304c6ec53f2a403e2cee3" in source
 
     assert "modal billing rates --json" in source
     assert "worst=hourly*4.0" in source
@@ -173,7 +173,7 @@ def test_workflows_pin_exact_repaired_science_and_governance_blobs() -> None:
         "440292942066d0b3d3a71d40ca8495092674ce6c",
         "04b1e9c610195b0896a209eb9d6ce3fd4f014fbc",
         "c6c2ec21126f6c8492475a43e39ef87f1279d0b9",
-        "1df51fea0ea8e58f9c057ef853fda1e9dacaffd4",
+        "ed4eb4f50067eecbac9304c6ec53f2a403e2cee3",
     )
     for blob in frozen:
         assert blob in combined
