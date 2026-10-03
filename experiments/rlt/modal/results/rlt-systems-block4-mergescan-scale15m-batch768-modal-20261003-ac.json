@@ -1,0 +1,92 @@
+{
+  "architecture": {
+    "block_size": 4,
+    "cheap_merge_state_updates_per_seq64": 64,
+    "expensive_decoder_recurrences_per_seq64": 16,
+    "parameter_neutral": true,
+    "parameters": 15129344,
+    "state_schema_equal_to_frozen_rlt": true,
+    "variant": "merge_scan_block_recurrent_rlt"
+  },
+  "block_model_blob_sha": "0c2e53ce7c2208e322de3a05e3d3e6fea2acfeb9",
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_MERGESCAN_BLOCK4_SCALE15M_GAP_LE_1_5X",
+  "derived": {
+    "merge_scan_fraction_of_plain_block4_throughput": 0.9838416767593071,
+    "merge_scan_fraction_of_transformer_throughput": 0.7794801747264494,
+    "plain_block4_throughput_multiple_vs_merge_scan": 1.0164237027383483,
+    "transformer_throughput_multiple_vs_merge_scan": 1.2829062655133465
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261040,
+  "finished_unix": 1791038147.7386155,
+  "implementation_validation": {
+    "block_size_1_exact_reference_equivalence": {
+      "grad_max_abs": 0.0,
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "passed": true
+    },
+    "block_size_4_future_token_causality": {
+      "mutated_position_logits_max_abs": 0.7578125,
+      "mutation_index": 37,
+      "passed": true,
+      "prefix_logits_max_abs": 0.0
+    },
+    "merge_scan_differs_from_plain_block4_logits_max_abs": 1.34375
+  },
+  "interpretation_ceiling": "Engineering-only throughput/causality profile of a parameter-neutral merge-scan block4 RLT. It restores a cheap recurrent Merge state update at every token while keeping expensive decoder execution block-parallel. Random-token losses are not quality evidence; a fresh matched training run is required before any quality conclusion.",
+  "job_id": "rlt-systems-block4-mergescan-scale15m-batch768-modal-20261003-ac",
+  "job_source_blob_sha": "3aa4fd050a75a5682be0270fad6dcb37d4c46d2b",
+  "launcher_blob_sha": "652caa45d7e071e8612e8d8e0d9ee6d08816f071",
+  "merge_scan_block4": {
+    "first_step_seconds_including_compile": 132.441638684,
+    "last_loss": 10.877276420593262,
+    "measured_seconds": 0.3183959079999852,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 35.6178994178772,
+    "tokens_per_second": 308747.68654377485
+  },
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "f0f260d804389328d217ea2bdc62742e3a469c88",
+  "plain_block4": {
+    "first_step_seconds_including_compile": 139.04519190400003,
+    "last_loss": 10.875992774963379,
+    "measured_seconds": 0.3132511640000075,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 35.567490577697754,
+    "tokens_per_second": 313818.4667687225
+  },
+  "profile": {
+    "batch_size": 768,
+    "block_size": 4,
+    "expected_parameters_each": 15129344,
+    "measured_steps": 2,
+    "seq_len": 64,
+    "warmup_steps": 1
+  },
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1791037854.6731427,
+  "status": "complete",
+  "transformer": {
+    "first_step_seconds_including_compile": 11.793881813000041,
+    "last_loss": 10.873291015625,
+    "measured_seconds": 0.24818329800001493,
+    "measured_tokens": 98304,
+    "parameters": 15129344,
+    "peak_vram_gb": 33.95487022399902,
+    "tokens_per_second": 396094.3415297595
+  },
+  "trigger_sha": "d339a979b8c0a84178da06e27f1f79405ad76ae3"
+}
