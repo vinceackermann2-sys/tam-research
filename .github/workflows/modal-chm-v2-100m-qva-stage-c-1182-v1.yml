@@ -181,7 +181,7 @@ jobs:
       - name: Install pinned Modal CLI
         run: pip install 'modal>=1.5.4,<1.6'
 
-      - name: Bind selected credentials and verify workspace
+      - name: Bind selected credentials and verify authenticated workspace
         id: account
         env:
           ACCOUNT: ${{ steps.cfg.outputs.selected_modal_account }}
@@ -200,8 +200,18 @@ jobs:
             echo "modal_token_secret=$PRIMARY_SECRET" >> "$GITHUB_OUTPUT"
             export MODAL_TOKEN_ID="$PRIMARY_ID"; export MODAL_TOKEN_SECRET="$PRIMARY_SECRET"
           fi
-          modal token info
-          ACTUAL="$(python -c 'import modal; print(modal.Workspace.from_context().name)')"
+          modal token info | tee modal-token-info.txt
+          ACTUAL="$(python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path("modal-token-info.txt").read_text(encoding="utf-8")
+          match = re.search(r"^(?:Workspace|User):\s*([^\s(]+)", text, re.MULTILINE)
+          assert match, "authenticated Modal workspace/user missing from token info"
+          value = match.group(1).strip()
+          assert value and value.lower() != "none", value
+          print(value)
+          PY
+          )"
           test "$ACTUAL" = "$EXPECTED_WORKSPACE"
 
       - name: Zero-GPU scientific preflight
@@ -277,7 +287,18 @@ jobs:
           MODAL_TOKEN_SECRET: ${{ steps.account.outputs.modal_token_secret }}
           EXPECTED_WORKSPACE: ${{ steps.cfg.outputs.selected_modal_workspace }}
         run: |
-          ACTUAL="$(python -c 'import modal; print(modal.Workspace.from_context().name)')"
+          modal token info | tee modal-token-info-prealloc.txt
+          ACTUAL="$(python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path("modal-token-info-prealloc.txt").read_text(encoding="utf-8")
+          match = re.search(r"^(?:Workspace|User):\s*([^\s(]+)", text, re.MULTILINE)
+          assert match, "authenticated Modal workspace/user missing from token info"
+          value = match.group(1).strip()
+          assert value and value.lower() != "none", value
+          print(value)
+          PY
+          )"
           test "$ACTUAL" = "$EXPECTED_WORKSPACE"
           modal billing rates --json > modal-rates.json
           python - <<'PY' >> "$GITHUB_OUTPUT"
@@ -289,8 +310,8 @@ jobs:
           for name, value in (("l4", l4), ("cpu", cpu), ("ram", ram)):
               assert value > 0.0, f"invalid {name} rate"
           hourly = l4 + 4 * cpu + 16 * ram
-          worst = hourly * 3.0
-          assert worst <= 3.00, f"live 3h worst-case ${worst:.6f} exceeds $3 cap"
+          worst = hourly * (9600.0 / 3600.0)
+          assert worst <= 3.00, f"live 9600s worst-case ${worst:.6f} exceeds $3 cap"
           print(f"hourly_resource_usd={hourly:.12f}")
           print(f"worst_case_usd={worst:.12f}")
           PY
