@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-block4-mergescan-scale15m-batch768-modal-20261003-ac",
+  "task": "systems_block4_mergescan_scale15m_batch768_ac",
+  "engineering_seed": 20261040,
+  "requires_block_sweep_job_id": "rlt-systems-block-sweep-scale15m-batch768-modal-20260929-ab",
+  "requires_block4_crossdata_job_id": "rlt-crossdata-block4-4m-ab-modal-20260930-a",
+  "block_size": 4,
+  "batch_size": 768,
+  "seq_len": 64,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
