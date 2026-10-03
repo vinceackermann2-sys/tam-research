@@ -1,0 +1,226 @@
+name: CORTEX attention-8 v2 engineering result mirror to primary v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  mirror:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-attention8-v2-engineering-result-mirror-primary-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PRIMARY_MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      PRIMARY_MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+
+    steps:
+      - name: Refuse reruns
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+
+      - name: Check out current main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Static storage-only authority check
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          workflow = Path(
+              ".github/workflows/modal-cortex-attention8-v2-engineering-result-mirror-primary-v1.yml"
+          ).read_text()
+          top = workflow.split("\njobs:", 1)[0]
+          assert "workflow_dispatch:" not in top
+          assert ("modal " + "run ") not in workflow
+          assert ("gpu" + "=") not in workflow
+          assert ("60" + "231") not in workflow
+          assert ("60" + "232") not in workflow
+          assert "/reduced-attention-v2-panel-v1/RESULT.json" in workflow
+          PY
+
+      - name: Install pinned Modal CLI
+        run: python -m pip install 'modal>=1.5.4,<1.6'
+
+      - name: Activate secondary account2 source credentials
+        run: |
+          set -euo pipefail
+          test -n "$MODAL_TOKEN_ID_2"
+          test -n "$MODAL_TOKEN_SECRET_2"
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+
+      - name: Download frozen engineering result from secondary
+        run: |
+          set -euo pipefail
+          modal token info
+          modal volume list --json > secondary-volumes.json
+          python - <<'PY'
+          import json
+          payload=json.load(open("secondary-volumes.json",encoding="utf-8"))
+          assert "tam-research-data" in json.dumps(payload)
+          PY
+          mkdir -p mirror-src
+          modal volume get tam-research-data \
+            /cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/RESULT.json \
+            mirror-src/RESULT.json
+
+      - name: Verify frozen engineering evidence locally
+        id: source
+        run: |
+          set -euo pipefail
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import hashlib, json
+          from pathlib import Path
+          path=Path("mirror-src/RESULT.json")
+          result=json.loads(path.read_text(encoding="utf-8"))
+          assert result["status"]=="ENGINEERING_PANEL_COMPLETE"
+          assert result["classification"]=="ENGINEERING_PANEL_CANDIDATE_SCREEN_PASS"
+          assert result["engineering_seed"]==2026092901
+          assert result["engineering_seed_consumed"] is True
+          assert result["progression_candidates"]==["attention_8"]
+          assert result["gates"]["v1_replicate_seed_sensitivity_guard"] is False
+          a=result["comparisons"]["attention_8"]
+          assert a["combined_gate_pass"] is True
+          assert a["quality_gate_pass"] is True
+          assert a["throughput_gate_pass"] is True
+          assert abs(float(a["nll_delta"])-(-0.01449833869934114))<=1e-12
+          assert abs(float(a["throughput_ratio"])-1.0651255526571075)<=1e-12
+          assert result["scientific_seed_consumed"] is False
+          assert result["replication_authorized"] is False
+          assert result["250m_5b_authorized"] is False
+          assert result["breakthrough_claim_allowed"] is False
+          h=hashlib.sha256(path.read_bytes()).hexdigest()
+          print(f"result_sha256={h}")
+          print(f"result_bytes={path.stat().st_size}")
+          PY
+
+      - name: Restore primary destination credentials
+        run: |
+          set -euo pipefail
+          test -n "$PRIMARY_MODAL_TOKEN_ID"
+          test -n "$PRIMARY_MODAL_TOKEN_SECRET"
+          printf 'MODAL_TOKEN_ID=%s\n' "$PRIMARY_MODAL_TOKEN_ID" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$PRIMARY_MODAL_TOKEN_SECRET" >> "$GITHUB_ENV"
+
+      - name: Verify primary storage and fail closed on destination preexistence
+        run: |
+          set -euo pipefail
+          modal token info
+          modal volume list --json > primary-volumes.json
+          python - <<'PY'
+          import json
+          payload=json.load(open("primary-volumes.json",encoding="utf-8"))
+          assert "tam-research-data" in json.dumps(payload)
+          PY
+          mkdir -p preexisting
+          if modal volume get tam-research-data \
+            /cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/RESULT.json \
+            preexisting/RESULT.json >/tmp/get.out 2>/tmp/get.err; then
+            echo "primary engineering RESULT.json already exists; fail closed" >&2
+            exit 81
+          fi
+          if modal volume get tam-research-data \
+            /cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/PRIMARY_MIRROR_MANIFEST.json \
+            preexisting/PRIMARY_MIRROR_MANIFEST.json >/tmp/get-manifest.out 2>/tmp/get-manifest.err; then
+            echo "primary mirror manifest already exists; fail closed" >&2
+            exit 82
+          fi
+
+      - name: Upload exact engineering result to primary
+        run: |
+          set -euo pipefail
+          modal volume put tam-research-data \
+            mirror-src/RESULT.json \
+            /cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/RESULT.json
+
+      - name: Re-download primary result and verify parity
+        run: |
+          set -euo pipefail
+          mkdir -p mirror-verify
+          modal volume get tam-research-data \
+            /cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/RESULT.json \
+            mirror-verify/RESULT.json
+          cmp mirror-src/RESULT.json mirror-verify/RESULT.json
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          src=Path("mirror-src/RESULT.json")
+          dst=Path("mirror-verify/RESULT.json")
+          assert src.stat().st_size==dst.stat().st_size
+          assert hashlib.sha256(src.read_bytes()).hexdigest()==hashlib.sha256(dst.read_bytes()).hexdigest()
+          PY
+
+      - name: Build primary mirror manifest after parity
+        env:
+          RESULT_SHA256: ${{ steps.source.outputs.result_sha256 }}
+          RESULT_BYTES: ${{ steps.source.outputs.result_bytes }}
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload={
+            "status":"MIRROR_COMPLETE",
+            "classification":"ATTENTION8_V2_ENGINEERING_RESULT_MIRROR_PRIMARY_V1_PASS",
+            "source_account":"secondary_account2",
+            "destination_account":"primary",
+            "volume_name":"tam-research-data",
+            "source_path":"/cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/RESULT.json",
+            "destination_path":"/cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/RESULT.json",
+            "result_sha256":os.environ["RESULT_SHA256"],
+            "result_bytes":int(os.environ["RESULT_BYTES"]),
+            "source_and_destination_byte_identical":True,
+            "engineering_seed":2026092901,
+            "engineering_seed_consumed_historically":True,
+            "new_seed_consumed":False,
+            "scientific_training_authorized":False,
+            "remote_function_allocated":False,
+            "gpu_allocated":False,
+            "automatic_retry_authorized":False,
+          }
+          Path("PRIMARY_MIRROR_MANIFEST.json").write_text(
+              json.dumps(payload,indent=2,sort_keys=True)+"\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Upload manifest last and verify
+        run: |
+          set -euo pipefail
+          modal volume put tam-research-data \
+            PRIMARY_MIRROR_MANIFEST.json \
+            /cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/PRIMARY_MIRROR_MANIFEST.json
+          modal volume get tam-research-data \
+            /cortex-s-v0/100m-200m/reduced-attention-v2-panel-v1/PRIMARY_MIRROR_MANIFEST.json \
+            mirror-verify/PRIMARY_MIRROR_MANIFEST.json
+          cmp PRIMARY_MIRROR_MANIFEST.json mirror-verify/PRIMARY_MIRROR_MANIFEST.json
+
+      - name: Record terminal mirror result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RESULT_SHA256: ${{ steps.source.outputs.result_sha256 }}
+          RESULT_BYTES: ${{ steps.source.outputs.result_bytes }}
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="ATTENTION8_V2_ENGINEERING_RESULT_MIRROR_PRIMARY_V1_PASS result_sha256=${RESULT_SHA256} result_bytes=${RESULT_BYTES} source=secondary/account2 destination=primary parity=PASS gpu=NONE remote_function=NONE new_seed_consumed=FALSE"
+          gh issue close "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --reason completed
