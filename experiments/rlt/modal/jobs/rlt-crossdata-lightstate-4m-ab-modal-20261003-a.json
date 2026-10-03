@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "job_id": "rlt-crossdata-lightstate-4m-ab-modal-20261003-a",
+  "task": "crossdata_lightstate_4m_ab",
+  "requires_checkpoint_job_ids": [
+    "rlt-lightstate-scale15m-paired-4m-modal-20261002-a",
+    "rlt-lightstate-scale15m-paired-4m-modal-20261002-b"
+  ],
+  "fresh_data_seed": 20261003,
+  "eval_target_tokens_per_pair": 1048576,
+  "eval_batches": 256,
+  "batch_size": 64,
+  "seq_len": 64,
+  "fresh_train_tokens": 100000,
+  "fresh_val_tokens": 1100000,
+  "checkpoint_volume_a": "tam-rlt-lightstate-scale15m-checkpoints-account2",
+  "checkpoint_volume_b": "tam-rlt-lightstate-scale15m-checkpoints-b-account2",
+  "automatic_retry": false
+}
