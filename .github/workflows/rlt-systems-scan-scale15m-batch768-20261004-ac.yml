@@ -1,0 +1,305 @@
+name: RLT systems token-state scan exact15M batch768 20261004 AC
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-systems-scan-scale15m-batch768-20261004-ac.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-systems-scan-scale15m-batch768-20261004-ac
+  cancel-in-progress: false
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-systems-scan-scale15m-batch768-modal-20261004-ac
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-systems-scan-scale15m-batch768-modal-20261004-ac.json
+      MODEL_PATH: experiments/rlt/model_scan.py
+      LAUNCHER_PATH: experiments/rlt/modal_scan_scale15m_batch768_profile_ac.py
+      BLOCK4_B_PATH: experiments/rlt/modal/results/rlt-block4-scale15m-paired-4m-modal-20260930-b.json
+      OPTIMIZER_TUNED_PATH: experiments/rlt/modal/results/rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-scan-scale15m-batch768-20261004-ac.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-scan-scale15m-batch768-modal-20261004-ac.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-systems-scan-scale15m-batch768-modal-20261004-ac.json
+
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+
+      - name: Refuse previously claimed or completed scan profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          MODEL_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$MODEL_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          {
+            echo "JOB_BLOB_SHA=$JOB_BLOB_SHA"
+            echo "MODEL_BLOB_SHA=$MODEL_BLOB_SHA"
+            echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA"
+          } >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" >/tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j=={
+            'schema':1,
+            'job_id':'rlt-systems-scan-scale15m-batch768-modal-20261004-ac',
+            'task':'systems_scan_scale15m_batch768_ac',
+            'engineering_seed':20261040,
+            'requires_block4_replication_job_id':'rlt-block4-scale15m-paired-4m-modal-20260930-b',
+            'requires_optimizer_tuned_compute_match_job_id':'rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a',
+            'batch_size':768,'seq_len':64,'expected_parameters_each':15129344,
+            'automatic_retry':False,
+          },j
+          PY
+
+      - name: Require replicated block failure and practical baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$BLOCK4_B_PATH" >/tmp/b4.json
+          git show "origin/$BRANCH:$OPTIMIZER_TUNED_PATH" >/tmp/y.json
+          python - <<'PY'
+          import json
+          b=json.load(open('/tmp/b4.json'))
+          assert b.get('job_id')=='rlt-block4-scale15m-paired-4m-modal-20260930-b',b
+          assert b.get('status')=='complete' and b.get('data_hashes_match_claim') is True,b
+          assert b.get('exact_parameter_match_verified') is True,b
+          bc=b['comparison']
+          assert bc['classification']=='PAIRED_BLOCK4_SCALE15M_4M_NO_RLT_QUALITY_ADVANTAGE',bc
+          assert bc['architecture_test']['block_size']==4,bc
+          assert float(bc['derived']['rlt_minus_transformer_final_nll'])>0.0,bc
+          assert bc['semantic_equivalence']['passed'] is True,bc
+
+          y=json.load(open('/tmp/y.json'))
+          assert y.get('job_id')=='rlt-compute-matched-optimizer-tuned-scale15m-60s-modal-20260928-a',y
+          assert y.get('status')=='complete' and y.get('data_hashes_match_claim') is True,y
+          assert y.get('exact_parameter_match_verified') is True,y
+          assert y.get('compute_budget_protocol_verified') is True,y
+          yc=y['comparison']
+          assert yc['classification']=='COMPUTE_MATCHED_OPTIMIZER_TUNED_SCALE15M_60S_NO_RLT_QUALITY_ADVANTAGE',yc
+          assert float(yc['derived']['rlt_minus_transformer_final_nll'])>0.0,yc
+          PY
+
+      - name: Install Modal
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+
+      - name: Select Modal account 2 before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLOT=""; ID=""; SECRET=""
+          if [ -n "${MODAL_TOKEN_ID_2:-}" ] && [ -n "${MODAL_TOKEN_SECRET_2:-}" ]; then
+            SLOT="2"; ID="$MODAL_TOKEN_ID_2"; SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "${MODAL_TOKEN_ID_B:-}" ] && [ -n "${MODAL_TOKEN_SECRET_B:-}" ]; then
+            SLOT="B"; ID="$MODAL_TOKEN_ID_B"; SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+            SLOT="A"; ID="$MODAL_TOKEN_ID_A"; SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID"; test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID"; export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          {
+            echo "MODAL_ACCOUNT_SLOT=$SLOT"
+            echo "MODAL_TOKEN_ID=$ID"
+            echo "MODAL_TOKEN_SECRET=$SECRET"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate scan sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$MODEL_PATH" "$LAUNCHER_PATH" experiments/rlt/modal_preflight.py
+          python - <<'PY'
+          from pathlib import Path
+          m=Path('experiments/rlt/model_scan.py').read_text()
+          p=Path('experiments/rlt/modal_scan_scale15m_batch768_profile_ac.py').read_text()
+          for x in [
+            'class ScanRecurrentLoopedTransformer',
+            'torch.cumprod',
+            'torch.cumsum',
+            'GATE_FLOOR = 0.5',
+            'GATE_CEILING = 0.99',
+            'hidden = self.merge_norm(memory + states)',
+          ]: assert x in m,x
+          for x in [
+            'JOB_ID = "rlt-systems-scan-scale15m-batch768-modal-20261004-ac"',
+            'ENGINEERING_SEED = 20_261_040',
+            'BATCH_SIZE = 768',
+            'EXPECTED_PARAMETERS = 15_129_344',
+            'vectorized scan != serial recurrence within tolerance',
+            'scan future-token causality failed',
+            'RLT_SYSTEMS_SCAN_SCALE15M_BATCH768_AC_RESULT_B64=',
+            'gpu="A100-80GB"',
+            'retries=0',
+          ]: assert x in p,x
+          PY
+
+      - name: Run non-GPU Modal control-plane preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+
+      - name: Commit scan engineering preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          p.update({
+            'classification':'RLT_SYSTEMS_SCAN_SCALE15M_BATCH768_AC_ZERO_GPU_PREFLIGHT_PASS',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_id_checked':os.environ['JOB_ID'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'engineering_only':True,'scientific_execution':False,
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'batch_size':768,'seq_len':64,'expected_parameters_each':15129344,
+          })
+          path=pathlib.Path(os.environ['DIAGNOSTIC_PATH'])
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt systems: record scan AC zero-GPU preflight'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Claim one-shot scan profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,time
+          p=pathlib.Path(os.environ['CLAIM_PATH'])
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps({
+            'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed',
+            'claimed_unix':time.time(),'worker':'github-actions-modal',
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'engineering_seed':20261040,
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+            'engineering_only':True,'scientific_execution':False,
+            'batch_size':768,'seq_len':64,
+            'automatic_retry_authorized':False,
+            'job':json.load(open(os.environ['JOB_PATH'])),
+          },indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt systems: claim $JOB_ID before A100-80GB profile"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Execute exactly one Modal A100-80GB scan profile
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 80m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=${PIPESTATUS[0]}
+          B64="$(grep '^RLT_SYSTEMS_SCAN_SCALE15M_BATCH768_AC_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Materialize durable scan result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64',''); rc=int(os.environ.get('MODAL_RC','999')); p=None
+          if b:
+              try:p=json.loads(base64.urlsafe_b64decode(b.encode()))
+              except Exception:p=None
+          if not isinstance(p,dict):
+              log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+              p={
+                'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed',
+                'finished_unix':time.time(),'worker':'github-actions-modal',
+                'error_type':'ModalInvocationOrTransportError',
+                'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+                'log_tail':log[-6000:],'scientific_conclusion':None,
+              }
+          p.update({
+            'modal_cli_rc':rc,'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+          })
+          out=pathlib.Path(os.environ['RESULT_PATH'])
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt systems: record $JOB_ID terminal result"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+      - name: Summarize scan profile
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f "$RESULT_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          if r.get('status')!='complete': raise SystemExit(1)
+          assert r.get('classification') in {
+            'PASS_SCAN_SCALE15M_GAP_LE_1_15X',
+            'PASS_SCAN_SCALE15M_GAP_LE_1_35X',
+            'PASS_SCAN_SCALE15M_GAP_GT_1_35X',
+          },r
+          assert r.get('engineering_only') is True and r.get('scientific_execution') is False,r
+          assert r['architecture']['parameter_neutral'] is True,r
+          assert r['architecture']['state_schema_equal_to_frozen_rlt'] is True,r
+          assert r['implementation_validation']['vectorized_vs_serial_state_recurrence']['passed'] is True,r
+          assert r['implementation_validation']['future_token_causality']['passed'] is True,r
+          assert r['scan']['parameters']==15129344 and r['transformer']['parameters']==15129344,r
+          print('scan tok/s:',r['scan']['tokens_per_second'])
+          print('transformer tok/s:',r['transformer']['tokens_per_second'])
+          print('throughput gap:',r['derived']['transformer_throughput_multiple_vs_scan'])
+          PY
