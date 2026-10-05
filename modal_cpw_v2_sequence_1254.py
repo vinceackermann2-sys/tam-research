@@ -34,35 +34,51 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
         "torch>=2.7,<2.11",
-        "datasets>=4.0,<5",
-        "transformers>=4.55,<5",
-        "tokenizers>=0.21,<1",
         "numpy>=2.0,<3",
-        "huggingface-hub>=0.34,<1",
     )
     .add_local_python_source("tam_research")
 )
 
 
-@app.function(
-    image=image,
-    cpu=8,
-    memory=32768,
-    timeout=60 * 60,
-    volumes={"/vol": volume},
-)
-def ensure_data() -> dict:
-    from tam_research.data import prepare_fineweb
+def _verify_frozen_data() -> dict:
+    meta_path = Path("/vol/data/fineweb-edu-gpt2/meta.json")
+    train_path = Path("/vol/data/fineweb-edu-gpt2/train.bin")
+    val_path = Path("/vol/data/fineweb-edu-gpt2/val.bin")
+    if not (meta_path.exists() and train_path.exists() and val_path.exists()):
+        raise RuntimeError("frozen FineWeb-Edu token shard is missing")
 
-    result = prepare_fineweb(
-        "/vol/data/fineweb-edu-gpt2",
-        train_tokens=25_000_000,
-        val_tokens=2_000_000,
+    meta = json.loads(meta_path.read_text())
+    expected = {
+        "dataset": "HuggingFaceFW/fineweb-edu",
+        "dataset_config": "sample-10BT",
+        "tokenizer": "gpt2",
+        "seed": 1234,
+        "train_tokens": 25_000_000,
+        "val_tokens": 2_000_000,
+        "dtype": "uint16",
+    }
+    for key, value in expected.items():
+        if meta.get(key) != value:
+            raise RuntimeError(
+                f"frozen data mismatch for {key}: {meta.get(key)!r} != {value!r}"
+            )
+    if train_path.stat().st_size != 25_000_000 * 2:
+        raise RuntimeError("unexpected train.bin byte size")
+    if val_path.stat().st_size != 2_000_000 * 2:
+        raise RuntimeError("unexpected val.bin byte size")
+
+    result = {
+        "verified": True,
+        "writes_performed": False,
+        "meta": meta,
+        "train_bytes": train_path.stat().st_size,
+        "val_bytes": val_path.stat().st_size,
+    }
+    print(
+        "CPW_V2_SEQUENCE_DATA_GUARD="
+        + json.dumps(result, sort_keys=True),
+        flush=True,
     )
-    if int(result.get("train_tokens", -1)) != 25_000_000 or int(result.get("val_tokens", -1)) != 2_000_000:
-        raise RuntimeError(f"unexpected data boundary: {result}")
-    volume.commit()
-    print("CPW_V2_SEQUENCE_DATA_GUARD=" + json.dumps(result, sort_keys=True), flush=True)
     return result
 
 
@@ -132,6 +148,8 @@ def run_screen(source_sha: str) -> dict:
     if not re.fullmatch(r"[0-9a-f]{40}", source_sha):
         raise RuntimeError(f"invalid source SHA: {source_sha!r}")
 
+    data_guard = _verify_frozen_data()
+
     root = Path(RESULT_ROOT)
     root.mkdir(parents=True, exist_ok=True)
     attempt_path = root / "ATTEMPT.json"
@@ -152,6 +170,7 @@ def run_screen(source_sha: str) -> dict:
         "resume_authorized": False,
         "breakthrough_claim_allowed": False,
         "scale_up_authorized": False,
+        "data_guard": data_guard,
         "started_unix": time.time(),
     }
     attempt_path.write_text(json.dumps(attempt, indent=2), encoding="utf-8")
@@ -315,6 +334,5 @@ def run_screen(source_sha: str) -> dict:
 
 @app.local_entrypoint()
 def main(source_sha: str) -> None:
-    ensure_data.remote()
     result = run_screen.remote(source_sha)
     print("CPW_V2_SEQUENCE_RESULT=" + json.dumps(result, sort_keys=True), flush=True)
