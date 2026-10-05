@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-lightstate-qualitysec-batch-modal-20261003-ad",
+  "task": "systems_lightstate_qualitysec_batch_ad",
+  "engineering_seed": 20261044,
+  "batch_seed": 20271044,
+  "eval_seed": 20291044,
+  "requires_lightstate_profile_job_id": "rlt-systems-lightstate-scale15m-batch768-modal-20261002-ac",
+  "requires_crossdata_job_id": "rlt-crossdata-lightstate-4m-ab-modal-20261003-a",
+  "batch_sizes": [64, 128, 256, 512, 768],
+  "time_budget_seconds_each": 60.0,
+  "seq_len": 64,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "training_data_seed": 20260924,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
