@@ -1,0 +1,39 @@
+name: CPW-v1 Triton scan zero-GPU gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'tam_research/cpw_v1_fast/**'
+      - 'tests/test_cpw_v1_fast_1249.py'
+      - '.github/workflows/cpw-v1-triton-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Protect frozen CPW-v1 architecture
+        run: |
+          git diff --exit-code 531a2a417a39b87c5ee86694916b2640d12b7381 HEAD -- \
+            tam_research/cpw_v1 \
+            tests/test_cpw_v1_1248.py \
+            docs/CPW_V1_ARCHITECTURE.md
+      - name: Fast backend contracts
+        run: |
+          python -m compileall -q tam_research/cpw_v1_fast
+          pytest -q tests/test_cpw_v1_1248.py tests/test_cpw_v1_fast_1249.py
