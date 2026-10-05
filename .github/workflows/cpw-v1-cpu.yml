@@ -30,3 +30,5 @@ jobs:
         run: python -m compileall -q tam_research/cpw_v1
       - name: CPW-v1 contracts
         run: pytest -q tests/test_cpw_v1_1248.py
+
+# registration-trigger: cpw-v1-stage0
