@@ -1,0 +1,7 @@
+{
+  "phase": "cpw-v1-pairwise-core-panel",
+  "issue": 1252,
+  "cpu_gate_run": 37319397787,
+  "run_control_run": 37319672968,
+  "authorized_parent_sha": "1c6aeca5aa6dfb9e6bcfadead8b5c495a2fbfb4c"
+}
