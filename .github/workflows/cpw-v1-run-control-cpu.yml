@@ -35,3 +35,5 @@ jobs:
         run: |
           python -m compileall -q modal_cpw_v1_app.py tam_research/cpw_v1
           pytest -q tests/test_cpw_v1_1248.py tests/test_cpw_v1_run_control_1248.py
+
+# registration-trigger: cpw-v1-run-control
