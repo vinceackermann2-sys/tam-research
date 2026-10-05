@@ -1,0 +1,9 @@
+{
+  "phase": "cpw-v2-sequence-long-horizon-repair-1255",
+  "issue": 1255,
+  "original_issue": 1254,
+  "cancelled_run": 37326506123,
+  "architecture_gate_run": 37326045460,
+  "run_control_run": 37338472376,
+  "authorized_parent_sha": "ddb950d7bdb7733f35e4c9401e80887076506db8"
+}
