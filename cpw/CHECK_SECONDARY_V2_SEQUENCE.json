@@ -1,5 +1,6 @@
 {
   "issue": 1255,
   "mode": "zero-gpu-secondary-readiness",
-  "writes": false
+  "writes": false,
+  "registration_trigger": 1
 }
