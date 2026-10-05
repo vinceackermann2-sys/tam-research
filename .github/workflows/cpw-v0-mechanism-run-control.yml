@@ -1,0 +1,37 @@
+name: CPW-v0 mechanism run-control gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'modal_cpw_v0_mechanism_app.py'
+      - 'tests/test_cpw_v0_mechanism_run_control_1247.py'
+      - '.github/workflows/cpw-v0-mechanism-run-control.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Protect frozen CPW-v0 scientific bytes
+        run: |
+          set -euo pipefail
+          git diff --exit-code 311d501a732379afdadcdd2f07a41e42ba9d4819 HEAD --             tam_research/cpw_v0             tests/test_cpw_v0_1245.py             docs/CPW_V0_ARCHITECTURE.md
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Syntax check
+        run: python -m compileall -q modal_cpw_v0_mechanism_app.py tam_research/cpw_v0_mechanism
+      - name: Run all mechanism contracts
+        run: pytest -q tests/test_cpw_v0_1245.py tests/test_cpw_v0_mechanism_1247.py tests/test_cpw_v0_mechanism_run_control_1247.py
