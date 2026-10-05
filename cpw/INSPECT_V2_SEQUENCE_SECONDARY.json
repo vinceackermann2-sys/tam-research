@@ -3,5 +3,6 @@
   "mode": "secondary-read-only-volume-inspection",
   "writes": false,
   "followup": 1,
-  "post_cancel_direct_h100_check": 1
+  "post_cancel_direct_h100_check": 1,
+  "direct_h100_active_check": 1
 }
