@@ -1,0 +1,55 @@
+name: CPW-v2 direct-H100 Modal lifecycle inspect
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/INSPECT_V2_DIRECT_MODAL.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.5.4,<1.6'
+      - name: Bind account2
+        run: |
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+      - name: Inspect Modal lifecycle read-only
+        run: |
+          set +e
+          echo '=== APP LIST ===' | tee lifecycle.log
+          modal app list --json 2>&1 | tee -a lifecycle.log
+          echo '=== APP INFO ===' | tee -a lifecycle.log
+          modal app info tam-research-cpw-v2-sequence-1254 --json 2>&1 | tee -a lifecycle.log
+          echo '=== APP LOGS ===' | tee -a lifecycle.log
+          modal app logs tam-research-cpw-v2-sequence-1254 --tail 200 --timestamps 2>&1 | tee -a lifecycle.log
+          exit 0
+      - name: Record lifecycle inspection
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/comment.txt
+          from pathlib import Path
+          text=Path("lifecycle.log").read_text(errors="replace")
+          if len(text)>30000: text=text[-30000:]
+          print("CPW-v2 #1256 direct-H100 Modal lifecycle inspection\n")
+          print("```text")
+          print(text)
+          print("```")
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1256/comments" -F body=@/tmp/comment.txt
