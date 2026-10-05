@@ -1,0 +1,37 @@
+name: CPW-v1 run-control zero-GPU gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'modal_cpw_v1_app.py'
+      - 'tests/test_cpw_v1_run_control_1248.py'
+      - '.github/workflows/cpw-v1-run-control-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Verify frozen architecture boundary
+        run: |
+          git diff --exit-code 531a2a417a39b87c5ee86694916b2640d12b7381 HEAD -- \
+            tam_research/cpw_v1 \
+            tests/test_cpw_v1_1248.py \
+            docs/CPW_V1_ARCHITECTURE.md
+      - name: CPW-v1 run-control contracts
+        run: |
+          python -m compileall -q modal_cpw_v1_app.py tam_research/cpw_v1
+          pytest -q tests/test_cpw_v1_1248.py tests/test_cpw_v1_run_control_1248.py
