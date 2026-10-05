@@ -37,3 +37,5 @@ jobs:
         run: |
           python -m compileall -q tam_research/cpw_v1_fast
           pytest -q tests/test_cpw_v1_1248.py tests/test_cpw_v1_fast_1249.py
+
+# registration-trigger: cpw-v1-triton-stage0
