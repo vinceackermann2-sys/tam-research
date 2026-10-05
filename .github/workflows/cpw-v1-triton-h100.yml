@@ -1,0 +1,185 @@
+name: CPW-v1 Triton one-shot H100 preflight
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/LAUNCH_V1_TRITON.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_LOW_CREDIT_ACCOUNT: ${{ secrets.MODAL_LOW_CREDIT_ACCOUNT }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate one-shot systems authority
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "${{ github.actor }}" = "${{ github.repository_owner }}"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          cfg=json.loads(Path("cpw/LAUNCH_V1_TRITON.json").read_text())
+          assert set(cfg)=={"phase","issue","zero_gpu_run","authorized_parent_sha"}
+          assert cfg["phase"]=="cpw-v1-triton-scan-preflight"
+          assert cfg["issue"]==1249
+          assert cfg["zero_gpu_run"]==37316972905
+          assert len(str(cfg["authorized_parent_sha"]))==40
+          PY
+          AUTHORIZED_PARENT="$(python -c 'import json; print(json.load(open("cpw/LAUNCH_V1_TRITON.json"))["authorized_parent_sha"])')"
+          test "$(git rev-parse HEAD^)" = "$AUTHORIZED_PARENT"
+
+          git diff --exit-code 531a2a417a39b87c5ee86694916b2640d12b7381 "$SOURCE_SHA" -- \
+            tam_research/cpw_v1 \
+            tests/test_cpw_v1_1248.py \
+            docs/CPW_V1_ARCHITECTURE.md
+
+          git diff --exit-code c1c395fe6fce8c4184651938f162058cf6fd7d7f "$SOURCE_SHA" -- \
+            tam_research/cpw_v1_fast \
+            tests/test_cpw_v1_fast_1249.py
+
+          git diff --exit-code e2e34b4a615b2c6ae7923227171be50320156bfd "$SOURCE_SHA" -- \
+            modal_cpw_v1_triton_preflight_1249.py \
+            tests/test_cpw_v1_triton_run_control_1249.py
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Re-run CPU contracts
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          python -m compileall -q tam_research/cpw_v1_fast modal_cpw_v1_triton_preflight_1249.py
+          pytest -q \
+            tests/test_cpw_v1_1248.py \
+            tests/test_cpw_v1_fast_1249.py \
+            tests/test_cpw_v1_triton_run_control_1249.py
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Select eligible Modal account
+        id: account
+        run: |
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py \
+            --required-volume tam-research-data \
+            --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+
+      - name: Activate selected Modal account
+        env:
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+          SECONDARY_CREDENTIAL_ALIASES: ${{ steps.account.outputs.secondary_credential_aliases }}
+        run: |
+          set -euo pipefail
+          if [ "$SELECTED_MODAL_ACCOUNT" = "primary" ]; then
+            printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET" >> "$GITHUB_ENV"
+          elif [ "$SELECTED_MODAL_ACCOUNT" = "secondary" ]; then
+            case ",$SECONDARY_CREDENTIAL_ALIASES," in
+              *,secondary,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_SECONDARY"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_SECONDARY"
+                ;;
+              *,account2,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_2"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_2"
+                ;;
+              *,legacy_b,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_B"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_B"
+                ;;
+              *)
+                exit 93
+                ;;
+            esac
+            printf 'MODAL_TOKEN_ID=%s\n' "$SECONDARY_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$SECONDARY_SECRET" >> "$GITHUB_ENV"
+          else
+            exit 92
+          fi
+
+      - name: Verify Modal authentication
+        run: modal token info
+
+      - name: Record launch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1249/comments" \
+            -f body="CPW-v1 Triton preflight launch gate passed. Account=${SELECTED_MODAL_ACCOUNT}; source=${GITHUB_SHA}. Running one bounded H100 correctness/microbench + 1M-token three-way training check."
+
+      - name: Run one-shot Triton preflight
+        run: |
+          set -o pipefail
+          modal run --timestamps modal_cpw_v1_triton_preflight_1249.py \
+            --source-sha "${GITHUB_SHA}" | tee cpw-v1-triton.log
+
+      - name: Record terminal result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/cpw-v1-triton-comment.txt
+          import json
+          from pathlib import Path
+          prefix="CPW_V1_TRITON_RESULT="
+          matches=[line.split(prefix,1)[1] for line in Path("cpw-v1-triton.log").read_text(errors="replace").splitlines() if prefix in line]
+          if not matches:
+              raise SystemExit("missing terminal result")
+          r=json.loads(matches[-1])
+          t=r["training"]
+          s=r["scan"]
+          c=r["correctness"]
+          print("CPW-v1 Triton preflight terminal result")
+          print()
+          print(f"- classification: `{r['classification']}`")
+          print(f"- correctness pass: `{c['pass']}`")
+          print(f"- output max abs: `{c['output_max_abs']}`")
+          print(f"- grad_a max abs: `{c['grad_a_max_abs']}`")
+          print(f"- grad_b max abs: `{c['grad_b_max_abs']}`")
+          print(f"- isolated scan speedup: `{s['speedup']:.3f}x`")
+          print(f"- fast/production CPW train throughput: `{t['fast_vs_production_tps']:.3f}x`")
+          print(f"- fast/Transformer train throughput: `{t['fast_vs_transformer_tps']:.3f}x`")
+          print(f"- fast-production NLL delta: `{t['fast_minus_production_nll']:+.6f}`")
+          print("- scientific/breakthrough claim authorized: `false`")
+          PY
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1249/comments" \
+            -F body=@/tmp/cpw-v1-triton-comment.txt
+
+      - name: Record failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1249/comments" \
+            -f body="CPW-v1 Triton one-shot preflight did not return successfully for source ${GITHUB_SHA}. Do not rerun this engineering identity; inspect the durable ATTEMPT/FAILURE namespace."
