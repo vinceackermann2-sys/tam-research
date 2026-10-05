@@ -1,0 +1,6 @@
+{
+  "phase": "cpw-v1-triton-scan-preflight",
+  "issue": 1249,
+  "zero_gpu_run": 37316972905,
+  "authorized_parent_sha": "e8937fb097d1c5a1093ed4338f3d27097db70cbe"
+}
