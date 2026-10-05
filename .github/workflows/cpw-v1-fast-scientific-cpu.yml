@@ -43,3 +43,5 @@ jobs:
             tests/test_cpw_v1_1248.py \
             tests/test_cpw_v1_fast_1249.py \
             tests/test_cpw_v1_fast_scientific_1250.py
+
+# registration-trigger: cpw-v1-fast-scientific-stage0
