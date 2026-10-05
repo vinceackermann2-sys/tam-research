@@ -1,0 +1,5 @@
+{
+  "issue": 1255,
+  "mode": "secondary-read-only-volume-inspection",
+  "writes": false
+}
