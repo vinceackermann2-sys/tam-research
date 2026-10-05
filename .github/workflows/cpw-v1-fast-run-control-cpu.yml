@@ -1,0 +1,38 @@
+name: CPW-v1-fast scientific run-control gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - '.github/workflows/cpw-v1-fast-scientific-h100.yml'
+      - 'tests/test_cpw_v1_fast_run_control_1250.py'
+      - '.github/workflows/cpw-v1-fast-run-control-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Protect frozen scientific source
+        run: |
+          git diff --exit-code 3eddb4cd02098e0a839ff8b282eee159f47e7b4c HEAD --             modal_cpw_v1_fast_scientific_1250.py             tests/test_cpw_v1_fast_scientific_1250.py             .github/workflows/cpw-v1-fast-scientific-cpu.yml
+      - name: Run run-control contracts
+        run: |
+          python -m compileall -q modal_cpw_v1_fast_scientific_1250.py
+          pytest -q             tests/test_cpw_v1_fast_scientific_1250.py             tests/test_cpw_v1_fast_run_control_1250.py
+
+# registration-trigger: cpw-v1-fast-scientific-run-control
