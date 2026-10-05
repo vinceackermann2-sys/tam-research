@@ -1,0 +1,30 @@
+name: CPW-v2 sequence cancel stalled primary repair
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/CANCEL_V2_SEQUENCE_PRIMARY_REPAIR.json'
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cancel stalled pre-ATTEMPT primary run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/37338788804/cancel"
+      - name: Record cancellation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1255/comments" \
+            -f body="Cancelled stalled primary workflow 37338788804 after final read-only check at 16:26 UTC proved ATTEMPT/RESULT/FAILURE absent. Secondary H100 admission already passed; scientific identities remain unconsumed."
