@@ -1,5 +1,6 @@
 {
   "issue": 1254,
   "mode": "read-only-volume-inspection",
-  "writes_performed": false
+  "writes_performed": false,
+  "registration_trigger": 1
 }
