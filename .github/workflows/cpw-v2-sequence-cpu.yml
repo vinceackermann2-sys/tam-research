@@ -1,0 +1,36 @@
+name: CPW-v2 sequence long-horizon zero-GPU gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'tam_research/cpw_v2_sequence/**'
+      - 'tests/test_cpw_v2_sequence_1254.py'
+      - '.github/workflows/cpw-v2-sequence-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Protect frozen sequence-only source
+        run: |
+          git diff --exit-code e326413ddcf592f532b23ef41b7d839421a45965 HEAD --             tam_research/cpw_v2_single/model.py             tam_research/cpw_v1/model.py
+      - name: Sequence-core contracts
+        run: |
+          python -m compileall -q tam_research/cpw_v2_sequence
+          pytest -q tests/test_cpw_v2_sequence_1254.py
