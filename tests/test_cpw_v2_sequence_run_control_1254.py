@@ -25,3 +25,11 @@ def test_launcher_is_one_shot_h100() -> None:
     assert "FAILURE.json" in text
     assert "resume_authorized" in text
     assert launcher.APP_NAME == "tam-research-cpw-v2-sequence-1254"
+
+
+def test_data_guard_reuses_exact_25m_shard() -> None:
+    text = Path("modal_cpw_v2_sequence_1254.py").read_text()
+    assert "train_tokens=25_000_000" in text
+    assert "train_tokens=80_000_000" not in text
+    assert 'int(result.get("train_tokens", -1)) != 25_000_000' in text
+    assert 'int(result.get("val_tokens", -1)) != 2_000_000' in text
