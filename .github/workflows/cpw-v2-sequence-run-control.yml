@@ -36,3 +36,5 @@ jobs:
         run: |
           python -m compileall -q modal_cpw_v2_sequence_1254.py
           pytest -q             tests/test_cpw_v2_sequence_1254.py             tests/test_cpw_v2_sequence_run_control_1254.py
+
+# registration-trigger: cpw-v2-sequence-run-control-1254
