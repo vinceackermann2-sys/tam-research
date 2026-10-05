@@ -1,0 +1,7 @@
+{
+  "phase": "cpw-v2-single-predictor-panel",
+  "issue": 1253,
+  "cpu_gate_run": 37321216029,
+  "run_control_run": 37321543469,
+  "authorized_parent_sha": "a4ee321def8dc5a447cd3d642ae6ad11731e09a6"
+}
