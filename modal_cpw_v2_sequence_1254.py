@@ -56,11 +56,10 @@ def ensure_data() -> dict:
 
     result = prepare_fineweb(
         "/vol/data/fineweb-edu-gpt2",
-        train_tokens=80_000_000,
+        train_tokens=25_000_000,
         val_tokens=2_000_000,
     )
-    volume.commit()
-    print("CPW_V2_SEQUENCE_DATA_GUARD=" + json.dumps(result, sort_keys=True), flush=True)
+    if int(result.get("train_tokens", -1)) != 25_000_000 or int(result.get("val_tokens", -1)) != 2_000_000:\n        raise RuntimeError(f"unexpected data boundary: {result}")\n    volume.commit()\n    print("CPW_V2_SEQUENCE_DATA_GUARD=" + json.dumps(result, sort_keys=True), flush=True)
     return result
 
 
