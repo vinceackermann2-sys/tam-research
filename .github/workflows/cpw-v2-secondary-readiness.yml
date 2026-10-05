@@ -1,0 +1,54 @@
+name: CPW-v2 secondary Modal readiness check
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/CHECK_SECONDARY_V2_SEQUENCE.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.5.4,<1.6'
+      - name: Probe secondary account read-only
+        id: probe
+        run: |
+          set -o pipefail
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py \
+            --force-account secondary \
+            --required-volume tam-research-data \
+            --runtime-probe-path modal_runtime_admission_probe_1067_v1.py | tee secondary-readiness.log
+      - name: Record readiness
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/comment.txt
+          from pathlib import Path
+          text=Path("secondary-readiness.log").read_text(errors="replace") if Path("secondary-readiness.log").exists() else ""
+          print("CPW-v2 #1255 secondary Modal readiness check")
+          print()
+          print(text[-5000:] if text else "No readiness payload; probe failed before output.")
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1255/comments" -F body=@/tmp/comment.txt
