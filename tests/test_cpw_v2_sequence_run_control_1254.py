@@ -29,10 +29,12 @@ def test_launcher_is_one_shot_h100() -> None:
 
 def test_data_guard_reuses_exact_25m_shard() -> None:
     text = Path("modal_cpw_v2_sequence_1254.py").read_text()
-    assert "train_tokens=25_000_000" in text
-    assert "train_tokens=80_000_000" not in text
-    assert 'int(result.get("train_tokens", -1)) != 25_000_000' in text
-    assert 'int(result.get("val_tokens", -1)) != 2_000_000' in text
+    assert '"train_tokens": 25_000_000' in text
+    assert '"val_tokens": 2_000_000' in text
+    assert '"seed": 1234' in text
+    assert '"tokenizer": "gpt2"' in text
+    assert 'train_path.stat().st_size != 25_000_000 * 2' in text
+    assert 'val_path.stat().st_size != 2_000_000 * 2' in text
 
 
 def test_launcher_has_no_pre_h100_remote_data_hop() -> None:
