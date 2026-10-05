@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+from dataclasses import replace
+from pathlib import Path
+from typing import Any
+
+from tam_research.train import train_language_model
+
+from .model import CPWV1Config, CPWV1ResearchLM
+
+
+def train_cpw_v1_candidate(
+    *,
+    architecture: str,
+    seed: int,
+    data_dir: str,
+    run_root: str,
+    token_budget: int,
+    seq_len: int,
+    micro_batch_size: int,
+    grad_accum_steps: int,
+) -> dict[str, Any]:
+    architecture = architecture.lower()
+    if architecture not in {"transformer", "cpwv1"}:
+        raise ValueError("architecture must be transformer or cpwv1")
+
+    if architecture == "transformer":
+        return train_language_model(
+            architecture="transformer",
+            seed=seed,
+            data_dir=data_dir,
+            run_root=str(Path(run_root) / "transformer"),
+            token_budget=token_budget,
+            seq_len=seq_len,
+            micro_batch_size=micro_batch_size,
+            grad_accum_steps=grad_accum_steps,
+            eval_every_tokens=token_budget,
+            checkpoint_every_tokens=token_budget,
+            resume=False,
+            compile_model=False,
+        )
+
+    from tam_research import train as train_module
+
+    original_config = train_module.ModelConfig
+    original_model = train_module.ResearchLM
+
+    def cpwv1_config(*, architecture: str, max_seq_len: int) -> CPWV1Config:
+        if architecture != "cpwv1":
+            raise ValueError("CPW-v1 constructor got non-CPW architecture")
+        return replace(CPWV1Config(), max_seq_len=max_seq_len)
+
+    try:
+        train_module.ModelConfig = cpwv1_config  # type: ignore[assignment]
+        train_module.ResearchLM = CPWV1ResearchLM  # type: ignore[assignment]
+        return train_module.train_language_model(
+            architecture="cpwv1",
+            seed=seed,
+            data_dir=data_dir,
+            run_root=str(Path(run_root) / "cpwv1"),
+            token_budget=token_budget,
+            seq_len=seq_len,
+            micro_batch_size=micro_batch_size,
+            grad_accum_steps=grad_accum_steps,
+            eval_every_tokens=token_budget,
+            checkpoint_every_tokens=token_budget,
+            resume=False,
+            compile_model=False,
+        )
+    finally:
+        train_module.ModelConfig = original_config
+        train_module.ResearchLM = original_model
