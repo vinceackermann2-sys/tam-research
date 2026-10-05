@@ -1,0 +1,10 @@
+{
+  "phase": "cpw-v2-sequence-direct-h100-1256",
+  "issue": 1256,
+  "original_issue": 1254,
+  "cancelled_secondary_run": 37341471140,
+  "secondary_h100_probe_run": 37340612487,
+  "post_cancel_inspection_run": 37359298641,
+  "run_control_run": 37359137860,
+  "authorized_parent_sha": "19c181899eb8e0cfd7f640c06ed2e36442665b00"
+}
