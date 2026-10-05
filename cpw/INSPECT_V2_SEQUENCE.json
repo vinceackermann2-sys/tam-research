@@ -3,5 +3,6 @@
   "mode": "read-only-volume-inspection",
   "writes_performed": false,
   "registration_trigger": 1,
-  "post_cancel_check": 1
+  "post_cancel_check": 1,
+  "in_science_check": 1
 }
