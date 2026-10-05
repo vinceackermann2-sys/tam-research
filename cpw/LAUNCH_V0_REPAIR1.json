@@ -1,0 +1,8 @@
+{
+  "phase": "cpw-v0-repair1-replication-only",
+  "prereg_issue": 1246,
+  "original_issue": 1245,
+  "original_run": 37311400966,
+  "repair_cpu_gate_run": 37311953697,
+  "authorized_parent_sha": "a62c0852fa0a5b7c6763673bf5e1bc37e060cc67"
+}
