@@ -1,0 +1,27 @@
+name: CPW-v2 single predictor run-control gate
+on:
+  push:
+    branches: [experiment/cpw-v0-brain-predictive-workspace-20261005]
+    paths:
+      - 'modal_cpw_v2_single_1253.py'
+      - 'tests/test_cpw_v2_single_run_control_1253.py'
+      - '.github/workflows/cpw-v2-single-run-control.yml'
+permissions: {contents: read}
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -e '.[test]'
+      - name: Protect frozen single-predictor implementation
+        run: |
+          git diff --exit-code 5912524447ebb4893aeeb9aad28f63df05c503fb HEAD -- tam_research/cpw_v2_single tests/test_cpw_v2_single_1253.py .github/workflows/cpw-v2-single-cpu.yml
+      - run: |
+          python -m compileall -q modal_cpw_v2_single_1253.py
+          pytest -q tests/test_cpw_v2_single_1253.py tests/test_cpw_v2_single_run_control_1253.py
+# registration-trigger: cpw-v2-single-run-control
