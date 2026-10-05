@@ -4,5 +4,6 @@
   "writes_performed": false,
   "registration_trigger": 1,
   "post_cancel_check": 1,
-  "in_science_check": 1
+  "in_science_check": 1,
+  "science_progress_check": 1
 }
