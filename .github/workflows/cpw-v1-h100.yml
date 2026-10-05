@@ -1,0 +1,192 @@
+name: CPW-v1 one-shot H100 screen
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/LAUNCH_V1.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  scientific-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_LOW_CREDIT_ACCOUNT: ${{ secrets.MODAL_LOW_CREDIT_ACCOUNT }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate one-shot authority and protected bytes
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "${{ github.actor }}" = "${{ github.repository_owner }}"
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          cfg = json.loads(Path("cpw/LAUNCH_V1.json").read_text())
+          assert set(cfg) == {
+              "phase", "prereg_issue", "architecture_gate_run",
+              "run_control_gate_run", "authorized_parent_sha"
+          }
+          assert cfg["phase"] == "cpw-v1-lean-25m-screen"
+          assert cfg["prereg_issue"] == 1248
+          assert cfg["architecture_gate_run"] == 37315344013
+          assert cfg["run_control_gate_run"] == 37315730750
+          assert len(str(cfg["authorized_parent_sha"])) == 40
+          PY
+
+          AUTHORIZED_PARENT="$(python -c 'import json; print(json.load(open("cpw/LAUNCH_V1.json"))["authorized_parent_sha"])')"
+          test "$(git rev-parse HEAD^)" = "$AUTHORIZED_PARENT"
+
+          git diff --exit-code 531a2a417a39b87c5ee86694916b2640d12b7381 "$SOURCE_SHA" -- \
+            tam_research/cpw_v1 \
+            tests/test_cpw_v1_1248.py \
+            docs/CPW_V1_ARCHITECTURE.md
+
+          git diff --exit-code b372f3ae6ed142661a12bd00618df76d6afc7878 "$SOURCE_SHA" -- \
+            modal_cpw_v1_app.py \
+            tests/test_cpw_v1_run_control_1248.py
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Re-run frozen CPU contracts
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          python -m compileall -q modal_cpw_v1_app.py tam_research/cpw_v1
+          pytest -q tests/test_cpw_v1_1248.py tests/test_cpw_v1_run_control_1248.py
+
+      - name: Install pinned Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Select eligible Modal account
+        id: account
+        run: |
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py \
+            --required-volume tam-research-data \
+            --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+
+      - name: Activate selected Modal account
+        env:
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+          SECONDARY_CREDENTIAL_ALIASES: ${{ steps.account.outputs.secondary_credential_aliases }}
+        run: |
+          set -euo pipefail
+          if [ "$SELECTED_MODAL_ACCOUNT" = "primary" ]; then
+            printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET" >> "$GITHUB_ENV"
+          elif [ "$SELECTED_MODAL_ACCOUNT" = "secondary" ]; then
+            case ",$SECONDARY_CREDENTIAL_ALIASES," in
+              *,secondary,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_SECONDARY"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_SECONDARY"
+                ;;
+              *,account2,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_2"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_2"
+                ;;
+              *,legacy_b,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_B"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_B"
+                ;;
+              *)
+                echo "No resolved secondary credential alias" >&2
+                exit 93
+                ;;
+            esac
+            test -n "$SECONDARY_ID"
+            test -n "$SECONDARY_SECRET"
+            printf 'MODAL_TOKEN_ID=%s\n' "$SECONDARY_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$SECONDARY_SECRET" >> "$GITHUB_ENV"
+          else
+            echo "No eligible Modal account selected" >&2
+            exit 92
+          fi
+
+      - name: Verify selected Modal authentication
+        run: modal token info
+
+      - name: Record authenticated launch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1248/comments" \
+            -f body="CPW-v1 launch gate passed. Modal account=${SELECTED_MODAL_ACCOUNT}; source=${SOURCE_SHA}. Launching one-shot H100 smoke then frozen 3-seed equal-token replication."
+
+      - name: Run one-shot CPW-v1 scientific screen
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -o pipefail
+          modal run --timestamps modal_cpw_v1_app.py \
+            --source-sha "$SOURCE_SHA" | tee cpw-v1-modal.log
+
+      - name: Record terminal result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/cpw-v1-comment.txt
+          import json
+          from pathlib import Path
+          prefix = "CPW_V1_RESULT="
+          matches = [
+              line.split(prefix, 1)[1]
+              for line in Path("cpw-v1-modal.log").read_text(errors="replace").splitlines()
+              if prefix in line
+          ]
+          if not matches:
+              raise SystemExit("missing CPW_V1_RESULT terminal payload")
+          r = json.loads(matches[-1])
+          print("CPW-v1 terminal result")
+          print()
+          print(f"- classification: `{r['classification']}`")
+          print(f"- smoke_pass: `{r['smoke_pass']}`")
+          print(f"- replication_integrity: `{r['replication_integrity']}`")
+          print(f"- Transformer mean NLL: `{r['transformer_mean_nll']}`")
+          print(f"- CPW-v1 mean NLL: `{r['cpwv1_mean_nll']}`")
+          print(f"- CPW-v1 wins: `{r['cpwv1_wins']}/3`")
+          print(f"- mean CPW-v1/Transformer train throughput: `{r['mean_cpwv1_training_throughput_ratio']}`")
+          print(f"- CPW-v1 parameter fraction: `{r['cpwv1_parameter_fraction_of_transformer']}`")
+          print("- breakthrough claim authorized: `false`")
+          PY
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1248/comments" \
+            -F body=@/tmp/cpw-v1-comment.txt
+
+      - name: Record failed scientific call
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1248/comments" \
+            -f body="CPW-v1 one-shot workflow did not return successfully for source ${SOURCE_SHA}. No GitHub rerun is authorized; inspect the durable namespace before any successor."
