@@ -1,0 +1,37 @@
+name: CPW-v0 repair1 zero-GPU gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'modal_cpw_v0_repair1_app.py'
+      - 'tests/test_cpw_v0_repair1_1246.py'
+      - '.github/workflows/cpw-v0-repair1-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  repair-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Protect scientific architecture bytes
+        run: |
+          set -euo pipefail
+          git diff --exit-code 311d501a732379afdadcdd2f07a41e42ba9d4819 HEAD --             tam_research/cpw_v0             tests/test_cpw_v0_1245.py             docs/CPW_V0_ARCHITECTURE.md
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install repository tests
+        run: pip install -e '.[test]'
+      - name: Syntax check
+        run: python -m compileall -q modal_cpw_v0_repair1_app.py tam_research/cpw_v0
+      - name: Run frozen architecture plus repair contracts
+        run: pytest -q tests/test_cpw_v0_1245.py tests/test_cpw_v0_repair1_1246.py
