@@ -1,0 +1,7 @@
+{
+  "phase": "cpw-v1-lean-25m-screen",
+  "prereg_issue": 1248,
+  "architecture_gate_run": 37315344013,
+  "run_control_gate_run": 37315730750,
+  "authorized_parent_sha": "4cbbf50233dc8880eb7fda76abfde131934669e6"
+}
