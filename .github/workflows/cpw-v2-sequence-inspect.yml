@@ -1,0 +1,42 @@
+name: CPW-v2 sequence read-only volume inspect
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/INSPECT_V2_SEQUENCE.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.5.4,<1.6'
+      - name: Read-only inspect
+        run: modal run --timestamps modal_cpw_v2_sequence_inspect_1254.py | tee inspect.log
+      - name: Record inspection
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/comment.txt
+          from pathlib import Path
+          p="CPW_V2_SEQUENCE_INSPECT="
+          xs=[x.split(p,1)[1] for x in Path("inspect.log").read_text(errors="replace").splitlines() if p in x]
+          print("CPW-v2 #1254 read-only volume inspection")
+          print()
+          print(xs[-1] if xs else '{"error":"missing inspection payload"}')
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1254/comments" -F body=@/tmp/comment.txt
