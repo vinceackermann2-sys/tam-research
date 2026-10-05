@@ -1,0 +1,32 @@
+name: CPW-v0 zero-GPU contracts
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'tam_research/cpw_v0/**'
+      - 'tests/test_cpw_v0_1245.py'
+      - 'docs/CPW_V0_ARCHITECTURE.md'
+      - '.github/workflows/cpw-v0-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Syntax check
+        run: python -m compileall -q tam_research/cpw_v0
+      - name: CPW-v0 contracts
+        run: pytest -q tests/test_cpw_v0_1245.py
