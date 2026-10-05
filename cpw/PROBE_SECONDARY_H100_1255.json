@@ -1,0 +1,6 @@
+{
+  "issue": 1255,
+  "mode": "secondary-h100-admission-probe",
+  "writes": false,
+  "seeds": false
+}
