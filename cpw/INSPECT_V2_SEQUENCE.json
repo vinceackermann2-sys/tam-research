@@ -7,5 +7,6 @@
   "in_science_check": 1,
   "science_progress_check": 1,
   "pre_switch_check": 1,
-  "final_primary_boundary_check": 1
+  "final_primary_boundary_check": 1,
+  "post_primary_cancel_final": 1
 }
