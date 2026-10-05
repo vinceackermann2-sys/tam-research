@@ -1,0 +1,123 @@
+name: CPW-v2 sequence direct-H100 one-shot 25M replication
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/LAUNCH_V2_SEQUENCE_DIRECT_H100.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  replication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Validate direct-H100 authority
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "${{ github.actor }}" = "${{ github.repository_owner }}"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          cfg=json.loads(Path("cpw/LAUNCH_V2_SEQUENCE_DIRECT_H100.json").read_text())
+          assert set(cfg)=={"phase","issue","original_issue","cancelled_secondary_run","secondary_h100_probe_run","post_cancel_inspection_run","run_control_run","authorized_parent_sha"}
+          assert cfg["phase"]=="cpw-v2-sequence-direct-h100-1256"
+          assert cfg["issue"]==1256
+          assert cfg["original_issue"]==1254
+          assert cfg["cancelled_secondary_run"]==37341471140
+          assert cfg["secondary_h100_probe_run"]==37340612487
+          assert cfg["post_cancel_inspection_run"]==37359298641
+          assert cfg["run_control_run"]==37359137860
+          assert len(str(cfg["authorized_parent_sha"]))==40
+          PY
+          AUTHORIZED_PARENT="$(python -c 'import json; print(json.load(open("cpw/LAUNCH_V2_SEQUENCE_DIRECT_H100.json"))["authorized_parent_sha"])')"
+          test "$(git rev-parse HEAD^)" = "$AUTHORIZED_PARENT"
+          git diff --exit-code 8faff8bb30fd50e5c2b7cc33f90b643957cdac1b "$SOURCE_SHA" -- \
+            tam_research/cpw_v2_sequence \
+            tests/test_cpw_v2_sequence_1254.py
+          git diff --exit-code e326413ddcf592f532b23ef41b7d839421a45965 "$SOURCE_SHA" -- \
+            tam_research/cpw_v2_single/model.py \
+            tam_research/cpw_v1/model.py
+          git diff --exit-code 541090ddf42e07b36daebdc15ba5379d1889ecab "$SOURCE_SHA" -- \
+            modal_cpw_v2_sequence_1254.py \
+            tests/test_cpw_v2_sequence_run_control_1254.py
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Re-run frozen direct-H100 contracts
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          pip install 'modal>=1.5.4,<1.6'
+          python -m compileall -q modal_cpw_v2_sequence_1254.py tam_research/cpw_v2_sequence
+          pytest -q tests/test_cpw_v2_sequence_1254.py tests/test_cpw_v2_sequence_run_control_1254.py
+      - name: Bind verified secondary account2
+        run: |
+          set -euo pipefail
+          test -n "$MODAL_TOKEN_ID_2"
+          test -n "$MODAL_TOKEN_SECRET_2"
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+      - name: Verify Modal authentication
+        run: modal token info
+      - name: Record direct-H100 launch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1256/comments" \
+            -f body="Direct-H100 launch passed. Source=${GITHUB_SHA}; run-control=37359137860; post-cancel namespace=37359298641; account2 H100 probe=37340612487. No separate CPU data hop; launching unchanged unconsumed #1254 seeds."
+      - name: Run direct-H100 long-horizon screen
+        run: |
+          set -o pipefail
+          modal run --timestamps modal_cpw_v2_sequence_1254.py --source-sha "${GITHUB_SHA}" | tee cpw-v2-direct-h100.log
+      - name: Record terminal result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/comment.txt
+          import json
+          from pathlib import Path
+          p="CPW_V2_SEQUENCE_RESULT="
+          xs=[x.split(p,1)[1] for x in Path("cpw-v2-direct-h100.log").read_text(errors="replace").splitlines() if p in x]
+          if not xs: raise SystemExit("missing terminal result")
+          r=json.loads(xs[-1])
+          print("CPW-v2 sequence direct-H100 25M terminal result\n")
+          print(f"- classification: `{r['classification']}`")
+          print(f"- integrity: `{r['replication_integrity']}`")
+          print(f"- Transformer mean NLL: `{r['transformer_mean_nll']}`")
+          print(f"- sequence mean NLL: `{r['sequence_mean_nll']}`")
+          print(f"- sequence wins: `{r['sequence_wins']}/3`")
+          print(f"- mean training-time ratio: `{r['mean_sequence_training_seconds_ratio']:.4f}x`")
+          print(f"- mean total-compute ratio: `{r['mean_sequence_total_compute_ratio']:.4f}x`")
+          print(f"- mean throughput ratio: `{r['mean_sequence_training_tps_ratio']:.4f}x`")
+          print(f"- strong Pareto 3/3: `{r['strong_pareto_3_of_3']}`")
+          print(f"- learning-curve deltas T-sequence: `{r['mean_curve_transformer_minus_sequence_nll']}`")
+          print("- breakthrough claim authorized: `false`")
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1256/comments" -F body=@/tmp/comment.txt
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1255/comments" -F body=@/tmp/comment.txt
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1254/comments" -F body=@/tmp/comment.txt
+      - name: Record failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1256/comments" \
+            -f body="Direct-H100 run failed for source ${GITHUB_SHA}. Inspect durable ATTEMPT/FAILURE before any further action; no automatic retry is authorized."
