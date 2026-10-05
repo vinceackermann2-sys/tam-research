@@ -1,0 +1,36 @@
+name: CPW-v2 cancel stalled secondary pre-science run
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/CANCEL_V2_SEQUENCE_SECONDARY_PRESCIENCE.json'
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate authority
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('cpw/CANCEL_V2_SEQUENCE_SECONDARY_PRESCIENCE.json'))
+          assert x == {'issue': 1256, 'run_id': 37341471140, 'reason': 'pre-science-remote-hop-stall'}
+          PY
+      - name: Cancel stalled secondary run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/37341471140/cancel"
+      - name: Record cancellation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1256/comments" -f body="Cancelled secondary workflow 37341471140 after fresh read-only inspection proved ATTEMPT/RESULT/FAILURE absent. Scientific seeds remain unconsumed."
