@@ -2,5 +2,6 @@
   "issue": 1255,
   "mode": "secondary-read-only-volume-inspection",
   "writes": false,
-  "followup": 1
+  "followup": 1,
+  "post_cancel_direct_h100_check": 1
 }
