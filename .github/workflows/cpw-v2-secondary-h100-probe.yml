@@ -1,0 +1,48 @@
+name: CPW-v2 secondary H100 admission probe
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/PROBE_SECONDARY_H100_1255.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Modal
+        run: pip install 'modal>=1.5.4,<1.6'
+      - name: Bind secondary credentials
+        run: |
+          test -n "$MODAL_TOKEN_ID_2"
+          test -n "$MODAL_TOKEN_SECRET_2"
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+      - name: Probe secondary H100 admission
+        run: modal run --timestamps modal_cpw_v2_secondary_h100_probe_1255.py | tee probe.log
+      - name: Record probe
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/comment.txt
+          from pathlib import Path
+          t=Path("probe.log").read_text(errors="replace") if Path("probe.log").exists() else ""
+          print("CPW-v2 #1255 secondary H100 admission probe")
+          print()
+          print(t[-3000:] if t else "Probe produced no payload.")
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1255/comments" -F body=@/tmp/comment.txt
