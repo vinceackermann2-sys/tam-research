@@ -1,0 +1,7 @@
+{
+  "phase": "cpw-v2-sequence-long-horizon-1254",
+  "issue": 1254,
+  "architecture_gate_run": 37325977075,
+  "run_control_run": 37326252124,
+  "authorized_parent_sha": "a4770537c10ee2c73bed645f5b5f1a2ae00271a8"
+}
