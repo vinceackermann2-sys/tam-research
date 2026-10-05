@@ -1,0 +1,10 @@
+{
+  "phase": "cpw-v2-sequence-long-horizon-secondary-1255",
+  "issue": 1255,
+  "original_issue": 1254,
+  "cancelled_primary_run": 37338788804,
+  "secondary_h100_probe_run": 37340612487,
+  "post_cancel_inspection_run": 37341231519,
+  "run_control_run": 37338472376,
+  "authorized_parent_sha": "812a5654fdb6609a8051e69ffe336e5c54ebf155"
+}
