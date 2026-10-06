@@ -1,0 +1,57 @@
+name: CPW-v2 repaired-package Modal live inspect
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/INSPECT_V2_PACKAGE_LIVE.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'modal>=1.5.4,<1.6'
+      - name: Bind account2
+        run: |
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+      - name: Inspect latest CPW-v2 app
+        run: |
+          set +e
+          modal app list --json > apps.json 2>app-list.err
+          python - <<'PY' > app-id.txt
+          import json
+          rows=json.load(open('apps.json'))
+          rows=[r for r in rows if r.get('description')=='tam-research-cpw-v2-sequence-1254']
+          rows.sort(key=lambda r:r.get('created_at',''))
+          print(rows[-1]['app_id'] if rows else '')
+          PY
+          APP_ID="$(cat app-id.txt)"
+          { echo "APP_ID=$APP_ID"; cat app-list.err; } | tee live.log
+          if [ -n "$APP_ID" ]; then modal app logs "$APP_ID" --tail 300 --timestamps 2>&1 | tee -a live.log; fi
+          exit 0
+      - name: Record
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/comment.txt
+          from pathlib import Path
+          t=Path("live.log").read_text(errors="replace")
+          if len(t)>30000: t=t[-30000:]
+          print("CPW-v2 repaired-package Modal live inspection\n")
+          print("```text"); print(t); print("```")
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1257/comments" -F body=@/tmp/comment.txt
