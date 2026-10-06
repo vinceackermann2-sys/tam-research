@@ -1,0 +1,5 @@
+{
+  "issue": 1261,
+  "mode": "cpu-modal-import-probe",
+  "gpu": false
+}
