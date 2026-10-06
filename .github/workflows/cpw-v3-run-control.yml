@@ -1,0 +1,37 @@
+name: CPW-v3 sparse-world run-control gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'modal_cpw_v3_sparse_world_1261.py'
+      - 'tests/test_cpw_v3_run_control_1261.py'
+      - '.github/workflows/cpw-v3-run-control.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          pip install 'modal>=1.5.4,<1.6'
+      - name: Protect frozen CPW-v3 architecture
+        run: |
+          git diff --exit-code 67c768799b0f05e0ca02be5fb1e4b09f8a16b2ab HEAD --             tam_research/cpw_v3_sparse_world             tests/test_cpw_v3_sparse_world_1261.py             docs/CPW_V3_SPARSE_WORLD.md
+      - name: Syntax and contracts
+        run: |
+          python -m compileall -q modal_cpw_v3_sparse_world_1261.py tam_research/cpw_v3_sparse_world
+          pytest -q             tests/test_cpw_v3_sparse_world_1261.py             tests/test_cpw_v3_run_control_1261.py
