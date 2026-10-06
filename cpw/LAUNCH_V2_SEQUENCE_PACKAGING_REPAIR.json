@@ -1,0 +1,9 @@
+{
+  "phase": "cpw-v2-sequence-packaging-repair-1257",
+  "repair_issue": 1257,
+  "original_issue": 1254,
+  "run_control_run": 37466946424,
+  "import_probe_run": 37466946658,
+  "namespace_inspection_run": 37467049126,
+  "authorized_parent_sha": "bb98acecfb1272ae14939db3258600a9ba1d5daf"
+}
