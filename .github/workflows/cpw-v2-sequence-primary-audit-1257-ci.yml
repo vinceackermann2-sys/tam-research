@@ -1,0 +1,82 @@
+name: "CPW-v2 #1257 primary namespace audit validation"
+
+on:
+  push:
+    branches:
+      - audit/cpw-v2-sequence-primary-namespace-1257
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate exact audit scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=431b15cdad90f3b19b7e074f975f69937aec723b
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          base = "431b15cdad90f3b19b7e074f975f69937aec723b"
+          allowed = {
+              ".github/workflows/cpw-v2-sequence-primary-audit-1257-ci.yml",
+              "cpw/INSPECT_V2_SEQUENCE.json",
+          }
+          changed = set(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only", base, "HEAD"],
+                  text=True,
+              ).splitlines()
+          )
+          assert changed == allowed, (changed, allowed)
+
+          cfg = json.loads(Path("cpw/INSPECT_V2_SEQUENCE.json").read_text())
+          assert cfg["issue"] == 1254
+          assert cfg["mode"] == "read-only-volume-inspection"
+          assert cfg["writes_performed"] is False
+          assert cfg["post_packaging_primary_audit"] == 1
+          PY
+
+      - name: Protect inspector implementation
+        run: |
+          set -euo pipefail
+          BASE=431b15cdad90f3b19b7e074f975f69937aec723b
+          git diff --exit-code "$BASE" HEAD --             .github/workflows/cpw-v2-sequence-inspect.yml             modal_cpw_v2_sequence_inspect_1254.py
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate read-only inspector contract
+        run: |
+          python -m py_compile modal_cpw_v2_sequence_inspect_1254.py
+          python - <<'PY'
+          from pathlib import Path
+
+          app = Path("modal_cpw_v2_sequence_inspect_1254.py").read_text()
+          workflow = Path(".github/workflows/cpw-v2-sequence-inspect.yml").read_text()
+
+          assert '"writes_performed": False' in app
+          assert 'retries=0' in app
+          assert 'ATTEMPT.json' in app
+          assert 'RESULT.json' in app
+          assert 'FAILURE.json' in app
+          assert '.write_text(' not in app
+          assert 'volume.commit(' not in app
+          assert 'cpw/INSPECT_V2_SEQUENCE.json' in workflow
+          assert 'MODAL_TOKEN_ID' in workflow
+          assert 'MODAL_TOKEN_SECRET' in workflow
+          PY
