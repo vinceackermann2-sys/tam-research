@@ -37,6 +37,7 @@ image = (
         "numpy>=2.0,<3",
     )
     .add_local_python_source("tam_research")
+    .add_local_python_source("architectures")
 )
 
 

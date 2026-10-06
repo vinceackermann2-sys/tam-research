@@ -1,0 +1,97 @@
+name: CPW-v2 #1257 exact-head repair validation
+
+on:
+  push:
+    branches:
+      - repair/cpw-v2-sequence-modal-packaging-1257
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate exact repair scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=fa1d50745f91d73af2e7a821ddf86b4e75e914e4
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+
+          base = "fa1d50745f91d73af2e7a821ddf86b4e75e914e4"
+          allowed = {
+              ".github/workflows/cpw-v2-sequence-import-probe-1257.yml",
+              ".github/workflows/cpw-v2-sequence-repair-1257-ci.yml",
+              "cpw/PROBE_V2_SEQUENCE_IMPORT_1257.json",
+              "modal_cpw_v2_sequence_1254.py",
+              "modal_cpw_v2_sequence_import_probe_1257.py",
+              "tests/test_cpw_v2_sequence_run_control_1254.py",
+          }
+          changed = set(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only", base, "HEAD"],
+                  text=True,
+              ).splitlines()
+          )
+          extra = changed - allowed
+          missing = {
+              "modal_cpw_v2_sequence_1254.py",
+              "modal_cpw_v2_sequence_import_probe_1257.py",
+              "tests/test_cpw_v2_sequence_run_control_1254.py",
+          } - changed
+          assert not extra, f"unexpected #1257 paths: {sorted(extra)}"
+          assert not missing, f"missing required repair paths: {sorted(missing)}"
+          PY
+
+      - name: Protect frozen scientific paths
+        run: |
+          set -euo pipefail
+          git diff --exit-code 8faff8bb30fd50e5c2b7cc33f90b643957cdac1b HEAD --             tam_research/cpw_v2_sequence             tests/test_cpw_v2_sequence_1254.py
+          git diff --exit-code e326413ddcf592f532b23ef41b7d839421a45965 HEAD --             tam_research/cpw_v2_single/model.py             tam_research/cpw_v1/model.py
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install CPU validation dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          pip install 'modal>=1.5.4,<1.6'
+
+      - name: Validate package closure contracts
+        run: |
+          python -m py_compile             modal_cpw_v2_sequence_1254.py             modal_cpw_v2_sequence_import_probe_1257.py
+          python - <<'PY'
+          from pathlib import Path
+
+          launcher = Path("modal_cpw_v2_sequence_1254.py").read_text()
+          probe = Path("modal_cpw_v2_sequence_import_probe_1257.py").read_text()
+
+          assert launcher.count('.add_local_python_source("tam_research")') == 1
+          assert launcher.count('.add_local_python_source("architectures")') == 1
+          assert probe.count('.add_local_python_source("tam_research")') == 1
+          assert probe.count('.add_local_python_source("architectures")') == 1
+
+          assert 'gpu=' not in probe
+          assert 'volumes=' not in probe
+          assert '"scientific_seed_consumed": False' in probe
+          assert '"writes_performed": False' in probe
+          assert "ATTEMPT.json" not in probe
+          assert "RESULT.json" not in probe
+          assert "FAILURE.json" not in probe
+          PY
+
+      - name: Run frozen CPW-v2 contracts
+        run: |
+          pytest -q             tests/test_cpw_v2_sequence_1254.py             tests/test_cpw_v2_sequence_run_control_1254.py
