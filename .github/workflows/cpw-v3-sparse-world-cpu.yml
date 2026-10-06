@@ -1,0 +1,32 @@
+name: CPW-v3 sparse-world zero-GPU gate
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'tam_research/cpw_v3_sparse_world/**'
+      - 'tests/test_cpw_v3_sparse_world_1261.py'
+      - 'docs/CPW_V3_SPARSE_WORLD.md'
+      - '.github/workflows/cpw-v3-sparse-world-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Syntax and contracts
+        run: |
+          python -m compileall -q tam_research/cpw_v3_sparse_world
+          pytest -q tests/test_cpw_v3_sparse_world_1261.py
