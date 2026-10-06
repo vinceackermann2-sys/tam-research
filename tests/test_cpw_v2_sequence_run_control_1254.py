@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import modal_cpw_v2_sequence_1254 as launcher
 from tam_research.cpw_v2_sequence import protocol
 
 
@@ -24,7 +23,7 @@ def test_launcher_is_one_shot_h100() -> None:
     assert "RESULT.json" in text
     assert "FAILURE.json" in text
     assert "resume_authorized" in text
-    assert launcher.APP_NAME == "tam-research-cpw-v2-sequence-1254"
+    assert 'APP_NAME = "tam-research-cpw-v2-sequence-1254"' in text
 
 
 def test_data_guard_reuses_exact_25m_shard() -> None:
