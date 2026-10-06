@@ -4,5 +4,6 @@
   "writes": false,
   "followup": 1,
   "post_cancel_direct_h100_check": 1,
-  "direct_h100_active_check": 1
+  "direct_h100_active_check": 1,
+  "post_direct_import_failure_check": 1
 }
