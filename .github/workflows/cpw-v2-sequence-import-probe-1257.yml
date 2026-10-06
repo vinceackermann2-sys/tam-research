@@ -1,0 +1,149 @@
+name: CPW-v2 #1257 Modal import-chain probe
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - 'cpw/PROBE_V2_SEQUENCE_IMPORT_1257.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  import_probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_SECONDARY: ${{ secrets.MODAL_TOKEN_ID_SECONDARY }}
+      MODAL_TOKEN_SECRET_SECONDARY: ${{ secrets.MODAL_TOKEN_SECRET_SECONDARY }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_LOW_CREDIT_ACCOUNT: ${{ secrets.MODAL_LOW_CREDIT_ACCOUNT }}
+      MODAL_MAX_THROTTLE_WAIT: "0"
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate repair-only trigger
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "${{ github.actor }}" = "${{ github.repository_owner }}"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          cfg = json.loads(Path("cpw/PROBE_V2_SEQUENCE_IMPORT_1257.json").read_text())
+          assert cfg == {
+              "phase": "cpw-v2-sequence-modal-import-probe-1257",
+              "repair_issue": 1257,
+              "scientific_issue": 1254,
+              "scientific_seed_consumed": False,
+          }
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal CLI
+        run: pip install 'modal>=1.5.4,<1.6'
+
+      - name: Select eligible Modal account
+        id: account
+        run: |
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py \
+            --required-volume tam-research-data \
+            --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+
+      - name: Activate selected Modal account
+        env:
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+          SECONDARY_CREDENTIAL_ALIASES: ${{ steps.account.outputs.secondary_credential_aliases }}
+        run: |
+          set -euo pipefail
+          if [ "$SELECTED_MODAL_ACCOUNT" = "primary" ]; then
+            printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET" >> "$GITHUB_ENV"
+          elif [ "$SELECTED_MODAL_ACCOUNT" = "secondary" ]; then
+            case ",$SECONDARY_CREDENTIAL_ALIASES," in
+              *,secondary,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_SECONDARY"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_SECONDARY"
+                ;;
+              *,account2,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_2"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_2"
+                ;;
+              *,legacy_b,*)
+                SECONDARY_ID="$MODAL_TOKEN_ID_B"
+                SECONDARY_SECRET="$MODAL_TOKEN_SECRET_B"
+                ;;
+              *)
+                exit 93
+                ;;
+            esac
+            test -n "$SECONDARY_ID"
+            test -n "$SECONDARY_SECRET"
+            printf 'MODAL_TOKEN_ID=%s\n' "$SECONDARY_ID" >> "$GITHUB_ENV"
+            printf 'MODAL_TOKEN_SECRET=%s\n' "$SECONDARY_SECRET" >> "$GITHUB_ENV"
+          else
+            exit 92
+          fi
+
+      - name: Verify authentication
+        run: modal token info
+
+      - name: Run CPU-only import-chain probe
+        run: |
+          set -o pipefail
+          modal run --timestamps modal_cpw_v2_sequence_import_probe_1257.py | tee cpw-v2-import-probe.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          prefix = "CPW_V2_SEQUENCE_IMPORT_PROBE="
+          rows = [
+              line.split(prefix, 1)[1]
+              for line in Path("cpw-v2-import-probe.log").read_text(errors="replace").splitlines()
+              if prefix in line
+          ]
+          assert rows, "missing import-probe terminal marker"
+          result = json.loads(rows[-1])
+          assert result["imports_ok"] is True
+          assert result["gpu_requested"] is False
+          assert result["volume_mounted"] is False
+          assert result["scientific_seed_consumed"] is False
+          assert result["writes_performed"] is False
+          PY
+
+      - name: Record successful repair probe
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_MODAL_ACCOUNT: ${{ steps.account.outputs.selected_account }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1257/comments" \
+            -f body="CPW-v2 #1257 Modal import-chain probe PASS. source=${GITHUB_SHA}; account=${SELECTED_MODAL_ACCOUNT}; architectures + tam_research import closure verified on CPU Modal; no GPU, no volume writes, no scientific seed consumed."
+
+      - name: Record failed repair probe
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/1257/comments" \
+            -f body="CPW-v2 #1257 Modal import-chain probe FAILED at source ${GITHUB_SHA}. No scientific launch is authorized from this repair head."
