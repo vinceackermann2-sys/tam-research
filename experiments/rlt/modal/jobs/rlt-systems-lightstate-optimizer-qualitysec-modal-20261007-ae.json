@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-lightstate-optimizer-qualitysec-modal-20261007-ae",
+  "task": "systems_lightstate_optimizer_qualitysec_ae",
+  "engineering_seed": 20261045,
+  "batch_seed": 20271045,
+  "eval_seed": 20291045,
+  "compile_probe_seed": 20301045,
+  "requires_lightstate_profile_job_id": "rlt-systems-lightstate-scale15m-batch768-modal-20261002-ac",
+  "requires_pair_a_job_id": "rlt-lightstate-scale15m-paired-4m-modal-20261002-a",
+  "requires_pair_b_job_id": "rlt-lightstate-scale15m-paired-4m-modal-20261002-b",
+  "requires_crossdata_job_id": "rlt-crossdata-lightstate-4m-ab-modal-20261003-a",
+  "requires_batch_calibration_job_id": "rlt-systems-lightstate-qualitysec-batch-modal-20261003-ad",
+  "batch_size": 64,
+  "time_budget_seconds_each": 60.0,
+  "seq_len": 64,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "training_data_seed": 20260924,
+  "expected_parameters_each": 15129344,
+  "candidates": [
+    {"name": "cosine_lr3e-4", "schedule": "cosine", "learning_rate": 0.0003},
+    {"name": "cosine_lr1e-3", "schedule": "cosine", "learning_rate": 0.001},
+    {"name": "cosine_lr3e-3", "schedule": "cosine", "learning_rate": 0.003},
+    {"name": "constant_lr3e-4", "schedule": "constant", "learning_rate": 0.0003},
+    {"name": "constant_lr1e-3", "schedule": "constant", "learning_rate": 0.001},
+    {"name": "constant_lr3e-3", "schedule": "constant", "learning_rate": 0.003}
+  ],
+  "automatic_retry": false
+}
