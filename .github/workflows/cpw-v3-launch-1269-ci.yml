@@ -1,0 +1,105 @@
+name: CPW-v3 #1269 exact-head launch validation
+
+on:
+  push:
+    branches:
+      - research/cpw-v3-sparse-world-launch-1269
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate exact launch-control scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=51e7450dd8def8ee9789026f9f929e0245177c03
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+
+          base = "51e7450dd8def8ee9789026f9f929e0245177c03"
+          allowed = {
+              ".github/workflows/cpw-v3-sparse-world-h100-1269.yml",
+              ".github/workflows/cpw-v3-launch-1269-ci.yml",
+              "cpw/LAUNCH_V3_SPARSE_WORLD_1269.json",
+          }
+          changed = set(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only", base, "HEAD"],
+                  text=True,
+              ).splitlines()
+          )
+          assert changed <= allowed, f"unexpected paths: {sorted(changed - allowed)}"
+          assert {
+              ".github/workflows/cpw-v3-sparse-world-h100-1269.yml",
+              "cpw/LAUNCH_V3_SPARSE_WORLD_1269.json",
+          } <= changed
+          PY
+
+      - name: Protect frozen scientific implementation
+        run: |
+          set -euo pipefail
+          git diff --exit-code 51e7450dd8def8ee9789026f9f929e0245177c03 HEAD -- \
+            tam_research/cpw_v3_sparse_world \
+            modal_cpw_v3_sparse_world_1261.py \
+            tests/test_cpw_v3_sparse_world_1261.py \
+            tests/test_cpw_v3_run_control_1261.py \
+            docs/CPW_V3_SPARSE_WORLD.md
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate launch authority statically
+        run: |
+          python -m py_compile modal_cpw_v3_sparse_world_1261.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          workflow = Path(".github/workflows/cpw-v3-sparse-world-h100-1269.yml").read_text()
+          cfg = json.loads(Path("cpw/LAUNCH_V3_SPARSE_WORLD_1269.json").read_text())
+
+          assert cfg == {
+              "phase": "cpw-v3-sparse-world-one-shot-1269",
+              "authority_issue": 1269,
+              "scientific_issue": 1261,
+              "preflight_issue": 1263,
+              "architecture_gate_run": 37470390411,
+              "run_control_run": 37471004582,
+              "import_probe_run": 37471163752,
+              "namespace_preflight_run": 37594989879,
+              "authorized_parent_sha": "51e7450dd8def8ee9789026f9f929e0245177c03",
+          }
+
+          required = [
+              "github.run_attempt",
+              "github.repository_owner",
+              "git rev-parse HEAD^",
+              "67c768799b0f05e0ca02be5fb1e4b09f8a16b2ab",
+              "5dc48c9f27b1decdd03dd2b617121dac8d71d0a7",
+              "tests/test_cpw_v3_sparse_world_1261.py",
+              "tests/test_cpw_v3_run_control_1261.py",
+              "MODAL_TOKEN_ID_2",
+              "MODAL_TOKEN_SECRET_2",
+              "modal_cpw_v3_sparse_world_1261.py --source-sha",
+              "no automatic retry",
+          ]
+          for token in required:
+              assert token in workflow, token
+
+          assert "workflow_dispatch" not in workflow
+          assert "retries=0" in Path("modal_cpw_v3_sparse_world_1261.py").read_text()
+          assert 'gpu="H100!"' in Path("modal_cpw_v3_sparse_world_1261.py").read_text()
+          PY
