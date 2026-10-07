@@ -1,0 +1,77 @@
+name: CPW-v4 CPU Modal import probe
+
+on:
+  push:
+    branches:
+      - research/cpw-v4-delayed-recall-1275
+    paths:
+      - 'cpw/PROBE_V4_MEMORY_IMPORT_1275.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  import_probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate zero-science trigger
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open('cpw/PROBE_V4_MEMORY_IMPORT_1275.json'))
+          assert x == {
+              'issue': 1275,
+              'mode': 'cpu-modal-import-probe',
+              'gpu_requested': False,
+              'volume_mounted': False,
+              'writes_performed': False,
+          }
+          PY
+      - name: Install Modal
+        run: pip install 'modal>=1.5.4,<1.6'
+      - name: Bind account2
+        run: |
+          test -n "$MODAL_TOKEN_ID_2"
+          test -n "$MODAL_TOKEN_SECRET_2"
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+      - name: Verify authentication
+        run: modal token info
+      - name: Run CPU-only import probe
+        run: modal run --timestamps modal_cpw_v4_import_probe_1275.py | tee cpw-v4-import.log
+      - name: Validate and record
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/comment.txt
+          import json
+          from pathlib import Path
+          prefix='CPW_V4_IMPORT_PROBE='
+          rows=[line.split(prefix,1)[1] for line in Path('cpw-v4-import.log').read_text(errors='replace').splitlines() if prefix in line]
+          assert rows, 'missing import probe payload'
+          result=json.loads(rows[-1])
+          assert result['issue']==1275
+          assert result['imports_ok'] is True
+          assert result['generator_ok'] is True
+          assert result['parameter_contract_ok'] is True
+          assert result['gpu_requested'] is False
+          assert result['volume_mounted'] is False
+          assert result['scientific_seed_consumed'] is False
+          assert result['writes_performed'] is False
+          print('CPW-v4 #1275 CPU Modal import probe PASS')
+          print()
+          print(f"- parameters: `{result['parameters']}`")
+          print('- GPU requested: `false`')
+          print('- volume mounted: `false`')
+          print('- scientific seed consumed: `false`')
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1275/comments" -F body=@/tmp/comment.txt
