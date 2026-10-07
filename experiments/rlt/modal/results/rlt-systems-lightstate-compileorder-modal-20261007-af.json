@@ -1,0 +1,137 @@
+{
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "NO_LARGE_COMPILEORDER_THROUGHPUT_EFFECT",
+  "data_hashes_match_claim": true,
+  "derived": {
+    "absolute_tps_difference": -22622.567297278903,
+    "compiled_eval_first_over_train_compile_first_tps": 0.9053307127512946,
+    "train_compile_first_over_compiled_eval_first_tps": 1.1045687348449782
+  },
+  "engineering_only": true,
+  "interpretation_ceiling": "Engineering-only compiler/runtime diagnostic. It tests whether compiled-evaluation-before-training changes measured light-state training throughput. It cannot establish architecture quality or a scientific model advantage.",
+  "job_id": "rlt-systems-lightstate-compileorder-modal-20261007-af",
+  "job_source_blob_sha": "419b67e3508e2f0efe4d670b960f719d7a73ff87",
+  "launcher_blob_sha": "ac7da687562b5d5d94355dd2017b384620d00082",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "results": {
+    "compiled_eval_first": {
+      "batch_seed": 20271048,
+      "compile_probe": {
+        "loss": 10.843753814697266,
+        "seconds": 64.383879609
+      },
+      "compile_probe_seed": 20301048,
+      "data": {
+        "metadata": {
+          "dataset": "HuggingFaceFW/fineweb-edu",
+          "dataset_config": "sample-10BT",
+          "dtype": "uint16",
+          "seed": 20260924,
+          "tokenizer": "gpt2",
+          "train_tokens": 6000000,
+          "val_tokens": 500000
+        },
+        "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+        "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+      },
+      "engineering_only": true,
+      "engineering_seed": 20261048,
+      "eval_seed": 20291048,
+      "final_eval": {
+        "nll": 6.257375538349152,
+        "seconds": 0.8283753399999796
+      },
+      "finished_unix": 1791385395.1462042,
+      "initial_eval": {
+        "nll": 10.842546731233597,
+        "seconds": 35.447953269
+      },
+      "job_id": "rlt-systems-lightstate-compileorder-modal-20261007-af",
+      "runtime": {
+        "bf16_supported": true,
+        "cuda_runtime": "12.8",
+        "gpu_name": "NVIDIA A100-SXM4-80GB",
+        "torch_version": "2.10.0+cu128"
+      },
+      "schema": 1,
+      "scientific_execution": false,
+      "status": "complete",
+      "training": {
+        "actual_train_seconds": 20.012203019999987,
+        "batch_size": 64,
+        "last_loss": 6.217962741851807,
+        "learning_rate": 0.001,
+        "optimizer_steps_per_second": 52.81777318287473,
+        "peak_vram_gb": 3.495136260986328,
+        "schedule": "constant",
+        "steps": 1057,
+        "tokens_per_second": 216341.5989570549,
+        "tokens_seen": 4329472
+      },
+      "variant": "compiled_eval_first"
+    },
+    "train_compile_first": {
+      "batch_seed": 20271048,
+      "compile_probe": {
+        "loss": 10.843753814697266,
+        "seconds": 54.15282222500001
+      },
+      "compile_probe_seed": 20301048,
+      "data": {
+        "metadata": {
+          "dataset": "HuggingFaceFW/fineweb-edu",
+          "dataset_config": "sample-10BT",
+          "dtype": "uint16",
+          "seed": 20260924,
+          "tokenizer": "gpt2",
+          "train_tokens": 6000000,
+          "val_tokens": 500000
+        },
+        "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+        "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+      },
+      "engineering_only": true,
+      "engineering_seed": 20261048,
+      "eval_seed": 20291048,
+      "final_eval": {
+        "nll": 6.218800932168961,
+        "seconds": 0.5239526120000022
+      },
+      "finished_unix": 1791385237.3886158,
+      "initial_eval": {
+        "nll": 10.8425412774086,
+        "seconds": 1.039274412000001
+      },
+      "job_id": "rlt-systems-lightstate-compileorder-modal-20261007-af",
+      "runtime": {
+        "bf16_supported": true,
+        "cuda_runtime": "12.8",
+        "gpu_name": "NVIDIA A100 80GB PCIe",
+        "torch_version": "2.10.0+cu128"
+      },
+      "schema": 1,
+      "scientific_execution": false,
+      "status": "complete",
+      "training": {
+        "actual_train_seconds": 20.020273645999993,
+        "batch_size": 64,
+        "last_loss": 6.04670524597168,
+        "learning_rate": 0.001,
+        "optimizer_steps_per_second": 58.34086090193696,
+        "peak_vram_gb": 3.4952263832092285,
+        "schedule": "constant",
+        "steps": 1168,
+        "tokens_per_second": 238964.1662543338,
+        "tokens_seen": 4784128
+      },
+      "variant": "train_compile_first"
+    }
+  },
+  "schema": 1,
+  "scientific_conclusion": null,
+  "scientific_execution": false,
+  "status": "complete",
+  "trigger_sha": "1d5c3feab0d973013ddc7dbf8aea2b7643219194"
+}
