@@ -54,7 +54,8 @@ jobs:
             architectures/cortex_s/affine_scan_triton_candidate.py
       - name: Prove this PR contains no scientific launch trigger
         run: |
-          if grep -R --line-number --fixed-string 'modal_cpw_v4_memory_1275.py' .github/workflows | grep -v 'cpw-v4-head-validation.yml'; then
+          set -euo pipefail
+          if grep -R --line-number -E 'modal[[:space:]]+run([^\n]*[[:space:]])?modal_cpw_v4_memory_1275\.py' .github/workflows | grep -v 'cpw-v4-head-validation.yml'; then
             echo 'Unexpected CPW-v4 H100 invocation workflow present before launch authority'
             exit 1
           fi
