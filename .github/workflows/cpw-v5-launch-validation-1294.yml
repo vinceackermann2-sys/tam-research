@@ -1,0 +1,91 @@
+name: CPW-v5 #1294 exact-head launch validation
+
+on:
+  push:
+    branches:
+      - research/cpw-v5-afm-launch-1294
+    paths:
+      - 'cpw/VALIDATE_V5_LAUNCH_1294.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate launch-only exact scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=2984308ca307e28a1c1c8fa1ba5a2510e38624ac
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import json, subprocess
+          base='2984308ca307e28a1c1c8fa1ba5a2510e38624ac'
+          marker=json.load(open('cpw/VALIDATE_V5_LAUNCH_1294.json'))
+          assert set(marker)=={'issue','mode','base_sha','authorized_parent_sha'}
+          assert marker['issue']==1294
+          assert marker['mode']=='exact-head-launch-validation'
+          assert marker['base_sha']==base
+          assert len(marker['authorized_parent_sha'])==40
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          allowed={
+              '.github/workflows/cpw-v5-afm-h100-1294.yml',
+              '.github/workflows/cpw-v5-launch-validation-1294.yml',
+              'cpw/LAUNCH_V5_AFM_1294.json',
+              'cpw/VALIDATE_V5_LAUNCH_1294.json',
+          }
+          assert changed <= allowed, f'unexpected launch paths: {sorted(changed-allowed)}'
+          assert allowed <= changed
+          PY
+          AUTHORIZED_PARENT="$(python -c 'import json; print(json.load(open("cpw/VALIDATE_V5_LAUNCH_1294.json"))["authorized_parent_sha"])')"
+          test "$(git rev-parse HEAD^)" = "$AUTHORIZED_PARENT"
+      - name: Protect frozen CPW-v5 science
+        run: |
+          git diff --exit-code 2984308ca307e28a1c1c8fa1ba5a2510e38624ac HEAD -- \
+            tam_research/cpw_v5_afm \
+            modal_cpw_v5_afm_1290.py \
+            tests/test_cpw_v5_afm_1290.py \
+            tests/test_cpw_v5_run_control_1290.py \
+            docs/CPW_V5_ASSOCIATIVE_FAST_MEMORY.md \
+            tam_research/cpw_v4_memory/task.py
+      - name: Validate workflow and markers statically
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          wf=Path('.github/workflows/cpw-v5-afm-h100-1294.yml').read_text()
+          launch=json.load(open('cpw/LAUNCH_V5_AFM_1294.json'))
+          assert launch == {
+              'issue':1294,
+              'scientific_issue':1290,
+              'mode':'one-shot-h100-delayed-recall',
+              'architecture_gate_run':37675907341,
+              'run_control_run':37676759471,
+              'import_probe_run':37676378870,
+              'preflight_run':37677612723,
+              'preflight_merge_parent':'2984308ca307e28a1c1c8fa1ba5a2510e38624ac',
+          }
+          assert 'experiment/cpw-v0-brain-predictive-workspace-20261005' in wf
+          assert 'research/cpw-v5-afm-launch-1294' not in wf.split('jobs:',1)[0]
+          assert 'modal run --timestamps modal_cpw_v5_afm_1290.py' in wf
+          assert 'MODAL_TOKEN_ID_2' in wf and 'MODAL_TOKEN_SECRET_2' in wf
+          assert 'RUN_ATTEMPT' in wf
+          PY
+      - name: Re-run frozen CPW-v5 contracts
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          pip install 'modal>=1.5.4,<1.6'
+          python -m compileall -q modal_cpw_v5_afm_1290.py tam_research/cpw_v5_afm
+          pytest -q tests/test_cpw_v5_afm_1290.py tests/test_cpw_v5_run_control_1290.py

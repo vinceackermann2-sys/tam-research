@@ -1,0 +1,10 @@
+{
+  "issue": 1294,
+  "scientific_issue": 1290,
+  "mode": "one-shot-h100-delayed-recall",
+  "architecture_gate_run": 37675907341,
+  "run_control_run": 37676759471,
+  "import_probe_run": 37676378870,
+  "preflight_run": 37677612723,
+  "preflight_merge_parent": "2984308ca307e28a1c1c8fa1ba5a2510e38624ac"
+}
