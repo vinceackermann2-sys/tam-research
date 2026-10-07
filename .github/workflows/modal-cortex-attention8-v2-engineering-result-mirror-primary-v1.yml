@@ -41,6 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
+          import re
           from pathlib import Path
           workflow = Path(
               ".github/workflows/modal-cortex-attention8-v2-engineering-result-mirror-primary-v1.yml"
@@ -48,7 +49,10 @@ jobs:
           top = workflow.split("\njobs:", 1)[0]
           assert "workflow_dispatch:" not in top
           assert ("modal " + "run ") not in workflow
-          assert ("gpu" + "=") not in workflow
+          gpu_assignment = re.compile(r"\bgpu\s*=\s*(?!NONE\b)", re.IGNORECASE)
+          assert gpu_assignment.search(workflow) is None
+          none_evidence = "gpu" + "=NONE"
+          assert workflow.count(none_evidence) == 1
           assert ("60" + "231") not in workflow
           assert ("60" + "232") not in workflow
           assert "/reduced-attention-v2-panel-v1/RESULT.json" in workflow
