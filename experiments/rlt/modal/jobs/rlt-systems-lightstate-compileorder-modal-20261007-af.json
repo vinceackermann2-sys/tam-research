@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-lightstate-compileorder-modal-20261007-af",
+  "task": "systems_lightstate_compileorder_af",
+  "engineering_seed": 20261048,
+  "batch_seed": 20271048,
+  "eval_seed": 20291048,
+  "compile_probe_seed": 20301048,
+  "training_data_seed": 20260924,
+  "requires_optimizer_calibration_job_id": "rlt-systems-lightstate-optimizer-qualitysec-modal-20261007-ae",
+  "requires_compute_match_job_id": "rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-b",
+  "variants": ["train_compile_first", "compiled_eval_first"],
+  "time_budget_seconds_each": 20.0,
+  "batch_size": 64,
+  "learning_rate": 0.001,
+  "schedule": "constant",
+  "seq_len": 64,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "expected_parameters": 15129344,
+  "automatic_retry": false
+}
