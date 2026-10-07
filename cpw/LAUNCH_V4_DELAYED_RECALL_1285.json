@@ -1,0 +1,13 @@
+{
+  "phase": "cpw-v4-delayed-recall-one-shot-1285",
+  "authority_issue": 1285,
+  "scientific_issue": 1275,
+  "preflight_issue": 1281,
+  "architecture_gate_run": 37597773057,
+  "run_control_run": 37597933015,
+  "import_probe_run": 37598001897,
+  "implementation_validation_run": 37633058821,
+  "namespace_scope_run": 37634318217,
+  "namespace_preflight_run": 37634318347,
+  "authorized_parent_sha": "6220ef98a57551a2a592429041df3e9ae650de4a"
+}
