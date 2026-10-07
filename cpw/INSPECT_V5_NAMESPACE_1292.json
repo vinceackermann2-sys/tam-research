@@ -3,6 +3,5 @@
   "scientific_issue": 1290,
   "mode": "account2-read-only-namespace-preflight",
   "writes_performed": false,
-  "gpu_requested": false,
-  "post_failed_launch_check": 1
+  "gpu_requested": false
 }
