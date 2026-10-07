@@ -39,9 +39,10 @@ jobs:
           assert changed <= allowed, f'unexpected paths: {sorted(changed-allowed)}'
           assert {
               '.github/workflows/cpw-v4-namespace-preflight-1281.yml',
+              '.github/workflows/cpw-v4-preflight-1281-ci.yml',
               'cpw/INSPECT_V4_NAMESPACE_1281.json',
-              'modal_cpw_v4_namespace_inspect_1281.py',
           } <= changed
+          assert 'modal_cpw_v4_namespace_inspect_1281.py' not in changed
           PY
 
       - name: Protect frozen CPW-v4 scientific implementation
