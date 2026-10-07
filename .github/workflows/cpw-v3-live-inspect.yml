@@ -1,0 +1,31 @@
+name: CPW-v3 live read-only inspect
+
+on:
+  push:
+    branches:
+      - audit/cpw-v3-live-1269
+    paths:
+      - 'cpw/LIVE_INSPECT_V3_1269.json'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install 'modal>=1.5.4,<1.6'
+      - name: Bind account2
+        run: |
+          printf 'MODAL_TOKEN_ID=%s\n' "$MODAL_TOKEN_ID_2" >> "$GITHUB_ENV"
+          printf 'MODAL_TOKEN_SECRET=%s\n' "$MODAL_TOKEN_SECRET_2" >> "$GITHUB_ENV"
+      - name: Inspect
+        run: modal run --timestamps modal_cpw_v3_live_inspect_1269.py | tee live.log
