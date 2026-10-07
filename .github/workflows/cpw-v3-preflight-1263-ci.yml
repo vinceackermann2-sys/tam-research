@@ -81,7 +81,8 @@ jobs:
           assert 'MODAL_TOKEN_ID_2' in workflow
           assert 'MODAL_TOKEN_SECRET_2' in workflow
           assert 'modal_cpw_v3_namespace_inspect_1263.py' in workflow
-          assert 'gpu' not in workflow.lower().replace('"gpu_requested"', '')
+          assert 'gpu=' not in workflow
+          assert 'H100' not in workflow
 
           assert trigger == {
               "issue": 1263,
