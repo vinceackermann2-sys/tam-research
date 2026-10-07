@@ -1,0 +1,29 @@
+{
+  "branch": "exp/rlt-colab",
+  "checkpoint_export": {
+    "github_artifact_digest": "",
+    "github_artifact_id": "",
+    "github_artifact_name": "rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-a-checkpoints",
+    "github_artifact_upload_outcome": "skipped",
+    "github_run_id": "37635763326",
+    "modal_volume_get_outcome": "skipped"
+  },
+  "compute_budget_protocol_verified": false,
+  "data_hashes_match_claim": false,
+  "error": "Modal CLI rc=1; no parseable terminal payload",
+  "error_type": "ModalInvocationOrTransportError",
+  "exact_parameter_match_verified": false,
+  "finished_unix": 1791382887.494601,
+  "job_id": "rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-a",
+  "job_source_blob_sha": "4a0eaf050286a11f3c83b3d50f0bca83c50c3278",
+  "launcher_blob_sha": "909d70a2267a038f32cd826bd8dd8ccf9b0b9633",
+  "log_tail": "\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Traceback (most recent call last) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502 /home/runner/work/tam-research/tam-research/experiments/rlt/modal_lightstate \u2502\n\u2502 _compute_matched_optimizer_tuned_scale15m_60s_a.py:25 in <module>            \u2502\n\u2502                                                                              \u2502\n\u2502    24 )                                                                      \u2502\n\u2502 \u2771  25 checkpoint_volume = modal.Volume.from_name(CHECKPOINT_VOLUME, create_i \u2502\n\u2502    26 app = modal.App(\"tam-rlt-lightstate-compute-matched-optimizer-tuned-sc \u2502\n\u2502                                                                              \u2502\n\u2502 /home/runner/.local/lib/python3.12/site-packages/modal/volume.py:607 in      \u2502\n\u2502 from_name                                                                    \u2502\n\u2502                                                                              \u2502\n\u2502    606 \u2502   \u2502   \"\"\"                                                           \u2502\n\u2502 \u2771  607 \u2502   \u2502   check_object_name(name, \"Volume\")                             \u2502\n\u2502    608                                                                       \u2502\n\u2502                                                                              \u2502\n\u2502 /home/runner/.local/lib/python3.12/site-packages/modal/_utils/name_utils.py: \u2502\n\u2502 67 in check_object_name                                                      \u2502\n\u2502                                                                              \u2502\n\u2502   66 \u2502   if not is_valid_object_name(name):                                  \u2502\n\u2502 \u2771 67 \u2502   \u2502   raise InvalidError(message)                                     \u2502\n\u2502   68                                                                         \u2502\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\nInvalidError: Invalid Volume name: \n'tam-rlt-lightstate-compute-matched-optimizer-tuned-scale15m-account2'.\n\nNames may contain only alphanumeric characters, dashes, periods, and \nunderscores, must be shorter than 64 characters, and cannot conflict with App ID\nstrings.\n",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 1,
+  "schema": 1,
+  "scientific_conclusion": null,
+  "status": "failed",
+  "trainer_blob_sha": "1a7af80e61340e893951ce2dc4340d244f674e34",
+  "trigger_sha": "50139bd4adb025c2466920431c524397c2808cb9",
+  "worker": "github-actions-modal"
+}
