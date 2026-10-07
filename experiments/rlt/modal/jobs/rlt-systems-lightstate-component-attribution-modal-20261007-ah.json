@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-lightstate-component-attribution-modal-20261007-ah",
+  "task": "systems_lightstate_component_attribution_ah",
+  "engineering_seed": 20261050,
+  "batch_seed": 20271050,
+  "compile_probe_seed": 20301050,
+  "requires_lowbatch_calibration_job_id": "rlt-systems-lightstate-lowbatch-qualitysec-modal-20261007-ag",
+  "requires_compute_match_job_id": "rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-b",
+  "requires_compileorder_job_id": "rlt-systems-lightstate-compileorder-modal-20261007-af",
+  "variants": [
+    "lightstate_full",
+    "lightstate_no_recurrence",
+    "lightstate_encoder_recurrence_only",
+    "lightstate_encoder_only",
+    "transformer_control"
+  ],
+  "batch_size": 64,
+  "seq_len": 64,
+  "synthetic_bank_size": 8,
+  "time_budget_seconds_each": 12.0,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
