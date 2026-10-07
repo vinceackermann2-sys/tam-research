@@ -1,0 +1,11 @@
+{
+  "phase": "cpw-v3-sparse-world-one-shot-1269",
+  "authority_issue": 1269,
+  "scientific_issue": 1261,
+  "preflight_issue": 1263,
+  "architecture_gate_run": 37470390411,
+  "run_control_run": 37471004582,
+  "import_probe_run": 37471163752,
+  "namespace_preflight_run": 37594989879,
+  "authorized_parent_sha": "51e7450dd8def8ee9789026f9f929e0245177c03"
+}
