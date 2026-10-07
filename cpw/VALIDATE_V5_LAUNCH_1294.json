@@ -1,0 +1,6 @@
+{
+  "issue": 1294,
+  "mode": "exact-head-launch-validation",
+  "base_sha": "2984308ca307e28a1c1c8fa1ba5a2510e38624ac",
+  "authorized_parent_sha": "8cf13f793341cf3df85fd47daa435b21dbeaff05"
+}
