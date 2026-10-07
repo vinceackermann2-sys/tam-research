@@ -1,0 +1,6 @@
+{
+  "issue": 1275,
+  "mode": "exact-head-pr-validation",
+  "base_sha": "452680378b9fded1f721f14495160b0fde927e09",
+  "authorized_parent_sha": "13412f3af826de43033c34936060d6ece3938e9d"
+}
