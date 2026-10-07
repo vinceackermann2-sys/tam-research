@@ -1,0 +1,93 @@
+name: CPW-v3 #1263 exact-head preflight validation
+
+on:
+  push:
+    branches:
+      - audit/cpw-v3-account2-namespace-1263
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate exact preflight scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=5dc48c9f27b1decdd03dd2b617121dac8d71d0a7
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+
+          base = "5dc48c9f27b1decdd03dd2b617121dac8d71d0a7"
+          allowed = {
+              ".github/workflows/cpw-v3-namespace-preflight-1263.yml",
+              ".github/workflows/cpw-v3-preflight-1263-ci.yml",
+              "cpw/INSPECT_V3_NAMESPACE_1263.json",
+              "modal_cpw_v3_namespace_inspect_1263.py",
+          }
+          changed = set(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only", base, "HEAD"],
+                  text=True,
+              ).splitlines()
+          )
+          assert changed <= allowed, f"unexpected paths: {sorted(changed - allowed)}"
+          assert {
+              ".github/workflows/cpw-v3-namespace-preflight-1263.yml",
+              "cpw/INSPECT_V3_NAMESPACE_1263.json",
+              "modal_cpw_v3_namespace_inspect_1263.py",
+          } <= changed
+          PY
+
+      - name: Protect frozen scientific implementation
+        run: |
+          set -euo pipefail
+          git diff --exit-code 5dc48c9f27b1decdd03dd2b617121dac8d71d0a7 HEAD --             tam_research/cpw_v3_sparse_world             modal_cpw_v3_sparse_world_1261.py             tests/test_cpw_v3_sparse_world_1261.py             tests/test_cpw_v3_run_control_1261.py             docs/CPW_V3_SPARSE_WORLD.md
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate inspector and workflow statically
+        run: |
+          python -m py_compile modal_cpw_v3_namespace_inspect_1263.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          inspector = Path("modal_cpw_v3_namespace_inspect_1263.py").read_text()
+          workflow = Path(".github/workflows/cpw-v3-namespace-preflight-1263.yml").read_text()
+          trigger = json.loads(Path("cpw/INSPECT_V3_NAMESPACE_1263.json").read_text())
+
+          assert 'gpu=' not in inspector
+          assert 'volume.commit' not in inspector
+          assert '"writes_performed": False' in inspector
+          assert '"gpu_requested": False' in inspector
+          assert '/vol/cpw-v3/sparse-world-panel-v1' in inspector
+          assert 'ATTEMPT.json' in inspector
+          assert 'RESULT.json' in inspector
+          assert 'FAILURE.json' in inspector
+
+          assert 'MODAL_TOKEN_ID_2' in workflow
+          assert 'MODAL_TOKEN_SECRET_2' in workflow
+          assert 'modal_cpw_v3_namespace_inspect_1263.py' in workflow
+          assert 'gpu' not in workflow.lower().replace('"gpu_requested"', '')
+
+          assert trigger == {
+              "issue": 1263,
+              "scientific_issue": 1261,
+              "mode": "account2-read-only-namespace-preflight",
+              "writes_performed": False,
+              "gpu_requested": False,
+          }
+          PY
