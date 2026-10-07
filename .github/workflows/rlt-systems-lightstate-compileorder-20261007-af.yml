@@ -91,10 +91,11 @@ jobs:
           from pathlib import Path
           current_job=Path('experiments/rlt/modal/jobs/rlt-systems-lightstate-compileorder-modal-20261007-af.json')
           current_launcher=Path('experiments/rlt/modal_lightstate_compileorder_diagnostic_af.py')
+          current_workflow=Path('.github/workflows/rlt-systems-lightstate-compileorder-20261007-af.yml')
           targets={20261048,20271048,20291048,20301048}
           collisions=[]
           for p in Path('.').rglob('*'):
-              if not p.is_file() or '.git' in p.parts or p in {current_job,current_launcher}:
+              if not p.is_file() or '.git' in p.parts or p in {current_job,current_launcher,current_workflow}:
                   continue
               try:
                   s=p.read_text()
