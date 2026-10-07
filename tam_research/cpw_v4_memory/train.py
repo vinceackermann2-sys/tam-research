@@ -25,6 +25,29 @@ from .protocol import (
 from .task import make_associative_batch
 
 
+def query_logits(model: torch.nn.Module, tokens: torch.Tensor) -> torch.Tensor:
+    """Exact final-token logits without projecting unused earlier positions."""
+    t = tokens.size(1)
+    cfg = model.cfg
+    if t > cfg.max_seq_len:
+        raise ValueError("sequence exceeds max_seq_len")
+    pos = torch.arange(t, device=tokens.device)
+    x = model.token_emb(tokens) + model.pos_emb(pos)[None]
+
+    if isinstance(model, SparseWorldCPWResearchLM):
+        workspace = torch.zeros_like(x)
+        for block in model.blocks:
+            x, workspace = block(x, workspace)
+    elif isinstance(model, ResearchLM):
+        for block in model.blocks:
+            x = block(x)
+    else:
+        raise TypeError(f"unsupported memory model type: {type(model)!r}")
+
+    last = model.norm(x[:, -1])
+    return model.lm_head(last)
+
+
 def build_memory_model(arm: str) -> torch.nn.Module:
     if arm == 'transformer':
         return ResearchLM(ModelConfig(architecture='transformer'))
@@ -67,7 +90,7 @@ def evaluate_memory(
                 else nullcontext()
             )
             with ctx:
-                logits = model(tokens)[:, -1, :]
+                logits = query_logits(model, tokens)
             loss = F.cross_entropy(logits.float(), targets, reduction='sum')
             correct += int((logits.argmax(dim=-1) == targets).sum())
             loss_sum += float(loss)
@@ -142,7 +165,7 @@ def train_memory_arm(
             tokens = batch.tokens.to(device, non_blocking=True)
             targets = batch.targets.to(device, non_blocking=True)
             with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-                logits = model(tokens)[:, -1, :]
+                logits = query_logits(model, tokens)
                 loss = F.cross_entropy(logits.float(), targets)
                 scaled = loss / grad_accum_steps
             scaled.backward()
