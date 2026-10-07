@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - audit/cpw-v4-account2-namespace-1281
+      - audit/cpw-v4-account2-targetcheck-1281
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
     paths:
       - 'cpw/INSPECT_V4_NAMESPACE_1281.json'
 
@@ -47,6 +49,7 @@ jobs:
               'mode': 'account2-read-only-namespace-preflight',
               'writes_performed': False,
               'gpu_requested': False,
+              'merged_branch_check': 1,
           }
           PY
 
