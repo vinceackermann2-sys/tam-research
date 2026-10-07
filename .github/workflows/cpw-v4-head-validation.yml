@@ -1,0 +1,64 @@
+name: CPW-v4 exact-head PR validation
+
+on:
+  push:
+    branches:
+      - research/cpw-v4-delayed-recall-1275
+    paths:
+      - 'cpw/VALIDATE_V4_HEAD_1275.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate exact-head marker
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          python - <<'PY'
+          import json
+          x=json.load(open('cpw/VALIDATE_V4_HEAD_1275.json'))
+          assert set(x)=={'issue','mode','base_sha','authorized_parent_sha'}
+          assert x['issue']==1275
+          assert x['mode']=='exact-head-pr-validation'
+          assert x['base_sha']=='452680378b9fded1f721f14495160b0fde927e09'
+          assert len(x['authorized_parent_sha'])==40
+          PY
+          AUTHORIZED_PARENT="$(python -c 'import json; print(json.load(open("cpw/VALIDATE_V4_HEAD_1275.json"))["authorized_parent_sha"])')"
+          test "$(git rev-parse HEAD^)" = "$AUTHORIZED_PARENT"
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          pip install 'modal>=1.5.4,<1.6'
+      - name: Protect frozen predecessor science
+        run: |
+          git diff --exit-code 452680378b9fded1f721f14495160b0fde927e09 HEAD -- \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v2_single \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v1_fast \
+            architectures/cortex_s/affine_scan_triton_candidate.py
+      - name: Prove this PR contains no scientific launch trigger
+        run: |
+          if grep -R --line-number --fixed-string 'modal_cpw_v4_memory_1275.py' .github/workflows | grep -v 'cpw-v4-head-validation.yml'; then
+            echo 'Unexpected CPW-v4 H100 invocation workflow present before launch authority'
+            exit 1
+          fi
+      - name: Full CPW-v4 zero-GPU validation
+        run: |
+          python -m compileall -q modal_cpw_v4_memory_1275.py modal_cpw_v4_import_probe_1275.py tam_research/cpw_v4_memory
+          pytest -q tests/test_cpw_v4_memory_1275.py tests/test_cpw_v4_run_control_1275.py
