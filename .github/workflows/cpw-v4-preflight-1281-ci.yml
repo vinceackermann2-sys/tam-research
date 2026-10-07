@@ -1,0 +1,88 @@
+name: CPW-v4 #1281 exact-head preflight validation
+
+on:
+  push:
+    branches:
+      - audit/cpw-v4-account2-namespace-1281
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate exact preflight scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=f6070fdd9271667c1b0eff6eb6ae45fb05c3f16b
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+          base='f6070fdd9271667c1b0eff6eb6ae45fb05c3f16b'
+          allowed={
+              '.github/workflows/cpw-v4-namespace-preflight-1281.yml',
+              '.github/workflows/cpw-v4-preflight-1281-ci.yml',
+              'cpw/INSPECT_V4_NAMESPACE_1281.json',
+              'modal_cpw_v4_namespace_inspect_1281.py',
+          }
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert changed <= allowed, f'unexpected paths: {sorted(changed-allowed)}'
+          assert {
+              '.github/workflows/cpw-v4-namespace-preflight-1281.yml',
+              'cpw/INSPECT_V4_NAMESPACE_1281.json',
+              'modal_cpw_v4_namespace_inspect_1281.py',
+          } <= changed
+          PY
+
+      - name: Protect frozen CPW-v4 scientific implementation
+        run: |
+          set -euo pipefail
+          git diff --exit-code f6070fdd9271667c1b0eff6eb6ae45fb05c3f16b HEAD -- \
+            tam_research/cpw_v4_memory \
+            modal_cpw_v4_memory_1275.py \
+            tests/test_cpw_v4_memory_1275.py \
+            tests/test_cpw_v4_run_control_1275.py \
+            docs/CPW_V4_DELAYED_RECALL.md
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate inspector and workflow statically
+        run: |
+          python -m py_compile modal_cpw_v4_namespace_inspect_1281.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          inspector=Path('modal_cpw_v4_namespace_inspect_1281.py').read_text()
+          workflow=Path('.github/workflows/cpw-v4-namespace-preflight-1281.yml').read_text()
+          trigger=json.loads(Path('cpw/INSPECT_V4_NAMESPACE_1281.json').read_text())
+          assert 'gpu=' not in inspector
+          assert 'volume.commit' not in inspector
+          assert 'writes_performed' in inspector and 'False' in inspector
+          assert 'gpu_requested' in inspector
+          assert '/vol/cpw-v4/delayed-associative-recall-v1' in inspector
+          assert 'ATTEMPT.json' in inspector
+          assert 'RESULT.json' in inspector
+          assert 'FAILURE.json' in inspector
+          assert 'MODAL_TOKEN_ID_2' in workflow
+          assert 'MODAL_TOKEN_SECRET_2' in workflow
+          assert 'modal_cpw_v4_namespace_inspect_1281.py' in workflow
+          assert 'H100' not in workflow
+          assert trigger == {
+              'issue':1281,
+              'scientific_issue':1275,
+              'mode':'account2-read-only-namespace-preflight',
+              'writes_performed':False,
+              'gpu_requested':False,
+          }
+          PY
