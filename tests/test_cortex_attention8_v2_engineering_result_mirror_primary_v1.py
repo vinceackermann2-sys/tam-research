@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,7 +19,9 @@ def test_engineering_result_mirror_is_storage_only_zero_gpu() -> None:
     top = workflow.split("\njobs:", 1)[0]
     assert "workflow_dispatch:" not in top
     assert ("modal " + "run ") not in workflow
-    assert ('gpu' + '="') not in workflow
+    gpu_assignment = re.compile(r"\bgpu\s*=\s*(?!NONE\b)", re.IGNORECASE)
+    assert gpu_assignment.search(workflow) is None
+    assert workflow.count("gpu=NONE") == 1
     assert "modal volume get" in workflow
     assert "modal volume put" in workflow
     assert ("60" + "231") not in workflow
@@ -80,3 +83,11 @@ def test_engineering_result_mirror_preserves_no_new_authority() -> None:
     assert '"remote_function_allocated":False' in workflow
     assert '"gpu_allocated":False' in workflow
     assert '"automatic_retry_authorized":False' in workflow
+
+
+def test_engineering_result_mirror_gpu_guard_allows_only_none_evidence() -> None:
+    gpu_assignment = re.compile(r"\bgpu\s*=\s*(?!NONE\b)", re.IGNORECASE)
+    assert gpu_assignment.search('gpu="H100"') is not None
+    assert gpu_assignment.search("gpu='H100'") is not None
+    assert gpu_assignment.search("gpu = H100") is not None
+    assert gpu_assignment.search("gpu=NONE") is None
