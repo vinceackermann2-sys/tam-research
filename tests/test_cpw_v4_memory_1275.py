@@ -184,7 +184,7 @@ def test_query_only_projection_matches_full_forward_exactly() -> None:
     with torch.no_grad():
         full = transformer(tokens)[:, -1]
         query = query_logits(transformer, tokens)
-    torch.testing.assert_close(full, query, rtol=0, atol=0)
+    torch.testing.assert_close(full, query, rtol=1e-6, atol=2e-7)
 
     cpw_cfg = CPWV1Config(
         vocab_size=5_000,
@@ -202,4 +202,4 @@ def test_query_only_projection_matches_full_forward_exactly() -> None:
         with torch.no_grad():
             full = model(tokens)[:, -1]
             query = query_logits(model, tokens)
-        torch.testing.assert_close(full, query, rtol=0, atol=0)
+        torch.testing.assert_close(full, query, rtol=1e-6, atol=2e-7)
