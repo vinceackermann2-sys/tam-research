@@ -1,0 +1,75 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_seed": 20271045,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1791381961.37116,
+  "compile_probe_seed": 20301045,
+  "engineering_only": true,
+  "engineering_seed": 20261045,
+  "eval_seed": 20291045,
+  "job": {
+    "automatic_retry": false,
+    "batch_seed": 20271045,
+    "batch_size": 64,
+    "candidates": [
+      {
+        "learning_rate": 0.0003,
+        "name": "cosine_lr3e-4",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "cosine_lr1e-3",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.003,
+        "name": "cosine_lr3e-3",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.0003,
+        "name": "constant_lr3e-4",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "constant_lr1e-3",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.003,
+        "name": "constant_lr3e-3",
+        "schedule": "constant"
+      }
+    ],
+    "compile_probe_seed": 20301045,
+    "engineering_seed": 20261045,
+    "eval_seed": 20291045,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-lightstate-optimizer-qualitysec-modal-20261007-ae",
+    "requires_batch_calibration_job_id": "rlt-systems-lightstate-qualitysec-batch-modal-20261003-ad",
+    "requires_crossdata_job_id": "rlt-crossdata-lightstate-4m-ab-modal-20261003-a",
+    "requires_lightstate_profile_job_id": "rlt-systems-lightstate-scale15m-batch768-modal-20261002-ac",
+    "requires_pair_a_job_id": "rlt-lightstate-scale15m-paired-4m-modal-20261002-a",
+    "requires_pair_b_job_id": "rlt-lightstate-scale15m-paired-4m-modal-20261002-b",
+    "schema": 1,
+    "seq_len": 64,
+    "task": "systems_lightstate_optimizer_qualitysec_ae",
+    "time_budget_seconds_each": 60.0,
+    "train_tokens": 6000000,
+    "training_data_seed": 20260924,
+    "val_tokens": 500000
+  },
+  "job_id": "rlt-systems-lightstate-optimizer-qualitysec-modal-20261007-ae",
+  "job_source_blob_sha": "69f754b3a98386876085a18a93bef18a44e444b0",
+  "launcher_blob_sha": "26e8e5ecd944dc392e1adcfabdb411c948041228",
+  "modal_account_slot": "2",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+  "trigger_sha": "c9402f29e5e0309a8e577ab64ccaee1d76b06cad",
+  "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+  "worker": "github-actions-modal"
+}
