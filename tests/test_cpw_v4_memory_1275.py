@@ -19,8 +19,8 @@ from tam_research.cpw_v4_memory.protocol import (
     VALUE_COUNT,
 )
 from tam_research.cpw_v4_memory.task import make_associative_batch
-from tam_research.cpw_v4_memory.train import build_memory_model
-from tam_research.models import parameter_count
+from tam_research.cpw_v4_memory.train import build_memory_model, query_logits
+from tam_research.models import ModelConfig, ResearchLM, parameter_count
 
 
 def test_generator_is_deterministic_and_mappings_are_fresh() -> None:
@@ -166,3 +166,40 @@ def test_reduced_models_are_causal_and_have_finite_gradients() -> None:
             la = model(a)
             lb = model(b)
         torch.testing.assert_close(la[:, :17], lb[:, :17], rtol=0, atol=2e-5)
+
+
+def test_query_only_projection_matches_full_forward_exactly() -> None:
+    torch.manual_seed(12753)
+    transformer_cfg = ModelConfig(
+        vocab_size=5_000,
+        d_model=32,
+        n_layers=2,
+        n_heads=4,
+        max_seq_len=32,
+        ff_mult=2,
+        architecture="transformer",
+    )
+    transformer = ResearchLM(transformer_cfg).eval()
+    tokens = torch.randint(0, 5_000, (2, 20))
+    with torch.no_grad():
+        full = transformer(tokens)[:, -1]
+        query = query_logits(transformer, tokens)
+    torch.testing.assert_close(full, query, rtol=0, atol=0)
+
+    cpw_cfg = CPWV1Config(
+        vocab_size=5_000,
+        d_model=32,
+        n_layers=15,
+        max_seq_len=32,
+        ff_mult=2,
+        world_state_size=8,
+        sequence_predictor_rank=12,
+        memory_predictor_rank=8,
+    )
+    for arm in ("sequence_only", "world_last1"):
+        torch.manual_seed(12753)
+        model = SparseWorldCPWResearchLM(arm, cpw_cfg).eval()
+        with torch.no_grad():
+            full = model(tokens)[:, -1]
+            query = query_logits(model, tokens)
+        torch.testing.assert_close(full, query, rtol=0, atol=0)
