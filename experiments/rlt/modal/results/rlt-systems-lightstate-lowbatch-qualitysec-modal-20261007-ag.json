@@ -1,0 +1,193 @@
+{
+  "batch_seed": 20271049,
+  "best_by_final_nll": {
+    "batch_size": 64,
+    "final_nll": 5.833491548895836,
+    "optimizer_steps_per_second": 44.5941107278203,
+    "steps": 2676,
+    "tokens_per_second": 182657.47754115195,
+    "tokens_seen": 10960896
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_LIGHTSTATE_LOWBATCH_QUALITYSEC_CALIBRATION",
+  "compile_probe_seed": 20301049,
+  "data": {
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "data_hashes_match_claim": true,
+  "engineering_only": true,
+  "engineering_seed": 20261049,
+  "eval_seed": 20291049,
+  "finished_unix": 1791392708.9722645,
+  "interpretation_ceiling": "Engineering-only sub-64 batch quality-per-second calibration for light-state RLT after constant LR 1e-3 was selected by AE. It tests whether AD's boundary optimum at batch 64 continues below the previous sweep range. It is not architecture-level scientific evidence.",
+  "job_id": "rlt-systems-lightstate-lowbatch-qualitysec-modal-20261007-ag",
+  "job_source_blob_sha": "3a9d415c000ea9c504fd05a94708d851bbfd89a6",
+  "launcher_blob_sha": "2c030fd4ce78b7eeee874b123813f88b84f0c30a",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "protocol": {
+    "batch_sizes": [
+      16,
+      32,
+      48,
+      64
+    ],
+    "compile_time_excluded": true,
+    "learning_rate": 0.001,
+    "same_batch_stream_seed": true,
+    "same_eval_stream_seed": true,
+    "same_initialization_seed": true,
+    "schedule": "constant",
+    "seq_len": 64,
+    "time_budget_seconds_each": 60.0,
+    "training_graph_compiled_before_timed_training": true,
+    "validation_execution": "eager_no_grad",
+    "weight_decay": 0.1
+  },
+  "results": [
+    {
+      "actual_train_seconds": 60.00140481,
+      "batch_size": 16,
+      "compile_probe": {
+        "loss": 10.898502349853516,
+        "seconds": 113.86989401
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.463296502828598,
+        "perplexity": 641.1711992849987,
+        "seconds": 0.6671935560000009
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.89085391163826,
+        "perplexity": 53683.12104553585,
+        "seconds": 0.7056419660000017
+      },
+      "last_train_loss": 6.620141983032227,
+      "optimizer_steps_per_second": 49.94883052305655,
+      "parameters": 15129344,
+      "peak_vram_gb": 1.2811708450317383,
+      "steps": 2997,
+      "tokens_per_second": 51147.60245560991,
+      "tokens_seen": 3068928
+    },
+    {
+      "actual_train_seconds": 60.00041015100004,
+      "batch_size": 32,
+      "compile_probe": {
+        "loss": 10.8947114944458,
+        "seconds": 114.57122539900001
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 6.113567143678665,
+        "perplexity": 451.948006649203,
+        "seconds": 0.7123531999999955
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.89085391163826,
+        "perplexity": 53683.12104553585,
+        "seconds": 0.6686105800000064
+      },
+      "last_train_loss": 5.653430938720703,
+      "optimizer_steps_per_second": 49.81632612973366,
+      "parameters": 15129344,
+      "peak_vram_gb": 2.096001625061035,
+      "steps": 2989,
+      "tokens_per_second": 102023.83591369454,
+      "tokens_seen": 6121472
+    },
+    {
+      "actual_train_seconds": 60.001532800999996,
+      "batch_size": 48,
+      "compile_probe": {
+        "loss": 10.883343696594238,
+        "seconds": 88.51066027800005
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.935078322887421,
+        "perplexity": 378.06960651527294,
+        "seconds": 0.7159688430000415
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.89085391163826,
+        "perplexity": 53683.12104553585,
+        "seconds": 0.7053646150000077
+      },
+      "last_train_loss": 5.636605739593506,
+      "optimizer_steps_per_second": 48.79875335370102,
+      "parameters": 15129344,
+      "peak_vram_gb": 2.90911865234375,
+      "steps": 2928,
+      "tokens_per_second": 149909.77030256952,
+      "tokens_seen": 8994816
+    },
+    {
+      "actual_train_seconds": 60.00792383399994,
+      "batch_size": 64,
+      "compile_probe": {
+        "loss": 10.897844314575195,
+        "seconds": 88.16443048200006
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.833491548895836,
+        "perplexity": 341.5491351001703,
+        "seconds": 0.6656621739999764
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.89085391163826,
+        "perplexity": 53683.12104553585,
+        "seconds": 0.6980830609999202
+      },
+      "last_train_loss": 5.639767646789551,
+      "optimizer_steps_per_second": 44.5941107278203,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.7237982749938965,
+      "steps": 2676,
+      "tokens_per_second": 182657.47754115195,
+      "tokens_seen": 10960896
+    }
+  ],
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100 80GB PCIe",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1791392021.4535968,
+  "status": "complete",
+  "trigger_sha": "3897a3cc6e74f8890c27df8c0956ebfc1d31a5e7",
+  "wrapper_semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  }
+}
