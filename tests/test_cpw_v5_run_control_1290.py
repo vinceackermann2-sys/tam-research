@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import modal_cpw_v5_afm_1290 as launcher
 from tam_research.cpw_v5_afm import protocol
 
 
@@ -28,7 +27,7 @@ def test_launcher_is_one_shot_h100_and_no_resume() -> None:
     assert '"resume_authorized": False' in text
     assert '"checkpoint_reuse_authorized": False' in text
     assert '"language_panel_authorized": False' in text
-    assert launcher.APP_NAME == "tam-research-cpw-v5-afm-1290"
+    assert 'APP_NAME = "tam-research-cpw-v5-afm-1290"' in text
 
 
 def test_modal_image_contains_full_import_closure() -> None:
