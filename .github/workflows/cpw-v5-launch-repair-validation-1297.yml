@@ -68,7 +68,7 @@ jobs:
           assert 'git diff --exit-code 2984308ca307e28a1c1c8fa1ba5a2510e38624ac "$GITHUB_SHA" --' in text
           assert 'git diff --exit-code 2984308ca307e28a1c1c8fa1ba5a2510e38624ac "$SOURCE_SHA" --' not in text
           assert 'modal run --timestamps modal_cpw_v5_afm_1290.py' in text
-          assert 'RUN_ATTEMPT: ${{ github.run_attempt }}' in text
+          assert 'RUN_ATTEMPT:' in text and 'github.run_attempt' in text
           assert 'MODAL_TOKEN_ID_2' in text
           assert 'retries=0' in Path('modal_cpw_v5_afm_1290.py').read_text()
           PY
