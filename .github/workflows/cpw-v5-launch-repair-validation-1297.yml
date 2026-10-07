@@ -1,0 +1,74 @@
+name: CPW-v5 #1297 exact-head launch-repair validation
+
+on:
+  push:
+    branches:
+      - research/cpw-v5-afm-launch-repair-1297
+    paths:
+      - 'cpw/VALIDATE_V5_LAUNCH_REPAIR_1297.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Validate exact launch-repair scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=bb575f59c4c4d6a23e76eb5e5c2d749148080783
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          base='bb575f59c4c4d6a23e76eb5e5c2d749148080783'
+          allowed={
+              '.github/workflows/cpw-v5-afm-h100-repair-1297.yml',
+              '.github/workflows/cpw-v5-launch-repair-validation-1297.yml',
+              'cpw/LAUNCH_V5_AFM_REPAIR_1297.json',
+              'cpw/VALIDATE_V5_LAUNCH_REPAIR_1297.json',
+          }
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert changed <= allowed, f'unexpected paths: {sorted(changed-allowed)}'
+          assert {
+              '.github/workflows/cpw-v5-afm-h100-repair-1297.yml',
+              'cpw/LAUNCH_V5_AFM_REPAIR_1297.json',
+              'cpw/VALIDATE_V5_LAUNCH_REPAIR_1297.json',
+          } <= changed
+          launch=json.loads(Path('cpw/LAUNCH_V5_AFM_REPAIR_1297.json').read_text())
+          validate=json.loads(Path('cpw/VALIDATE_V5_LAUNCH_REPAIR_1297.json').read_text())
+          assert launch['issue']==1297 and launch['scientific_issue']==1290
+          assert launch['failed_source']=='bb575f59c4c4d6a23e76eb5e5c2d749148080783'
+          assert launch['post_failure_namespace_run']==37680127321
+          assert validate['base_sha']==base
+          assert validate['authorized_parent_sha']==subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip()
+          PY
+      - name: Protect frozen scientific implementation
+        run: |
+          git diff --exit-code bb575f59c4c4d6a23e76eb5e5c2d749148080783 HEAD -- \
+            tam_research/cpw_v5_afm \
+            modal_cpw_v5_afm_1290.py \
+            tests/test_cpw_v5_afm_1290.py \
+            tests/test_cpw_v5_run_control_1290.py \
+            docs/CPW_V5_ASSOCIATIVE_FAST_MEMORY.md \
+            tam_research/cpw_v4_memory/task.py
+      - name: Prove SOURCE_SHA repair is local to protection step
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/cpw-v5-afm-h100-repair-1297.yml').read_text()
+          assert 'git diff --exit-code 2984308ca307e28a1c1c8fa1ba5a2510e38624ac "$GITHUB_SHA" --' in text
+          assert 'git diff --exit-code 2984308ca307e28a1c1c8fa1ba5a2510e38624ac "$SOURCE_SHA" --' not in text
+          assert 'modal run --timestamps modal_cpw_v5_afm_1290.py' in text
+          assert 'RUN_ATTEMPT:' in text and 'github.run_attempt' in text
+          assert 'MODAL_TOKEN_ID_2' in text
+          assert 'retries=0' in Path('modal_cpw_v5_afm_1290.py').read_text()
+          PY
