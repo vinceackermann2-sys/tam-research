@@ -77,7 +77,7 @@ def run_pair_remote(job_json: str) -> str:
         expected = {
             "schema": 1,
             "job_id": JOB_ID,
-            "task": "lightstate_compute_matched_optimizer_tuned_scale15m_60s_a",
+            "task": "lightstate_compute_matched_optimizer_tuned_scale15m_60s_b",
             "scientific_seed": SCIENTIFIC_SEED,
             "paired_batch_seed": 20_271_047,
             "paired_eval_seed": 20_291_047,
