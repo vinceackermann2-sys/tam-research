@@ -1,0 +1,43 @@
+name: CPW-v4 delayed-recall zero-GPU gate
+
+on:
+  push:
+    branches:
+      - research/cpw-v4-delayed-recall-1275
+    paths:
+      - 'tam_research/cpw_v4_memory/**'
+      - 'tests/test_cpw_v4_memory_1275.py'
+      - 'docs/CPW_V4_DELAYED_RECALL.md'
+      - '.github/workflows/cpw-v4-memory-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install test dependencies
+        run: pip install -e '.[test]'
+      - name: Protect frozen CPW-v3 scientific implementation
+        run: |
+          git diff --exit-code 452680378b9fded1f721f14495160b0fde927e09 HEAD -- \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v2_single \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v1_fast \
+            architectures/cortex_s/affine_scan_triton_candidate.py
+      - name: Syntax and delayed-memory contracts
+        run: |
+          python -m compileall -q tam_research/cpw_v4_memory
+          pytest -q tests/test_cpw_v4_memory_1275.py
