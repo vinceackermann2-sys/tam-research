@@ -1,0 +1,278 @@
+{
+  "batch_seed": 20271045,
+  "best_by_final_nll": {
+    "candidate": {
+      "learning_rate": 0.001,
+      "name": "constant_lr1e-3",
+      "schedule": "constant"
+    },
+    "final_nll": 5.706750139594078,
+    "optimizer_steps_per_second": 60.14470240148462,
+    "steps": 3609,
+    "tokens_per_second": 246352.701036481,
+    "tokens_seen": 14782464
+  },
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_SCALE15M_LIGHTSTATE_OPTIMIZER_QUALITYSEC_CALIBRATION",
+  "compile_probe_seed": 20301045,
+  "data": {
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "data_hashes_match_claim": true,
+  "engineering_only": true,
+  "engineering_seed": 20261045,
+  "eval_seed": 20291045,
+  "finished_unix": 1791382416.8654363,
+  "initial_eval": {
+    "eval_tokens": 131072,
+    "execution": "eager_no_grad",
+    "nll": 10.87619537115097,
+    "perplexity": 52901.9442855415,
+    "seconds": 0.4579942709999969
+  },
+  "interpretation_ceiling": "Engineering-only light-state RLT optimizer/schedule calibration at the independently selected batch size 64. It freezes the light-state setting for a later fresh-seed equal-GPU-time comparison and is not architecture-level scientific evidence.",
+  "job_id": "rlt-systems-lightstate-optimizer-qualitysec-modal-20261007-ae",
+  "job_source_blob_sha": "69f754b3a98386876085a18a93bef18a44e444b0",
+  "launcher_blob_sha": "26e8e5ecd944dc392e1adcfabdb411c948041228",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "protocol": {
+    "batch_size": 64,
+    "candidates": [
+      {
+        "learning_rate": 0.0003,
+        "name": "cosine_lr3e-4",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "cosine_lr1e-3",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.003,
+        "name": "cosine_lr3e-3",
+        "schedule": "cosine"
+      },
+      {
+        "learning_rate": 0.0003,
+        "name": "constant_lr3e-4",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "constant_lr1e-3",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.003,
+        "name": "constant_lr3e-3",
+        "schedule": "constant"
+      }
+    ],
+    "compile_once_fixed_batch_before_candidates": true,
+    "compile_time_excluded": true,
+    "compile_training_step_loss": 10.884239196777344,
+    "compile_training_step_seconds": 52.586689108,
+    "reset_identical_initial_weights_before_each_candidate": true,
+    "same_batch_stream_seed": true,
+    "same_eval_stream_seed": true,
+    "seq_len": 64,
+    "time_budget_seconds_each_candidate": 60.0,
+    "validation_execution": "eager_no_grad",
+    "warmup_time_ratio_for_cosine": 0.02,
+    "weight_decay": 0.1
+  },
+  "results": [
+    {
+      "actual_train_seconds": 60.00952479200001,
+      "batch_size": 64,
+      "candidate": {
+        "learning_rate": 0.0003,
+        "name": "cosine_lr3e-4",
+        "schedule": "cosine"
+      },
+      "eligible_for_selection": true,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.926024898886681,
+        "perplexity": 374.6622295535065,
+        "seconds": 0.4041273719999765
+      },
+      "finite_final_nll": true,
+      "last_lr": 2.5099642897430383e-11,
+      "last_train_loss": 5.648334503173828,
+      "optimizer_steps_per_second": 59.62386825094457,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.8302698135375977,
+      "steps": 3578,
+      "tokens_per_second": 244219.36435586895,
+      "tokens_seen": 14655488,
+      "training_nonfinite": false
+    },
+    {
+      "actual_train_seconds": 60.01687148299999,
+      "batch_size": 64,
+      "candidate": {
+        "learning_rate": 0.001,
+        "name": "cosine_lr1e-3",
+        "schedule": "cosine"
+      },
+      "eligible_for_selection": true,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.733862474560738,
+        "perplexity": 309.1610920546191,
+        "seconds": 0.41644756700000585
+      },
+      "finite_final_nll": true,
+      "last_lr": 8.456435274251106e-12,
+      "last_train_loss": 5.461203098297119,
+      "optimizer_steps_per_second": 59.599907686177865,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.8302698135375977,
+      "steps": 3577,
+      "tokens_per_second": 244121.22188258453,
+      "tokens_seen": 14651392,
+      "training_nonfinite": false
+    },
+    {
+      "actual_train_seconds": 60.006118543999975,
+      "batch_size": 64,
+      "candidate": {
+        "learning_rate": 0.003,
+        "name": "cosine_lr3e-3",
+        "schedule": "cosine"
+      },
+      "eligible_for_selection": true,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.814985066652298,
+        "perplexity": 335.286391515457,
+        "seconds": 0.40503780300002745
+      },
+      "finite_final_nll": true,
+      "last_lr": 4.3466422294802244e-10,
+      "last_train_loss": 5.638273239135742,
+      "optimizer_steps_per_second": 59.960552145390594,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.83071231842041,
+      "steps": 3598,
+      "tokens_per_second": 245598.42158751987,
+      "tokens_seen": 14737408,
+      "training_nonfinite": false
+    },
+    {
+      "actual_train_seconds": 60.019797144999984,
+      "batch_size": 64,
+      "candidate": {
+        "learning_rate": 0.0003,
+        "name": "constant_lr3e-4",
+        "schedule": "constant"
+      },
+      "eligible_for_selection": true,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.762421816587448,
+        "perplexity": 318.11781977157824,
+        "seconds": 0.4034459179999885
+      },
+      "finite_final_nll": true,
+      "last_lr": 0.0003,
+      "last_train_loss": 5.429133892059326,
+      "optimizer_steps_per_second": 59.84692003077247,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.8312392234802246,
+      "steps": 3592,
+      "tokens_per_second": 245132.98444604405,
+      "tokens_seen": 14712832,
+      "training_nonfinite": false
+    },
+    {
+      "actual_train_seconds": 60.005284853000035,
+      "batch_size": 64,
+      "candidate": {
+        "learning_rate": 0.001,
+        "name": "constant_lr1e-3",
+        "schedule": "constant"
+      },
+      "eligible_for_selection": true,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.706750139594078,
+        "perplexity": 300.8916218444272,
+        "seconds": 0.4203675960000055
+      },
+      "finite_final_nll": true,
+      "last_lr": 0.001,
+      "last_train_loss": 5.396481513977051,
+      "optimizer_steps_per_second": 60.14470240148462,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.8312392234802246,
+      "steps": 3609,
+      "tokens_per_second": 246352.701036481,
+      "tokens_seen": 14782464,
+      "training_nonfinite": false
+    },
+    {
+      "actual_train_seconds": 60.01936454500003,
+      "batch_size": 64,
+      "candidate": {
+        "learning_rate": 0.003,
+        "name": "constant_lr3e-3",
+        "schedule": "constant"
+      },
+      "eligible_for_selection": true,
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.858278721570969,
+        "perplexity": 350.12096938094277,
+        "seconds": 0.4038706380000008
+      },
+      "finite_final_nll": true,
+      "last_lr": 0.003,
+      "last_train_loss": 5.550879001617432,
+      "optimizer_steps_per_second": 60.51380296232355,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.8303399085998535,
+      "steps": 3632,
+      "tokens_per_second": 247864.53693367727,
+      "tokens_seen": 14876672,
+      "training_nonfinite": false
+    }
+  ],
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1791381972.3463485,
+  "status": "complete",
+  "trigger_sha": "c9402f29e5e0309a8e577ab64ccaee1d76b06cad",
+  "wrapper_semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  }
+}
