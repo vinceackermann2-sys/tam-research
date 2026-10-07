@@ -1,0 +1,6 @@
+{
+  "issue": 1297,
+  "mode": "exact-head-launch-repair-validation",
+  "base_sha": "bb575f59c4c4d6a23e76eb5e5c2d749148080783",
+  "authorized_parent_sha": "db229129618b7f23cd1eccde99ba116f2388044e"
+}
