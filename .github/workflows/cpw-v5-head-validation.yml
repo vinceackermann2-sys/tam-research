@@ -1,0 +1,70 @@
+name: CPW-v5 exact-head implementation validation
+
+on:
+  push:
+    branches:
+      - research/cpw-v5-afm-1290
+    paths:
+      - 'cpw/VALIDATE_V5_HEAD_1290.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate exact-head marker
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          python - <<'PY'
+          import json
+          x=json.load(open('cpw/VALIDATE_V5_HEAD_1290.json'))
+          assert set(x)=={'issue','mode','base_sha','authorized_parent_sha'}
+          assert x['issue']==1290
+          assert x['mode']=='exact-head-pr-validation'
+          assert x['base_sha']=='76039a277d416b77d19606a3cf5d25978a102ad1'
+          assert len(x['authorized_parent_sha'])==40
+          PY
+          AUTHORIZED_PARENT="$(python -c 'import json; print(json.load(open("cpw/VALIDATE_V5_HEAD_1290.json"))["authorized_parent_sha"])')"
+          test "$(git rev-parse HEAD^)" = "$AUTHORIZED_PARENT"
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+          pip install 'modal>=1.5.4,<1.6'
+      - name: Protect consumed predecessor science
+        run: |
+          git diff --exit-code 76039a277d416b77d19606a3cf5d25978a102ad1 HEAD -- \
+            tam_research/cpw_v4_memory \
+            modal_cpw_v4_memory_1275.py \
+            tests/test_cpw_v4_memory_1275.py \
+            tests/test_cpw_v4_run_control_1275.py \
+            tam_research/cpw_v3_sparse_world \
+            modal_cpw_v3_sparse_world_1261.py \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v2_single \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v1_fast \
+            architectures/cortex_s/affine_scan_triton_candidate.py
+      - name: Prove branch contains no scientific launch trigger
+        run: |
+          set -euo pipefail
+          if grep -R --line-number -E 'modal[[:space:]]+run([^\n]*[[:space:]])?modal_cpw_v5_afm_1290\.py' .github/workflows | grep -v 'cpw-v5-head-validation.yml'; then
+            echo 'Unexpected CPW-v5 H100 invocation workflow present before launch authority'
+            exit 1
+          fi
+      - name: Full CPW-v5 zero-GPU validation
+        run: |
+          python -m compileall -q modal_cpw_v5_afm_1290.py modal_cpw_v5_afm_import_probe_1290.py tam_research/cpw_v5_afm
+          pytest -q tests/test_cpw_v5_afm_1290.py tests/test_cpw_v5_run_control_1290.py
