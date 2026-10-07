@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - audit/cpw-v4-account2-namespace-1281
+      - audit/cpw-v4-account2-targetcheck-1281
 
 permissions:
   contents: read
@@ -22,12 +23,12 @@ jobs:
           SOURCE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          BASE=f6070fdd9271667c1b0eff6eb6ae45fb05c3f16b
+          BASE=6220ef98a57551a2a592429041df3e9ae650de4a
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           git merge-base --is-ancestor "$BASE" HEAD
           python - <<'PY'
           import subprocess
-          base='f6070fdd9271667c1b0eff6eb6ae45fb05c3f16b'
+          base='6220ef98a57551a2a592429041df3e9ae650de4a'
           allowed={
               '.github/workflows/cpw-v4-namespace-preflight-1281.yml',
               '.github/workflows/cpw-v4-preflight-1281-ci.yml',
@@ -46,7 +47,7 @@ jobs:
       - name: Protect frozen CPW-v4 scientific implementation
         run: |
           set -euo pipefail
-          git diff --exit-code f6070fdd9271667c1b0eff6eb6ae45fb05c3f16b HEAD -- \
+          git diff --exit-code 6220ef98a57551a2a592429041df3e9ae650de4a HEAD -- \
             tam_research/cpw_v4_memory \
             modal_cpw_v4_memory_1275.py \
             tests/test_cpw_v4_memory_1275.py \
@@ -78,11 +79,13 @@ jobs:
           assert 'MODAL_TOKEN_SECRET_2' in workflow
           assert 'modal_cpw_v4_namespace_inspect_1281.py' in workflow
           assert 'H100' not in workflow
+          assert 'experiment/cpw-v0-brain-predictive-workspace-20261005' in workflow
           assert trigger == {
               'issue':1281,
               'scientific_issue':1275,
               'mode':'account2-read-only-namespace-preflight',
               'writes_performed':False,
               'gpu_requested':False,
+              'merged_branch_check':1,
           }
           PY
