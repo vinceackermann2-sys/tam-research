@@ -1,0 +1,236 @@
+name: CORTEX attention-8 v2 Pair-1 100M 2B
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  launch:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-reduced-attention-v2-attention8-pair1-successor-100m-2b-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+
+    steps:
+      - name: Refuse reruns and parse exact source-bound payload
+        id: payload
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          body = json.loads(os.environ["ISSUE_BODY"])
+          expected = {"source_sha", "source_tree", "harness_sha"}
+          if set(body) != expected:
+              raise SystemExit(
+                  f"payload keys must be exactly {sorted(expected)}, got {sorted(body)}"
+              )
+          for key in sorted(expected):
+              value = str(body[key]).strip().lower()
+              if len(value) != 40 or any(ch not in "0123456789abcdef" for ch in value):
+                  raise SystemExit(f"{key} must be a full lowercase SHA")
+              print(f"{key}={value}")
+          PY
+
+      - name: Check out exact authorized source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.payload.outputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Verify current main ancestry and protected bytes
+        env:
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(git rev-parse HEAD^{tree})" = "$SOURCE_TREE"
+          git fetch --no-tags origin main
+          LIVE_MAIN="$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$SOURCE_SHA" "$LIVE_MAIN"
+          git cat-file -e "$HARNESS_SHA^{commit}"
+          git merge-base --is-ancestor "$HARNESS_SHA" "$SOURCE_SHA"
+          git diff --exit-code "$HARNESS_SHA" "$SOURCE_SHA" -- \
+            architectures/cortex_s/reduced_attention_100m_v2_attention8.py \
+            architectures/cortex_s/reduced_attention_100m_v2_attention8_successor_protocol.py \
+            architectures/cortex_s/tests/test_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1_harness.py \
+            tam_research/models.py \
+            tam_research/train.py \
+            tam_research/data.py \
+            tam_research/modal_dual_account_v3.py \
+            scripts/modal_select_account_v3.py \
+            modal_runtime_admission_probe_1067_v1.py \
+            modal_cortex_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1.py
+          for path in \
+            architectures/cortex_s/reduced_attention_100m_v2_attention8.py \
+            architectures/cortex_s/reduced_attention_100m_v2_attention8_successor_protocol.py \
+            architectures/cortex_s/tests/test_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1_harness.py \
+            tam_research/models.py \
+            tam_research/train.py \
+            tam_research/data.py \
+            tam_research/modal_dual_account_v3.py \
+            scripts/modal_select_account_v3.py \
+            modal_runtime_admission_probe_1067_v1.py \
+            modal_cortex_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1.py \
+            .github/workflows/modal-cortex-reduced-attention-v2-attention8-pair1-successor-100m-2b-v1.yml; do
+            test "$(git rev-parse "$SOURCE_SHA:$path")" = "$(git rev-parse "$LIVE_MAIN:$path")"
+          done
+
+      - name: Verify unique one-shot trigger
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, subprocess
+          title = "[modal-cortex-reduced-attention-v2-attention8-pair1-successor-100m-2b-v1]"
+          repo = os.environ["GITHUB_REPOSITORY"]
+          number = int(os.environ["ISSUE_NUMBER"])
+          q = f'repo:{repo} is:issue is:open in:title "{title}"'
+          found = json.loads(
+              subprocess.check_output(
+                  [
+                      "gh", "api", "search/issues", "-X", "GET",
+                      "-f", f"q={q}", "-f", "per_page=100",
+                  ],
+                  text=True,
+              )
+          )
+          exact = [item for item in found["items"] if item["title"] == title]
+          assert len(exact) == 1 and exact[0]["number"] == number
+          PY
+
+      - name: Zero-GPU static authority preflight
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            architectures/cortex_s/reduced_attention_100m_v2_attention8.py \
+            architectures/cortex_s/reduced_attention_100m_v2_attention8_successor_protocol.py \
+            architectures/cortex_s/tests/test_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1_harness.py \
+            modal_cortex_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1.py
+          python - <<'PY'
+          from pathlib import Path
+          runner = Path(
+              "modal_cortex_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1.py"
+          ).read_text()
+          workflow = Path(
+              ".github/workflows/modal-cortex-reduced-attention-v2-attention8-pair1-successor-100m-2b-v1.yml"
+          ).read_text()
+          top = workflow.split("\njobs:", 1)[0]
+          assert "workflow_dispatch:" not in top
+          assert runner.count('gpu="H100!"') == 1
+          assert "retries=0" in runner
+          assert "PAIR_SEED = 60_232" in runner
+          assert 'REQUIRED_MODAL_ACCOUNT = "primary"' in runner
+          assert "--force-account primary" in workflow
+          assert 'test "$SELECTED_ACCOUNT" = "primary"' in workflow
+          assert "ENGINEERING_PANEL_CANDIDATE_SCREEN_PASS" in runner
+          assert 'result.get("progression_candidates") != ["attention_8"]' in runner
+          assert "torch.load(" not in runner
+          assert '"replication_authorized": False' in runner
+          assert '"250m_5b_authorized": False' in runner
+          assert '"breakthrough_claim_allowed": False' in runner
+          launch = workflow.split(
+              "\n      - name: Launch exact one-shot attention-8 v2 Pair-1", 1
+          )[1]
+          launch = launch.split(
+              "\n      - name: Record normal scientific Pair-1 Modal return only", 1
+          )[0]
+          assert launch.count("modal run --detach --timestamps") == 1
+          PY
+
+      - name: Install pinned Modal CLI
+        run: python -m pip install 'modal>=1.5.4,<1.6'
+
+      - name: Require healthy primary Modal account before reservation
+        id: modal_account
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$PWD" python scripts/modal_select_account_v3.py \
+            --required-volume tam-research-data \
+            --force-account primary \
+            --runtime-probe-path modal_runtime_admission_probe_1067_v1.py
+
+      - name: Reverify primary Modal auth billing and volume
+        run: |
+          set -euo pipefail
+          modal token info
+          modal billing rates --json > selected-modal-rates.json
+          modal billing summary --for "this month" --json > selected-modal-billing.json
+          python - <<'PY'
+          import json
+          rates = json.load(open("selected-modal-rates.json", encoding="utf-8"))
+          billing = json.load(open("selected-modal-billing.json", encoding="utf-8"))
+          assert rates is not None
+          assert isinstance(billing, dict)
+          PY
+          modal volume list --json > selected-modal-volumes.json
+          python - <<'PY'
+          import json
+          payload = json.load(open("selected-modal-volumes.json", encoding="utf-8"))
+          if isinstance(payload, dict):
+              payload = payload.get("volumes", payload.get("items", payload.get("data", payload)))
+          assert isinstance(payload, list)
+          names = set()
+          for item in payload:
+              if isinstance(item, str):
+                  names.add(item)
+              elif isinstance(item, dict):
+                  value = item.get("name", item.get("Name"))
+                  if isinstance(value, str):
+                      names.add(value)
+          assert "tam-research-data" in names
+          PY
+
+      - name: Authenticate guarded scientific Pair-1 handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+          SELECTED_ACCOUNT: ${{ steps.modal_account.outputs.selected_account }}
+          SELECTED_WORKSPACE: ${{ steps.modal_account.outputs.selected_workspace_name }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="🟨 attention-8 v2 Pair-1 handoff authenticated — source=${SOURCE_SHA}, tree=${SOURCE_TREE}, harness=${HARNESS_SHA}, Modal account=${SELECTED_ACCOUNT}, workspace=${SELECTED_WORKSPACE}. Exactly one scientific seed-60232 matched 100M/2B pair is authorized by this trigger. No replication, 250M/5B, or breakthrough authority."
+
+      - name: Launch exact one-shot attention-8 v2 Pair-1
+        env:
+          SOURCE_SHA: ${{ steps.payload.outputs.source_sha }}
+          SOURCE_TREE: ${{ steps.payload.outputs.source_tree }}
+          HARNESS_SHA: ${{ steps.payload.outputs.harness_sha }}
+          SELECTED_ACCOUNT: ${{ steps.modal_account.outputs.selected_account }}
+        run: |
+          set -euo pipefail
+          test "$SELECTED_ACCOUNT" = "primary"
+          modal run --detach --timestamps modal_cortex_reduced_attention_v2_attention8_pair1_successor_100m_2b_v1.py \
+            --source-sha "$SOURCE_SHA" \
+            --source-tree "$SOURCE_TREE" \
+            --harness-sha "$HARNESS_SHA" \
+            --selected-account "$SELECTED_ACCOUNT"
+
+      - name: Record normal scientific Pair-1 Modal return only
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="🟩 attention-8 v2 Pair-1 Modal call returned normally. Interpret only durable /vol/cortex-s-v0/100m-2b/reduced-attention-v2-attention8-pair1-successor-v1/RESULT.json; GitHub success alone is not scientific evidence."
