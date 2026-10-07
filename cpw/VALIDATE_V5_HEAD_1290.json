@@ -2,5 +2,5 @@
   "issue": 1290,
   "mode": "exact-head-pr-validation",
   "base_sha": "76039a277d416b77d19606a3cf5d25978a102ad1",
-  "authorized_parent_sha": "8642993936f5fed112778c7a7fb96d19ff5d9d78"
+  "authorized_parent_sha": "c69e04975a3f6b7caa63f30487dfc0a3b66bfc65"
 }
