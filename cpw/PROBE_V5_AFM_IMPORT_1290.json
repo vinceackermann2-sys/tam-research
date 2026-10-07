@@ -3,6 +3,5 @@
   "mode": "cpu-modal-import-probe",
   "gpu_requested": false,
   "volume_mounted": false,
-  "writes_performed": false,
-  "registration_trigger": 1
+  "writes_performed": false
 }
