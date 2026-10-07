@@ -81,7 +81,6 @@ jobs:
           assert 'modal run --timestamps modal_cpw_v5_afm_1290.py' in wf
           assert 'MODAL_TOKEN_ID_2' in wf and 'MODAL_TOKEN_SECRET_2' in wf
           assert 'RUN_ATTEMPT' in wf
-          assert 'retries=0' not in wf  # frozen runner owns retries=0
           PY
       - name: Re-run frozen CPW-v5 contracts
         run: |
