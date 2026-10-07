@@ -1,5 +1,6 @@
 {
   "issue": 1269,
   "mode": "read-only-live-inspect",
-  "trigger": 1
+  "trigger": 1,
+  "check": 2
 }
