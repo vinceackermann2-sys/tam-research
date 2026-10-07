@@ -1,0 +1,49 @@
+name: CPW-v5 AFM zero-GPU architecture gate
+
+on:
+  push:
+    branches:
+      - research/cpw-v5-afm-1290
+    paths:
+      - 'tam_research/cpw_v5_afm/**'
+      - 'tests/test_cpw_v5_afm_1290.py'
+      - 'docs/CPW_V5_ASSOCIATIVE_FAST_MEMORY.md'
+      - '.github/workflows/cpw-v5-afm-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Protect consumed predecessor science
+        run: |
+          set -euo pipefail
+          git diff --exit-code 76039a277d416b77d19606a3cf5d25978a102ad1 HEAD -- \
+            tam_research/cpw_v4_memory \
+            modal_cpw_v4_memory_1275.py \
+            tests/test_cpw_v4_memory_1275.py \
+            tests/test_cpw_v4_run_control_1275.py \
+            tam_research/cpw_v3_sparse_world \
+            modal_cpw_v3_sparse_world_1261.py \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v2_single \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v1_fast \
+            architectures/cortex_s/affine_scan_triton_candidate.py
+      - name: CPW-v5 syntax and architecture contracts
+        run: |
+          python -m compileall -q tam_research/cpw_v5_afm
+          pytest -q tests/test_cpw_v5_afm_1290.py

@@ -1,0 +1,7 @@
+{
+  "issue": 1290,
+  "mode": "cpu-modal-import-probe",
+  "gpu_requested": false,
+  "volume_mounted": false,
+  "writes_performed": false
+}
