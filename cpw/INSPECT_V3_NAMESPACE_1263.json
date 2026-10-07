@@ -1,0 +1,7 @@
+{
+  "issue": 1263,
+  "scientific_issue": 1261,
+  "mode": "account2-read-only-namespace-preflight",
+  "writes_performed": false,
+  "gpu_requested": false
+}
