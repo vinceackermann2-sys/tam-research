@@ -1,0 +1,77 @@
+name: CPW #1306 binding-required generator zero-GPU gate
+
+on:
+  push:
+    branches:
+      - research/cpw-binding-v2-zero-gpu-1306
+    paths:
+      - '.github/workflows/cpw-binding-v2-cpu-1306.yml'
+      - 'tam_research/cpw_binding_v2/**'
+      - 'tests/test_cpw_binding_v2_1306.py'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify source parent and immutable scientific experiments
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=164cf203dc2564c2d8589f5a76763018ec86022e
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+          base='164cf203dc2564c2d8589f5a76763018ec86022e'
+          allowed={
+              'tam_research/cpw_binding_v2/__init__.py',
+              'tam_research/cpw_binding_v2/task.py',
+              'tests/test_cpw_binding_v2_1306.py',
+              '.github/workflows/cpw-binding-v2-cpu-1306.yml',
+          }
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',base,'HEAD'],text=True
+          ).splitlines())
+          assert changed == allowed, f'diff mismatch: {sorted(changed ^ allowed)}'
+          PY
+          git diff --exit-code "$BASE" HEAD -- \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v2_single \
+            tam_research/cpw_v1 \
+            modal_cpw_v4_memory_1275.py \
+            modal_cpw_v5_afm_1290.py \
+            cpw
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install CPU-only dependencies
+        run: |
+          pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+
+      - name: Validate symbolic oracle and query-blind impossibility
+        run: |
+          pytest -q \
+            tests/test_cpw_binding_v2_1306.py \
+            tests/test_cpw_associative_positional_shortcut_1301.py \
+            tests/test_cpw_v4_memory_1275.py
+
+      - name: Assert no paid compute or old scientific source modifications
+        run: |
+          set -euo pipefail
+          ! grep -Fq 'modal run' .github/workflows/cpw-binding-v2-cpu-1306.yml
+          ! grep -Fq 'workflow_dispatch' .github/workflows/cpw-binding-v2-cpu-1306.yml
