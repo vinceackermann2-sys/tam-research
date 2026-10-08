@@ -1,0 +1,61 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_seed": 20271057,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1791485328.088149,
+  "compile_probe_seed": 20301057,
+  "engineering_only": true,
+  "engineering_seed": 20261057,
+  "eval_seed": 20291057,
+  "job": {
+    "automatic_retry": false,
+    "batch_seed": 20271057,
+    "batch_size": 64,
+    "candidate_protocols": [
+      {
+        "learning_rate": 0.001,
+        "name": "gated_scan",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "residual_scan",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "transformer_control",
+        "schedule": "cosine"
+      }
+    ],
+    "compile_probe_seed": 20301057,
+    "engineering_seed": 20261057,
+    "eval_batch_size": 64,
+    "eval_batches": 32,
+    "eval_seed": 20291057,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-gated-scan-residual-realdata-modal-20261008-an",
+    "requires_am_scientific_job_id": "rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am",
+    "requires_residual_cpu_tests_run_id": 37758045098,
+    "schema": 1,
+    "seq_len": 64,
+    "task": "systems_gated_scan_residual_realdata_qualitysec_an",
+    "time_budget_seconds_each": 60,
+    "train_tokens": 6000000,
+    "training_data_seed": 20260924,
+    "val_tokens": 500000
+  },
+  "job_id": "rlt-systems-gated-scan-residual-realdata-modal-20261008-an",
+  "job_source_blob_sha": "43ae20688e7fc9d99b4e007f7c8c0430e9c3217a",
+  "launcher_blob_sha": "552e4ffa50823107caff30e03a1b8950f69ad1ef",
+  "modal_account_slot": "2",
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "residual_model_blob_sha": "53b3f90dd3b77b614540f38e6a0ab8122a0cfed9",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+  "trigger_sha": "d623e4911d3d33695ef0d888e99f673a8957f9ac",
+  "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+  "worker": "github-actions-modal"
+}
