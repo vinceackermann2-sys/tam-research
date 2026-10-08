@@ -194,6 +194,8 @@ jobs:
             'gpu="A100-80GB"',
             'retries=0',
           ]: assert x in s,x
+          assert s.count('from experiments.rlt.model_gated_scan_residual import ResidualGatedScanRLT') >= 2
+          assert 'ResidualGatedScanRLT, associative_affine_scan' not in s
           PY
 
       - name: Reproduce pinned D data bytes before claim
