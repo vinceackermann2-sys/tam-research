@@ -27,7 +27,7 @@ jobs:
       AG_PATH: experiments/rlt/modal/results/rlt-systems-lightstate-lowbatch-qualitysec-modal-20261007-ag.json
       B_PATH: experiments/rlt/modal/results/rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-b.json
       AF_PATH: experiments/rlt/modal/results/rlt-systems-lightstate-compileorder-modal-20261007-af.json
-      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-lightstate-component-attribution-20261007-ah.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-lightstate-component-attribution-20261008-ai.json
       CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-lightstate-component-attribution-modal-20261008-ai.json
       RESULT_PATH: experiments/rlt/modal/results/rlt-systems-lightstate-component-attribution-modal-20261008-ai.json
     steps:
@@ -157,8 +157,8 @@ jobs:
           s=Path('experiments/rlt/modal_lightstate_component_attribution_ai.py').read_text()
           for token in [
            'JOB_ID = "rlt-systems-lightstate-component-attribution-modal-20261008-ai"',
-           'ENGINEERING_SEED = 20_261_050','BATCH_SEED = 20_271_050',
-           'COMPILE_PROBE_SEED = 20_301_050','BATCH_SIZE = 64',
+           'ENGINEERING_SEED = 20_261_051','BATCH_SEED = 20_271_051',
+           'COMPILE_PROBE_SEED = 20_301_051','BATCH_SIZE = 64',
            'TIME_BUDGET_SECONDS = 12.0','EXPECTED_PARAMETERS = 15_129_344',
            'lightstate_no_recurrence','lightstate_encoder_recurrence_only',
            'transformer_control','PASS_LIGHTSTATE_COMPONENT_ATTRIBUTION',
