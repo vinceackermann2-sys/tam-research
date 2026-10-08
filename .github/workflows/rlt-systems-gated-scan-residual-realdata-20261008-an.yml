@@ -1,0 +1,379 @@
+name: RLT residual gated-scan real-data quality/sec AN
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-systems-gated-scan-residual-realdata-20261008-an.yml
+permissions:
+  contents: write
+concurrency:
+  group: rlt-systems-gated-scan-residual-realdata-20261008-an
+  cancel-in-progress: false
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-systems-gated-scan-residual-realdata-modal-20261008-an
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-systems-gated-scan-residual-realdata-modal-20261008-an.json
+      LAUNCHER_PATH: experiments/rlt/modal_gated_scan_residual_realdata_an.py
+      MODEL_PATH: experiments/rlt/model_gated_scan.py
+      AM_PATH: experiments/rlt/modal/results/rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am.json
+      RESIDUAL_MODEL_PATH: experiments/rlt/model_gated_scan_residual.py
+      DIAG_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-gated-scan-realdata-20261008-ak.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-gated-scan-residual-realdata-modal-20261008-an.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-systems-gated-scan-residual-realdata-modal-20261008-an.json
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Reject consumed AN and validate job and fresh seeds
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          echo "main=$(git rev-parse origin/main) rlt=$(git rev-parse origin/$BRANCH)"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          echo "JOB_BLOB_SHA=$(git rev-parse "origin/$BRANCH:$JOB_PATH")" >> "$GITHUB_ENV"
+          echo "LAUNCHER_BLOB_SHA=$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")" >> "$GITHUB_ENV"
+          echo "MODEL_BLOB_SHA=$(git rev-parse "origin/$BRANCH:$MODEL_PATH")" >> "$GITHUB_ENV"
+          echo "RESIDUAL_MODEL_BLOB_SHA=$(git rev-parse "origin/$BRANCH:$RESIDUAL_MODEL_PATH")" >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" >/tmp/an-job.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          job=json.load(open('/tmp/an-job.json'))
+          assert job == {
+           'schema':1,'job_id':'rlt-systems-gated-scan-residual-realdata-modal-20261008-an',
+           'task':'systems_gated_scan_residual_realdata_qualitysec_an',
+           'engineering_seed':20261057,'batch_seed':20271057,
+           'eval_seed':20291057,'compile_probe_seed':20301057,
+           'requires_am_scientific_job_id':'rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am',
+           'requires_residual_cpu_tests_run_id':37758045098,
+           'candidate_protocols':[
+             {'name':'gated_scan','schedule':'constant','learning_rate':0.001},
+             {'name':'residual_scan','schedule':'constant','learning_rate':0.001},
+             {'name':'transformer_control','schedule':'cosine','learning_rate':0.001},
+           ],
+           'batch_size':64,'seq_len':64,'eval_batch_size':64,'eval_batches':32,
+           'time_budget_seconds_each':60.0,
+           'train_tokens':6000000,'val_tokens':500000,'training_data_seed':20260924,
+           'expected_parameters_each':15129344,'automatic_retry':False,
+          },job
+          own=Path('experiments/rlt/modal/jobs/rlt-systems-gated-scan-residual-realdata-modal-20261008-an.json')
+          seeds={20261057,20271057,20291057,20301057}
+          def ints(x):
+           if isinstance(x,dict):
+            for v in x.values(): yield from ints(v)
+           elif isinstance(x,list):
+            for v in x: yield from ints(v)
+           elif isinstance(x,int): yield x
+          collisions=[]
+          for root in ['experiments/rlt/modal/jobs','experiments/rlt/modal/claims']:
+           for f in Path(root).glob('*.json'):
+            if f==own: continue
+            try: blob=json.loads(f.read_text())
+            except Exception: continue
+            overlap=seeds.intersection(ints(blob))
+            if overlap: collisions.append((str(f),sorted(overlap)))
+          assert not collisions,collisions
+          print('Unconsumed AN seeds:',sorted(seeds))
+          PY
+      - name: Validate AM negative evidence and 18 residual CPU tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$AM_PATH" >/tmp/am.json
+          python - <<'PY'
+          import json,urllib.request
+          am=json.load(open('/tmp/am.json'))
+          assert am.get('job_id')=='rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am'
+          assert am.get('status')=='complete' and am.get('classification')=='SCIENTIFIC_GATED_SCAN_EQUALTIME_SINGLE_SEED_NO_QUALITY_ADVANTAGE'
+          assert am.get('scientific_execution') is True and am.get('breakthrough_claim_supported') is False
+          assert am.get('modal_cli_rc')==0 and am.get('data_hashes_match_claim') is True
+          assert am.get('compute_budget_verified') is True and am.get('exact_parameter_match_verified') is True
+          assert am['derived']['gated_scan_minus_transformer_final_nll']>0
+          assert am['data']['train_sha256']=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907'
+          assert am['data']['val_sha256']=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2'
+          url='https://api.github.com/repos/vinceackermann2-sys/tam-research/actions/runs/37758045098'
+          req=urllib.request.Request(url,headers={'User-Agent':'rlt-an-check'})
+          with urllib.request.urlopen(req,timeout=30) as resp:r=json.load(resp)
+          assert r['status']=='completed' and r['conclusion']=='success'
+          assert r['head_branch']=='exp/rlt-colab'
+          PY
+
+      - name: Install zero-GPU reproducibility dependencies and select Modal account
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+           'modal>=1.5.4,<1.6' 'numpy>=2.0,<3' 'datasets>=4.0,<5' \
+           'transformers>=4.55,<5' 'tokenizers>=0.21,<1' 'huggingface-hub>=0.34,<1'
+          SLOT="";ID="";SECRET=""
+          if [ -n "$MODAL_TOKEN_ID_2" ] && [ -n "$MODAL_TOKEN_SECRET_2" ]; then
+           SLOT="2";ID="$MODAL_TOKEN_ID_2";SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "$MODAL_TOKEN_ID_B" ] && [ -n "$MODAL_TOKEN_SECRET_B" ]; then
+           SLOT="B";ID="$MODAL_TOKEN_ID_B";SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+           SLOT="A";ID="$MODAL_TOKEN_ID_A";SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID";test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID";export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          echo "MODAL_ACCOUNT_SLOT=$SLOT" >> "$GITHUB_ENV"
+          echo "MODAL_TOKEN_ID=$ID" >> "$GITHUB_ENV"
+          echo "MODAL_TOKEN_SECRET=$SECRET" >> "$GITHUB_ENV"
+          python -m py_compile "$LAUNCHER_PATH" "$MODEL_PATH" "$RESIDUAL_MODEL_PATH" experiments/rlt/modal_preflight.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('experiments/rlt/modal_gated_scan_residual_realdata_an.py').read_text()
+          for x in [
+           'JOB_ID = "rlt-systems-gated-scan-residual-realdata-modal-20261008-an"',
+           'ENGINEERING_SEED = 20_261_057','BATCH_SEED = 20_271_057',
+           'EVAL_SEED = 20_291_057','COMPILE_PROBE_SEED = 20_301_057',
+           'TIME_BUDGET_SECONDS = 60.0','EXPECTED_PARAMETERS = 15_129_344',
+           'PASS_RESIDUAL_GATED_SCAN_REALDATA_ENGINEERING_QUALITYSEC',
+           'ResidualGatedScanRLT','gpu="A100-80GB"',
+           'retries=0',
+           'RLT_SYSTEMS_GATED_SCAN_RESIDUAL_AN_RESULT_B64=',
+           'RLT_SYSTEMS_GATED_SCAN_RESIDUAL_AN_PREFLIGHT_B64='
+          ]: assert x in s,x
+          PY
+      - name: Reproduce exact pinned FineWeb D bytes before claim
+        shell: bash
+        run: |
+          set +e
+          python - <<'PY'
+          import hashlib,json,pathlib
+          import numpy as np
+          from datasets import load_dataset
+          from transformers import AutoTokenizer
+          ntrain,nval,seed=6000000,500000,20260924
+          tok=AutoTokenizer.from_pretrained('gpt2',use_fast=True)
+          stream=load_dataset('HuggingFaceFW/fineweb-edu',name='sample-10BT',split='train',streaming=True)
+          stream=stream.shuffle(seed=seed,buffer_size=10000)
+          parts=[];count=0;target=ntrain+nval
+          for row in stream:
+           text=row.get('text') or ''
+           if not text:continue
+           ids=tok.encode(text,add_special_tokens=False)
+           ids.append(tok.eos_token_id)
+           x=np.asarray(ids,dtype=np.uint16)
+           parts.append(x);count+=len(x)
+           if count>=target: break
+          assert count>=target,(count,target)
+          all_tokens=np.concatenate(parts)[:target]
+          tp=pathlib.Path('/tmp/an-train.bin')
+          vp=pathlib.Path('/tmp/an-val.bin')
+          all_tokens[:ntrain].tofile(tp);all_tokens[ntrain:].tofile(vp)
+          def digest(path):
+           h=hashlib.sha256()
+           with path.open('rb') as stream:
+            for b in iter(lambda:stream.read(8*1024*1024),b''):h.update(b)
+           return h.hexdigest()
+          th,vh=digest(tp),digest(vp)
+          assert th=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907',th
+          assert vh=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2',vh
+          pathlib.Path('/tmp/an-data.json').write_text(json.dumps({
+           'seed':seed,'train_sha256':th,'val_sha256':vh,
+           'train_tokens':ntrain,'val_tokens':nval
+          },indent=2,sort_keys=True)+'\n')
+          print('AN pinned data hashes reproduced:',th,vh)
+          PY
+          RC=$?
+          set -e
+          # Known Arrow/tokenizer interpreter-finalization SIGABRT is not a
+          # data-hash failure if the verified artifact was durably written.
+          if [ "$RC" -ne 0 ] && [ "$RC" -ne 134 ]; then exit "$RC"; fi
+          test -f /tmp/an-data.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('/tmp/an-data.json').read_text())
+          assert d=={
+             'seed':20260924,'train_tokens':6000000,'val_tokens':500000,
+             'train_sha256':'0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907',
+             'val_sha256':'e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2',
+          },d
+          assert Path('/tmp/an-train.bin').stat().st_size==6000000*2
+          assert Path('/tmp/an-val.bin').stat().st_size==500000*2
+          print('AN durable pinned data verified after exit code:',d)
+          PY
+      - name: Validate Modal no-GPU general and exact AN image
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "MODAL_PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+          timeout 15m modal run "$LAUNCHER_PATH"::verify_dependencies 2>&1 | tee /tmp/an-cpu.log
+          C="$(grep '^RLT_SYSTEMS_GATED_SCAN_RESIDUAL_AN_PREFLIGHT_B64=' /tmp/an-cpu.log | tail -1 | cut -d= -f2-)"
+          test -n "$C"
+          echo "AK_CPU_B64=$C" >> "$GITHUB_ENV"
+          python - "$P" "$C" <<'PY'
+          import base64,json,sys
+          a=json.loads(base64.urlsafe_b64decode(sys.argv[1].encode()))
+          c=json.loads(base64.urlsafe_b64decode(sys.argv[2].encode()))
+          assert a.get('status')=='pass' and a.get('scientific_job_executed') is False,a
+          assert c.get('status')=='pass' and c.get('gpu_requested') is False,c
+          assert c.get('cpu_forward_shapes_passed') is True,c
+          assert c.get('parameter_counts')=={
+           'gated_scan':15129344,'residual_scan':15129344,'transformer_control':15129344
+          },c
+          print('AN image and data checks passed.')
+          PY
+      - name: Commit AN zero-GPU preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['MODAL_PREFLIGHT_B64'].encode()))
+          c=json.loads(base64.urlsafe_b64decode(os.environ['AK_CPU_B64'].encode()))
+          assert p['status']=='pass' and c['status']=='pass'
+          p.update({
+           'classification':'RLT_GATED_SCAN_AK_ZERO_GPU_PREFLIGHT_PASS',
+           'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+           'job_id_checked':os.environ['JOB_ID'],
+           'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+           'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+           'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+ 'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
+           'engineering_only':True,'scientific_execution':False,
+           'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+           'cpu_model_preflight':c,
+           'reference_data':json.load(open('/tmp/an-data.json'))
+          })
+          out=pathlib.Path(os.environ['DIAG_PATH']);out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(p,sort_keys=True,indent=2)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main "$BRANCH"
+          git add "$DIAG_PATH"
+          git commit -m 'rlt systems: record AN real-data zero-GPU preflight'
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+      - name: Durably claim exactly one AN real-data engineering run
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          python - <<'PY'
+          import json,os,pathlib,time
+          d=json.load(open(os.environ['DIAG_PATH']))
+          assert d['status']=='pass' and d['cpu_model_preflight']['status']=='pass'
+          out=pathlib.Path(os.environ['CLAIM_PATH']);out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps({
+           'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed',
+           'claimed_unix':time.time(),'worker':'github-actions-modal',
+           'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+           'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+           'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+           'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+ 'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
+           'engineering_seed':20261057,'batch_seed':20271057,
+           'eval_seed':20291057,'compile_probe_seed':20301057,
+           'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+           'train_sha256':d['reference_data']['train_sha256'],
+           'val_sha256':d['reference_data']['val_sha256'],
+           'engineering_only':True,'scientific_execution':False,
+           'automatic_retry_authorized':False,
+           'job':json.load(open(os.environ['JOB_PATH']))
+          },sort_keys=True,indent=2)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt systems: claim $JOB_ID before real-data A100 run"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+      - name: Execute one-shot equal-time AN training
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 110m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=$?
+          B64="$(grep '^RLT_SYSTEMS_GATED_SCAN_RESIDUAL_AN_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+      - name: Persist durable AN terminal result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64','');rc=int(os.environ.get('MODAL_RC','999'))
+          p=None
+          if b:
+           try:p=json.loads(base64.urlsafe_b64decode(b.encode()))
+           except Exception:p=None
+          if not isinstance(p,dict):
+           log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+           p={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed',
+           'finished_unix':time.time(),'worker':'github-actions-modal',
+           'error_type':'ModalInvocationOrTransportError',
+           'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+           'log_tail':log[-6000:],'scientific_conclusion':None,
+           'engineering_only':True,'scientific_execution':False}
+          claim=json.load(open(os.environ['CLAIM_PATH']))
+          d=p.get('data') or {}
+          p.update({'modal_cli_rc':rc,'branch':os.environ['BRANCH'],
+           'trigger_sha':os.environ['GITHUB_SHA'],
+           'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+           'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+           'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
+ 'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
+           'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+           'data_hashes_match_claim':(
+             d.get('train_sha256')==claim['train_sha256']
+             and d.get('val_sha256')==claim['val_sha256']
+           )})
+          f=pathlib.Path(os.environ['RESULT_PATH']);f.parent.mkdir(parents=True,exist_ok=True)
+          f.write_text(json.dumps(p,sort_keys=True,indent=2)+'\n')
+          PY
+          git fetch origin main "$BRANCH"
+          git add "$RESULT_PATH"
+          git commit -m "rlt systems: record $JOB_ID terminal result"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+      - name: Summarize AN engineering quality and timing
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$RESULT_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,sort_keys=True,indent=2))
+          assert r.get('status')=='complete',r
+          assert r.get('classification')=='PASS_RESIDUAL_GATED_SCAN_REALDATA_ENGINEERING_QUALITYSEC',r
+          assert r.get('engineering_only') is True and r.get('scientific_execution') is False,r
+          assert r.get('breakthrough_claim_supported') is False,r
+          assert r.get('data_hashes_match_claim') is True,r
+          assert r.get('gpu_scan_vs_serial_passed') is True,r
+          assert r.get('exact_parameter_match_verified') is True,r
+          assert [row['name'] for row in r['results']]==['gated_scan','residual_scan','transformer_control'],r
+          assert all(row['parameters']==15129344 for row in r['results'])
+          print('AN residual relative to Transformer:',r['derived']['residual_minus_transformer_final_nll'])
+          print('AN residual relative to gated scan:',r['derived']['residual_minus_gated_final_nll'])
+          PY
