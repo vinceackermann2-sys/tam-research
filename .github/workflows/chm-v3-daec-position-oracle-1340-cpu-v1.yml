@@ -1,0 +1,110 @@
+name: CHM-v3 DAEC #1340 archived position-oracle CPU audit v1
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  position-oracle:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[chm-v3-daec-position-oracle-1340-cpu-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Refuse reruns and verify issue-bound source
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }
+          ISSUE_BODY: ${{ github.event.issue.body }
+        run: |
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY'
+          import json, os, re
+          p = json.loads(os.environ.get("ISSUE_BODY") or "{}")
+          assert p["phase"] == "chm-v3-daec-position-oracle-1340-cpu-v1"
+          assert p["control_issue"] == 1340
+          assert p["archived_run_id"] == 37760374218
+          assert p["archived_job_id"] == 113255052797
+          for key in ("source_sha", "source_tree"):
+              assert re.fullmatch(r"[0-9a-f]{40}",p.get(key,""))
+          PY
+      - name: Checkout current main
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Bind immutable source, frozen generator, and archived trace
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          p = json.loads(os.environ["ISSUE_BODY"])
+          expected_sha = p["source_sha"]
+          expected_tree = p["source_tree"]
+          def git(*args):
+              return subprocess.check_output(["git", *args],text=True).strip()
+          assert git("rev-parse","HEAD") == expected_sha
+          assert git("rev-parse","HEAD^{tree}") == expected_tree
+          git("fetch","--no-tags","origin","main")
+          assert git("rev-parse","origin/main") == expected_sha
+          pinned = {
+              "tam_research/chm_v1_long_memory_eval.py": "7f6c2ce484488569c5ad9c20922496a8da685bbe",
+              "tam_research/chm_v1_long_memory_eval_v3.py": "74c71e1a0ac0ae976f76078eae80e122f423f123",
+              "tam_research/chm_v1_100m_stage_c_eval.py": "863bd038e60da5511503adb0c8e1046a680ed3bd",
+              "tam_research/chm_v3_100m_daec.py": "77e9ccbff4383be40e6e2865503e1c3926bbda74",
+              "tam_research/chm_v3_100m_daec_stage_c.py": "b1a58e52b76ff7d06f14a569a7b6274afee8076c",
+              "tam_research/chm_v3_100m_daec_target_nll_stable.py": "482e2c930fa02448e45327747f10571315fd41dc",
+              "tests/fixtures/chm_v3_1340_archived_hard_copy_traces.json": "160de27c1dac85caaa18ae94a9e07564e92c3a30",
+          }
+          for path, expected in pinned.items():
+              assert git("rev-parse",f"{expected_sha}:{path}") == expected,(path,expected)
+          PY
+      - name: Install CPU-only evaluation dependencies
+        run: |
+          python -m pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e . 'tiktoken>=0.9,<1'
+      - name: Regenerate frozen GPT-2 prompts and join historical copy indices
+        run: |
+          python scripts/chm_v3_1340_cpu_position_oracle.py --archive tests/fixtures/chm_v3_1340_archived_hard_copy_traces.json --report position-oracle-report.json
+      - name: Persist final read-only forensic report to issue 1340
+        env:
+          GH_TOKEN: ${{ github.token }
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("position-oracle-report.json").read_text(encoding="utf-8"))
+          assert r["classification"] == "CHM_V3_1340_CPU_ONLY_POSITION_ORACLE_FORENSICS"
+          assert r["original_scientific_classification"] == "CHM_V3_100M_DAEC_STAGE_C_STOP"
+          assert r["scientific_seed_consumed"] is True
+          assert r["new_scientific_attempt"] is False and r["gpu_used"] is False
+          assert r["memory_probe_count"] == 384
+          lines = [
+              "CHM_V3_1340_CPU_POSITION_ORACLE_AUDIT_PASS", "",
+              "original_scientific_run=37760374218",
+              "scientific_seed_2013161_consumed=true",
+              "original_scientific_classification=CHM_V3_100M_DAEC_STAGE_C_STOP",
+              f"original_archived_trace_sha256={r['original_archived_trace_sha256']}",
+              f"regenerated_case_alignment_sha256={r['regenerated_case_alignment_sha256']}",
+              f"report_sha256={r['report_sha256']}",
+              f"memory_probe_count={r['memory_probe_count']}",
+              f"oracle_answer_present_count={r['oracle_answer_present_count']}",
+              f"oracle_answer_absent_count={r['oracle_answer_absent_count']}",
+              f"first_second_index_equal_count={r['first_second_index_equal_count']}",
+              f"copy_hit_count={r['copy_hit_count']}",
+              f"family_stats={json.dumps(r['family_stats'],sort_keys=True)}",
+              f"copy_token_counts={json.dumps(r['copy_token_counts'],sort_keys=True)}",
+              "trained_checkpoint_evaluator_parity_proved=false",
+              "gpu_allocated=false",
+              "new_scientific_attempt=false",
+              "retraining_authorized=false",
+          ]
+          Path("result-comment.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
+          PY
+          gh issue comment 1340 --repo "$GITHUB_REPOSITORY" -F result-comment.md
+          gh issue close 1340 --repo "$GITHUB_REPOSITORY" --reason completed
+          gh issue close "${{ github.event.issue.number }" --repo "$GITHUB_REPOSITORY" --reason completed
