@@ -1,0 +1,26 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_LIGHTSTATE_COMPONENT_ATTRIBUTION_AI_ZERO_GPU_PREFLIGHT_PASS",
+  "cpu_runtime_preflight": {
+    "cpu_forward_shapes_passed": true,
+    "gpu_requested": false,
+    "numpy_version": "2.4.6",
+    "rlt_parameters": 15129344,
+    "status": "pass",
+    "torch_version": "2.10.0+cu128",
+    "transformer_parameters": 15129344
+  },
+  "engineering_only": true,
+  "finished_unix": 1791447919.5814655,
+  "job_id_checked": "rlt-systems-lightstate-component-attribution-modal-20261008-ai",
+  "job_source_blob_sha": "421acc91f9a83bbddd6edcfda39bbc247e16e9e2",
+  "launcher_blob_sha": "bfda81c912a9bdf2033fbce4231b5760dd4ef76e",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "9d8b32abd6b2ebda8eadc71e9da944e466b13c02",
+  "worker": "modal-control"
+}
