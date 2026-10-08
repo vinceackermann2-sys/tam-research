@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "job_id": "rlt-residual-gated-scan-scientific-scale15m-60s-modal-20261008-ap",
+  "task": "scientific_residual_scan_compute_matched_ap",
+  "scientific_seed": 20261059,
+  "batch_seed": 20271059,
+  "eval_seed": 20291059,
+  "compile_probe_seed": 20301059,
+  "requires_an_realdata_job_id": "rlt-systems-gated-scan-residual-realdata-modal-20261008-an",
+  "requires_ao_optimizer_job_id": "rlt-systems-residual-optimizer-qualitysec-modal-20261008-ao",
+  "requires_residual_cpu_tests_run_id": 37758045098,
+  "candidate_protocols": [
+    {
+      "name": "residual_scan",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "transformer_control",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    }
+  ],
+  "batch_size": 64,
+  "seq_len": 64,
+  "eval_batch_size": 64,
+  "eval_batches": 32,
+  "time_budget_seconds_each": 60,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "training_data_seed": 20260924,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
