@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-gated-scan-optimizer-qualitysec-modal-20261008-al",
+  "task": "systems_gated_scan_optimizer_qualitysec_al",
+  "engineering_seed": 20261055,
+  "batch_seed": 20271055,
+  "eval_seed": 20291055,
+  "compile_probe_seed": 20301055,
+  "batch_size": 64,
+  "time_budget_seconds_each": 60,
+  "seq_len": 64,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "training_data_seed": 20260924,
+  "expected_parameters_each": 15129344,
+  "candidates": [
+    {
+      "name": "cosine_lr3e-4",
+      "schedule": "cosine",
+      "learning_rate": 0.0003
+    },
+    {
+      "name": "cosine_lr1e-3",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "cosine_lr3e-3",
+      "schedule": "cosine",
+      "learning_rate": 0.003
+    },
+    {
+      "name": "constant_lr3e-4",
+      "schedule": "constant",
+      "learning_rate": 0.0003
+    },
+    {
+      "name": "constant_lr1e-3",
+      "schedule": "constant",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "constant_lr3e-3",
+      "schedule": "constant",
+      "learning_rate": 0.003
+    }
+  ],
+  "automatic_retry": false,
+  "requires_ak_realdata_job_id": "rlt-systems-gated-scan-realdata-modal-20261008-ak",
+  "requires_aj_throughput_job_id": "rlt-systems-gated-scan-throughput-modal-20261008-aj",
+  "requires_cpu_tests_run_id": 37750663298
+}
