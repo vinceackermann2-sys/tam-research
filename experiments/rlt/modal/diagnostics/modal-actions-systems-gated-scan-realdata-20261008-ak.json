@@ -1,0 +1,39 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_GATED_SCAN_AK_ZERO_GPU_PREFLIGHT_PASS",
+  "cpu_model_preflight": {
+    "cpu_forward_shapes_passed": true,
+    "datasets_version": "4.8.5",
+    "gpu_requested": false,
+    "numpy_version": "2.4.6",
+    "parameter_counts": {
+      "gated_scan": 15129344,
+      "lightstate_full": 15129344,
+      "transformer_control": 15129344
+    },
+    "status": "pass",
+    "torch_version": "2.10.0+cu128",
+    "transformers_version": "4.57.6"
+  },
+  "engineering_only": true,
+  "finished_unix": 1791449651.4833355,
+  "job_id_checked": "rlt-systems-gated-scan-realdata-modal-20261008-ak",
+  "job_source_blob_sha": "5c0661ef6ba50580bb46bf61c2419c8ef3351eff",
+  "launcher_blob_sha": "80108be2fb51a943b46bbbc104befe04a5b517eb",
+  "modal_account_slot": "2",
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "reference_data": {
+    "seed": 20260924,
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "train_tokens": 6000000,
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+    "val_tokens": 500000
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "f95defe1f63f354ec392a5dff4d8680c847fdee0",
+  "worker": "modal-control"
+}
