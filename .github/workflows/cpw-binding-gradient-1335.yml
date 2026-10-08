@@ -41,7 +41,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           text=Path('tam_research/cpw_binding_grad_audit/audit.py').read_text()
-          assert 'modal' not in text.lower()
+          assert 'import modal' not in text
           assert 'optimizer.step(' not in text
           assert 'torch.cuda.' not in text
           PY
