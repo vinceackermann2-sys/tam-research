@@ -1,0 +1,79 @@
+name: CPW-v5 exact-head implementation PR validation
+
+on:
+  push:
+    branches:
+      - research/cpw-v5-associative-fast-memory-1296
+    paths:
+      - 'cpw/VALIDATE_V5_HEAD_1296.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Verify exact-head authority and restricted paths
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          base='76039a277d416b77d19606a3cf5d25978a102ad1'
+          cfg=json.loads(Path('cpw/VALIDATE_V5_HEAD_1296.json').read_text())
+          assert cfg['issue']==1296 and cfg['mode']=='implementation-only-pr-validation'
+          assert cfg['authorized_parent_sha']==subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip()
+          allowed={
+              '.github/workflows/cpw-v5-afm-cpu.yml',
+              '.github/workflows/cpw-v5-run-control.yml',
+              '.github/workflows/cpw-v5-import-probe.yml',
+              '.github/workflows/cpw-v5-head-validation.yml',
+              'cpw/PROBE_V5_AFM_IMPORT_1296.json',
+              'cpw/VALIDATE_V5_HEAD_1296.json',
+              'docs/CPW_V5_ASSOCIATIVE_FAST_MEMORY.md',
+              'modal_cpw_v5_afm_1296.py',
+              'modal_cpw_v5_import_probe_1296.py',
+              'tam_research/cpw_v5_afm/__init__.py',
+              'tam_research/cpw_v5_afm/model.py',
+              'tam_research/cpw_v5_afm/protocol.py',
+              'tam_research/cpw_v5_afm/train.py',
+              'tests/test_cpw_v5_afm_1296.py',
+              'tests/test_cpw_v5_binding_1296.py',
+              'tests/test_cpw_v5_run_control_1296.py',
+          }
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert changed <= allowed, f'out-of-scope paths: {sorted(changed-allowed)}'
+          assert 'modal_cpw_v5_afm_1296.py' in changed
+          PY
+      - name: Preserve v4 and earlier frozen experiments
+        run: |
+          git diff --exit-code 76039a277d416b77d19606a3cf5d25978a102ad1 HEAD -- \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v2_sequence
+      - name: Prove no H100 launch workflow exists
+        run: |
+          set -euo pipefail
+          if grep -R --line-number -E 'modal[[:space:]]+run[^\n]*modal_cpw_v5_afm_1296\.py' .github/workflows | grep -v 'cpw-v5-head-validation.yml'; then
+            echo 'Scientific launch appeared before separate authority'
+            exit 1
+          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PyTorch CPU
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install test dependencies
+        run: pip install -e '.[test]'
+      - name: Compile and test v5
+        run: |
+          python -m compileall -q tam_research/cpw_v5_afm modal_cpw_v5_afm_1296.py modal_cpw_v5_import_probe_1296.py
+          pytest -q tests/test_cpw_v5_afm_1296.py tests/test_cpw_v5_binding_1296.py tests/test_cpw_v5_run_control_1296.py
