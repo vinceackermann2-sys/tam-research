@@ -400,8 +400,9 @@ def verify_image_remote() -> str:
     import transformers
     from experiments.rlt.model import RLTConfig, parameter_count
     from experiments.rlt.model_gated_scan import (
-        ResidualGatedScanRLT, associative_affine_scan, sequential_affine_reference,
+        associative_affine_scan, sequential_affine_reference,
     )
+    from experiments.rlt.model_gated_scan_residual import ResidualGatedScanRLT
     from experiments.rlt.train_lightstate_scale15m_pair_4m_a import CompilableLightStateRLT
     from tam_research.data import TokenBin, prepare_fineweb
 
