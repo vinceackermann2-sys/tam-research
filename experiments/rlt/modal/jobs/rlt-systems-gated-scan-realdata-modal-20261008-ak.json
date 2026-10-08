@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-gated-scan-realdata-modal-20261008-ak",
+  "task": "systems_gated_scan_realdata_qualitysec_ak",
+  "engineering_seed": 20261054,
+  "batch_seed": 20271054,
+  "eval_seed": 20291054,
+  "compile_probe_seed": 20301054,
+  "requires_throughput_job_id": "rlt-systems-gated-scan-throughput-modal-20261008-aj",
+  "requires_cpu_tests_run_id": 37750663298,
+  "candidate_protocols": [
+    {
+      "name": "lightstate_full",
+      "schedule": "constant",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "gated_scan",
+      "schedule": "constant",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "transformer_control",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    }
+  ],
+  "batch_size": 64,
+  "seq_len": 64,
+  "eval_batch_size": 64,
+  "eval_batches": 32,
+  "time_budget_seconds_each": 60,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "training_data_seed": 20260924,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
