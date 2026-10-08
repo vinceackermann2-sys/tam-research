@@ -1,0 +1,146 @@
+{
+  "batch_seed": 20271056,
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "SCIENTIFIC_GATED_SCAN_EQUALTIME_SINGLE_SEED_NO_QUALITY_ADVANTAGE",
+  "compile_probe_seed": 20301056,
+  "compute_budget_verified": true,
+  "data": {
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "data_hashes_match_claim": true,
+  "derived": {
+    "gated_scan_minus_transformer_final_nll": 0.1500898152589798,
+    "gated_scan_over_transformer_tokens_per_second": 0.8783103188607436,
+    "gated_scan_tokens_seen": 16519168,
+    "training_seconds_difference": 0.010079115999999999,
+    "transformer_tokens_seen": 18804736
+  },
+  "engineering_only": false,
+  "eval_seed": 20291056,
+  "exact_parameter_match_verified": true,
+  "finished_unix": 1791452107.8415763,
+  "gpu_scan_vs_serial_passed": true,
+  "interpretation_ceiling": "Fresh scientific seed, pinned FineWeb-Edu D, exact 15,129,344 parameters, equal 60 seconds post-compile per architecture. Optimizers frozen from prior independent calibrations. Single-seed evidence only. A lower NLL would be one unreplicated hint, not a breakthrough; a higher NLL would be a negative single-seed result. No 250M/5B scale or replication authority is granted by this run.",
+  "job_id": "rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am",
+  "job_source_blob_sha": "9adfd2092d57043a983d54b59b73fceb2362128c",
+  "launcher_blob_sha": "7be18d20e59e3ca5cd3fa004ca9ee8bf312da417",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "protocol": {
+    "batch_size": 64,
+    "candidate_optimizers": [
+      {
+        "learning_rate": 0.001,
+        "name": "gated_scan",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "transformer_control",
+        "schedule": "cosine"
+      }
+    ],
+    "compile_time_excluded": true,
+    "eval_batch_size": 64,
+    "eval_batches": 32,
+    "gated_scan_optimizer_frozen_from_AL": true,
+    "gradient_clip_norm": 1.0,
+    "same_batch_stream_seed": true,
+    "same_eval_stream_seed": true,
+    "same_initialization_seed": true,
+    "seq_len": 64,
+    "time_budget_seconds_each": 60.0,
+    "training_graph_compiled_before_timed_training": true,
+    "transformer_optimizer_frozen_from_prior_transformer_calibration": true,
+    "validation_execution": "eager_no_grad",
+    "weight_decay": 0.1
+  },
+  "replication_authorized": false,
+  "replication_required_for_claim": true,
+  "results": [
+    {
+      "actual_train_seconds": 60.014037859,
+      "compile_probe": {
+        "loss": 10.878402709960938,
+        "seconds": 32.896628531
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.736318901181221,
+        "perplexity": 309.9214570992894,
+        "seconds": 0.2976262919999897
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.888600438833237,
+        "perplexity": 53562.28379503558,
+        "seconds": 0.9658969569999982
+      },
+      "last_train_loss": 5.509538650512695,
+      "learning_rate": 0.001,
+      "name": "gated_scan",
+      "parameters": 15129344,
+      "peak_vram_gb": 3.54429292678833,
+      "schedule": "constant",
+      "steps": 4033,
+      "tokens_per_second": 275255.0668030531,
+      "tokens_seen": 16519168
+    },
+    {
+      "actual_train_seconds": 60.003958743,
+      "compile_probe": {
+        "loss": 10.89001750946045,
+        "seconds": 13.540334801
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.586229085922241,
+        "perplexity": 266.72791287821246,
+        "seconds": 0.20628675699998666
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.889678627252579,
+        "perplexity": 53620.06517314575,
+        "seconds": 0.2428807450000079
+      },
+      "last_train_loss": 5.225008010864258,
+      "learning_rate": 0.001,
+      "name": "transformer_control",
+      "parameters": 15129344,
+      "peak_vram_gb": 3.417262554168701,
+      "schedule": "cosine",
+      "steps": 4591,
+      "tokens_per_second": 313391.5893873209,
+      "tokens_seen": 18804736
+    }
+  ],
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": true,
+  "scientific_seed": 20261056,
+  "started_unix": 1791451902.7781494,
+  "status": "complete",
+  "trigger_sha": "896049d1a314b800dfeabb3c0e5d716b95f540e7"
+}
