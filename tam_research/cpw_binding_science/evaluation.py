@@ -138,7 +138,7 @@ def evaluate_counterfactual_groups(
         tokens = torch.cat([v[0] for v in variants], dim=0)
         targets = torch.cat([v[1] for v in variants], dim=0)
         target_groups = torch.stack([v[1] for v in variants], dim=1)
-        if not torch.all(torch.stack([v[0][:, -1] for v in variants], 1).unique(dim=1).shape[1] == 4):
+        if any(int(torch.unique(row).numel()) != 4 for row in torch.stack([v[0][:, -1] for v in variants], 1)):
             raise AssertionError("query set is not unique")
         if any(int(torch.unique(row).numel()) != 4 for row in target_groups):
             raise AssertionError("four target values must differ")
