@@ -1,13 +1,14 @@
 {
+  "base_scan_model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
   "branch": "exp/rlt-colab",
-  "classification": "RLT_GATED_SCAN_AK_ZERO_GPU_PREFLIGHT_PASS",
+  "classification": "RLT_ADAPTIVE_AQ_ZERO_GPU_PREFLIGHT_PASS",
   "cpu_model_preflight": {
     "cpu_forward_shapes_passed": true,
     "datasets_version": "4.8.5",
     "gpu_requested": false,
     "numpy_version": "2.4.6",
     "parameter_counts": {
-      "gated_scan": 15129344,
+      "adaptive_scan": 15129344,
       "residual_scan": 15129344,
       "transformer_control": 15129344
     },
@@ -16,12 +17,12 @@
     "transformers_version": "4.57.6"
   },
   "engineering_only": true,
-  "finished_unix": 1791485306.1393921,
-  "job_id_checked": "rlt-systems-gated-scan-residual-realdata-modal-20261008-an",
-  "job_source_blob_sha": "43ae20688e7fc9d99b4e007f7c8c0430e9c3217a",
-  "launcher_blob_sha": "552e4ffa50823107caff30e03a1b8950f69ad1ef",
+  "finished_unix": 1791494600.2588682,
+  "job_id_checked": "rlt-systems-adaptive-realdata-modal-20261008-aq",
+  "job_source_blob_sha": "f83eb82bdf225cd2feeb4e352b71b50bc0300377",
+  "launcher_blob_sha": "ffbbf0aa9ec84d58cadd11c3f881287ba555bfbf",
   "modal_account_slot": "2",
-  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "model_blob_sha": "539e60413a2cbb1dcfa1e72ac133178decb28812",
   "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
   "reference_data": {
     "seed": 20260924,
@@ -35,6 +36,6 @@
   "scientific_execution": false,
   "scientific_job_executed": false,
   "status": "pass",
-  "trigger_sha": "d623e4911d3d33695ef0d888e99f673a8957f9ac",
+  "trigger_sha": "0ef5ca5c1203f46b7567d82a77e89743178f89bc",
   "worker": "modal-control"
 }
