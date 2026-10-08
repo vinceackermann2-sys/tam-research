@@ -1,0 +1,79 @@
+name: CORTEX attention-8 v2 successor read-only status v1
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  inspect:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[modal-cortex-attention8-v2-successor-readonly-status-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Reject reruns and wrong target
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          set -euo pipefail
+          test "$RUN_ATTEMPT" = "1"
+          python - <<'PY'
+          import json
+          import os
+          assert json.loads(os.environ["ISSUE_BODY"]) == {"target_issue": 1300, "target_run": 37748939335}
+          PY
+      - name: Check out event-bound commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Enforce zero-GPU read-only code
+        run: |
+          set -euo pipefail
+          python -m py_compile modal_cortex_attention8_v2_successor_readonly_status_v1.py
+          python -m unittest discover -s tests -p test_cortex_attention8_v2_successor_readonly_status_v1.py -v
+      - name: Install pinned Modal CLI
+        run: python -m pip install 'modal>=1.5.4,<1.6'
+      - name: Verify primary credential and existing volume
+        run: |
+          set -euo pipefail
+          modal token info
+          modal volume list --json > primary-volumes.json
+          python - <<'PY'
+          import json
+          payload = json.load(open("primary-volumes.json", encoding="utf-8"))
+          assert "tam-research-data" in json.dumps(payload)
+          PY
+      - name: Inspect primary volume without writes
+        id: inspect
+        run: |
+          set -euo pipefail
+          modal run --detach --timestamps modal_cortex_attention8_v2_successor_readonly_status_v1.py | tee status-readonly.log
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          lines = Path("status-readonly.log").read_text(encoding="utf-8").splitlines()
+          matches = [line.split("ATTENTION8_V2_READONLY_STATUS=", 1)[1] for line in lines if "ATTENTION8_V2_READONLY_STATUS=" in line]
+          assert len(matches) == 1, matches
+          payload = json.loads(matches[0])
+          assert payload["writes_performed"] is False
+          assert payload["gpu_allocated"] is False
+          assert payload["new_seed_consumed"] is False
+          print("payload_json=" + json.dumps(payload, sort_keys=True, separators=(",", ":")))
+          PY
+      - name: Publish snapshot and close observation issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PAYLOAD_JSON: ${{ steps.inspect.outputs.payload_json }}
+        run: |
+          set -euo pipefail
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="ATTENTION8_V2_SUCCESSOR_READONLY_STATUS_V1 ${PAYLOAD_JSON}"
+          gh issue close "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --reason completed
