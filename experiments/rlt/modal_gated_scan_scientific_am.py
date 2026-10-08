@@ -85,7 +85,7 @@ def run_quality_remote(job_json: str) -> str:
         "schema": 1,
         "job_id": JOB_ID,
         "task": "scientific_gated_scan_compute_matched_am",
-        "engineering_seed": SCIENTIFIC_SEED,
+        "scientific_seed": SCIENTIFIC_SEED,
         "batch_seed": BATCH_SEED,
         "eval_seed": EVAL_SEED,
         "compile_probe_seed": COMPILE_PROBE_SEED,
