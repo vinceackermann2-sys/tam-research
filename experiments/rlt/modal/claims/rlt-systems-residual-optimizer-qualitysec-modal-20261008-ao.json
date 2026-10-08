@@ -1,0 +1,62 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_seed": 20271058,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1791487541.6992295,
+  "compile_probe_seed": 20301058,
+  "engineering_only": true,
+  "engineering_seed": 20261058,
+  "eval_seed": 20291058,
+  "job": {
+    "automatic_retry": false,
+    "batch_seed": 20271058,
+    "batch_size": 64,
+    "candidates": [
+      {
+        "learning_rate": 0.0003,
+        "name": "constant_lr3e-4",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "constant_lr1e-3",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.003,
+        "name": "constant_lr3e-3",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "cosine_lr1e-3",
+        "schedule": "cosine"
+      }
+    ],
+    "compile_probe_seed": 20301058,
+    "engineering_seed": 20261058,
+    "eval_seed": 20291058,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-residual-optimizer-qualitysec-modal-20261008-ao",
+    "requires_an_realdata_job_id": "rlt-systems-gated-scan-residual-realdata-modal-20261008-an",
+    "requires_residual_cpu_tests_run_id": 37758045098,
+    "schema": 1,
+    "seq_len": 64,
+    "task": "systems_residual_optimizer_qualitysec_ao",
+    "time_budget_seconds_each": 60,
+    "train_tokens": 6000000,
+    "training_data_seed": 20260924,
+    "val_tokens": 500000
+  },
+  "job_id": "rlt-systems-residual-optimizer-qualitysec-modal-20261008-ao",
+  "job_source_blob_sha": "1ab383650360202a2acc1786754889f194858a2f",
+  "launcher_blob_sha": "b994c79260d2b2376d4a32b8e6b4b753a0854a8c",
+  "modal_account_slot": "2",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+  "trigger_sha": "05eddc92d138c8e33af167765033998efff85884",
+  "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+  "worker": "github-actions-modal"
+}
