@@ -1,0 +1,81 @@
+name: "CHM-v3 DAEC-A issue 1350 CPU toy quantitative report v1"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/chm-v3-daec-a-1350-cpu-report-v1.yml
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      CUDA_VISIBLE_DEVICES: ""
+    steps:
+      - name: Checkout exact CPU report implementation
+        uses: actions/checkout@v6
+
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only PyTorch and package
+        run: |
+          python -m pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+
+      - name: Check frozen model-free CPU-only script and research bindings
+        run: |
+          test "$(git rev-parse HEAD:tam_research/chm_v3_daec_a_address_target_toy_1350.py)" = "10606c119cdb6e5c4e3586ffdf6ae6eb5a5ea72d"
+          test "$(git rev-parse HEAD:scripts/chm_v3_daec_a_stage_a_cpu_report_1350.py)" = "ade48b2d5715a2da059e556685b008b0b205c3dd"
+          test "$(git rev-parse HEAD:research/chm_v3_daec_a_stage_a_cpu_protocol_1350.md)" = "553c89ee1c731f9c49fd090e58549129745bc229"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec.py)" = "77e9ccbff4383be40e6e2865503e1c3926bbda74"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_stage_c.py)" = "b1a58e52b76ff7d06f14a569a7b6274afee8076c"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_target_nll_stable.py)" = "482e2c930fa02448e45327747f10571315fd41dc"
+
+      - name: Score deterministic held-out synthetic CPU episodes once
+        run: |
+          python scripts/chm_v3_daec_a_stage_a_cpu_report_1350.py | tee stage-a-cpu-report.log
+
+      - name: Validate result schema without retroactive scientific claims
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          log=Path("stage-a-cpu-report.log").read_text(encoding="utf-8")
+          prefix="CHM_V3_DAEC_A_STAGE_A_CPU_TOY_REPORT="
+          lines=[x[len(prefix):] for x in log.splitlines() if x.startswith(prefix)]
+          assert len(lines)==1, "exactly one CPU-only toy result is required"
+          r=json.loads(lines[0])
+          assert r["classification"]=="CHM_V3_DAEC_A_STAGE_A_CPU_ONLY_TOY_DIAGNOSTIC"
+          assert r["issue"]==1350 and r["steps"]==96 and r["memory_length"]==128
+          assert r["historical_scientific_seed_2013161_consumed"] is True
+          assert r["prior_scientific_classification"]=="CHM_V3_100M_DAEC_STAGE_C_STOP"
+          assert r["gpu_allocated"] is False and r["modal_used"] is False
+          assert r["scientific_pass_claim"] is False and r["further_gpu_authority"] is False
+          assert r["oracle_role_masks_supplied"] is True
+          for split in ("development","test"):
+              both=r["development_and_test"][split]
+              for kind in ("same_initialization_untrained_pointer_control","pointer_supervised_two_hop"):
+                  v=both[kind]
+                  assert v["split"]==split and v["cases"]==64 and v["memory_length"]==128
+                  assert v["negative_cases"]>0 and v["positive_cases"]>0
+                  assert v["scientific_evidence"] is False and v["no_gpu"] is True
+                  for metric in ("hard_answer_top1","hard_first_pointer_top1"):
+                      assert 0<=v[metric]<=1
+          print("CHM_V3_1350_CPU_TOY_REPORT_SCHEMA_PASS")
+          PY
+
+      - name: Preserve CPU-only quantitative output
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v3-1350-cpu-toy-report
+          path: stage-a-cpu-report.log
+          retention-days: 90
