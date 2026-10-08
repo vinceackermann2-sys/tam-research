@@ -27,7 +27,7 @@ jobs:
       MODEL_PATH: experiments/rlt/model_gated_scan.py
       AM_PATH: experiments/rlt/modal/results/rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am.json
       RESIDUAL_MODEL_PATH: experiments/rlt/model_gated_scan_residual.py
-      DIAG_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-gated-scan-realdata-20261008-ak.json
+      DIAG_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-gated-scan-residual-realdata-20261008-an.json
       CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-gated-scan-residual-realdata-modal-20261008-an.json
       RESULT_PATH: experiments/rlt/modal/results/rlt-systems-gated-scan-residual-realdata-modal-20261008-an.json
     steps:
@@ -249,7 +249,7 @@ jobs:
            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
            'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
- 'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
+           'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
            'engineering_only':True,'scientific_execution':False,
            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
            'cpu_model_preflight':c,
@@ -285,7 +285,7 @@ jobs:
            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
            'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
- 'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
+           'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
            'engineering_seed':20261057,'batch_seed':20271057,
            'eval_seed':20291057,'compile_probe_seed':20301057,
            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
@@ -340,7 +340,7 @@ jobs:
            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
            'model_blob_sha':os.environ['MODEL_BLOB_SHA'],
- 'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
+           'residual_model_blob_sha':os.environ['RESIDUAL_MODEL_BLOB_SHA'],
            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
            'data_hashes_match_claim':(
              d.get('train_sha256')==claim['train_sha256']
