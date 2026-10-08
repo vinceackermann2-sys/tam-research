@@ -1,0 +1,31 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_GATED_SCAN_AJ_ZERO_GPU_PREFLIGHT_PASS",
+  "cpu_model_preflight": {
+    "cpu_forward_shapes_passed": true,
+    "gpu_requested": false,
+    "numpy_version": "2.4.6",
+    "parameter_counts": {
+      "gated_scan": 15129344,
+      "lightstate_full": 15129344,
+      "transformer_control": 15129344
+    },
+    "scan_vs_serial_passed": true,
+    "status": "pass",
+    "torch_version": "2.10.0+cu128"
+  },
+  "engineering_only": true,
+  "finished_unix": 1791448810.2673028,
+  "job_id_checked": "rlt-systems-gated-scan-throughput-modal-20261008-aj",
+  "job_source_blob_sha": "8fb2386be19822abeb3b568ced54d7b16d7d8562",
+  "launcher_blob_sha": "5158282d2cb2de0b93908cbbb1b9ba00a21989cb",
+  "modal_account_slot": "2",
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "7cfbf0cb9721b3b6de035625f40ac7e79d51e4dc",
+  "worker": "modal-control"
+}
