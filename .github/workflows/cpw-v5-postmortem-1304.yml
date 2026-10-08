@@ -64,3 +64,5 @@ jobs:
           print('These are constructed-feature/initialization diagnostics, NOT trained-model scientific results.')
           PY
           gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1304/comments" -F body=@/tmp/cpw-v5-report.txt
+
+# registration-trigger: cpw-v5-postmortem-1304
