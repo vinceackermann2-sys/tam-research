@@ -68,3 +68,35 @@ def test_full_model_parameter_count_and_layer_placement_cpu():
     assert active == [3, 6, 9, 12, 15, 18, 21, 24]
     assert len(conv) == 16
     assert all(not model.blocks[i - 1].has_attention for i in conv)
+
+
+def test_depthwise_conv7_has_exact_local_receptive_field_cpu():
+    # Change one token, then prove the mixer changes only that token and
+    # the next six tokens. This is stronger than no-future-leakage alone.
+    torch.manual_seed(9102)
+    block = CausalConv7ScheduledBlock(index=0, variant=VARIANT).cpu().eval()
+    with torch.no_grad():
+        block.conv_gain.fill_(1.0)
+        inputs = torch.randn(1, 18, 512)
+        changed = inputs.clone()
+        changed[:, 3, 27] += 11.0
+        reference = block(inputs)
+        candidate = block(changed)
+        torch.testing.assert_close(reference[:, :3], candidate[:, :3], atol=0.0, rtol=0.0)
+        torch.testing.assert_close(reference[:, 10:], candidate[:, 10:], atol=0.0, rtol=0.0)
+        assert not torch.allclose(reference[:, 4:10], candidate[:, 4:10])
+
+
+def test_zero_initialized_mixer_gate_is_trainable_cpu():
+    torch.manual_seed(9103)
+    block = CausalConv7ScheduledBlock(index=0, variant=VARIANT).cpu()
+    assert block.conv_gain.requires_grad
+    inputs = torch.randn(1, 8, 512)
+    result = block(inputs).square().mean()
+    result.backward()
+    assert block.conv_gain.grad is not None
+    assert torch.isfinite(block.conv_gain.grad)
+    assert block.depthwise_conv.weight.grad is not None
+    # Conv filter gradients are zero in the zero-gain initial state,
+    # but the gate itself receives a gradient and may open on a later step.
+    assert torch.count_nonzero(block.depthwise_conv.weight.grad).item() == 0
