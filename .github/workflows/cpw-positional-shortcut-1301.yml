@@ -1,0 +1,66 @@
+name: CPW #1301 zero-GPU positional-shortcut falsification
+
+on:
+  push:
+    branches:
+      - audit/cpw-v4-position-shortcut-1301
+    paths:
+      - '.github/workflows/cpw-positional-shortcut-1301.yml'
+      - 'tests/test_cpw_associative_positional_shortcut_1301.py'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Prove immutable scientific source and zero-GPU audit scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=9ac27396556997a530fab953bceed46e30ac27ba
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+          base='9ac27396556997a530fab953bceed46e30ac27ba'
+          changed=set(subprocess.check_output(
+              ['git','diff','--name-only',base,'HEAD'],text=True
+          ).splitlines())
+          expected={
+              'tests/test_cpw_associative_positional_shortcut_1301.py',
+              '.github/workflows/cpw-positional-shortcut-1301.yml',
+          }
+          assert changed == expected, f'audit scope drifted: {sorted(changed ^ expected)}'
+          PY
+          git diff --exit-code "$BASE" HEAD -- \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v2_single \
+            tam_research/cpw_v1 \
+            modal_cpw_v4_memory_1275.py \
+            modal_cpw_v5_afm_1290.py \
+            cpw
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only dependencies
+        run: |
+          pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Prove 100 percent model-free query-blind shortcut and old generator contracts
+        run: |
+          pytest -q tests/test_cpw_associative_positional_shortcut_1301.py tests/test_cpw_v4_memory_1275.py
+      - name: Confirm no Modal or scientific launch
+        run: |
+          set -euo pipefail
+          ! grep -Fq 'modal run' .github/workflows/cpw-positional-shortcut-1301.yml
+          ! grep -Eq 'gpu=|H100|retries=' tests/test_cpw_associative_positional_shortcut_1301.py
