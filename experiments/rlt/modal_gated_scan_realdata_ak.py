@@ -330,6 +330,63 @@ def run_quality_remote(job_json: str) -> str:
     })
 
 
+@app.function(image=image, cpu=2.0, timeout=300, retries=0, max_containers=1)
+def verify_image_remote() -> str:
+    import datasets
+    import numpy
+    import torch
+    import transformers
+
+    from experiments.rlt.model import RLTConfig, parameter_count
+    from experiments.rlt.model_gated_scan import GatedScanLightStateRLT
+    from experiments.rlt.model_light_state import LightStateRecurrentTransformer
+    from tam_research.models import ModelConfig, ResearchLM
+    from tam_research.data import TokenBin, prepare_fineweb
+    from tam_research.train import seed_all
+
+    torch.set_num_threads(2)
+    cfg = RLTConfig(
+        vocab_size=50_257, d_model=256, n_heads=8, n_stages=2,
+        max_seq_len=128, ff_mult=4, swa_window=32,
+    )
+    transf_cfg = ModelConfig(
+        vocab_size=50_257, d_model=256, n_layers=3, n_heads=8,
+        max_seq_len=128, ff_mult=4, ff_inner=938, architecture="transformer",
+    )
+    counts = {}
+    for name, cls, model_cfg in [
+        ("lightstate_full", LightStateRecurrentTransformer, cfg),
+        ("gated_scan", GatedScanLightStateRLT, cfg),
+        ("transformer_control", ResearchLM, transf_cfg),
+    ]:
+        seed_all(ENGINEERING_SEED)
+        model = cls(model_cfg)
+        counts[name] = parameter_count(model)
+        if counts[name] != EXPECTED_PARAMETERS:
+            raise RuntimeError(f"AK {name} parameter mismatch")
+        with torch.no_grad():
+            out = model(torch.tensor([[5, 6]], dtype=torch.long))
+        if out.shape != (1, 2, 50_257) or not torch.isfinite(out).all():
+            raise RuntimeError(f"AK {name} CPU forward failure")
+    return _encode({
+        "status": "pass", "gpu_requested": False,
+        "cpu_forward_shapes_passed": True,
+        "parameter_counts": counts,
+        "numpy_version": str(numpy.__version__),
+        "torch_version": str(torch.__version__),
+        "datasets_version": str(datasets.__version__),
+        "transformers_version": str(transformers.__version__),
+    })
+
+
+@app.local_entrypoint()
+def verify_dependencies() -> None:
+    result = verify_image_remote.remote()
+    if not isinstance(result, str):
+        raise TypeError("AK image preflight must return base64 string")
+    print("RLT_SYSTEMS_GATED_SCAN_AK_PREFLIGHT_B64=" + result)
+
+
 @app.local_entrypoint()
 def main(job_path: str) -> None:
     result = run_quality_remote.remote(Path(job_path).read_text())
