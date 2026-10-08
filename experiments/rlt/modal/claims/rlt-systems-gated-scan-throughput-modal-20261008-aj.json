@@ -1,0 +1,41 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_seed": 20271052,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1791448827.6343153,
+  "compile_probe_seed": 20301052,
+  "engineering_only": true,
+  "engineering_seed": 20261052,
+  "job": {
+    "automatic_retry": false,
+    "batch_seed": 20271052,
+    "batch_size": 64,
+    "compile_probe_seed": 20301052,
+    "engineering_seed": 20261052,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-gated-scan-throughput-modal-20261008-aj",
+    "requires_attribution_job_id": "rlt-systems-lightstate-component-attribution-modal-20261008-ai",
+    "requires_gated_scan_cpu_workflow_run_id": 37750663298,
+    "schema": 1,
+    "seq_len": 64,
+    "synthetic_bank_size": 8,
+    "task": "systems_gated_scan_throughput_aj",
+    "time_budget_seconds_each": 12,
+    "variants": [
+      "lightstate_full",
+      "gated_scan",
+      "transformer_control"
+    ]
+  },
+  "job_id": "rlt-systems-gated-scan-throughput-modal-20261008-aj",
+  "job_source_blob_sha": "8fb2386be19822abeb3b568ced54d7b16d7d8562",
+  "launcher_blob_sha": "5158282d2cb2de0b93908cbbb1b9ba00a21989cb",
+  "modal_account_slot": "2",
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "synthetic_data_only": true,
+  "trigger_sha": "7cfbf0cb9721b3b6de035625f40ac7e79d51e4dc",
+  "worker": "github-actions-modal"
+}
