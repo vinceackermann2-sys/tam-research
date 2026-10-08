@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-residual-optimizer-qualitysec-modal-20261008-ao",
+  "task": "systems_residual_optimizer_qualitysec_ao",
+  "engineering_seed": 20261058,
+  "batch_seed": 20271058,
+  "eval_seed": 20291058,
+  "compile_probe_seed": 20301058,
+  "batch_size": 64,
+  "time_budget_seconds_each": 60,
+  "seq_len": 64,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "training_data_seed": 20260924,
+  "expected_parameters_each": 15129344,
+  "candidates": [
+    {
+      "name": "constant_lr3e-4",
+      "schedule": "constant",
+      "learning_rate": 0.0003
+    },
+    {
+      "name": "constant_lr1e-3",
+      "schedule": "constant",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "constant_lr3e-3",
+      "schedule": "constant",
+      "learning_rate": 0.003
+    },
+    {
+      "name": "cosine_lr1e-3",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    }
+  ],
+  "automatic_retry": false,
+  "requires_an_realdata_job_id": "rlt-systems-gated-scan-residual-realdata-modal-20261008-an",
+  "requires_residual_cpu_tests_run_id": 37758045098
+}
