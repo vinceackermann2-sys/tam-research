@@ -1,0 +1,180 @@
+{
+  "batch_seed": 20271057,
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_RESIDUAL_GATED_SCAN_REALDATA_ENGINEERING_QUALITYSEC",
+  "compile_probe_seed": 20301057,
+  "data": {
+    "metadata": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "dataset_config": "sample-10BT",
+      "dtype": "uint16",
+      "seed": 20260924,
+      "tokenizer": "gpt2",
+      "train_tokens": 6000000,
+      "val_tokens": 500000
+    },
+    "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+    "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2"
+  },
+  "data_hashes_match_claim": true,
+  "derived": {
+    "residual_minus_gated_final_nll": -0.05770573019981384,
+    "residual_minus_transformer_final_nll": 0.0963924378156662,
+    "residual_over_gated_tps": 0.9974608385981809,
+    "residual_over_transformer_tps": 0.893262681145124
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261057,
+  "eval_seed": 20291057,
+  "exact_parameter_match_verified": true,
+  "finished_unix": 1791485923.1476152,
+  "gpu_scan_vs_serial_passed": true,
+  "interpretation_ceiling": "AN one-seed real FineWeb-Edu D engineering quality-per-second screen. Three architectures, exactly 15,129,344 parameters and equal 60-second postcompile windows; shared batch and evaluation streams. Residual optimizer borrowed from AL, not independently tuned. No scientific quality, breakthrough, replication, or scale claim is supported.",
+  "job_id": "rlt-systems-gated-scan-residual-realdata-modal-20261008-an",
+  "job_source_blob_sha": "43ae20688e7fc9d99b4e007f7c8c0430e9c3217a",
+  "launcher_blob_sha": "552e4ffa50823107caff30e03a1b8950f69ad1ef",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "protocol": {
+    "batch_size": 64,
+    "candidates": [
+      {
+        "learning_rate": 0.001,
+        "name": "gated_scan",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "residual_scan",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "transformer_control",
+        "schedule": "cosine"
+      }
+    ],
+    "compile_time_excluded": true,
+    "eval_batch_size": 64,
+    "eval_batches": 32,
+    "gated_scan_optimizer_frozen_from_AL": true,
+    "gradient_clip_norm": 1.0,
+    "residual_is_new_non_equivalent_architecture": true,
+    "residual_optimizer_borrowed_from_AL_not_independently_calibrated": true,
+    "same_batch_stream_seed": true,
+    "same_eval_stream_seed": true,
+    "same_initialization_seed": true,
+    "seq_len": 64,
+    "time_budget_seconds_each": 60.0,
+    "training_graph_compiled_before_timed_training": true,
+    "transformer_optimizer_frozen_from_prior_transformer_calibration": true,
+    "validation_execution": "eager_no_grad",
+    "weight_decay": 0.1
+  },
+  "residual_model_blob_sha": "53b3f90dd3b77b614540f38e6a0ab8122a0cfed9",
+  "results": [
+    {
+      "actual_train_seconds": 60.00617726099999,
+      "compile_probe": {
+        "loss": 10.847128868103027,
+        "seconds": 31.213160925000004
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.678387224674225,
+        "perplexity": 292.4773490927538,
+        "seconds": 0.32232081500001186
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.84748861193657,
+        "perplexity": 51404.891482090505,
+        "seconds": 1.1060095680000046
+      },
+      "last_train_loss": 5.328037261962891,
+      "learning_rate": 0.001,
+      "name": "gated_scan",
+      "parameters": 15129344,
+      "peak_vram_gb": 3.54429292678833,
+      "schedule": "constant",
+      "steps": 4151,
+      "tokens_per_second": 283345.761654617,
+      "tokens_seen": 17002496
+    },
+    {
+      "actual_train_seconds": 60.01400413900001,
+      "compile_probe": {
+        "loss": 10.866376876831055,
+        "seconds": 22.89133165299998
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.620681494474411,
+        "perplexity": 276.0774644058656,
+        "seconds": 0.3229153230000179
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.868864983320236,
+        "perplexity": 52515.57038234291,
+        "seconds": 0.3271067750000043
+      },
+      "last_train_loss": 5.150509834289551,
+      "learning_rate": 0.001,
+      "name": "residual_scan",
+      "parameters": 15129344,
+      "peak_vram_gb": 3.5479488372802734,
+      "schedule": "constant",
+      "steps": 4141,
+      "tokens_per_second": 282626.30103325454,
+      "tokens_seen": 16961536
+    },
+    {
+      "actual_train_seconds": 60.01640687,
+      "compile_probe": {
+        "loss": 10.868171691894531,
+        "seconds": 14.010069447000006
+      },
+      "final_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 5.524289056658745,
+        "perplexity": 250.70803543844363,
+        "seconds": 0.21650618900002883
+      },
+      "initial_eval": {
+        "eval_tokens": 131072,
+        "execution": "eager_no_grad",
+        "nll": 10.868795603513718,
+        "perplexity": 52511.926988621,
+        "seconds": 0.24739077899999984
+      },
+      "last_train_loss": 5.12637996673584,
+      "learning_rate": 0.001,
+      "name": "transformer_control",
+      "parameters": 15129344,
+      "peak_vram_gb": 3.417262554168701,
+      "schedule": "cosine",
+      "steps": 4636,
+      "tokens_per_second": 316397.7483878985,
+      "tokens_seen": 18989056
+    }
+  ],
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1791485637.464363,
+  "status": "complete",
+  "trigger_sha": "d623e4911d3d33695ef0d888e99f673a8957f9ac"
+}
