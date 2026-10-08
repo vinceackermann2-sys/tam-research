@@ -39,4 +39,4 @@ jobs:
           MKL_NUM_THREADS: 2
         run: |
           set -euo pipefail
-          python -m pytest -q tests/test_rlt_gated_scan.py tests/test_rlt_gated_scan_residual.py -vv
+          python -m pytest -q tests/test_rlt_gated_scan.py tests/test_rlt_gated_scan_residual.py tests/test_rlt_gated_scan_adaptive.py -vv
