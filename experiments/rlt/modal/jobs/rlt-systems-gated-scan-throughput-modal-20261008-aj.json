@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-gated-scan-throughput-modal-20261008-aj",
+  "task": "systems_gated_scan_throughput_aj",
+  "engineering_seed": 20261052,
+  "batch_seed": 20271052,
+  "compile_probe_seed": 20301052,
+  "requires_attribution_job_id": "rlt-systems-lightstate-component-attribution-modal-20261008-ai",
+  "requires_gated_scan_cpu_workflow_run_id": 37750663298,
+  "variants": [
+    "lightstate_full",
+    "gated_scan",
+    "transformer_control"
+  ],
+  "batch_size": 64,
+  "seq_len": 64,
+  "synthetic_bank_size": 8,
+  "time_budget_seconds_each": 12,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
