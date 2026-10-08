@@ -1,12 +1,24 @@
 {
   "branch": "exp/rlt-colab",
-  "classification": "RLT_SYSTEMS_LIGHTSTATE_OPTIMIZER_QUALITYSEC_AE_ZERO_GPU_PREFLIGHT_PASS",
+  "classification": "RLT_SYSTEMS_GATED_SCAN_OPTIMIZER_QUALITYSEC_AL_ZERO_GPU_PREFLIGHT_PASS",
+  "cpu_model_preflight": {
+    "cpu_forward_shapes_passed": true,
+    "datasets_version": "4.8.5",
+    "gpu_requested": false,
+    "numpy_version": "2.4.6",
+    "parameters": 15129344,
+    "scan_vs_serial_passed": true,
+    "status": "pass",
+    "torch_version": "2.10.0+cu128",
+    "transformers_version": "4.57.6"
+  },
   "engineering_only": true,
-  "finished_unix": 1791381957.5236611,
-  "job_id_checked": "rlt-systems-lightstate-optimizer-qualitysec-modal-20261007-ae",
-  "job_source_blob_sha": "69f754b3a98386876085a18a93bef18a44e444b0",
-  "launcher_blob_sha": "26e8e5ecd944dc392e1adcfabdb411c948041228",
+  "finished_unix": 1791450870.4478667,
+  "job_id_checked": "rlt-systems-gated-scan-optimizer-qualitysec-modal-20261008-al",
+  "job_source_blob_sha": "e28349d2082fb9fa2a06b470b1d4c8fdb4a505ad",
+  "launcher_blob_sha": "fbdb784d2566855e37f61cbd603ed590153652ca",
   "modal_account_slot": "2",
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
   "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
   "reference_data": {
     "seed": 20260924,
@@ -19,6 +31,6 @@
   "scientific_execution": false,
   "scientific_job_executed": false,
   "status": "pass",
-  "trigger_sha": "c9402f29e5e0309a8e577ab64ccaee1d76b06cad",
+  "trigger_sha": "d41dc0ce55392b07c8f1f896d85548fe1f1d59b5",
   "worker": "modal-control"
 }
