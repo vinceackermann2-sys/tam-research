@@ -1,0 +1,291 @@
+name: RLT light-state component attribution AH
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-systems-lightstate-component-attribution-20261007-ah.yml
+permissions:
+  contents: write
+concurrency:
+  group: rlt-systems-lightstate-component-attribution-20261007-ah
+  cancel-in-progress: false
+jobs:
+  attribute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 140
+    env:
+      MODAL_TOKEN_ID_A: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET_A: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID_B: ${{ secrets.MODAL_TOKEN_ID_B }}
+      MODAL_TOKEN_SECRET_B: ${{ secrets.MODAL_TOKEN_SECRET_B }}
+      MODAL_TOKEN_ID_2: ${{ secrets.MODAL_TOKEN_ID_2 }}
+      MODAL_TOKEN_SECRET_2: ${{ secrets.MODAL_TOKEN_SECRET_2 }}
+      BRANCH: exp/rlt-colab
+      JOB_ID: rlt-systems-lightstate-component-attribution-modal-20261007-ah
+      JOB_PATH: experiments/rlt/modal/jobs/rlt-systems-lightstate-component-attribution-modal-20261007-ah.json
+      LAUNCHER_PATH: experiments/rlt/modal_lightstate_component_attribution_ah.py
+      AG_PATH: experiments/rlt/modal/results/rlt-systems-lightstate-lowbatch-qualitysec-modal-20261007-ag.json
+      B_PATH: experiments/rlt/modal/results/rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-b.json
+      AF_PATH: experiments/rlt/modal/results/rlt-systems-lightstate-compileorder-modal-20261007-af.json
+      DIAGNOSTIC_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-lightstate-component-attribution-20261007-ah.json
+      CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-lightstate-component-attribution-modal-20261007-ah.json
+      RESULT_PATH: experiments/rlt/modal/results/rlt-systems-lightstate-component-attribution-modal-20261007-ah.json
+    steps:
+      - name: Checkout RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Refuse existing claim and verify preregistration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          JOB_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$JOB_PATH")"
+          LAUNCHER_BLOB_SHA="$(git rev-parse "origin/$BRANCH:$LAUNCHER_PATH")"
+          echo "JOB_BLOB_SHA=$JOB_BLOB_SHA" >> "$GITHUB_ENV"
+          echo "LAUNCHER_BLOB_SHA=$LAUNCHER_BLOB_SHA" >> "$GITHUB_ENV"
+          git show "origin/$BRANCH:$JOB_PATH" > /tmp/job.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/job.json'))
+          assert j == {
+           "schema":1,
+           "job_id":"rlt-systems-lightstate-component-attribution-modal-20261007-ah",
+           "task":"systems_lightstate_component_attribution_ah",
+           "engineering_seed":20261050,
+           "batch_seed":20271050,
+           "compile_probe_seed":20301050,
+           "requires_lowbatch_calibration_job_id":"rlt-systems-lightstate-lowbatch-qualitysec-modal-20261007-ag",
+           "requires_compute_match_job_id":"rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-b",
+           "requires_compileorder_job_id":"rlt-systems-lightstate-compileorder-modal-20261007-af",
+           "variants":["lightstate_full","lightstate_no_recurrence","lightstate_encoder_recurrence_only","lightstate_encoder_only","transformer_control"],
+           "batch_size":64,"seq_len":64,"synthetic_bank_size":8,
+           "time_budget_seconds_each":12.0,"expected_parameters_each":15129344,
+           "automatic_retry":False
+          },j
+          PY
+      - name: Guard globally unused engineering seeds
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          target={20261050,20271050,20301050}
+          own=Path('experiments/rlt/modal/jobs/rlt-systems-lightstate-component-attribution-modal-20261007-ah.json')
+          def values(obj):
+            if isinstance(obj,dict):
+              for x in obj.values(): yield from values(x)
+            elif isinstance(obj,list):
+              for x in obj: yield from values(x)
+            elif isinstance(obj,int): yield obj
+          for d in ['experiments/rlt/modal/jobs','experiments/rlt/modal/claims']:
+            for p in Path(d).glob('*.json'):
+              if p==own: continue
+              try: v=json.loads(p.read_text())
+              except Exception: continue
+              overlap=set(values(v))&target
+              assert not overlap,(p,overlap)
+          print('Seeds unused:',sorted(target))
+          PY
+      - name: Check completed AG B AF evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "origin/$BRANCH:$AG_PATH" >/tmp/ag.json
+          git show "origin/$BRANCH:$B_PATH" >/tmp/b.json
+          git show "origin/$BRANCH:$AF_PATH" >/tmp/af.json
+          python - <<'PY'
+          import json
+          ag=json.load(open('/tmp/ag.json'))
+          assert ag.get('job_id')=='rlt-systems-lightstate-lowbatch-qualitysec-modal-20261007-ag'
+          assert ag.get('status')=='complete' and ag.get('engineering_only') is True
+          assert ag.get('scientific_execution') is False and ag.get('data_hashes_match_claim') is True
+          assert ag.get('classification')=='PASS_SCALE15M_LIGHTSTATE_LOWBATCH_QUALITYSEC_CALIBRATION'
+          assert ag['wrapper_semantic_equivalence']['passed'] is True
+          assert ag['best_by_final_nll']['batch_size']==64
+          assert ag['data']['train_sha256']=='0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907'
+          assert ag['data']['val_sha256']=='e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2'
+          b=json.load(open('/tmp/b.json'))
+          assert b.get('job_id')=='rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-b'
+          assert b.get('status')=='complete' and b.get('exact_parameter_match_verified') is True
+          assert b.get('data_hashes_match_claim') is True
+          c=b['comparison']
+          assert c['classification']=='COMPUTE_MATCHED_LIGHTSTATE_OPTIMIZER_TUNED_SCALE15M_60S_NO_RLT_QUALITY_ADVANTAGE'
+          assert c['breakthrough_claim_supported'] is False and c['semantic_equivalence']['passed'] is True
+          assert c['derived']['lightstate_minus_transformer_final_nll']>0
+          af=json.load(open('/tmp/af.json'))
+          assert af.get('job_id')=='rlt-systems-lightstate-compileorder-modal-20261007-af'
+          assert af.get('status')=='complete' and af.get('engineering_only') is True
+          assert af.get('scientific_execution') is False and af.get('data_hashes_match_claim') is True
+          assert af.get('classification')=='NO_LARGE_COMPILEORDER_THROUGHPUT_EFFECT'
+          PY
+      - name: Prepare zero-GPU Modal credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'modal>=1.5.4,<1.6'
+          SLOT=""; ID=""; SECRET=""
+          if [ -n "$MODAL_TOKEN_ID_2" ] && [ -n "$MODAL_TOKEN_SECRET_2" ]; then
+            SLOT="2"; ID="$MODAL_TOKEN_ID_2"; SECRET="$MODAL_TOKEN_SECRET_2"
+          elif [ -n "$MODAL_TOKEN_ID_B" ] && [ -n "$MODAL_TOKEN_SECRET_B" ]; then
+            SLOT="B"; ID="$MODAL_TOKEN_ID_B"; SECRET="$MODAL_TOKEN_SECRET_B"
+          else
+            SLOT="A"; ID="$MODAL_TOKEN_ID_A"; SECRET="$MODAL_TOKEN_SECRET_A"
+          fi
+          test -n "$ID"; test -n "$SECRET"
+          export MODAL_TOKEN_ID="$ID"; export MODAL_TOKEN_SECRET="$SECRET"
+          modal token info
+          echo "MODAL_ACCOUNT_SLOT=$SLOT" >> "$GITHUB_ENV"
+          echo "MODAL_TOKEN_ID=$ID" >> "$GITHUB_ENV"
+          echo "MODAL_TOKEN_SECRET=$SECRET" >> "$GITHUB_ENV"
+      - name: Validate frozen AH runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$LAUNCHER_PATH" experiments/rlt/modal_preflight.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('experiments/rlt/modal_lightstate_component_attribution_ah.py').read_text()
+          for token in [
+           'JOB_ID = "rlt-systems-lightstate-component-attribution-modal-20261007-ah"',
+           'ENGINEERING_SEED = 20_261_050','BATCH_SEED = 20_271_050',
+           'COMPILE_PROBE_SEED = 20_301_050','BATCH_SIZE = 64',
+           'TIME_BUDGET_SECONDS = 12.0','EXPECTED_PARAMETERS = 15_129_344',
+           'lightstate_no_recurrence','lightstate_encoder_recurrence_only',
+           'transformer_control','PASS_LIGHTSTATE_COMPONENT_ATTRIBUTION',
+           'RLT_SYSTEMS_LIGHTSTATE_COMPONENT_ATTRIBUTION_AH_RESULT_B64=',
+           'gpu="A100-80GB"','retries=0'
+          ]: assert token in s,token
+          PY
+      - name: Require non-GPU Modal preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 4m modal run experiments/rlt/modal_preflight.py::main | tee /tmp/preflight.log
+          P="$(grep '^RLT_MODAL_PREFLIGHT_B64=' /tmp/preflight.log | tail -1 | cut -d= -f2-)"
+          test -n "$P"
+          echo "PREFLIGHT_B64=$P" >> "$GITHUB_ENV"
+      - name: Commit preflight before claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64,json,os,pathlib
+          p=json.loads(base64.urlsafe_b64decode(os.environ['PREFLIGHT_B64'].encode()))
+          assert p.get('status')=='pass' and p.get('scientific_job_executed') is False,p
+          p.update({
+           'classification':'RLT_SYSTEMS_LIGHTSTATE_COMPONENT_ATTRIBUTION_AH_ZERO_GPU_PREFLIGHT_PASS',
+           'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+           'job_id_checked':os.environ['JOB_ID'],'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+           'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+           'engineering_only':True,'scientific_execution':False,
+           'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT']})
+          f=pathlib.Path(os.environ['DIAGNOSTIC_PATH']); f.parent.mkdir(parents=True,exist_ok=True)
+          f.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DIAGNOSTIC_PATH"
+          git commit -m 'rlt systems: record AH zero-GPU preflight'
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+      - name: Durably claim one-shot AH before GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 32; fi
+          python - <<'PY'
+          import json,os,pathlib,time
+          f=pathlib.Path(os.environ['CLAIM_PATH']); f.parent.mkdir(parents=True,exist_ok=True)
+          f.write_text(json.dumps({
+           'schema':1,'job_id':os.environ['JOB_ID'],'status':'claimed',
+           'claimed_unix':time.time(),'worker':'github-actions-modal',
+           'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+           'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+           'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+           'engineering_seed':20261050,'batch_seed':20271050,'compile_probe_seed':20301050,
+           'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT'],
+           'engineering_only':True,'scientific_execution':False,
+           'synthetic_data_only':True,'automatic_retry_authorized':False,
+           'job':json.load(open(os.environ['JOB_PATH']))
+          },indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$CLAIM_PATH"
+          git commit -m "rlt systems: claim $JOB_ID before A100 diagnostic"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+      - name: Execute exactly one A100 AH run
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          timeout 105m modal run "$LAUNCHER_PATH"::main --job-path "$JOB_PATH" 2>&1 | tee /tmp/result.log
+          RC=$?
+          B64="$(grep '^RLT_SYSTEMS_LIGHTSTATE_COMPONENT_ATTRIBUTION_AH_RESULT_B64=' /tmp/result.log | tail -1 | cut -d= -f2- || true)"
+          echo "MODAL_RC=$RC" >> "$GITHUB_ENV"
+          echo "RESULT_B64=$B64" >> "$GITHUB_ENV"
+          exit 0
+      - name: Persist terminal AH result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$CLAIM_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import base64,json,os,pathlib,time
+          b=os.environ.get('RESULT_B64','')
+          rc=int(os.environ.get('MODAL_RC','999'))
+          p=None
+          if b:
+            try: p=json.loads(base64.urlsafe_b64decode(b.encode()))
+            except Exception: p=None
+          if not isinstance(p,dict):
+            log=pathlib.Path('/tmp/result.log').read_text(errors='replace') if pathlib.Path('/tmp/result.log').exists() else ''
+            p={'schema':1,'job_id':os.environ['JOB_ID'],'status':'failed',
+               'finished_unix':time.time(),'worker':'github-actions-modal',
+               'error_type':'ModalInvocationOrTransportError',
+               'error':f'Modal CLI rc={rc}; no parseable terminal payload',
+               'log_tail':log[-6000:],'scientific_conclusion':None,
+               'engineering_only':True,'scientific_execution':False}
+          p.update({'modal_cli_rc':rc,'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'job_source_blob_sha':os.environ['JOB_BLOB_SHA'],
+            'launcher_blob_sha':os.environ['LAUNCHER_BLOB_SHA'],
+            'modal_account_slot':os.environ['MODAL_ACCOUNT_SLOT']})
+          f=pathlib.Path(os.environ['RESULT_PATH']); f.parent.mkdir(parents=True,exist_ok=True)
+          f.write_text(json.dumps(p,indent=2,sort_keys=True)+'\n')
+          PY
+          git add "$RESULT_PATH"
+          git commit -m "rlt systems: record $JOB_ID terminal result"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+      - name: Summarize AH
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "$RESULT_PATH" ]; then exit 0; fi
+          python - <<'PY'
+          import json,os
+          r=json.load(open(os.environ['RESULT_PATH']))
+          print(json.dumps(r,indent=2,sort_keys=True))
+          assert r.get('status')=='complete',r
+          assert r.get('classification')=='PASS_LIGHTSTATE_COMPONENT_ATTRIBUTION',r
+          assert r.get('engineering_only') is True and r.get('scientific_execution') is False,r
+          assert r.get('breakthrough_claim_supported') is False,r
+          assert r.get('full_wrapper_semantic_equivalence',{}).get('passed') is True,r
+          assert [x['name'] for x in r['results']]==[
+            'lightstate_full','lightstate_no_recurrence',
+            'lightstate_encoder_recurrence_only','lightstate_encoder_only','transformer_control'
+          ],r['results']
+          assert all(x['parameters']==15129344 for x in r['results'])
+          print('derived:',r['derived'])
+          PY
