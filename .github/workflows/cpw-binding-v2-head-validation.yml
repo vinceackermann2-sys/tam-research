@@ -1,0 +1,69 @@
+name: CPW #1307 exact-head implementation validation
+
+on:
+  push:
+    branches:
+      - research/cpw-deconfounded-binding-1307
+    paths:
+      - 'cpw/VALIDATE_BINDING_V2_1307.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Freeze exact head and implementation-only diff
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          base='164cf203dc2564c2d8589f5a76763018ec86022e'
+          cfg=json.loads(Path('cpw/VALIDATE_BINDING_V2_1307.json').read_text())
+          assert cfg['issue']==1307
+          assert cfg['mode']=='zero-gpu-implementation-only'
+          assert cfg['authorized_parent_sha']==subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip()
+          allowed={
+              'tam_research/cpw_binding_v2/__init__.py',
+              'tam_research/cpw_binding_v2/task.py',
+              'tests/test_cpw_binding_v2_1307.py',
+              'docs/CPW_BINDING_V2_DECONFOUNDED.md',
+              '.github/workflows/cpw-binding-v2-1307-cpu.yml',
+              '.github/workflows/cpw-binding-v2-head-validation.yml',
+              'cpw/VALIDATE_BINDING_V2_1307.json',
+          }
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert changed <= allowed, f'out-of-scope paths: {sorted(changed-allowed)}'
+          PY
+      - name: Prove predecessors and scientific runners untouched
+        run: |
+          git diff --exit-code 164cf203dc2564c2d8589f5a76763018ec86022e HEAD -- \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            modal_cpw_v5_afm_1290.py
+      - name: Prove no new H100 launch command
+        run: |
+          set -euo pipefail
+          if git diff 164cf203dc2564c2d8589f5a76763018ec86022e HEAD -- .github/workflows | grep '^+' | grep -E 'modal[[:space:]]+run.*(cpw_binding|cpw_v6)' ; then
+            exit 1
+          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Validate benchmark and exhaustive counterfactuals
+        run: |
+          python -m compileall -q tam_research/cpw_binding_v2
+          pytest -q tests/test_cpw_binding_v2_1307.py

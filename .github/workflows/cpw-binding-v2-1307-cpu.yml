@@ -1,0 +1,47 @@
+name: CPW #1307 deconfounded binding zero-GPU integrity
+
+on:
+  push:
+    branches:
+      - research/cpw-deconfounded-binding-1307
+    paths:
+      - 'tam_research/cpw_binding_v2/**'
+      - 'tests/test_cpw_binding_v2_1307.py'
+      - 'docs/CPW_BINDING_V2_DECONFOUNDED.md'
+      - '.github/workflows/cpw-binding-v2-1307-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Prove frozen CPW science source unchanged
+        run: |
+          set -euo pipefail
+          git diff --exit-code 164cf203dc2564c2d8589f5a76763018ec86022e HEAD -- \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            modal_cpw_v5_afm_1290.py
+      - name: Syntax check
+        run: python -m compileall -q tam_research/cpw_binding_v2
+      - name: Run deconfounded binding contracts
+        run: pytest -q tests/test_cpw_binding_v2_1307.py
+      - name: No GPU authority
+        run: |
+          test ! -e modal_cpw_binding_v2_1307.py
+          echo 'CPU-only: no scientific seeds and no H100 run-control'
+
+# registration-trigger: 1307
