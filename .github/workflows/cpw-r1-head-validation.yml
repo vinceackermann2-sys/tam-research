@@ -1,0 +1,71 @@
+name: CPW-R1 exact-head implementation-only validation
+
+on:
+  push:
+    branches:
+      - research/cpw-r1-global-retrieval-1314
+    paths:
+      - 'cpw/VALIDATE_R1_HEAD_1314.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check frozen parent and exactly scoped implementation
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          base='f128efdfbd2aacaab0efa890fc8fd8589ea46ca9'
+          mark=json.loads(Path('cpw/VALIDATE_R1_HEAD_1314.json').read_text())
+          assert set(mark)=={'issue','mode','authorized_parent_sha'}
+          assert mark['issue']==1314
+          assert mark['mode']=='implementation-only-no-gpu'
+          assert mark['authorized_parent_sha']==subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip()
+          allowed={
+              'tam_research/cpw_r1/__init__.py',
+              'tam_research/cpw_r1/model.py',
+              'tests/test_cpw_r1_1314.py',
+              'docs/CPW_R1_GLOBAL_RETRIEVAL.md',
+              '.github/workflows/cpw-r1-cpu.yml',
+              '.github/workflows/cpw-r1-head-validation.yml',
+              'cpw/VALIDATE_R1_HEAD_1314.json',
+          }
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert changed <= allowed, f'unexpected paths: {sorted(changed-allowed)}'
+          PY
+      - name: Frozen predecessor models and task must not change
+        run: |
+          git diff --exit-code f128efdfbd2aacaab0efa890fc8fd8589ea46ca9 HEAD -- \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm
+      - name: No H100/Modal launches in this implementation
+        run: |
+          set -euo pipefail
+          ! git diff --name-only f128efdfbd2aacaab0efa890fc8fd8589ea46ca9 HEAD | grep -E '^modal_.*\.py$'
+          ! grep -R --line-number -E 'modal[[:space:]]+run[^\n]*cpw_r1' .github/workflows/cpw-r1*.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Execute CPW-R1 CPU contracts
+        run: |
+          python -m compileall -q tam_research/cpw_r1 tests/test_cpw_r1_1314.py
+          pytest -q tests/test_cpw_r1_1314.py

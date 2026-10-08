@@ -1,0 +1,45 @@
+name: CPW-R1 one-head competitive retrieval zero-GPU gate
+
+on:
+  push:
+    branches:
+      - research/cpw-r1-global-retrieval-1314
+    paths:
+      - 'tam_research/cpw_r1/**'
+      - 'tests/test_cpw_r1_1314.py'
+      - 'docs/CPW_R1_GLOBAL_RETRIEVAL.md'
+      - '.github/workflows/cpw-r1-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PyTorch CPU
+        run: pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+      - name: Install tests
+        run: pip install -e '.[test]'
+      - name: Protect benchmark and all frozen models
+        run: |
+          git diff --exit-code f128efdfbd2aacaab0efa890fc8fd8589ea46ca9 HEAD -- \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_v2_sequence \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            modal_cpw_v5_afm_1290.py
+      - name: Syntax and structural tests
+        run: |
+          python -m compileall -q tam_research/cpw_r1 tests/test_cpw_r1_1314.py
+          pytest -q tests/test_cpw_r1_1314.py
+
+# CPW-R1 first-registration trigger; no scientific launch authority
