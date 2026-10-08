@@ -7,6 +7,8 @@ on:
     paths:
       - 'tam_research/cpw_v5_afm/**'
       - 'tests/test_cpw_v5_afm_1296.py'
+      - 'tests/test_cpw_v5_binding_1296.py'
+      - 'docs/CPW_V5_ASSOCIATIVE_FAST_MEMORY.md'
       - '.github/workflows/cpw-v5-afm-cpu.yml'
 
 permissions:
@@ -36,4 +38,4 @@ jobs:
       - name: Syntax check
         run: python -m compileall -q tam_research/cpw_v5_afm
       - name: CPW-v5 AFM contracts
-        run: pytest -q tests/test_cpw_v5_afm_1296.py
+        run: pytest -q tests/test_cpw_v5_afm_1296.py tests/test_cpw_v5_binding_1296.py
