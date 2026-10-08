@@ -44,7 +44,7 @@ Ground truth result blobs (do not edit/retry consumed jobs):
 5. AM, with a fresh scientific seed and frozen independently chosen optimizers,
    showed Gated-Scan RLT *worse* than Transformer by **+0.150090 NLL**. Both
    models had exactly 15,129,344 parameters, verified pinned data hashes,
-   and 60.0x seconds of postcompile training each. AM throughput ratio was
+   and 60 seconds of postcompile training each. AM throughput ratio was
    **0.87831** Gated-Scan/Transformer.
 6. **No breakthrough:** The two time-matched comparisons (AK engineering and
    AM scientific) are negative on language NLL. Optimizer, sub-64 batch size
