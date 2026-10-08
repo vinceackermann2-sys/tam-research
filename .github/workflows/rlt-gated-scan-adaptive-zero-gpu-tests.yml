@@ -1,0 +1,42 @@
+name: RLT adaptive dual-path gated-scan CPU validation
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-gated-scan-adaptive-zero-gpu-tests.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rlt-gated-scan-adaptive-cpu-validation
+  cancel-in-progress: false
+
+jobs:
+  cpu-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Confirm branch
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "exp/rlt-colab"
+          python -m py_compile experiments/rlt/model_gated_scan.py experiments/rlt/model_gated_scan_residual.py tests/test_rlt_gated_scan.py tests/test_rlt_gated_scan_residual.py experiments/rlt/model_gated_scan_adaptive.py tests/test_rlt_gated_scan_adaptive.py
+      - name: Install CPU test dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Scan math, gradient, causality and compile smoke tests
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_rlt_gated_scan.py tests/test_rlt_gated_scan_residual.py -vv
