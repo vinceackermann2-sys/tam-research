@@ -1,0 +1,39 @@
+name: CPW-v5 run-control zero-GPU gate
+
+on:
+  push:
+    branches:
+      - research/cpw-v5-associative-fast-memory-1296
+    paths:
+      - 'modal_cpw_v5_afm_1296.py'
+      - 'tests/test_cpw_v5_run_control_1296.py'
+      - '.github/workflows/cpw-v5-run-control.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Protect frozen task
+        run: |
+          git diff --exit-code 76039a277d416b77d19606a3cf5d25978a102ad1 HEAD -- \
+            tam_research/cpw_v4_memory/task.py \
+            tam_research/cpw_v4_memory/protocol.py \
+            tam_research/cpw_v4_memory/train.py
+      - name: Validate runner and model
+        run: |
+          python -m compileall -q modal_cpw_v5_afm_1296.py tam_research/cpw_v5_afm
+          pytest -q tests/test_cpw_v5_afm_1296.py tests/test_cpw_v5_binding_1296.py tests/test_cpw_v5_run_control_1296.py
