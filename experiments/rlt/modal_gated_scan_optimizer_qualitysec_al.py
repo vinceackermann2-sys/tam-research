@@ -386,11 +386,63 @@ def run_profile_remote(job_json: str) -> str:
             "optimizer_steps_per_second": best["optimizer_steps_per_second"],
         },
         "interpretation_ceiling": (
-            "Engineering-only light-state RLT optimizer/schedule calibration at the independently selected "
-            "batch size 64. It freezes the light-state setting for a later fresh-seed equal-GPU-time "
-            "comparison and is not architecture-level scientific evidence."
+            "Engineering-only parameter-matched gated-scan optimizer/schedule calibration, fixed "
+            "batch 64 and six frozen LR schedules, same initialization and FineWeb-Edu D data. "
+            "This selects one tentative setting for future fresh-seed science; it is not "
+            "a scientific or breakthrough advantage and must not be compared across seeds."
         ),
     })
+
+
+@app.function(image=image, cpu=2.0, timeout=300, retries=0, max_containers=1)
+def verify_image_remote() -> str:
+    import numpy
+    import torch
+    import datasets
+    import transformers
+    from experiments.rlt.model import RLTConfig, parameter_count
+    from experiments.rlt.model_gated_scan import (
+        GatedScanLightStateRLT, associative_affine_scan, sequential_affine_reference,
+    )
+    from experiments.rlt.train_lightstate_scale15m_pair_4m_a import CompilableLightStateRLT
+    from tam_research.data import TokenBin, prepare_fineweb
+
+    torch.set_num_threads(2)
+    torch.manual_seed(ENGINEERING_SEED)
+    cfg = RLTConfig(
+        vocab_size=50_257, d_model=256, n_heads=8, n_stages=2,
+        max_seq_len=128, ff_mult=4, swa_window=32,
+    )
+    model = GatedScanLightStateRLT(cfg)
+    assert parameter_count(model) == EXPECTED_PARAMETERS
+    model = CompilableLightStateRLT(model)
+    with torch.no_grad():
+        result = model(torch.tensor([[1, 2, 3]], dtype=torch.long))
+    assert result.shape == (1, 3, 50_257) and bool(torch.isfinite(result).all())
+    a = torch.sigmoid(torch.randn(2, 7, 8))
+    b = torch.randn(2, 7, 8) * 0.1
+    init = torch.randn(8) * 0.1
+    torch.testing.assert_close(
+        associative_affine_scan(a, b, init),
+        sequential_affine_reference(a, b, init),
+        atol=2e-6, rtol=2e-6,
+    )
+    return _encode({
+        "status": "pass", "gpu_requested": False, "cpu_forward_shapes_passed": True,
+        "scan_vs_serial_passed": True, "parameters": EXPECTED_PARAMETERS,
+        "numpy_version": str(numpy.__version__),
+        "torch_version": str(torch.__version__),
+        "datasets_version": str(datasets.__version__),
+        "transformers_version": str(transformers.__version__),
+    })
+
+
+@app.local_entrypoint()
+def verify_dependencies() -> None:
+    response = verify_image_remote.remote()
+    if not isinstance(response, str):
+        raise TypeError("AL image preflight must be base64")
+    print("RLT_SYSTEMS_GATED_SCAN_AL_PREFLIGHT_B64=" + response)
 
 
 @app.local_entrypoint()
