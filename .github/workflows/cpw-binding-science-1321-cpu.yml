@@ -1,0 +1,72 @@
+name: CPW #1321 corrected five-arm CPU harness gate
+
+on:
+  push:
+    branches:
+      - research/cpw-corrected-binding-harness
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Verify exact-head source and isolate frozen scientific code
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=3109ff58ecf18c67971206bdd60612a861a196ed
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+          base = "3109ff58ecf18c67971206bdd60612a861a196ed"
+          allowed = {
+              "tam_research/cpw_binding_science/__init__.py",
+              "tam_research/cpw_binding_science/models.py",
+              "tam_research/cpw_binding_science/evaluation.py",
+              "tests/test_cpw_binding_science_1321.py",
+              "docs/CPW_BINDING_SCIENCE_1321_ZERO_GPU.md",
+              ".github/workflows/cpw-binding-science-1321-cpu.yml",
+          }
+          actual=set(subprocess.check_output(
+              ["git", "diff", "--name-only", base, "HEAD"], text=True
+          ).splitlines())
+          assert actual == allowed, (sorted(actual - allowed), sorted(allowed - actual))
+          PY
+          git diff --exit-code "$BASE" HEAD -- \
+            tam_research/cpw_v0 \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_binding_placement \
+            tam_research/cpw_r1 \
+            modal_cpw_v5_afm_1290.py \
+            cpw
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies only
+        run: |
+          python -m pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e '.[test]'
+      - name: Test paired streams, oracle, negative control, five real arms and gradients
+        run: |
+          pytest -q \
+            tests/test_cpw_binding_science_1321.py \
+            tests/test_cpw_binding_v2_1307.py \
+            tests/test_cpw_binding_placement_1313.py \
+            tests/test_cpw_r1_1314.py
+      - name: Ensure no paid-run launch surface was added
+        run: |
+          set -euo pipefail
+          BASE=3109ff58ecf18c67971206bdd60612a861a196ed
+          test "$(git diff --name-only "$BASE" HEAD | grep -Ec '^(modal_|cpw/|\\.github/workflows/modal)' || true)" = "0"
