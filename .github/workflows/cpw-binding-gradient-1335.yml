@@ -1,0 +1,89 @@
+name: CPW #1335 random-init source-gradient CPU audit
+
+on:
+  push:
+    branches:
+      - audit/cpw-binding-gradient-1335
+    paths:
+      - 'tam_research/cpw_binding_grad_audit/**'
+      - 'tests/test_cpw_binding_gradient_1335.py'
+      - '.github/workflows/cpw-binding-gradient-1335.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Enforce unchanged predecessor science and no CUDA/Modal runner
+        run: |
+          set -euo pipefail
+          git diff --exit-code aa8bdafa47e27a91ce64ba3771f1515603f815f9 HEAD -- \
+            tam_research/cpw_binding_science \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_binding_readout \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_r1 \
+            tam_research/cpw_binding_placement
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('tam_research/cpw_binding_grad_audit/audit.py').read_text()
+          assert 'import modal' not in text
+          assert 'optimizer.step(' not in text
+          assert 'torch.cuda.' not in text
+          PY
+      - name: Compile and pass CPU contracts
+        run: |
+          python -m compileall -q tam_research/cpw_binding_grad_audit
+          pytest -q tests/test_cpw_binding_gradient_1335.py
+      - name: Emit five-arm diagnostic without training
+        run: |
+          set -o pipefail
+          python -m tam_research.cpw_binding_grad_audit.audit | tee cpw-gradient.jsonl
+      - name: Record diagnostic-only readout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/cpw-gradient-comment.txt
+          import json
+          from pathlib import Path
+          p='CPW_BINDING_GRADIENT_AUDIT='
+          lines=Path('cpw-gradient.jsonl').read_text().splitlines()
+          rows=[json.loads(line.split(p,1)[1]) for line in lines if p in line]
+          assert len(rows)==1, 'missing CPU gradient audit'
+          r=rows[0]
+          assert r['classification']=='RANDOM_INIT_GRADIENTS_ONLY'
+          assert r['gpu_requested'] is False
+          assert r['training_performed'] is False
+          assert r['scientific_seeds_consumed'] is False
+          assert len(r['results'])==5
+          print('CPW #1335 source-to-query gradient CPU audit — RANDOM INIT ONLY')
+          print()
+          print(f"- corrected source SHA256: `{r['source_sha256']}`")
+          print('- GPU/optimizer/scientific seed used: `no`')
+          print()
+          print('| Arm | Source key grad | Source value grad | Far-prefix grad | Query grad |')
+          print('|---|---:|---:|---:|---:|')
+          for row in r['results']:
+              print(f"| {row['arm']} | {row['source_key_activation_grad_l2']:.6g} | {row['source_value_activation_grad_l2']:.6g} | {row['far_prefix_activation_grad_l2']:.6g} | {row['query_key_activation_grad_l2']:.6g} |")
+          print()
+          for row in r['results']:
+              if row['afm']:
+                  print(f"- {row['arm']} AFM grad telemetry: `{row['afm']}`")
+          print()
+          print('These measure *initialization* gradient paths only: not learned recall, not a replicated outcome, not authorization or a breakthrough.')
+          PY
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/1335/comments" -F body=@/tmp/cpw-gradient-comment.txt
