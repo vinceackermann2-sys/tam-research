@@ -164,6 +164,9 @@ jobs:
            'RLT_RESIDUAL_SCIENTIFIC_AP_RESULT_B64='
           ]:assert token in s,token
           assert '"engineering_seed": SCIENTIFIC_SEED' not in s
+          assert s.count('from experiments.rlt.model_gated_scan_residual import ResidualGatedScanRLT') >= 2
+          assert 'GatedScanLightStateRLT' not in s
+          assert '("gated_scan", "constant", 1e-3)' not in s
           PY
       - name: Verify pinned FineWeb D hashes before claiming AM
         shell: bash
@@ -388,5 +391,5 @@ jobs:
           assert r.get('compute_budget_verified') is True and r.get('exact_parameter_match_verified') is True,r
           assert [x['name'] for x in r['results']]==['residual_scan','transformer_control'],r['results']
           assert all(x['parameters']==15129344 for x in r['results'])
-          print('AP gated scan minus Transformer NLL:',r['derived']['residual_minus_transformer_final_nll'])
+          print('AP residual minus Transformer NLL:',r['derived']['residual_minus_transformer_final_nll'])
           PY
