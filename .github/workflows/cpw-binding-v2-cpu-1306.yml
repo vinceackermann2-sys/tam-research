@@ -70,8 +70,8 @@ jobs:
             tests/test_cpw_associative_positional_shortcut_1301.py \
             tests/test_cpw_v4_memory_1275.py
 
-      - name: Assert no paid compute or old scientific source modifications
+      - name: Assert no launch files or scientific trigger paths were introduced
         run: |
           set -euo pipefail
-          ! grep -Fq 'modal run' .github/workflows/cpw-binding-v2-cpu-1306.yml
-          ! grep -Fq 'workflow_dispatch' .github/workflows/cpw-binding-v2-cpu-1306.yml
+          BASE=164cf203dc2564c2d8589f5a76763018ec86022e
+          test "$(git diff --name-only "$BASE" HEAD | grep -Ec '^(modal_|cpw/|\\.github/workflows/modal)' || true)" = "0"
