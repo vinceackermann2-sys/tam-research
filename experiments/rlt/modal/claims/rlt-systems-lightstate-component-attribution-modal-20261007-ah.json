@@ -1,0 +1,43 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_seed": 20271050,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1791447625.108135,
+  "compile_probe_seed": 20301050,
+  "engineering_only": true,
+  "engineering_seed": 20261050,
+  "job": {
+    "automatic_retry": false,
+    "batch_seed": 20271050,
+    "batch_size": 64,
+    "compile_probe_seed": 20301050,
+    "engineering_seed": 20261050,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-systems-lightstate-component-attribution-modal-20261007-ah",
+    "requires_compileorder_job_id": "rlt-systems-lightstate-compileorder-modal-20261007-af",
+    "requires_compute_match_job_id": "rlt-lightstate-compute-matched-optimizer-tuned-scale15m-60s-modal-20261007-b",
+    "requires_lowbatch_calibration_job_id": "rlt-systems-lightstate-lowbatch-qualitysec-modal-20261007-ag",
+    "schema": 1,
+    "seq_len": 64,
+    "synthetic_bank_size": 8,
+    "task": "systems_lightstate_component_attribution_ah",
+    "time_budget_seconds_each": 12.0,
+    "variants": [
+      "lightstate_full",
+      "lightstate_no_recurrence",
+      "lightstate_encoder_recurrence_only",
+      "lightstate_encoder_only",
+      "transformer_control"
+    ]
+  },
+  "job_id": "rlt-systems-lightstate-component-attribution-modal-20261007-ah",
+  "job_source_blob_sha": "a89e32a32c5d7ca9370f409cbc2278375e5c819a",
+  "launcher_blob_sha": "2680eeece6675999ceab538440d4580c9a5bfc69",
+  "modal_account_slot": "2",
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "claimed",
+  "synthetic_data_only": true,
+  "trigger_sha": "9ed033c91c6359e8e057a39e2ae48034d984dba4",
+  "worker": "github-actions-modal"
+}
