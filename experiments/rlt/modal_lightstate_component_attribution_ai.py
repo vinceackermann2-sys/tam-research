@@ -65,7 +65,7 @@ def run_profile_remote(job_json: str) -> str:
     expected = {
         "schema": 1,
         "job_id": JOB_ID,
-        "task": "systems_lightstate_component_attribution_ah",
+        "task": "systems_lightstate_component_attribution_ai",
         "engineering_seed": ENGINEERING_SEED,
         "batch_seed": BATCH_SEED,
         "compile_probe_seed": COMPILE_PROBE_SEED,
