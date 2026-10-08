@@ -126,3 +126,31 @@ def test_invalid_delay_is_rejected() -> None:
         _batch(delay=24)
     with pytest.raises(ValueError):
         counterfactual_query(_batch(), new_delay=24)
+
+
+
+def test_exhaustive_counterfactuals_bound_any_query_blind_decoder() -> None:
+    # Hold every prefix token fixed; enumerate four distinct possible queries.
+    # An arbitrary query-blind predictor must output one fixed answer for this
+    # prefix and therefore cannot match more than one of the four targets.
+    b = _batch(seed=1317, size=64)
+    targets = []
+    query_tokens = []
+    for delay in SCORED_DELAYS:
+        tokens, truth = counterfactual_query(b, new_delay=delay)
+        assert torch.equal(tokens[:, :-1], b.tokens[:, :-1])
+        assert torch.equal(explicit_key_lookup(tokens), truth)
+        targets.append(truth)
+        query_tokens.append(tokens[:, -1])
+
+    y = torch.stack(targets, dim=-1)
+    q = torch.stack(query_tokens, dim=-1)
+    for row in range(64):
+        assert y[row].unique().numel() == 4
+        assert q[row].unique().numel() == 4
+
+    # Strongest fixed key-blind decision is at most one hit per four swaps.
+    any_blind_guess = b.tokens[:, QUERY_POSITION - SCORED_DELAYS[0]]
+    hits = (y == any_blind_guess[:, None]).sum(dim=1)
+    assert torch.all(hits == 1)
+    assert float(hits.sum()) / y.numel() == 0.25
