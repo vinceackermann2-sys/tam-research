@@ -1,0 +1,70 @@
+name: CPW #1313 exact-mechanism AFM placement CPU gate
+
+on:
+  push:
+    branches:
+      - research/cpw-binding-placement-cpu-1313
+    paths:
+      - '.github/workflows/cpw-binding-placement-1313.yml'
+      - 'tam_research/cpw_binding_placement/**'
+      - 'tests/test_cpw_binding_placement_1313.py'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Prove exact source and immutable historical experiments
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=f128efdfbd2aacaab0efa890fc8fd8589ea46ca9
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+          base='f128efdfbd2aacaab0efa890fc8fd8589ea46ca9'
+          allowed={
+              'tam_research/cpw_binding_placement/__init__.py',
+              'tam_research/cpw_binding_placement/model.py',
+              'tests/test_cpw_binding_placement_1313.py',
+              '.github/workflows/cpw-binding-placement-1313.yml',
+          }
+          diff=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert diff == allowed, (sorted(diff-allowed),sorted(allowed-diff))
+          PY
+          git diff --exit-code "$BASE" HEAD -- \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v2_single \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_binding_v2 \
+            modal_cpw_v5_afm_1290.py \
+            tests/test_cpw_binding_v2_1307.py \
+            cpw
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch and test dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Verify placement-only swap, gradients, causality and binding task contracts
+        run: |
+          pytest -q \
+            tests/test_cpw_binding_placement_1313.py \
+            tests/test_cpw_binding_v2_1307.py \
+            tests/test_cpw_v5_afm_1290.py
+      - name: Verify scope introduced no launch files
+        run: |
+          set -euo pipefail
+          BASE=f128efdfbd2aacaab0efa890fc8fd8589ea46ca9
+          test "$(git diff --name-only "$BASE" HEAD | grep -Ec '^(modal_|cpw/|\\.github/workflows/modal)' || true)" = "0"
