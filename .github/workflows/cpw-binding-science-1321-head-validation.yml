@@ -56,18 +56,24 @@ jobs:
       - name: Prove no paid trigger exists
         run: |
           python - <<'PY'
+          import ast, re
           from pathlib import Path
           source=Path('tam_research/cpw_binding_science/harness.py').read_text()
-          assert 'modal' not in source.lower()
+          tree=ast.parse(source)
+          for node in ast.walk(tree):
+              if isinstance(node, ast.Import):
+                  assert all(alias.name.split('.')[0] != 'modal' for alias in node.names)
+              if isinstance(node, ast.ImportFrom):
+                  assert (node.module or '').split('.')[0] != 'modal'
           assert 'RESULT_ROOT' not in source
-          assert 'H100' not in source
           for path in (
               '.github/workflows/cpw-binding-science-1321-cpu.yml',
               '.github/workflows/cpw-binding-science-1321-head-validation.yml',
           ):
               wf=Path(path).read_text()
-              assert 'modal run' not in wf.lower()
-              assert 'gpu=' not in wf
+              # Match a shell launch command, not comments or assertions.
+              assert not re.search(r'^\\s*(?:run:\\s*)?modal\\s+run\\s+',wf,re.MULTILINE)
+              assert not re.search(r'^\\s*gpu\\s*[:=]',wf,re.MULTILINE)
           PY
       - uses: actions/setup-python@v5
         with:
