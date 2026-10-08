@@ -1,0 +1,17 @@
+{
+  "branch": "exp/rlt-colab",
+  "classification": "RLT_SYSTEMS_LIGHTSTATE_COMPONENT_ATTRIBUTION_AH_ZERO_GPU_PREFLIGHT_PASS",
+  "engineering_only": true,
+  "finished_unix": 1791447621.6505992,
+  "job_id_checked": "rlt-systems-lightstate-component-attribution-modal-20261007-ah",
+  "job_source_blob_sha": "a89e32a32c5d7ca9370f409cbc2278375e5c819a",
+  "launcher_blob_sha": "2680eeece6675999ceab538440d4580c9a5bfc69",
+  "modal_account_slot": "2",
+  "python_version": "3.11.12 (main, May 21 2025, 23:34:13) [GCC 12.2.0]",
+  "schema": 1,
+  "scientific_execution": false,
+  "scientific_job_executed": false,
+  "status": "pass",
+  "trigger_sha": "9ed033c91c6359e8e057a39e2ae48034d984dba4",
+  "worker": "modal-control"
+}
