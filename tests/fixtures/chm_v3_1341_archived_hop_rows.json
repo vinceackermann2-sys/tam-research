@@ -1,0 +1,3473 @@
+{
+  "evidence_kind": "READ_ONLY_VERBATIM_HOP_FIELDS_OF_AUTHORITATIVE_STAGE_C_RESULT",
+  "source_description": "Extracted from original scientific run 37760374218 job 113255052797 RESULT marker; exact trace fields, without checkpoint replay.",
+  "archived_run_id": 37760374218,
+  "archived_job_id": 113255052797,
+  "terminal_comment_id": 6058454735,
+  "source_sha": "eb4f0e36ee6c4095e550f26cb7a52c20c5116aa9",
+  "scientific_seed": 2013161,
+  "scientific_seed_consumed": true,
+  "classification": "CHM_V3_100M_DAEC_STAGE_C_STOP",
+  "passed": false,
+  "status": "COMPLETE",
+  "original_probe_count": 512,
+  "original_integrity_parity_flag_present": false,
+  "trace_rows": [
+    {
+      "family": "rare_fact",
+      "case_id": 0,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 501,
+      "copied_token_id": 317,
+      "gate": 0.3515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 1,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.287109375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 2,
+      "memory_count": 512,
+      "first_hop_index": 40,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.310546875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 3,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.50390625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 4,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.41015625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 5,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.36328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 6,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 496,
+      "copied_token_id": 317,
+      "gate": 0.3203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 7,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.359375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 8,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 40,
+      "copied_token_id": 20816,
+      "gate": 0.45703125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 9,
+      "memory_count": 512,
+      "first_hop_index": 41,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.38671875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 10,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.3203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 11,
+      "memory_count": 512,
+      "first_hop_index": 41,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.34375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 12,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.48046875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 13,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.376953125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 14,
+      "memory_count": 512,
+      "first_hop_index": 69,
+      "second_hop_index": 29,
+      "copied_token_id": 20816,
+      "gate": 0.28515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 15,
+      "memory_count": 512,
+      "first_hop_index": 453,
+      "second_hop_index": 453,
+      "copied_token_id": 317,
+      "gate": 0.33203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 16,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.41015625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 17,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.48046875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 18,
+      "memory_count": 512,
+      "first_hop_index": 411,
+      "second_hop_index": 487,
+      "copied_token_id": 317,
+      "gate": 0.33984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 19,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.3359375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 20,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.365234375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 21,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 22,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.330078125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 23,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.30078125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 24,
+      "memory_count": 512,
+      "first_hop_index": 499,
+      "second_hop_index": 499,
+      "copied_token_id": 317,
+      "gate": 0.341796875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 25,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.314453125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 26,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.318359375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 27,
+      "memory_count": 512,
+      "first_hop_index": 55,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.33203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 28,
+      "memory_count": 512,
+      "first_hop_index": 498,
+      "second_hop_index": 498,
+      "copied_token_id": 317,
+      "gate": 0.337890625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 29,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.419921875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 30,
+      "memory_count": 512,
+      "first_hop_index": 29,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.302734375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 31,
+      "memory_count": 512,
+      "first_hop_index": 509,
+      "second_hop_index": 509,
+      "copied_token_id": 317,
+      "gate": 0.41796875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 32,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.349609375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 33,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.4921875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 34,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.41796875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 35,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 36,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.291015625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 37,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 38,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 20816,
+      "gate": 0.40234375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 39,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.361328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 40,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 40,
+      "copied_token_id": 20816,
+      "gate": 0.33984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 41,
+      "memory_count": 512,
+      "first_hop_index": 41,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.3203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 42,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.326171875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 43,
+      "memory_count": 512,
+      "first_hop_index": 15,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.3515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 44,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.53515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 45,
+      "memory_count": 512,
+      "first_hop_index": 509,
+      "second_hop_index": 509,
+      "copied_token_id": 317,
+      "gate": 0.419921875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 46,
+      "memory_count": 512,
+      "first_hop_index": 29,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.3046875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 47,
+      "memory_count": 512,
+      "first_hop_index": 428,
+      "second_hop_index": 428,
+      "copied_token_id": 317,
+      "gate": 0.388671875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 48,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 483,
+      "copied_token_id": 317,
+      "gate": 0.3515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 49,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 50,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.384765625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 51,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 52,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.462890625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 53,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.40625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 54,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 20816,
+      "gate": 0.443359375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 55,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.404296875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 56,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 40,
+      "copied_token_id": 20816,
+      "gate": 0.38671875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 57,
+      "memory_count": 512,
+      "first_hop_index": 41,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.39453125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 58,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.453125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 59,
+      "memory_count": 512,
+      "first_hop_index": 511,
+      "second_hop_index": 511,
+      "copied_token_id": 317,
+      "gate": 0.345703125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 60,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.419921875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 61,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.34375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 62,
+      "memory_count": 512,
+      "first_hop_index": 69,
+      "second_hop_index": 29,
+      "copied_token_id": 20816,
+      "gate": 0.322265625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 63,
+      "memory_count": 512,
+      "first_hop_index": 29,
+      "second_hop_index": 29,
+      "copied_token_id": 20816,
+      "gate": 0.45703125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 64,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.478515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 65,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.390625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 66,
+      "memory_count": 512,
+      "first_hop_index": 465,
+      "second_hop_index": 465,
+      "copied_token_id": 317,
+      "gate": 0.349609375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 67,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.3359375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 68,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 69,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.451171875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 70,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 20816,
+      "gate": 0.34375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 71,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.361328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 72,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 40,
+      "copied_token_id": 20816,
+      "gate": 0.37109375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 73,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.44140625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 74,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.349609375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 75,
+      "memory_count": 512,
+      "first_hop_index": 15,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.30078125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 76,
+      "memory_count": 512,
+      "first_hop_index": 55,
+      "second_hop_index": 511,
+      "copied_token_id": 317,
+      "gate": 0.4140625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 77,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.298828125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 78,
+      "memory_count": 512,
+      "first_hop_index": 29,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.37109375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 79,
+      "memory_count": 512,
+      "first_hop_index": 491,
+      "second_hop_index": 491,
+      "copied_token_id": 317,
+      "gate": 0.3671875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 80,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.41015625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 81,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.435546875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 82,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 83,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.34765625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 84,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.275390625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 85,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.296875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 86,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 20816,
+      "gate": 0.345703125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 87,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.34375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 88,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 40,
+      "copied_token_id": 20816,
+      "gate": 0.3515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 89,
+      "memory_count": 512,
+      "first_hop_index": 41,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.3125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 90,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.37890625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 91,
+      "memory_count": 512,
+      "first_hop_index": 506,
+      "second_hop_index": 506,
+      "copied_token_id": 317,
+      "gate": 0.361328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 92,
+      "memory_count": 512,
+      "first_hop_index": 511,
+      "second_hop_index": 511,
+      "copied_token_id": 317,
+      "gate": 0.4140625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 93,
+      "memory_count": 512,
+      "first_hop_index": 408,
+      "second_hop_index": 471,
+      "copied_token_id": 317,
+      "gate": 0.361328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 94,
+      "memory_count": 512,
+      "first_hop_index": 69,
+      "second_hop_index": 29,
+      "copied_token_id": 20816,
+      "gate": 0.2890625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 95,
+      "memory_count": 512,
+      "first_hop_index": 472,
+      "second_hop_index": 472,
+      "copied_token_id": 317,
+      "gate": 0.353515625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 96,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.357421875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 97,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 98,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 99,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.4765625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 100,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.33984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 101,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.388671875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 102,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 20816,
+      "gate": 0.341796875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 103,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.408203125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 104,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 40,
+      "copied_token_id": 20816,
+      "gate": 0.365234375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 105,
+      "memory_count": 512,
+      "first_hop_index": 41,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.3984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 106,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.296875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 107,
+      "memory_count": 512,
+      "first_hop_index": 15,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.462890625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 108,
+      "memory_count": 512,
+      "first_hop_index": 501,
+      "second_hop_index": 501,
+      "copied_token_id": 317,
+      "gate": 0.5
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 109,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.50390625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 110,
+      "memory_count": 512,
+      "first_hop_index": 69,
+      "second_hop_index": 29,
+      "copied_token_id": 20816,
+      "gate": 0.3046875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 111,
+      "memory_count": 512,
+      "first_hop_index": 455,
+      "second_hop_index": 455,
+      "copied_token_id": 317,
+      "gate": 0.45703125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 112,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 67,
+      "copied_token_id": 20816,
+      "gate": 0.333984375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 113,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.361328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 114,
+      "memory_count": 512,
+      "first_hop_index": 40,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.4375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 115,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.302734375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 116,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 117,
+      "memory_count": 512,
+      "first_hop_index": 54,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.392578125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 118,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 20816,
+      "gate": 0.349609375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 119,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.44140625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 120,
+      "memory_count": 512,
+      "first_hop_index": 67,
+      "second_hop_index": 40,
+      "copied_token_id": 20816,
+      "gate": 0.30859375
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 121,
+      "memory_count": 512,
+      "first_hop_index": 41,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.314453125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 122,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.31640625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 123,
+      "memory_count": 512,
+      "first_hop_index": 15,
+      "second_hop_index": 15,
+      "copied_token_id": 20816,
+      "gate": 0.357421875
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 124,
+      "memory_count": 512,
+      "first_hop_index": 55,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.330078125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 125,
+      "memory_count": 512,
+      "first_hop_index": 14,
+      "second_hop_index": 14,
+      "copied_token_id": 20816,
+      "gate": 0.34765625
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 126,
+      "memory_count": 512,
+      "first_hop_index": 29,
+      "second_hop_index": 29,
+      "copied_token_id": 20816,
+      "gate": 0.328125
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 127,
+      "memory_count": 512,
+      "first_hop_index": 499,
+      "second_hop_index": 499,
+      "copied_token_id": 317,
+      "gate": 0.46875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100000,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.283203125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100001,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2412109375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100002,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.27734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100003,
+      "memory_count": 512,
+      "first_hop_index": 420,
+      "second_hop_index": 420,
+      "copied_token_id": 317,
+      "gate": 0.302734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100004,
+      "memory_count": 512,
+      "first_hop_index": 422,
+      "second_hop_index": 422,
+      "copied_token_id": 317,
+      "gate": 0.26953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100005,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.26953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100006,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.279296875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100007,
+      "memory_count": 512,
+      "first_hop_index": 425,
+      "second_hop_index": 511,
+      "copied_token_id": 317,
+      "gate": 0.2451171875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100008,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100009,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.291015625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100010,
+      "memory_count": 512,
+      "first_hop_index": 196,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.25
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100011,
+      "memory_count": 512,
+      "first_hop_index": 503,
+      "second_hop_index": 503,
+      "copied_token_id": 317,
+      "gate": 0.26171875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100012,
+      "memory_count": 512,
+      "first_hop_index": 443,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100013,
+      "memory_count": 512,
+      "first_hop_index": 500,
+      "second_hop_index": 500,
+      "copied_token_id": 317,
+      "gate": 0.25
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100014,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.24609375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100015,
+      "memory_count": 512,
+      "first_hop_index": 142,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.287109375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100016,
+      "memory_count": 512,
+      "first_hop_index": 407,
+      "second_hop_index": 501,
+      "copied_token_id": 317,
+      "gate": 0.318359375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100017,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.275390625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100018,
+      "memory_count": 512,
+      "first_hop_index": 431,
+      "second_hop_index": 490,
+      "copied_token_id": 317,
+      "gate": 0.2890625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100019,
+      "memory_count": 512,
+      "first_hop_index": 507,
+      "second_hop_index": 507,
+      "copied_token_id": 317,
+      "gate": 0.296875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100020,
+      "memory_count": 512,
+      "first_hop_index": 469,
+      "second_hop_index": 469,
+      "copied_token_id": 317,
+      "gate": 0.2412109375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100021,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.2578125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100022,
+      "memory_count": 512,
+      "first_hop_index": 493,
+      "second_hop_index": 493,
+      "copied_token_id": 317,
+      "gate": 0.32421875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100023,
+      "memory_count": 512,
+      "first_hop_index": 483,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2294921875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100024,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.30859375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100025,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.296875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100026,
+      "memory_count": 512,
+      "first_hop_index": 196,
+      "second_hop_index": 492,
+      "copied_token_id": 317,
+      "gate": 0.25
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100027,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.275390625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100028,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2578125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100029,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.29296875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100030,
+      "memory_count": 512,
+      "first_hop_index": 472,
+      "second_hop_index": 472,
+      "copied_token_id": 317,
+      "gate": 0.208984375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100031,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2421875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100032,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.298828125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100033,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.26953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100034,
+      "memory_count": 512,
+      "first_hop_index": 491,
+      "second_hop_index": 508,
+      "copied_token_id": 317,
+      "gate": 0.3125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100035,
+      "memory_count": 512,
+      "first_hop_index": 400,
+      "second_hop_index": 400,
+      "copied_token_id": 317,
+      "gate": 0.259765625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100036,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.287109375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100037,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.3359375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100038,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.275390625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100039,
+      "memory_count": 512,
+      "first_hop_index": 465,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.26171875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100040,
+      "memory_count": 512,
+      "first_hop_index": 502,
+      "second_hop_index": 502,
+      "copied_token_id": 317,
+      "gate": 0.2890625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100041,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.2578125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100042,
+      "memory_count": 512,
+      "first_hop_index": 484,
+      "second_hop_index": 484,
+      "copied_token_id": 317,
+      "gate": 0.25
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100043,
+      "memory_count": 512,
+      "first_hop_index": 494,
+      "second_hop_index": 494,
+      "copied_token_id": 317,
+      "gate": 0.283203125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100044,
+      "memory_count": 512,
+      "first_hop_index": 416,
+      "second_hop_index": 416,
+      "copied_token_id": 317,
+      "gate": 0.3125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100045,
+      "memory_count": 512,
+      "first_hop_index": 404,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2890625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100046,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.265625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100047,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.27734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100048,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.306640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100049,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2421875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100050,
+      "memory_count": 512,
+      "first_hop_index": 429,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.296875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100051,
+      "memory_count": 512,
+      "first_hop_index": 475,
+      "second_hop_index": 506,
+      "copied_token_id": 317,
+      "gate": 0.349609375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100052,
+      "memory_count": 512,
+      "first_hop_index": 439,
+      "second_hop_index": 439,
+      "copied_token_id": 317,
+      "gate": 0.2431640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100053,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.306640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100054,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2890625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100055,
+      "memory_count": 512,
+      "first_hop_index": 439,
+      "second_hop_index": 439,
+      "copied_token_id": 317,
+      "gate": 0.31640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100056,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.310546875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100057,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.255859375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100058,
+      "memory_count": 512,
+      "first_hop_index": 484,
+      "second_hop_index": 484,
+      "copied_token_id": 317,
+      "gate": 0.2294921875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100059,
+      "memory_count": 512,
+      "first_hop_index": 465,
+      "second_hop_index": 465,
+      "copied_token_id": 317,
+      "gate": 0.2421875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100060,
+      "memory_count": 512,
+      "first_hop_index": 494,
+      "second_hop_index": 494,
+      "copied_token_id": 317,
+      "gate": 0.279296875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100061,
+      "memory_count": 512,
+      "first_hop_index": 373,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.291015625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100062,
+      "memory_count": 512,
+      "first_hop_index": 449,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.25
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100063,
+      "memory_count": 512,
+      "first_hop_index": 481,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.291015625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100064,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.3125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100065,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.28125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100066,
+      "memory_count": 512,
+      "first_hop_index": 504,
+      "second_hop_index": 504,
+      "copied_token_id": 317,
+      "gate": 0.33984375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100067,
+      "memory_count": 512,
+      "first_hop_index": 496,
+      "second_hop_index": 496,
+      "copied_token_id": 317,
+      "gate": 0.28125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100068,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2392578125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100069,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.271484375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100070,
+      "memory_count": 512,
+      "first_hop_index": 499,
+      "second_hop_index": 499,
+      "copied_token_id": 317,
+      "gate": 0.287109375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100071,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.28125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100072,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.287109375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100073,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.30078125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100074,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.208984375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100075,
+      "memory_count": 512,
+      "first_hop_index": 492,
+      "second_hop_index": 492,
+      "copied_token_id": 317,
+      "gate": 0.306640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100076,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.3046875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100077,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100078,
+      "memory_count": 512,
+      "first_hop_index": 494,
+      "second_hop_index": 494,
+      "copied_token_id": 317,
+      "gate": 0.296875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100079,
+      "memory_count": 512,
+      "first_hop_index": 503,
+      "second_hop_index": 503,
+      "copied_token_id": 317,
+      "gate": 0.287109375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100080,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.27734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100081,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.30859375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100082,
+      "memory_count": 512,
+      "first_hop_index": 464,
+      "second_hop_index": 464,
+      "copied_token_id": 317,
+      "gate": 0.298828125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100083,
+      "memory_count": 512,
+      "first_hop_index": 499,
+      "second_hop_index": 499,
+      "copied_token_id": 317,
+      "gate": 0.26953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100084,
+      "memory_count": 512,
+      "first_hop_index": 313,
+      "second_hop_index": 447,
+      "copied_token_id": 317,
+      "gate": 0.263671875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100085,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.306640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100086,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.291015625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100087,
+      "memory_count": 512,
+      "first_hop_index": 504,
+      "second_hop_index": 504,
+      "copied_token_id": 317,
+      "gate": 0.291015625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100088,
+      "memory_count": 512,
+      "first_hop_index": 466,
+      "second_hop_index": 466,
+      "copied_token_id": 317,
+      "gate": 0.2890625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100089,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.2734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100090,
+      "memory_count": 512,
+      "first_hop_index": 497,
+      "second_hop_index": 497,
+      "copied_token_id": 317,
+      "gate": 0.251953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100091,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.314453125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100092,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.251953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100093,
+      "memory_count": 512,
+      "first_hop_index": 428,
+      "second_hop_index": 503,
+      "copied_token_id": 317,
+      "gate": 0.283203125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100094,
+      "memory_count": 512,
+      "first_hop_index": 511,
+      "second_hop_index": 511,
+      "copied_token_id": 317,
+      "gate": 0.3125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100095,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100096,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.26953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100097,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.267578125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100098,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.291015625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100099,
+      "memory_count": 512,
+      "first_hop_index": 358,
+      "second_hop_index": 358,
+      "copied_token_id": 317,
+      "gate": 0.263671875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100100,
+      "memory_count": 512,
+      "first_hop_index": 355,
+      "second_hop_index": 448,
+      "copied_token_id": 317,
+      "gate": 0.318359375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100101,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.26953125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100102,
+      "memory_count": 512,
+      "first_hop_index": 500,
+      "second_hop_index": 500,
+      "copied_token_id": 317,
+      "gate": 0.318359375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100103,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.267578125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100104,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.236328125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100105,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.294921875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100106,
+      "memory_count": 512,
+      "first_hop_index": 474,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.259765625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100107,
+      "memory_count": 512,
+      "first_hop_index": 497,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.294921875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100108,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.28125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100109,
+      "memory_count": 512,
+      "first_hop_index": 445,
+      "second_hop_index": 445,
+      "copied_token_id": 317,
+      "gate": 0.298828125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100110,
+      "memory_count": 512,
+      "first_hop_index": 460,
+      "second_hop_index": 460,
+      "copied_token_id": 317,
+      "gate": 0.275390625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100111,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.26171875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100112,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.263671875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100113,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2451171875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100114,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.265625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100115,
+      "memory_count": 512,
+      "first_hop_index": 492,
+      "second_hop_index": 492,
+      "copied_token_id": 317,
+      "gate": 0.28125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100116,
+      "memory_count": 512,
+      "first_hop_index": 501,
+      "second_hop_index": 501,
+      "copied_token_id": 317,
+      "gate": 0.2734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100117,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.306640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100118,
+      "memory_count": 512,
+      "first_hop_index": 464,
+      "second_hop_index": 464,
+      "copied_token_id": 317,
+      "gate": 0.2451171875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100119,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.27734375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100120,
+      "memory_count": 512,
+      "first_hop_index": 452,
+      "second_hop_index": 452,
+      "copied_token_id": 317,
+      "gate": 0.255859375
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100121,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.2578125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100122,
+      "memory_count": 512,
+      "first_hop_index": 28,
+      "second_hop_index": 28,
+      "copied_token_id": 8125,
+      "gate": 0.3125
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100123,
+      "memory_count": 512,
+      "first_hop_index": 26,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.248046875
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100124,
+      "memory_count": 512,
+      "first_hop_index": 449,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.2890625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100125,
+      "memory_count": 512,
+      "first_hop_index": 363,
+      "second_hop_index": 363,
+      "copied_token_id": 317,
+      "gate": 0.306640625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100126,
+      "memory_count": 512,
+      "first_hop_index": 484,
+      "second_hop_index": 484,
+      "copied_token_id": 317,
+      "gate": 0.275390625
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100127,
+      "memory_count": 512,
+      "first_hop_index": 331,
+      "second_hop_index": 26,
+      "copied_token_id": 8125,
+      "gate": 0.306640625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200000,
+      "memory_count": 1024,
+      "first_hop_index": 863,
+      "second_hop_index": 504,
+      "copied_token_id": 383,
+      "gate": 0.22265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200001,
+      "memory_count": 1024,
+      "first_hop_index": 415,
+      "second_hop_index": 415,
+      "copied_token_id": 317,
+      "gate": 0.2021484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200002,
+      "memory_count": 1024,
+      "first_hop_index": 1010,
+      "second_hop_index": 1010,
+      "copied_token_id": 317,
+      "gate": 0.2119140625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200003,
+      "memory_count": 1024,
+      "first_hop_index": 475,
+      "second_hop_index": 475,
+      "copied_token_id": 317,
+      "gate": 0.20703125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200004,
+      "memory_count": 1024,
+      "first_hop_index": 982,
+      "second_hop_index": 982,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200005,
+      "memory_count": 1024,
+      "first_hop_index": 481,
+      "second_hop_index": 481,
+      "copied_token_id": 317,
+      "gate": 0.2216796875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200006,
+      "memory_count": 1024,
+      "first_hop_index": 355,
+      "second_hop_index": 372,
+      "copied_token_id": 317,
+      "gate": 0.1923828125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200007,
+      "memory_count": 1024,
+      "first_hop_index": 389,
+      "second_hop_index": 389,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200008,
+      "memory_count": 1024,
+      "first_hop_index": 468,
+      "second_hop_index": 468,
+      "copied_token_id": 317,
+      "gate": 0.2021484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200009,
+      "memory_count": 1024,
+      "first_hop_index": 1005,
+      "second_hop_index": 1005,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200010,
+      "memory_count": 1024,
+      "first_hop_index": 465,
+      "second_hop_index": 465,
+      "copied_token_id": 317,
+      "gate": 0.2041015625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200011,
+      "memory_count": 1024,
+      "first_hop_index": 976,
+      "second_hop_index": 976,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200012,
+      "memory_count": 1024,
+      "first_hop_index": 937,
+      "second_hop_index": 465,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200013,
+      "memory_count": 1024,
+      "first_hop_index": 1015,
+      "second_hop_index": 998,
+      "copied_token_id": 317,
+      "gate": 0.2109375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200014,
+      "memory_count": 1024,
+      "first_hop_index": 892,
+      "second_hop_index": 892,
+      "copied_token_id": 317,
+      "gate": 0.21484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200015,
+      "memory_count": 1024,
+      "first_hop_index": 429,
+      "second_hop_index": 429,
+      "copied_token_id": 317,
+      "gate": 0.2001953125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200016,
+      "memory_count": 1024,
+      "first_hop_index": 499,
+      "second_hop_index": 499,
+      "copied_token_id": 317,
+      "gate": 0.20703125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200017,
+      "memory_count": 1024,
+      "first_hop_index": 922,
+      "second_hop_index": 922,
+      "copied_token_id": 317,
+      "gate": 0.208984375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200018,
+      "memory_count": 1024,
+      "first_hop_index": 452,
+      "second_hop_index": 452,
+      "copied_token_id": 317,
+      "gate": 0.197265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200019,
+      "memory_count": 1024,
+      "first_hop_index": 950,
+      "second_hop_index": 504,
+      "copied_token_id": 317,
+      "gate": 0.2158203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200020,
+      "memory_count": 1024,
+      "first_hop_index": 824,
+      "second_hop_index": 824,
+      "copied_token_id": 317,
+      "gate": 0.2158203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200021,
+      "memory_count": 1024,
+      "first_hop_index": 1003,
+      "second_hop_index": 1017,
+      "copied_token_id": 317,
+      "gate": 0.2255859375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200022,
+      "memory_count": 1024,
+      "first_hop_index": 978,
+      "second_hop_index": 978,
+      "copied_token_id": 317,
+      "gate": 0.20703125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200023,
+      "memory_count": 1024,
+      "first_hop_index": 410,
+      "second_hop_index": 410,
+      "copied_token_id": 317,
+      "gate": 0.203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200024,
+      "memory_count": 1024,
+      "first_hop_index": 338,
+      "second_hop_index": 338,
+      "copied_token_id": 317,
+      "gate": 0.22265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200025,
+      "memory_count": 1024,
+      "first_hop_index": 511,
+      "second_hop_index": 511,
+      "copied_token_id": 317,
+      "gate": 0.2158203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200026,
+      "memory_count": 1024,
+      "first_hop_index": 445,
+      "second_hop_index": 445,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200027,
+      "memory_count": 1024,
+      "first_hop_index": 927,
+      "second_hop_index": 1016,
+      "copied_token_id": 317,
+      "gate": 0.2041015625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200028,
+      "memory_count": 1024,
+      "first_hop_index": 446,
+      "second_hop_index": 1022,
+      "copied_token_id": 317,
+      "gate": 0.2158203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200029,
+      "memory_count": 1024,
+      "first_hop_index": 1013,
+      "second_hop_index": 1013,
+      "copied_token_id": 317,
+      "gate": 0.2294921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200030,
+      "memory_count": 1024,
+      "first_hop_index": 497,
+      "second_hop_index": 497,
+      "copied_token_id": 317,
+      "gate": 0.2041015625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200031,
+      "memory_count": 1024,
+      "first_hop_index": 976,
+      "second_hop_index": 976,
+      "copied_token_id": 317,
+      "gate": 0.2119140625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200032,
+      "memory_count": 1024,
+      "first_hop_index": 408,
+      "second_hop_index": 408,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200033,
+      "memory_count": 1024,
+      "first_hop_index": 932,
+      "second_hop_index": 932,
+      "copied_token_id": 317,
+      "gate": 0.1943359375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200034,
+      "memory_count": 1024,
+      "first_hop_index": 899,
+      "second_hop_index": 899,
+      "copied_token_id": 317,
+      "gate": 0.23046875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200035,
+      "memory_count": 1024,
+      "first_hop_index": 443,
+      "second_hop_index": 412,
+      "copied_token_id": 317,
+      "gate": 0.20703125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200036,
+      "memory_count": 1024,
+      "first_hop_index": 498,
+      "second_hop_index": 498,
+      "copied_token_id": 317,
+      "gate": 0.21484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200037,
+      "memory_count": 1024,
+      "first_hop_index": 1008,
+      "second_hop_index": 1008,
+      "copied_token_id": 317,
+      "gate": 0.2158203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200038,
+      "memory_count": 1024,
+      "first_hop_index": 504,
+      "second_hop_index": 504,
+      "copied_token_id": 317,
+      "gate": 0.193359375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200039,
+      "memory_count": 1024,
+      "first_hop_index": 1013,
+      "second_hop_index": 1013,
+      "copied_token_id": 317,
+      "gate": 0.1953125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200040,
+      "memory_count": 1024,
+      "first_hop_index": 380,
+      "second_hop_index": 158,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200041,
+      "memory_count": 1024,
+      "first_hop_index": 366,
+      "second_hop_index": 366,
+      "copied_token_id": 317,
+      "gate": 0.1953125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200042,
+      "memory_count": 1024,
+      "first_hop_index": 924,
+      "second_hop_index": 924,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200043,
+      "memory_count": 1024,
+      "first_hop_index": 436,
+      "second_hop_index": 436,
+      "copied_token_id": 317,
+      "gate": 0.1923828125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200044,
+      "memory_count": 1024,
+      "first_hop_index": 463,
+      "second_hop_index": 463,
+      "copied_token_id": 317,
+      "gate": 0.1943359375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200045,
+      "memory_count": 1024,
+      "first_hop_index": 871,
+      "second_hop_index": 871,
+      "copied_token_id": 317,
+      "gate": 0.1982421875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200046,
+      "memory_count": 1024,
+      "first_hop_index": 905,
+      "second_hop_index": 905,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200047,
+      "memory_count": 1024,
+      "first_hop_index": 897,
+      "second_hop_index": 897,
+      "copied_token_id": 317,
+      "gate": 0.2421875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200048,
+      "memory_count": 1024,
+      "first_hop_index": 491,
+      "second_hop_index": 491,
+      "copied_token_id": 317,
+      "gate": 0.2255859375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200049,
+      "memory_count": 1024,
+      "first_hop_index": 1015,
+      "second_hop_index": 1015,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200050,
+      "memory_count": 1024,
+      "first_hop_index": 892,
+      "second_hop_index": 472,
+      "copied_token_id": 317,
+      "gate": 0.212890625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200051,
+      "memory_count": 1024,
+      "first_hop_index": 1021,
+      "second_hop_index": 1021,
+      "copied_token_id": 317,
+      "gate": 0.2109375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200052,
+      "memory_count": 1024,
+      "first_hop_index": 981,
+      "second_hop_index": 981,
+      "copied_token_id": 317,
+      "gate": 0.2294921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200053,
+      "memory_count": 1024,
+      "first_hop_index": 1008,
+      "second_hop_index": 1008,
+      "copied_token_id": 317,
+      "gate": 0.212890625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200054,
+      "memory_count": 1024,
+      "first_hop_index": 496,
+      "second_hop_index": 496,
+      "copied_token_id": 317,
+      "gate": 0.1943359375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200055,
+      "memory_count": 1024,
+      "first_hop_index": 411,
+      "second_hop_index": 1020,
+      "copied_token_id": 317,
+      "gate": 0.22265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200056,
+      "memory_count": 1024,
+      "first_hop_index": 982,
+      "second_hop_index": 982,
+      "copied_token_id": 317,
+      "gate": 0.21875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200057,
+      "memory_count": 1024,
+      "first_hop_index": 445,
+      "second_hop_index": 990,
+      "copied_token_id": 317,
+      "gate": 0.2236328125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200058,
+      "memory_count": 1024,
+      "first_hop_index": 484,
+      "second_hop_index": 484,
+      "copied_token_id": 317,
+      "gate": 0.2001953125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200059,
+      "memory_count": 1024,
+      "first_hop_index": 365,
+      "second_hop_index": 488,
+      "copied_token_id": 383,
+      "gate": 0.208984375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200060,
+      "memory_count": 1024,
+      "first_hop_index": 476,
+      "second_hop_index": 476,
+      "copied_token_id": 317,
+      "gate": 0.212890625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200061,
+      "memory_count": 1024,
+      "first_hop_index": 401,
+      "second_hop_index": 401,
+      "copied_token_id": 317,
+      "gate": 0.2109375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200062,
+      "memory_count": 1024,
+      "first_hop_index": 893,
+      "second_hop_index": 1023,
+      "copied_token_id": 317,
+      "gate": 0.22265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200063,
+      "memory_count": 1024,
+      "first_hop_index": 447,
+      "second_hop_index": 447,
+      "copied_token_id": 317,
+      "gate": 0.2021484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200064,
+      "memory_count": 1024,
+      "first_hop_index": 494,
+      "second_hop_index": 494,
+      "copied_token_id": 317,
+      "gate": 0.22265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200065,
+      "memory_count": 1024,
+      "first_hop_index": 868,
+      "second_hop_index": 969,
+      "copied_token_id": 317,
+      "gate": 0.2119140625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200066,
+      "memory_count": 1024,
+      "first_hop_index": 410,
+      "second_hop_index": 410,
+      "copied_token_id": 317,
+      "gate": 0.197265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200067,
+      "memory_count": 1024,
+      "first_hop_index": 302,
+      "second_hop_index": 302,
+      "copied_token_id": 317,
+      "gate": 0.212890625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200068,
+      "memory_count": 1024,
+      "first_hop_index": 999,
+      "second_hop_index": 999,
+      "copied_token_id": 317,
+      "gate": 0.2041015625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200069,
+      "memory_count": 1024,
+      "first_hop_index": 987,
+      "second_hop_index": 987,
+      "copied_token_id": 317,
+      "gate": 0.2265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200070,
+      "memory_count": 1024,
+      "first_hop_index": 356,
+      "second_hop_index": 898,
+      "copied_token_id": 317,
+      "gate": 0.2236328125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200071,
+      "memory_count": 1024,
+      "first_hop_index": 982,
+      "second_hop_index": 982,
+      "copied_token_id": 317,
+      "gate": 0.2080078125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200072,
+      "memory_count": 1024,
+      "first_hop_index": 1007,
+      "second_hop_index": 1007,
+      "copied_token_id": 317,
+      "gate": 0.2119140625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200073,
+      "memory_count": 1024,
+      "first_hop_index": 939,
+      "second_hop_index": 939,
+      "copied_token_id": 317,
+      "gate": 0.1982421875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200074,
+      "memory_count": 1024,
+      "first_hop_index": 315,
+      "second_hop_index": 489,
+      "copied_token_id": 317,
+      "gate": 0.2080078125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200075,
+      "memory_count": 1024,
+      "first_hop_index": 993,
+      "second_hop_index": 993,
+      "copied_token_id": 317,
+      "gate": 0.20703125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200076,
+      "memory_count": 1024,
+      "first_hop_index": 1021,
+      "second_hop_index": 1021,
+      "copied_token_id": 317,
+      "gate": 0.2216796875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200077,
+      "memory_count": 1024,
+      "first_hop_index": 948,
+      "second_hop_index": 948,
+      "copied_token_id": 317,
+      "gate": 0.2412109375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200078,
+      "memory_count": 1024,
+      "first_hop_index": 831,
+      "second_hop_index": 831,
+      "copied_token_id": 317,
+      "gate": 0.212890625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200079,
+      "memory_count": 1024,
+      "first_hop_index": 355,
+      "second_hop_index": 541,
+      "copied_token_id": 317,
+      "gate": 0.2353515625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200080,
+      "memory_count": 1024,
+      "first_hop_index": 1013,
+      "second_hop_index": 1013,
+      "copied_token_id": 317,
+      "gate": 0.2216796875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200081,
+      "memory_count": 1024,
+      "first_hop_index": 462,
+      "second_hop_index": 462,
+      "copied_token_id": 317,
+      "gate": 0.2041015625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200082,
+      "memory_count": 1024,
+      "first_hop_index": 997,
+      "second_hop_index": 997,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200083,
+      "memory_count": 1024,
+      "first_hop_index": 799,
+      "second_hop_index": 509,
+      "copied_token_id": 317,
+      "gate": 0.2236328125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200084,
+      "memory_count": 1024,
+      "first_hop_index": 876,
+      "second_hop_index": 1012,
+      "copied_token_id": 383,
+      "gate": 0.203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200085,
+      "memory_count": 1024,
+      "first_hop_index": 359,
+      "second_hop_index": 1018,
+      "copied_token_id": 383,
+      "gate": 0.2216796875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200086,
+      "memory_count": 1024,
+      "first_hop_index": 508,
+      "second_hop_index": 508,
+      "copied_token_id": 317,
+      "gate": 0.2001953125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200087,
+      "memory_count": 1024,
+      "first_hop_index": 489,
+      "second_hop_index": 489,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200088,
+      "memory_count": 1024,
+      "first_hop_index": 1008,
+      "second_hop_index": 1008,
+      "copied_token_id": 317,
+      "gate": 0.2021484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200089,
+      "memory_count": 1024,
+      "first_hop_index": 439,
+      "second_hop_index": 439,
+      "copied_token_id": 317,
+      "gate": 0.2080078125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200090,
+      "memory_count": 1024,
+      "first_hop_index": 983,
+      "second_hop_index": 983,
+      "copied_token_id": 317,
+      "gate": 0.2431640625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200091,
+      "memory_count": 1024,
+      "first_hop_index": 1002,
+      "second_hop_index": 1019,
+      "copied_token_id": 317,
+      "gate": 0.21875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200092,
+      "memory_count": 1024,
+      "first_hop_index": 989,
+      "second_hop_index": 471,
+      "copied_token_id": 317,
+      "gate": 0.212890625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200093,
+      "memory_count": 1024,
+      "first_hop_index": 363,
+      "second_hop_index": 331,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200094,
+      "memory_count": 1024,
+      "first_hop_index": 503,
+      "second_hop_index": 503,
+      "copied_token_id": 317,
+      "gate": 0.208984375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200095,
+      "memory_count": 1024,
+      "first_hop_index": 347,
+      "second_hop_index": 347,
+      "copied_token_id": 317,
+      "gate": 0.2197265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200096,
+      "memory_count": 1024,
+      "first_hop_index": 453,
+      "second_hop_index": 453,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200097,
+      "memory_count": 1024,
+      "first_hop_index": 473,
+      "second_hop_index": 505,
+      "copied_token_id": 317,
+      "gate": 0.2080078125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200098,
+      "memory_count": 1024,
+      "first_hop_index": 364,
+      "second_hop_index": 364,
+      "copied_token_id": 317,
+      "gate": 0.2119140625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200099,
+      "memory_count": 1024,
+      "first_hop_index": 498,
+      "second_hop_index": 498,
+      "copied_token_id": 317,
+      "gate": 0.212890625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200100,
+      "memory_count": 1024,
+      "first_hop_index": 406,
+      "second_hop_index": 406,
+      "copied_token_id": 317,
+      "gate": 0.2158203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200101,
+      "memory_count": 1024,
+      "first_hop_index": 438,
+      "second_hop_index": 438,
+      "copied_token_id": 317,
+      "gate": 0.22265625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200102,
+      "memory_count": 1024,
+      "first_hop_index": 506,
+      "second_hop_index": 960,
+      "copied_token_id": 317,
+      "gate": 0.2021484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200103,
+      "memory_count": 1024,
+      "first_hop_index": 911,
+      "second_hop_index": 457,
+      "copied_token_id": 317,
+      "gate": 0.1923828125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200104,
+      "memory_count": 1024,
+      "first_hop_index": 244,
+      "second_hop_index": 1023,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200105,
+      "memory_count": 1024,
+      "first_hop_index": 503,
+      "second_hop_index": 503,
+      "copied_token_id": 317,
+      "gate": 0.2109375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200106,
+      "memory_count": 1024,
+      "first_hop_index": 417,
+      "second_hop_index": 417,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200107,
+      "memory_count": 1024,
+      "first_hop_index": 1001,
+      "second_hop_index": 1001,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200108,
+      "memory_count": 1024,
+      "first_hop_index": 977,
+      "second_hop_index": 977,
+      "copied_token_id": 317,
+      "gate": 0.1943359375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200109,
+      "memory_count": 1024,
+      "first_hop_index": 473,
+      "second_hop_index": 473,
+      "copied_token_id": 317,
+      "gate": 0.21875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200110,
+      "memory_count": 1024,
+      "first_hop_index": 210,
+      "second_hop_index": 210,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200111,
+      "memory_count": 1024,
+      "first_hop_index": 372,
+      "second_hop_index": 968,
+      "copied_token_id": 317,
+      "gate": 0.228515625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200112,
+      "memory_count": 1024,
+      "first_hop_index": 893,
+      "second_hop_index": 893,
+      "copied_token_id": 317,
+      "gate": 0.228515625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200113,
+      "memory_count": 1024,
+      "first_hop_index": 479,
+      "second_hop_index": 479,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200114,
+      "memory_count": 1024,
+      "first_hop_index": 311,
+      "second_hop_index": 995,
+      "copied_token_id": 317,
+      "gate": 0.203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200115,
+      "memory_count": 1024,
+      "first_hop_index": 622,
+      "second_hop_index": 571,
+      "copied_token_id": 317,
+      "gate": 0.2216796875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200116,
+      "memory_count": 1024,
+      "first_hop_index": 923,
+      "second_hop_index": 906,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200117,
+      "memory_count": 1024,
+      "first_hop_index": 954,
+      "second_hop_index": 954,
+      "copied_token_id": 317,
+      "gate": 0.2158203125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200118,
+      "memory_count": 1024,
+      "first_hop_index": 965,
+      "second_hop_index": 951,
+      "copied_token_id": 317,
+      "gate": 0.2041015625
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200119,
+      "memory_count": 1024,
+      "first_hop_index": 1022,
+      "second_hop_index": 1022,
+      "copied_token_id": 383,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200120,
+      "memory_count": 1024,
+      "first_hop_index": 980,
+      "second_hop_index": 980,
+      "copied_token_id": 317,
+      "gate": 0.2236328125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200121,
+      "memory_count": 1024,
+      "first_hop_index": 959,
+      "second_hop_index": 959,
+      "copied_token_id": 317,
+      "gate": 0.2060546875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200122,
+      "memory_count": 1024,
+      "first_hop_index": 1008,
+      "second_hop_index": 1008,
+      "copied_token_id": 317,
+      "gate": 0.1953125
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200123,
+      "memory_count": 1024,
+      "first_hop_index": 468,
+      "second_hop_index": 468,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200124,
+      "memory_count": 1024,
+      "first_hop_index": 509,
+      "second_hop_index": 509,
+      "copied_token_id": 317,
+      "gate": 0.19921875
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200125,
+      "memory_count": 1024,
+      "first_hop_index": 497,
+      "second_hop_index": 497,
+      "copied_token_id": 317,
+      "gate": 0.2177734375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200126,
+      "memory_count": 1024,
+      "first_hop_index": 985,
+      "second_hop_index": 985,
+      "copied_token_id": 317,
+      "gate": 0.2021484375
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200127,
+      "memory_count": 1024,
+      "first_hop_index": 863,
+      "second_hop_index": 1023,
+      "copied_token_id": 317,
+      "gate": 0.208984375
+    }
+  ]
+}
