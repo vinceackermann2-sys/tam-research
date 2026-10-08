@@ -43,3 +43,5 @@ jobs:
         run: |
           test ! -e modal_cpw_binding_v2_1307.py
           echo 'CPU-only: no scientific seeds and no H100 run-control'
+
+# registration-trigger: 1307
