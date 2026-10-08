@@ -21,6 +21,11 @@ from tam_research.cpw_binding_v2.task import (
 )
 
 
+def _all_rows_unique(x: torch.Tensor) -> bool:
+    ordered = x.sort(dim=1).values
+    return bool((ordered[:, 1:] != ordered[:, :-1]).all())
+
+
 def _source_oracle(tokens: torch.Tensor) -> torch.Tensor:
     """Oracle uses only tokens, parsing the source keys and their next values."""
     answers: list[int] = []
@@ -57,7 +62,7 @@ def test_source_contains_four_simultaneous_candidates_and_oracle_wins(
     assert candidate_positions == [287, 255, 191, 63]
     assert torch.all((candidates >= VALUE_START) & (candidates < VALUE_START + VALUE_COUNT))
     assert torch.equal(candidates, batch.anchor_values)
-    assert torch.all(batch.anchor_values.unique(dim=1).shape[1] == 4)
+    assert _all_rows_unique(batch.anchor_values)
     assert torch.equal(_source_oracle(batch.tokens), batch.targets)
     assert torch.all(batch.tokens[:, -2] == QUERY_TOKEN)
     assert torch.all(batch.delays > 15)
@@ -84,7 +89,7 @@ def test_identical_source_four_query_counterfactuals_force_binding(seed: int) ->
         assert torch.equal(variants[:, j, -1], batch.anchor_keys[:, j])
         assert torch.equal(targets[:, j], batch.anchor_values[:, j])
         assert torch.equal(_source_oracle(variants[:, j]), targets[:, j])
-    assert torch.all(targets.unique(dim=1).shape[1] == 4)
+    assert _all_rows_unique(targets)
 
     # Same source, no query key: each of four distinct targets is equally
     # likely. Even an optimal deterministic key-blind answer is <=25%.
@@ -121,8 +126,8 @@ def test_reproducible_and_separate_from_frozen_v4_generator() -> None:
     assert torch.equal(a.tokens, b.tokens)
     assert torch.equal(a.targets, b.targets)
     assert not torch.equal(a.tokens, c.tokens)
-    assert torch.all(a.keys.unique(dim=1).shape[1] == PAIR_COUNT)
-    assert torch.all(a.values.unique(dim=1).shape[1] == PAIR_COUNT)
+    assert _all_rows_unique(a.keys)
+    assert _all_rows_unique(a.values)
     assert torch.equal(a.anchor_keys, a.keys[:, :4])
     assert torch.equal(a.anchor_values, a.values[:, :4])
 
