@@ -33,3 +33,5 @@ AFM-last1 versus AFM-first1 is a parameter-exact placement comparison; R1-final 
 Before paid training: freeze one executable merged SHA, fresh smoke and three replication seeds, an unused result root, one-shot retries=0, no resume, and an account2 credit/cost admission check. Apply #1319 validity and leakage gates. If R1 succeeds while AFM fails, it supports a **competitive retrieval control** rather than a new general architecture breakthrough. If early AFM succeeds and late fails, it supports a placement-specific mechanism under this test.
 
 Do not treat CPU smoke behavior as model capability; no success claim is made here.
+
+<!-- First-registration trigger for branch-only CPU workflow; no scientific run. -->
