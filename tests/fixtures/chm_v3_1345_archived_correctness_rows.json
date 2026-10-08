@@ -5646,5 +5646,26 @@
       "raw_candidate_nll": 2.446587562561035,
       "daec_candidate_nll": 2.470634698867798
     }
-  ]
+  ],
+  "original_probe_row_fields": [
+    "case_id",
+    "daec_candidate_nll",
+    "daec_copied_token_id",
+    "daec_copy_matches_answer",
+    "daec_correct",
+    "daec_retrieval_traces",
+    "daec_stale_choice",
+    "daec_trace",
+    "evidence_distance",
+    "family",
+    "generator_version",
+    "local_candidate_nll",
+    "local_correct",
+    "local_stale_choice",
+    "raw_candidate_nll",
+    "raw_correct",
+    "raw_retrieval_traces",
+    "raw_stale_choice"
+  ],
+  "original_probe_rows_with_explicit_predicted_candidate_id": 0
 }
