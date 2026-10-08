@@ -1,0 +1,68 @@
+name: CPW #1330 CPU-only provisional binding readout gate
+
+on:
+  push:
+    branches:
+      - research/cpw-binding-readout-1330
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-readout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Verify exact branch source, only five new files and no science mutation
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=eb874e0f8af2f99d5f6867b9db528cd5c031f6bc
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+          base="eb874e0f8af2f99d5f6867b9db528cd5c031f6bc"
+          allowed={
+              "tam_research/cpw_binding_readout/classifier.py",
+              "tam_research/cpw_binding_readout/__init__.py",
+              "tests/test_cpw_binding_readout_1330.py",
+              "docs/CPW_BINDING_READOUT_1330.md",
+              ".github/workflows/cpw-binding-readout-1330.yml",
+          }
+          changed=set(subprocess.check_output(["git","diff","--name-only",base,"HEAD"],text=True).splitlines())
+          assert changed == allowed,(sorted(changed-allowed),sorted(allowed-changed))
+          PY
+          git diff --exit-code "$BASE" HEAD -- \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_binding_placement \
+            tam_research/cpw_r1 \
+            tam_research/cpw_binding_science \
+            cpw
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only test dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Test evidence-neutral classifier and adversarial fixtures
+        run: |
+          pytest -q \
+            tests/test_cpw_binding_readout_1330.py \
+            tests/test_cpw_binding_safety_1326.py \
+            tests/test_cpw_binding_science_1321.py \
+            tests/test_cpw_binding_v2_1307.py
+      - name: No added GPU or results paths
+        run: |
+          set -euo pipefail
+          BASE=eb874e0f8af2f99d5f6867b9db528cd5c031f6bc
+          test "$(git diff --name-only "$BASE" HEAD | grep -Ec '^(modal_|cpw/|\\.github/workflows/modal)' || true)" = "0"
