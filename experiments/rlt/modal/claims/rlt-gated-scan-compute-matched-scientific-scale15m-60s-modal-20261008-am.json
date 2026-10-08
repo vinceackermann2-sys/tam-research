@@ -1,0 +1,57 @@
+{
+  "automatic_retry_authorized": false,
+  "batch_seed": 20271056,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1791451878.093442,
+  "compile_probe_seed": 20301056,
+  "engineering_only": false,
+  "eval_seed": 20291056,
+  "job": {
+    "automatic_retry": false,
+    "batch_seed": 20271056,
+    "batch_size": 64,
+    "candidate_protocols": [
+      {
+        "learning_rate": 0.001,
+        "name": "gated_scan",
+        "schedule": "constant"
+      },
+      {
+        "learning_rate": 0.001,
+        "name": "transformer_control",
+        "schedule": "cosine"
+      }
+    ],
+    "compile_probe_seed": 20301056,
+    "eval_batch_size": 64,
+    "eval_batches": 32,
+    "eval_seed": 20291056,
+    "expected_parameters_each": 15129344,
+    "job_id": "rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am",
+    "requires_ak_realdata_job_id": "rlt-systems-gated-scan-realdata-modal-20261008-ak",
+    "requires_al_optimizer_job_id": "rlt-systems-gated-scan-optimizer-qualitysec-modal-20261008-al",
+    "requires_cpu_tests_run_id": 37750663298,
+    "schema": 1,
+    "scientific_seed": 20261056,
+    "seq_len": 64,
+    "task": "scientific_gated_scan_compute_matched_am",
+    "time_budget_seconds_each": 60,
+    "train_tokens": 6000000,
+    "training_data_seed": 20260924,
+    "val_tokens": 500000
+  },
+  "job_id": "rlt-gated-scan-compute-matched-scientific-scale15m-60s-modal-20261008-am",
+  "job_source_blob_sha": "9adfd2092d57043a983d54b59b73fceb2362128c",
+  "launcher_blob_sha": "7be18d20e59e3ca5cd3fa004ca9ee8bf312da417",
+  "modal_account_slot": "2",
+  "model_blob_sha": "edb4026f89ba282b99f59ee2223d217bde491623",
+  "replication_authorized": false,
+  "schema": 1,
+  "scientific_execution": true,
+  "scientific_seed": 20261056,
+  "status": "claimed",
+  "train_sha256": "0f9ea99680f532f990ca64fabbd02b46bba2c4f8077f868545a03f5e6907c907",
+  "trigger_sha": "896049d1a314b800dfeabb3c0e5d716b95f540e7",
+  "val_sha256": "e6b3fb209a80a2cebe22924c3c8af26b30fc4afd322a1a49c71af8b968057db2",
+  "worker": "github-actions-modal"
+}
