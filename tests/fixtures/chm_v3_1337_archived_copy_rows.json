@@ -1,0 +1,5139 @@
+{
+  "evidence_kind": "READ_ONLY_SUBSET_OF_AUTHORITATIVE_STAGE_C_RESULT_JSON",
+  "archived_run_id": 37760374218,
+  "archived_job_id": 113255052797,
+  "terminal_comment_id": 6058454735,
+  "source_sha": "eb4f0e36ee6c4095e550f26cb7a52c20c5116aa9",
+  "scientific_seed": 2013161,
+  "scientific_seed_consumed": true,
+  "classification": "CHM_V3_100M_DAEC_STAGE_C_STOP",
+  "passed": false,
+  "status": "COMPLETE",
+  "integrity": {
+    "probe_count": 512,
+    "training_tokens_per_model": 33554432,
+    "optimizer_steps_per_model": 2048
+  },
+  "probe_rows": [
+    {
+      "family": "rare_fact",
+      "case_id": 0,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 1,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 2,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 3,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 4,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 5,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 6,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 7,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 8,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 9,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 10,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 11,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 12,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 13,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 14,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 15,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 16,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 17,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 18,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 19,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 20,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 21,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 22,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 23,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 24,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 25,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 26,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 27,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 28,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 29,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 30,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 31,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 32,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 33,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 34,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 35,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 36,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 37,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 38,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 39,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 40,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 41,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 42,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 43,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 44,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 45,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 46,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 47,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 48,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 49,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 50,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 51,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 52,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 53,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 54,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 55,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 56,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 57,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 58,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 59,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 60,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 61,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 62,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 63,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 64,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 65,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 66,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 67,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 68,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 69,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 70,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 71,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 72,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 73,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 74,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 75,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 76,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 77,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 78,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 79,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 80,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 81,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 82,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 83,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 84,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 85,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 86,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 87,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 88,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 89,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 90,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 91,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 92,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 93,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 94,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 95,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 96,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 97,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 98,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 99,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 100,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 101,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 102,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 103,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 104,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 105,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 106,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 107,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 108,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 109,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 110,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 111,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 112,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 113,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 114,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 115,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 116,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 117,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 118,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 119,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 120,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 121,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 122,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 123,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 124,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 125,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 126,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 20816
+      },
+      "daec_copied_token_id": 20816,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "rare_fact",
+      "case_id": 127,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100000,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100001,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100002,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100003,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100004,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100005,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100006,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100007,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100008,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100009,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100010,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100011,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100012,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100013,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100014,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100015,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100016,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100017,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100018,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100019,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100020,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100021,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100022,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100023,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100024,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100025,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100026,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100027,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100028,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100029,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100030,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100031,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100032,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100033,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100034,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100035,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100036,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100037,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100038,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100039,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100040,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100041,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100042,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100043,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100044,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100045,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100046,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100047,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100048,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100049,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100050,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100051,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100052,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100053,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100054,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100055,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100056,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100057,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100058,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100059,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100060,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100061,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100062,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100063,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100064,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100065,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100066,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100067,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100068,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100069,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100070,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100071,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100072,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100073,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100074,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100075,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100076,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100077,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100078,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100079,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100080,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100081,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100082,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100083,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100084,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100085,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100086,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100087,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100088,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100089,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100090,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100091,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100092,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100093,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100094,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100095,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100096,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100097,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100098,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100099,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100100,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100101,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100102,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100103,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100104,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100105,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100106,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100107,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100108,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100109,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100110,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100111,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100112,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100113,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100114,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100115,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100116,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100117,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100118,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100119,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100120,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100121,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100122,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100123,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100124,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100125,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100126,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "overwrite",
+      "case_id": 100127,
+      "daec_trace": {
+        "memory_count": 512,
+        "copied_token_id": 8125
+      },
+      "daec_copied_token_id": 8125,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200000,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 383
+      },
+      "daec_copied_token_id": 383,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200001,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200002,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200003,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200004,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200005,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200006,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200007,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200008,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200009,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200010,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200011,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200012,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200013,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200014,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200015,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200016,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200017,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200018,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200019,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200020,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200021,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200022,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200023,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200024,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200025,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200026,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200027,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200028,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200029,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200030,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200031,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200032,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200033,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200034,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200035,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200036,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200037,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200038,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200039,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200040,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200041,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200042,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200043,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200044,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200045,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200046,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200047,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200048,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200049,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200050,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200051,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200052,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200053,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200054,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200055,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200056,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200057,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200058,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200059,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 383
+      },
+      "daec_copied_token_id": 383,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200060,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200061,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200062,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200063,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200064,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200065,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200066,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200067,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200068,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200069,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200070,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200071,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200072,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200073,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200074,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200075,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200076,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200077,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200078,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200079,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200080,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200081,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200082,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200083,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200084,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 383
+      },
+      "daec_copied_token_id": 383,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200085,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 383
+      },
+      "daec_copied_token_id": 383,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200086,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200087,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200088,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200089,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200090,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200091,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200092,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200093,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200094,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200095,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200096,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200097,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200098,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200099,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200100,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200101,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200102,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200103,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200104,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200105,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200106,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200107,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200108,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200109,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200110,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200111,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200112,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200113,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200114,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200115,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200116,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200117,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200118,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200119,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 383
+      },
+      "daec_copied_token_id": 383,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200120,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200121,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200122,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200123,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200124,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200125,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200126,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "two_hop",
+      "case_id": 200127,
+      "daec_trace": {
+        "memory_count": 1024,
+        "copied_token_id": 317
+      },
+      "daec_copied_token_id": 317,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300000,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300001,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300002,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300003,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300004,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300005,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300006,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300007,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300008,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300009,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300010,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300011,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300012,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300013,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300014,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300015,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300016,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300017,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300018,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300019,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300020,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300021,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300022,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300023,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300024,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300025,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300026,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300027,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300028,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300029,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300030,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300031,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300032,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300033,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300034,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300035,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300036,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300037,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300038,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300039,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300040,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300041,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300042,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300043,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300044,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300045,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300046,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300047,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300048,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300049,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300050,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300051,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300052,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300053,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300054,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300055,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300056,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300057,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300058,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300059,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300060,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300061,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300062,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300063,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300064,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300065,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300066,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300067,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300068,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300069,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300070,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300071,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300072,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300073,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300074,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300075,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300076,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300077,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300078,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300079,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300080,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300081,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300082,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300083,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300084,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300085,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300086,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300087,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300088,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300089,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300090,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300091,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300092,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300093,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300094,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300095,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300096,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300097,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300098,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300099,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300100,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300101,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300102,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300103,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300104,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300105,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300106,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300107,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300108,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300109,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300110,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300111,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300112,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300113,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300114,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300115,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300116,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300117,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300118,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300119,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300120,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300121,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300122,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300123,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300124,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300125,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300126,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    },
+    {
+      "family": "local_negative",
+      "case_id": 300127,
+      "daec_trace": {
+        "memory_count": 0,
+        "copied_token_id": null
+      },
+      "daec_copied_token_id": null,
+      "daec_copy_matches_answer": false
+    }
+  ]
+}
