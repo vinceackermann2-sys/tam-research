@@ -1,0 +1,123 @@
+{
+  "schema": "cortex.attention8.scientific_pair1_successor.postmortem.v1",
+  "source": {
+    "repo": "vinceackermann2-sys/tam-research",
+    "commit": "27a3a15cb8456523798163f4cfa5a829844477ed",
+    "tree": "027e0c1bbc845783d547f935f378889d298c9dab",
+    "harness": "5d9e1a170d9bbb93e4a02de6a47467049df10d55",
+    "scientific_issue": 1300,
+    "scientific_run": 37748939335,
+    "observer_issue": 1331,
+    "observer_run": 37826511643,
+    "terminal_result_sha256": "872daab1193742942ef01fd8dee77080a07272eee4b55aa0b9236cffb584d88d"
+  },
+  "experiment": {
+    "seed": 60232,
+    "seed_consumed": true,
+    "classification": "SCIENTIFIC_ATTENTION8_V2_PAIR1_SUCCESSOR_SCREEN_FAIL",
+    "status": "SCIENTIFIC_PAIR1_COMPLETE",
+    "model_exposures": 2000027648,
+    "optimizer_steps": 30518,
+    "seq_len": 512,
+    "baseline_attention_layers": 24,
+    "candidate_attention_layers": [
+      3,
+      6,
+      9,
+      12,
+      15,
+      18,
+      21,
+      24
+    ],
+    "candidate_ff_hidden": 2731,
+    "baseline_ff_hidden": 2048
+  },
+  "engineering": {
+    "seed": 2026092901,
+    "exposures": 200015872,
+    "classification": "ENGINEERING_PANEL_CANDIDATE_SCREEN_PASS",
+    "transformer_final_nll": 3.670674057006836,
+    "candidate_final_nll": 3.656175718307495,
+    "reported_nll_delta": -0.01449833869934114,
+    "reported_tps_ratio": 1.0651255526571075,
+    "not_scientific_evidence": true
+  },
+  "final": {
+    "transformer": {
+      "status": "COMPLETE",
+      "parameters": 101803520,
+      "nll": 2.722934193611145,
+      "tps": 308546.9337118847,
+      "training_seconds": 6482.085639093039,
+      "peak_vram_gib": 44.37207317352295
+    },
+    "attention8": {
+      "status": "COMPLETE",
+      "parameters": 101795328,
+      "nll": 2.7680209398269655,
+      "tps": 331686.4231479331,
+      "training_seconds": 6029.874931323257,
+      "peak_vram_gib": 42.911231994628906
+    },
+    "delta_nll": 0.04508674621582065,
+    "throughput_ratio": 1.074995039353253,
+    "quality_limit": 0.015,
+    "throughput_minimum": 1.03,
+    "quality_gate_pass": false,
+    "systems_gate_pass": true,
+    "combined_progression_gate_pass": false
+  },
+  "periodic_curve": [
+    {
+      "exposures": 200015872,
+      "transformer_nll": 3.518708062171936,
+      "attention8_nll": 3.525339436531067
+    },
+    {
+      "exposures": 400031744,
+      "transformer_nll": 3.1812198519706727,
+      "attention8_nll": 3.215851879119873
+    },
+    {
+      "exposures": 600047616,
+      "transformer_nll": 3.0333355903625487,
+      "attention8_nll": 3.0755701541900633
+    },
+    {
+      "exposures": 800063488,
+      "transformer_nll": 2.946733057498932,
+      "attention8_nll": 2.992790937423706
+    },
+    {
+      "exposures": 1000013824,
+      "transformer_nll": 2.8847811818122864,
+      "attention8_nll": 2.930099070072174
+    },
+    {
+      "exposures": 1200029696,
+      "transformer_nll": 2.8371510028839113,
+      "attention8_nll": 2.882313001155853
+    },
+    {
+      "exposures": 1400045568,
+      "transformer_nll": 2.7954527497291566,
+      "attention8_nll": 2.841174328327179
+    },
+    {
+      "exposures": 1600061440,
+      "transformer_nll": 2.765572965145111,
+      "attention8_nll": 2.8101073265075684
+    },
+    {
+      "exposures": 1800011776,
+      "transformer_nll": 2.7454829573631288,
+      "attention8_nll": 2.790610408782959
+    },
+    {
+      "exposures": 2000027648,
+      "transformer_nll": 2.7349430441856386,
+      "attention8_nll": 2.7782474994659423
+    }
+  ]
+}
