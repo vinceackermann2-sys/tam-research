@@ -28,7 +28,7 @@ jobs:
       AP_PATH: experiments/rlt/modal/results/rlt-residual-gated-scan-scientific-scale15m-60s-modal-20261008-ap.json
       RESIDUAL_MODEL_PATH: experiments/rlt/model_gated_scan_residual.py
       BASE_SCAN_MODEL_PATH: experiments/rlt/model_gated_scan.py
-      DIAG_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-gated-scan-residual-realdata-20261008-an.json
+      DIAG_PATH: experiments/rlt/modal/diagnostics/modal-actions-systems-adaptive-realdata-20261008-aq.json
       CLAIM_PATH: experiments/rlt/modal/claims/rlt-systems-adaptive-realdata-modal-20261008-aq.json
       RESULT_PATH: experiments/rlt/modal/results/rlt-systems-adaptive-realdata-modal-20261008-aq.json
     steps:
