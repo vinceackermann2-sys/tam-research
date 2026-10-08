@@ -1,0 +1,136 @@
+{
+  "batch_seed": 20271051,
+  "branch": "exp/rlt-colab",
+  "breakthrough_claim_supported": false,
+  "classification": "PASS_LIGHTSTATE_COMPONENT_ATTRIBUTION",
+  "compile_probe_seed": 20301051,
+  "derived": {
+    "approx_seconds_per_token": {
+      "lightstate_encoder_only": 2.768086241119644e-06,
+      "lightstate_encoder_recurrence_only": 3.81583388519287e-06,
+      "lightstate_full": 4.390654788811049e-06,
+      "lightstate_no_recurrence": 3.0907070947934492e-06,
+      "transformer_control": 2.93439604765899e-06
+    },
+    "encoder_only_vs_transformer_tps": 1.060081150676894,
+    "encoder_recurrence_only_vs_transformer_tps": 0.7690051862702277,
+    "no_recurrence_heavy_path_vs_transformer_tps": 0.9494254737377805,
+    "remove_heavy_decoder_speedup": 1.1506409662770543,
+    "remove_recurrence_speedup_on_encoder_only_path": 1.3785097546850382,
+    "remove_recurrence_speedup_on_full_path": 1.4205987996104417,
+    "transformer_over_full_lightstate_tps": 1.4962720496825361
+  },
+  "engineering_only": true,
+  "engineering_seed": 20261051,
+  "finished_unix": 1791448170.163351,
+  "full_wrapper_semantic_equivalence": {
+    "grad_max_abs": 0.0,
+    "logits_max_abs": 0.0,
+    "loss_abs": 0.0,
+    "passed": true
+  },
+  "interpretation_ceiling": "Engineering-only same-GPU systems attribution. Ablations intentionally change the computation graph and are not quality comparisons. Use removal speedups only to decide which architectural compute path deserves redesign; they do not support a scientific or breakthrough claim.",
+  "job_id": "rlt-systems-lightstate-component-attribution-modal-20261008-ai",
+  "job_source_blob_sha": "421acc91f9a83bbddd6edcfda39bbc247e16e9e2",
+  "launcher_blob_sha": "bfda81c912a9bdf2033fbce4231b5760dd4ef76e",
+  "modal_account_slot": "2",
+  "modal_cli_rc": 0,
+  "protocol": {
+    "batch_size": 64,
+    "compile_time_excluded": true,
+    "gradient_clip_norm": 1.0,
+    "optimizer": "AdamW(lr=1e-3,betas=(0.9,0.95),weight_decay=0.1,fused=True)",
+    "same_engineering_seed": true,
+    "same_gpu_same_run": true,
+    "same_synthetic_token_bank": true,
+    "seq_len": 64,
+    "synthetic_bank_size": 8,
+    "time_budget_seconds_each": 12.0,
+    "timing_only_no_quality_claim": true,
+    "variants": [
+      "lightstate_full",
+      "lightstate_no_recurrence",
+      "lightstate_encoder_recurrence_only",
+      "lightstate_encoder_only",
+      "transformer_control"
+    ]
+  },
+  "results": [
+    {
+      "compile_probe_loss": 10.866864204406738,
+      "compile_probe_seconds": 71.139651626,
+      "last_loss": 1.9454801082611084,
+      "name": "lightstate_full",
+      "optimizer_steps_per_second": 55.60460494916548,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.316906452178955,
+      "steps": 668,
+      "timed_seconds": 12.013393506,
+      "tokens": 2736128,
+      "tokens_per_second": 227756.4618717818
+    },
+    {
+      "compile_probe_loss": 10.879027366638184,
+      "compile_probe_seconds": 12.027195636000002,
+      "last_loss": 5.5225027608685195e-05,
+      "name": "lightstate_no_recurrence",
+      "optimizer_steps_per_second": 78.9918350435973,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.3096261024475098,
+      "steps": 949,
+      "timed_seconds": 12.013899910999996,
+      "tokens": 3887104,
+      "tokens_per_second": 323550.55633857456
+    },
+    {
+      "compile_probe_loss": 10.864851951599121,
+      "compile_probe_seconds": 52.572017356,
+      "last_loss": 0.1572795808315277,
+      "name": "lightstate_encoder_recurrence_only",
+      "optimizer_steps_per_second": 63.980936368161636,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.2112069129943848,
+      "steps": 768,
+      "timed_seconds": 12.003575495999996,
+      "tokens": 3145728,
+      "tokens_per_second": 262065.91536399006
+    },
+    {
+      "compile_probe_loss": 10.879358291625977,
+      "compile_probe_seconds": 5.896689410999983,
+      "last_loss": 3.4749967880998156e-07,
+      "name": "lightstate_encoder_only",
+      "optimizer_steps_per_second": 88.19834489739354,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.2001848220825195,
+      "steps": 1059,
+      "timed_seconds": 12.007028036999998,
+      "tokens": 4337664,
+      "tokens_per_second": 361260.42069972394
+    },
+    {
+      "compile_probe_loss": 10.882253646850586,
+      "compile_probe_seconds": 10.82526575,
+      "last_loss": 0.003270362503826618,
+      "name": "transformer_control",
+      "optimizer_steps_per_second": 83.19961621907552,
+      "parameters": 15129344,
+      "peak_vram_gb": 3.2378101348876953,
+      "steps": 999,
+      "timed_seconds": 12.00726692500001,
+      "tokens": 4091904,
+      "tokens_per_second": 340785.62803333334
+    }
+  ],
+  "runtime": {
+    "bf16_supported": true,
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.10.0+cu128"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1791447946.6568372,
+  "status": "complete",
+  "trigger_sha": "9d8b32abd6b2ebda8eadc71e9da944e466b13c02"
+}
