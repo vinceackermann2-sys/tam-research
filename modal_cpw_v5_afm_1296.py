@@ -73,6 +73,7 @@ def _summary(result: dict) -> dict:
         "total_compute_seconds": float(result["total_compute_seconds"]),
         "examples_per_second": float(result["examples_per_second"]),
         "peak_vram_gb": float(result["peak_vram_gb"]),
+        "last_train_query_loss": float(result["last_train_query_loss"]),
         "evaluation": result["evaluation"],
     }
 
@@ -218,10 +219,7 @@ def run_benchmark(source_sha: str) -> dict:
                 row["transformer"]["parameters"] == TRANSFORMER_PARAMETERS
                 and row["sequence_only"]["parameters"] == SEQUENCE_PARAMETERS
                 and row["afm_first1"]["parameters"] == AFM_PARAMETERS
-                and all(_finite_result({
-                    **row[arm],
-                    "last_train_query_loss": 0.0,
-                }) for arm in ARMS)
+                and all(_finite_result(row[arm]) for arm in ARMS)
                 for row in replication
             )
         )
