@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "job_id": "rlt-systems-adaptive-realdata-modal-20261008-aq",
+  "task": "systems_adaptive_realdata_qualitysec_aq",
+  "engineering_seed": 20261060,
+  "batch_seed": 20271060,
+  "eval_seed": 20291060,
+  "compile_probe_seed": 20301060,
+  "requires_ap_scientific_job_id": "rlt-residual-gated-scan-scientific-scale15m-60s-modal-20261008-ap",
+  "requires_adaptive_cpu_tests_run_id": 37844155104,
+  "candidate_protocols": [
+    {
+      "name": "adaptive_scan",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "residual_scan",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    },
+    {
+      "name": "transformer_control",
+      "schedule": "cosine",
+      "learning_rate": 0.001
+    }
+  ],
+  "batch_size": 64,
+  "seq_len": 64,
+  "eval_batch_size": 64,
+  "eval_batches": 32,
+  "time_budget_seconds_each": 60,
+  "train_tokens": 6000000,
+  "val_tokens": 500000,
+  "training_data_seed": 20260924,
+  "expected_parameters_each": 15129344,
+  "automatic_retry": false
+}
