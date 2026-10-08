@@ -1,0 +1,65 @@
+name: CPW #1326 corrected-binding safety zero-GPU CPU gate
+
+on:
+  push:
+    branches:
+      - audit/cpw-binding-preauthority-safety-1326
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Validate exact head and frozen scientific boundary
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BASE=af2751f87c2738c3c017b09d8bb4001228ce102f
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          git merge-base --is-ancestor "$BASE" HEAD
+          python - <<'PY'
+          import subprocess
+          allowed={
+            ".github/workflows/cpw-binding-safety-1326.yml",
+            "tam_research/cpw_binding_science/harness.py",
+            "tests/test_cpw_binding_safety_1326.py",
+          }
+          actual=set(subprocess.check_output(
+            ["git","diff","--name-only","af2751f87c2738c3c017b09d8bb4001228ce102f","HEAD"],text=True
+          ).splitlines())
+          assert actual == allowed,(sorted(actual-allowed),sorted(allowed-actual))
+          PY
+          git diff --exit-code "$BASE" HEAD -- \
+            tam_research/cpw_v1 \
+            tam_research/cpw_v3_sparse_world \
+            tam_research/cpw_v4_memory \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_binding_placement \
+            tam_research/cpw_r1 \
+            cpw
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies only
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Run canonical plus adversarial safety contracts
+        run: |
+          pytest -q \
+            tests/test_cpw_binding_safety_1326.py \
+            tests/test_cpw_binding_science_1321.py \
+            tests/test_cpw_binding_v2_1307.py
+      - name: Block added paid launch paths
+        run: |
+          set -euo pipefail
+          BASE=af2751f87c2738c3c017b09d8bb4001228ce102f
+          test "$(git diff --name-only "$BASE" HEAD | grep -Ec '^(modal_|cpw/|\\.github/workflows/modal)' || true)" = "0"

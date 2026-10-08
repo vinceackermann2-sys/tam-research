@@ -207,8 +207,16 @@ def train_arm(
     ) < 1:
         raise ValueError("steps/batches/evaluation sizes must be positive")
 
-    seed_all(seed)
+    # #1321 is an implementation-only preauthority API. Refuse CUDA
+    # *before* seeding, creating models, reserving compute or other effects.
+    # Paid training needs a distinct, explicitly authorized one-shot runner.
     device_obj = torch.device(device)
+    if device_obj.type != "cpu":
+        raise PermissionError(
+            "CPW #1321 preauthority trainer is CPU-only; a separate "
+            "fresh-seed scientific one-shot authority is required for GPUs"
+        )
+    seed_all(seed)
     model = build_arm(arm).to(device_obj)
     optimizer = torch.optim.AdamW(
         model.parameters(),
