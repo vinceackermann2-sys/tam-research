@@ -1,0 +1,42 @@
+name: CPW #1321 corrected binding five-arm zero-GPU gate
+
+on:
+  push:
+    branches:
+      - research/cpw-corrected-binding-harness-1321
+    paths:
+      - 'tam_research/cpw_binding_science/**'
+      - 'tests/test_cpw_binding_science_1321.py'
+      - 'docs/CPW_CORRECTED_BINDING_HARNESS_1321.md'
+      - '.github/workflows/cpw-binding-science-1321-cpu.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Freeze prior scientific code and corrected task
+        run: |
+          git diff --exit-code 3109ff58ecf18c67971206bdd60612a861a196ed HEAD -- \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_binding_placement \
+            tam_research/cpw_r1 \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_v4_memory
+      - name: Compile and run zero-GPU contracts
+        run: |
+          python -m compileall -q tam_research/cpw_binding_science
+          pytest -q tests/test_cpw_binding_science_1321.py
