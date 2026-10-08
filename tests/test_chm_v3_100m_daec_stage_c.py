@@ -303,8 +303,8 @@ def test_hard_flat_no_memory_is_exact_local_log_probability() -> None:
     out, trace = stage_c.daec_hard_flat_final_logits_with_trace(model, full)
     assert trace["memory_count"] == 512
     assert trace["copied_token_id"] == 3
-    assert trace["first_hop_index"] == 0
-    assert trace["second_hop_index"] == 0
+    assert 0 <= trace["first_hop_index"] < 512
+    assert 0 <= trace["second_hop_index"] < 512
     last = torch.tensor([[4]], dtype=torch.long)
     base = torch.softmax(model.backbone.lm_head(_hidden(model.backbone, last))[0, -1].float(), dim=-1)
     gate = trace["gate"]

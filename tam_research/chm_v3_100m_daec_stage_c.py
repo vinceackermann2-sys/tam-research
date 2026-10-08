@@ -93,7 +93,7 @@ def protocol_manifest() -> dict[str, Any]:
         "issue": ISSUE,
         "scientific_seed_reserved": SCIENTIFIC_SEED,
         "scientific_seed_authorized": SCIENTIFIC_SEED_AUTHORIZED_BY_MODULE,
-        "models": ("LOCAL", "RAW_EIEM", "DAEC_EIEM"),
+        "models": ("LOCAL", "RAW_EIEM", "DAEC"),
         "local_parameters": EXPECTED_LOCAL_PARAMETERS,
         "raw_eiem_parameters": EXPECTED_EIEM_PARAMETERS,
         "daec_parameters": EXPECTED_DAEC_PARAMETERS,
