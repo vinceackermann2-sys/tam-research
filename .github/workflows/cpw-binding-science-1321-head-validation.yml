@@ -1,0 +1,88 @@
+name: CPW #1321 exact-head implementation PR validation
+
+on:
+  push:
+    branches:
+      - research/cpw-corrected-binding-harness-1321
+    paths:
+      - 'cpw/VALIDATE_BINDING_HARNESS_1321.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Validate source lease and allowed paths
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          base='3109ff58ecf18c67971206bdd60612a861a196ed'
+          cfg=json.loads(Path('cpw/VALIDATE_BINDING_HARNESS_1321.json').read_text())
+          assert cfg['issue']==1321
+          assert cfg['mode']=='implementation-only-zero-gpu'
+          assert cfg['authorized_parent_sha']==subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip()
+          allowed={
+              'tam_research/cpw_binding_science/__init__.py',
+              'tam_research/cpw_binding_science/harness.py',
+              'tests/test_cpw_binding_science_1321.py',
+              'docs/CPW_CORRECTED_BINDING_HARNESS_1321.md',
+              '.github/workflows/cpw-binding-science-1321-cpu.yml',
+              '.github/workflows/cpw-binding-science-1321-head-validation.yml',
+              'cpw/VALIDATE_BINDING_HARNESS_1321.json',
+          }
+          changed=set(subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines())
+          assert changed <= allowed, f'out of scope: {sorted(changed-allowed)}'
+          assert len(changed)==len(allowed)
+          PY
+      - name: Prove no frozen science changed
+        run: |
+          git diff --exit-code 3109ff58ecf18c67971206bdd60612a861a196ed HEAD -- \
+            tam_research/cpw_binding_v2 \
+            tam_research/cpw_binding_placement \
+            tam_research/cpw_r1 \
+            tam_research/cpw_v5_afm \
+            tam_research/cpw_v4_memory
+      - name: Prove no paid trigger exists
+        run: |
+          python - <<'PY'
+          import ast, re
+          from pathlib import Path
+          source=Path('tam_research/cpw_binding_science/harness.py').read_text()
+          tree=ast.parse(source)
+          for node in ast.walk(tree):
+              if isinstance(node, ast.Import):
+                  assert all(alias.name.split('.')[0] != 'modal' for alias in node.names)
+              if isinstance(node, ast.ImportFrom):
+                  assert (node.module or '').split('.')[0] != 'modal'
+          assert 'RESULT_ROOT' not in source
+          for path in (
+              '.github/workflows/cpw-binding-science-1321-cpu.yml',
+              '.github/workflows/cpw-binding-science-1321-head-validation.yml',
+          ):
+              wf=Path(path).read_text()
+              # Match a shell launch command, not comments or assertions.
+              assert not re.search(r'^\\s*(?:run:\\s*)?modal\\s+run\\s+',wf,re.MULTILINE)
+              assert not re.search(r'^\\s*gpu\\s*[:=]',wf,re.MULTILINE)
+          PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install torch CPU and test deps
+        run: |
+          pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[test]'
+      - name: Validate full zero-GPU harness
+        run: |
+          python -m compileall -q tam_research/cpw_binding_science
+          pytest -q tests/test_cpw_binding_science_1321.py

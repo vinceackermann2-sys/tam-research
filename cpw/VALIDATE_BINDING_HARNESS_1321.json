@@ -1,0 +1,5 @@
+{
+  "issue": 1321,
+  "mode": "implementation-only-zero-gpu",
+  "authorized_parent_sha": "f542612ac7e63ec76767eff1c53d89a2cf947f6c"
+}
