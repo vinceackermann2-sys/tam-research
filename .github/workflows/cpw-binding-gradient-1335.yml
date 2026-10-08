@@ -78,7 +78,7 @@ jobs:
           print('| Arm | Source key grad | Source value grad | Far-prefix grad | Query grad |')
           print('|---|---:|---:|---:|---:|')
           for row in r['results']:
-          print(f"| {row['arm']} | {row['source_key_activation_grad_l2']:.6g} | {row['source_value_activation_grad_l2']:.6g} | {row['far_prefix_activation_grad_l2']:.6g} | {row['query_key_activation_grad_l2']:.6g} |")
+              print(f"| {row['arm']} | {row['source_key_activation_grad_l2']:.6g} | {row['source_value_activation_grad_l2']:.6g} | {row['far_prefix_activation_grad_l2']:.6g} | {row['query_key_activation_grad_l2']:.6g} |")
           print()
           for row in r['results']:
               if row['afm']:
