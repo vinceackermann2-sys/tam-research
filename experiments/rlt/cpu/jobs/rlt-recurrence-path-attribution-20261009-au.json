@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-recurrence-path-attribution-20261009-au",
+  "purpose": "CPU-only inference path attribution after AT one-seed collapse; no architecture or breakthrough claim",
+  "candidate_order": [
+    "residual_scan",
+    "adaptive_scan"
+  ],
+  "ablations": [
+    "full",
+    "encoder_only",
+    "recurrent_only",
+    "static_gain"
+  ],
+  "model_seed": 20301064,
+  "easy_train_seed": 20261064,
+  "long_train_seed": 20271064,
+  "eval_seed": 20291064,
+  "easy_seq_len": 8,
+  "long_seq_len": 64,
+  "long_distances": [
+    1,
+    4,
+    16,
+    40,
+    63
+  ],
+  "batch_size": 8,
+  "expected_parameters_each": 29504,
+  "easy_seconds": 20,
+  "long_seconds": 90,
+  "easy_lr": 0.003,
+  "long_lr": 0.001,
+  "weight_decay": 0.01,
+  "optimizer": "AdamW",
+  "no_max_step_cap": true,
+  "balanced_eval_examples_per_class_per_distance": 128,
+  "inference_only_ablation_no_retraining": true,
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false,
+  "prerequisite_at_result": "experiments/rlt/cpu/results/rlt-lastwrite-curriculum-distance-20261009-at.json"
+}
