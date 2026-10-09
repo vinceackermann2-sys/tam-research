@@ -1,0 +1,167 @@
+name: RLT CPU long-distance last-write curriculum AT
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-cpu-lastwrite-curriculum-20261009-at.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-cpu-lastwrite-curriculum-20261009-at
+  cancel-in-progress: false
+
+jobs:
+  curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      BRANCH: exp/rlt-colab
+      JOB_PATH: experiments/rlt/cpu/jobs/rlt-lastwrite-curriculum-distance-20261009-at.json
+      RESULT_PATH: experiments/rlt/cpu/results/rlt-lastwrite-curriculum-distance-20261009-at.json
+      AS_PATH: experiments/rlt/cpu/results/rlt-lastwrite-near-positive-control-20261009-as.json
+      SCRIPT_PATH: experiments/rlt/cpu_lastwrite_curriculum_at.py
+      TEST_PATH: tests/test_rlt_cpu_lastwrite_curriculum_at.py
+    steps:
+      - name: Checkout RLT branch with no GPU
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Verify AS positive control and frozen AT protocol
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 33; fi
+          python -m py_compile "$SCRIPT_PATH" "$TEST_PATH"
+          git show "origin/$BRANCH:$AS_PATH" >/tmp/as.json
+          python - <<'PY'
+          import json,pathlib
+          a=json.load(open('/tmp/as.json'))
+          assert a['status']=='complete'
+          assert a['classification']=='CPU_SYNTHETIC_NEAR_WRITE_POSITIVE_CONTROL_ONLY'
+          assert a['gpu_requested'] is False
+          assert [x['name'] for x in a['results']]==[
+            'residual_scan','adaptive_scan','transformer_control'
+          ]
+          assert all(x['final']['accuracy']>=0.85 for x in a['results'])
+          j=json.loads(pathlib.Path('experiments/rlt/cpu/jobs/rlt-lastwrite-curriculum-distance-20261009-at.json').read_text())
+          assert j=={
+            'schema':1,'job_id':'rlt-cpu-lastwrite-curriculum-distance-20261009-at',
+            'purpose':'CPU-only balanced long-distance last-write test after AS easy positive-control success',
+            'model_order':['residual_scan','adaptive_scan','transformer_control'],
+            'easy_seq_len':8,'long_seq_len':64,'easy_distance':1,
+            'long_distances':[1,4,16,40,63],
+            'easy_seconds':20,'long_seconds':90,'no_max_step_cap':True,
+            'batch_size':8,'expected_parameters_each':29504,
+            'optimizer':'AdamW','easy_learning_rate':0.003,'long_learning_rate':0.001,
+            'weight_decay':0.01,'easy_train_seed':20261063,'long_train_seed':20271063,
+            'eval_seed':20291063,'model_seed':20301063,
+            'eval_examples_per_class_per_distance':128,
+            'gpu_requested':False,'scientific_execution':False,
+            'breakthrough_claim_supported':False,'automatic_retry':False,
+            'requires_as_job':'rlt-cpu-lastwrite-near-positive-control-20261009-as'
+          },j
+          s=pathlib.Path('experiments/rlt/cpu_lastwrite_curriculum_at.py').read_text()
+          for t in [
+            'JOB_ID = "rlt-cpu-lastwrite-curriculum-distance-20261009-at"',
+            'EASY_SECONDS = 20.0','LONG_SECONDS = 90.0',
+            'DISTANCES = (1, 4, 16, 40, 63)',
+            'EASY_LEARNING_RATE = 0.003','LONG_LEARNING_RATE = 0.001',
+            'EASY_TRAIN_SEED = 20_261_063','LONG_TRAIN_SEED = 20_271_063',
+            'EVAL_SEED = 20_291_063','MODEL_SEED = 20_301_063',
+            '"CPU_SYNTHETIC_LASTWRITE_CURRICULUM_EXPLORATORY_ONLY"',
+            'while True:'
+          ]: assert t in s,t
+          assert 'MAX_TRAIN_STEPS' not in s
+          PY
+      - name: Install CPU-only dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Validate AT balanced heldout gap and gradient tests
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q "$TEST_PATH" -vv
+      - name: Execute fixed full CPU curriculum for all candidates
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          test ! -f "$RESULT_PATH"
+          timeout 19m python -m experiments.rlt.cpu_lastwrite_curriculum_at
+          test -f "$RESULT_PATH"
+      - name: Validate and commit AT exploratory result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          p=pathlib.Path(os.environ['RESULT_PATH'])
+          r=json.loads(p.read_text())
+          assert r['status']=='complete'
+          assert r['classification']=='CPU_SYNTHETIC_LASTWRITE_CURRICULUM_EXPLORATORY_ONLY'
+          assert r['job_id']=='rlt-cpu-lastwrite-curriculum-distance-20261009-at'
+          assert r['gpu_requested'] is False and r['scientific_execution'] is False
+          assert r['breakthrough_claim_supported'] is False
+          protocol=r['protocol']
+          assert protocol['expected_parameters_each']==29504
+          assert protocol['long_distances']==[1,4,16,40,63]
+          assert protocol['no_max_step_cap'] is True
+          assert protocol['easy_seconds']==20 and protocol['long_seconds']==90
+          assert [x['name'] for x in r['results']]==[
+            'residual_scan','adaptive_scan','transformer_control'
+          ]
+          for row in r['results']:
+            assert row['parameters']==29504
+            assert row['easy_training']['train_seconds']>=20
+            assert row['long_training']['train_seconds']>=90
+            assert row['easy_training']['steps']>0 and row['long_training']['steps']>0
+            for phase in ['initial_long_by_distance','long_before_by_distance','long_after_by_distance']:
+              cells=row[phase]
+              assert set(cells)=={'1','4','16','40','63'}
+              for cell in cells.values():
+                assert cell['examples']==256 and 0<=cell['accuracy']<=1
+                assert cell['binary_nll']>=0
+                assert 0<=cell['class0_accuracy']<=1
+                assert 0<=cell['class1_accuracy']<=1
+            for phase in ['easy_positive_control_after_phase1','easy_control_after_phase2']:
+              cell=row[phase]
+              assert cell['examples']==256 and 0<=cell['accuracy']<=1
+          r['repository_provenance']={
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'source_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['SCRIPT_PATH']],text=True).strip(),
+            'test_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['TEST_PATH']],text=True).strip(),
+            'job_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['JOB_PATH']],text=True).strip()
+          }
+          p.write_text(json.dumps(r,indent=2,sort_keys=True)+'\n')
+          for row in r['results']:
+            print(row['name'],'easy_accuracy=',row['easy_positive_control_after_phase1']['accuracy'],
+              'long_accuracy=',{
+                d:round(cell['accuracy'],4) for d,cell in row['long_after_by_distance'].items()
+              })
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 34; fi
+          git add "$RESULT_PATH"
+          git commit -m "rlt cpu: freeze AT equal-time last-write curriculum results"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
