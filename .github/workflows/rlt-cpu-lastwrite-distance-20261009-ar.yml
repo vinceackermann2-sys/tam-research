@@ -1,0 +1,157 @@
+name: RLT CPU-only last-write state retention AR
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-cpu-lastwrite-distance-20261009-ar.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-cpu-lastwrite-distance-20261009-ar
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      BRANCH: exp/rlt-colab
+      JOB_PATH: experiments/rlt/cpu/jobs/rlt-lastwrite-distance-probe-20261009-ar.json
+      RESULT_PATH: experiments/rlt/cpu/results/rlt-lastwrite-distance-probe-20261009-ar.json
+      SCRIPT_PATH: experiments/rlt/cpu_lastwrite_probe_ar.py
+      TEST_PATH: tests/test_rlt_cpu_lastwrite_probe_ar.py
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Confirm zero-GPU task, frozen protocol and unused CPU result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then
+            echo "AR result already exists; cannot repeat the same frozen probe"
+            exit 33
+          fi
+          python -m py_compile "$SCRIPT_PATH" "$TEST_PATH"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('experiments/rlt/cpu/jobs/rlt-lastwrite-distance-probe-20261009-ar.json').read_text())
+          assert j=={
+           'schema':1,'job_id':'rlt-cpu-lastwrite-distance-probe-20261009-ar',
+           'purpose':'exploratory synthetic long-distance last-write state retention vs causal Transformer; no GPU and no general-language claim',
+           'task':'last_write_binary_state_query',
+           'model_order':['residual_scan','adaptive_scan','transformer_control'],
+           'train_seed':20261061,'eval_seed':20291061,'model_seed':20301061,
+           'seq_len':64,'vocab_size':16,'distances':[1,4,16,40,63],
+           'batch_size':8,'time_budget_seconds_each':35,'max_train_steps':1000,
+           'optimizer':'AdamW','learning_rate':0.003,'weight_decay':0.01,
+           'evaluation_examples_per_distance':128,'expected_parameters_each':29504,
+           'training_backend':'cpu','gpu_requested':False,
+           'scientific_execution':False,'breakthrough_claim_supported':False,
+           'automatic_retry':False
+          },j
+          script=Path('experiments/rlt/cpu_lastwrite_probe_ar.py').read_text()
+          for token in [
+           'JOB_ID = "rlt-cpu-lastwrite-distance-probe-20261009-ar"',
+           'DISTANCES = (1, 4, 16, 40, 63)',
+           'TRAIN_SECONDS_PER_MODEL = 35.0',
+           'EXPECTED_PARAMETERS = 29_504',
+           'TRAIN_SEED = 20_261_061',
+           'EVAL_SEED = 20_291_061',
+           'MODEL_SEED = 20_301_061',
+           '"residual_scan", "adaptive_scan", "transformer_control"',
+           '"CPU_SYNTHETIC_STATE_RETENTION_EXPLORATORY_ONLY"',
+          ]: assert token in script,token
+          PY
+      - name: Install CPU-only test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Verify labels, causal task, equal parameters and gradients
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q "$TEST_PATH" -vv
+      - name: Execute one bounded CPU synthetic state-retention screen
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          test ! -f "$RESULT_PATH"
+          timeout 12m python -m experiments.rlt.cpu_lastwrite_probe_ar
+          test -f "$RESULT_PATH"
+      - name: Validate and commit exploratory CPU result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          p=pathlib.Path(os.environ['RESULT_PATH'])
+          j=json.loads(p.read_text())
+          assert j['status']=='complete'
+          assert j['job_id']=='rlt-cpu-lastwrite-distance-probe-20261009-ar'
+          assert j['classification']=='CPU_SYNTHETIC_STATE_RETENTION_EXPLORATORY_ONLY'
+          assert j['gpu_requested'] is False and j['scientific_execution'] is False
+          assert j['breakthrough_claim_supported'] is False
+          proto=j['protocol']
+          assert proto['parameter_count_each']==29504
+          assert proto['distances']==[1,4,16,40,63]
+          assert proto['training_seconds_per_candidate']==35
+          rows=j['results']
+          assert [r['name'] for r in rows]==['residual_scan','adaptive_scan','transformer_control']
+          assert all(r['parameters']==29504 for r in rows)
+          for row in rows:
+           assert row['steps']>0
+           for kind in ['initial_by_distance','final_by_distance']:
+            data=row[kind]
+            assert set(data)=={'1','4','16','40','63'}
+            for cell in data.values():
+             assert cell['examples']==128
+             assert 0<=cell['accuracy']<=1
+             assert cell['binary_nll']>=0
+          j['repository_provenance']={
+           'branch':os.environ['BRANCH'],
+           'trigger_sha':os.environ['GITHUB_SHA'],
+           'source_blob_sha':subprocess.check_output(
+            ['git','rev-parse','HEAD:'+os.environ['SCRIPT_PATH']],text=True).strip(),
+           'test_blob_sha':subprocess.check_output(
+            ['git','rev-parse','HEAD:'+os.environ['TEST_PATH']],text=True).strip(),
+           'job_blob_sha':subprocess.check_output(
+            ['git','rev-parse','HEAD:'+os.environ['JOB_PATH']],text=True).strip(),
+          }
+          p.write_text(json.dumps(j,indent=2,sort_keys=True)+'\n')
+          print(json.dumps({'classification':j['classification'],
+            'candidates':[
+              {'model':row['name'],'steps':row['steps'],
+               'accuracy_by_distance':{key:round(val['accuracy'],4)
+                 for key,val in row['final_by_distance'].items()}}
+              for row in rows]},indent=2))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then
+            echo "Result appeared during execution; refuse overwrite"
+            exit 34
+          fi
+          git add "$RESULT_PATH"
+          git commit -m "rlt cpu: preserve frozen AR state-retention probe outcome"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
