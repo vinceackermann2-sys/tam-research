@@ -1,0 +1,113 @@
+{
+  "breakthrough_claim_supported": false,
+  "classification": "CPU_SYNTHETIC_NEAR_WRITE_POSITIVE_CONTROL_ONLY",
+  "engineering_only": true,
+  "gpu_requested": false,
+  "interpretation_ceiling": "Exactly matched tiny models, CPU only, one seed, easy nearest-write readout diagnostic. Accuracy >=85% merely validates the task can be learned; this is not language generalization, architectural superiority, scientific replication, or GPU/scale authorization.",
+  "job_id": "rlt-cpu-lastwrite-near-positive-control-20261009-as",
+  "protocol": {
+    "balanced_heldout_examples_per_class": 128,
+    "batch_size": 8,
+    "distance": 1,
+    "eval_seed": 20291062,
+    "expected_parameters_each": 29504,
+    "learning_rate": 0.003,
+    "model_order": [
+      "residual_scan",
+      "adaptive_scan",
+      "transformer_control"
+    ],
+    "model_seed": 20301062,
+    "no_max_step_cap": true,
+    "optimizer": "AdamW",
+    "seq_len": 8,
+    "task": "nearest-token last-write easy learnability control",
+    "train_seconds_each": 25.0,
+    "training_seed": 20261062
+  },
+  "repository_provenance": {
+    "branch": "exp/rlt-colab",
+    "job_blob_sha": "f23672c9f105fa086aee2236e09e39a3f5f4cac7",
+    "source_blob_sha": "eae8027b1ef8f25ab752de2def9665928a403450",
+    "test_blob_sha": "6590634ce5ca4d233f153b2dbd69403846a98735",
+    "trigger_sha": "068c3d6f1d10b4b5613e1d55227181217e757eaf"
+  },
+  "results": [
+    {
+      "actual_training_seconds": 25.00353685799996,
+      "final": {
+        "accuracy": 1.0,
+        "binary_nll": 4.979303881214037e-06,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "initial": {
+        "accuracy": 0.50390625,
+        "binary_nll": 0.7065284010022879,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0078125,
+        "examples": 256
+      },
+      "last_train_binary_nll": 4.976975560566643e-06,
+      "name": "residual_scan",
+      "parameters": 29504,
+      "steps": 3462,
+      "tokens_per_second": 8861.466330076762,
+      "tokens_seen": 221568
+    },
+    {
+      "actual_training_seconds": 25.00098083300003,
+      "final": {
+        "accuracy": 1.0,
+        "binary_nll": 4.550431512484465e-06,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "initial": {
+        "accuracy": 0.49609375,
+        "binary_nll": 0.7063417378813028,
+        "class0_accuracy": 0.0,
+        "class1_accuracy": 0.9921875,
+        "examples": 256
+      },
+      "last_train_binary_nll": 4.529942543740617e-06,
+      "name": "adaptive_scan",
+      "parameters": 29504,
+      "steps": 3429,
+      "tokens_per_second": 8777.89561401244,
+      "tokens_seen": 219456
+    },
+    {
+      "actual_training_seconds": 25.00219876,
+      "final": {
+        "accuracy": 1.0,
+        "binary_nll": 9.727659744385164e-07,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "initial": {
+        "accuracy": 0.5,
+        "binary_nll": 0.6932750139385462,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 256
+      },
+      "last_train_binary_nll": 9.685750228527468e-07,
+      "name": "transformer_control",
+      "parameters": 29504,
+      "steps": 8289,
+      "tokens_per_second": 21217.97387071088,
+      "tokens_seen": 530496
+    }
+  ],
+  "runtime": {
+    "cpu_threads": 2,
+    "torch_version": "2.14.1+cu130"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "complete"
+}
