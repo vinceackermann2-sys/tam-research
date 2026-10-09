@@ -1,0 +1,484 @@
+{
+  "breakthrough_claim_supported": false,
+  "classification": "CPU_SYNTHETIC_LASTWRITE_CURRICULUM_EXPLORATORY_ONLY",
+  "engineering_only": true,
+  "gpu_requested": false,
+  "interpretation_ceiling": "CPU-only, one seed, exactly matched tiny 29,504-parameter models, 20-second easy near-write control and 90-second length-64 distance curriculum per architecture, balanced held-out targets. Synthetic task evidence only; no general language, breakthrough, GPU science, replication or scale authority.",
+  "job_id": "rlt-cpu-lastwrite-curriculum-distance-20261009-at",
+  "protocol": {
+    "batch_size": 8,
+    "easy_distance": 1,
+    "easy_learning_rate": 0.003,
+    "easy_seconds": 20.0,
+    "easy_seq_len": 8,
+    "easy_train_seed": 20261063,
+    "eval_examples_per_class_per_distance": 128,
+    "eval_seed": 20291063,
+    "expected_parameters_each": 29504,
+    "long_distances": [
+      1,
+      4,
+      16,
+      40,
+      63
+    ],
+    "long_learning_rate": 0.001,
+    "long_seconds": 90.0,
+    "long_seq_len": 64,
+    "long_train_seed": 20271063,
+    "model_order": [
+      "residual_scan",
+      "adaptive_scan",
+      "transformer_control"
+    ],
+    "model_seed": 20301063,
+    "no_max_step_cap": true,
+    "optimizer": "AdamW",
+    "weight_decay": 0.01
+  },
+  "repository_provenance": {
+    "branch": "exp/rlt-colab",
+    "job_blob_sha": "45c1024b98b37410933cfab6e90927aa71f5f458",
+    "source_blob_sha": "5841fda2050deb04abbd47fede9fbd9ce67ffb1f",
+    "test_blob_sha": "aae2c88830f91c1b4e27642106a2fdc6e664fa48",
+    "trigger_sha": "bbd797d8ebfd0dd6913925bf8a77e3cd6c38adf9"
+  },
+  "results": [
+    {
+      "easy_control_after_phase2": {
+        "accuracy": 1.0,
+        "binary_nll": 9.927114251695457e-05,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "easy_positive_control_after_phase1": {
+        "accuracy": 1.0,
+        "binary_nll": 5.982799052617338e-06,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "easy_training": {
+        "last_train_binary_nll": 5.960446742392378e-06,
+        "steps": 2705,
+        "tokens_per_second": 8653.035927636793,
+        "tokens_seen": 173120,
+        "train_seconds": 20.006850942
+      },
+      "initial_long_by_distance": {
+        "1": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6994060389697552,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.5,
+          "binary_nll": 0.7063175514340401,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.5,
+          "binary_nll": 0.7017839141190052,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.5,
+          "binary_nll": 0.7048921175301075,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.5,
+          "binary_nll": 0.7079886719584465,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        }
+      },
+      "long_after_by_distance": {
+        "1": {
+          "accuracy": 1.0,
+          "binary_nll": 6.751157275175501e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 1.0,
+          "binary_nll": 5.287283988764102e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 1.0,
+          "binary_nll": 0.0002537152065542614,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 1.0,
+          "binary_nll": 7.163269015109108e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 1.0,
+          "binary_nll": 5.122443303662294e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        }
+      },
+      "long_before_by_distance": {
+        "1": {
+          "accuracy": 0.57421875,
+          "binary_nll": 4.965366393327713,
+          "class0_accuracy": 0.8515625,
+          "class1_accuracy": 0.296875,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.52734375,
+          "binary_nll": 5.570688977837563,
+          "class0_accuracy": 0.875,
+          "class1_accuracy": 0.1796875,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.6484375,
+          "binary_nll": 4.110225662589073,
+          "class0_accuracy": 0.890625,
+          "class1_accuracy": 0.40625,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.53125,
+          "binary_nll": 5.533744633197784,
+          "class0_accuracy": 0.890625,
+          "class1_accuracy": 0.171875,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.47265625,
+          "binary_nll": 6.207136392593384,
+          "class0_accuracy": 0.8671875,
+          "class1_accuracy": 0.078125,
+          "examples": 256
+        }
+      },
+      "long_training": {
+        "last_train_binary_nll": 6.955568096600473e-05,
+        "steps": 5505,
+        "tokens_per_second": 31313.10924151839,
+        "tokens_seen": 2818560,
+        "train_seconds": 90.01214086600001
+      },
+      "name": "residual_scan",
+      "parameters": 29504
+    },
+    {
+      "easy_control_after_phase2": {
+        "accuracy": 0.5,
+        "binary_nll": 0.693150170147419,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 256
+      },
+      "easy_positive_control_after_phase1": {
+        "accuracy": 1.0,
+        "binary_nll": 1.1741579442059447e-05,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "easy_training": {
+        "last_train_binary_nll": 1.1742045899154618e-05,
+        "steps": 2715,
+        "tokens_per_second": 8685.759668545752,
+        "tokens_seen": 173760,
+        "train_seconds": 20.00515863100003
+      },
+      "initial_long_by_distance": {
+        "1": {
+          "accuracy": 0.4765625,
+          "binary_nll": 0.6950684860348701,
+          "class0_accuracy": 0.6640625,
+          "class1_accuracy": 0.2890625,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6927167102694511,
+          "class0_accuracy": 0.734375,
+          "class1_accuracy": 0.296875,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.50390625,
+          "binary_nll": 0.6953559443354607,
+          "class0_accuracy": 0.734375,
+          "class1_accuracy": 0.2734375,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6945795901119709,
+          "class0_accuracy": 0.7265625,
+          "class1_accuracy": 0.3046875,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.44921875,
+          "binary_nll": 0.6976244002580643,
+          "class0_accuracy": 0.6796875,
+          "class1_accuracy": 0.21875,
+          "examples": 256
+        }
+      },
+      "long_after_by_distance": {
+        "1": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6931498162448406,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6931488551199436,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6931497119367123,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6931494697928429,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6931492015719414,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        }
+      },
+      "long_before_by_distance": {
+        "1": {
+          "accuracy": 0.66796875,
+          "binary_nll": 3.3756914772093296,
+          "class0_accuracy": 0.5390625,
+          "class1_accuracy": 0.796875,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.37890625,
+          "binary_nll": 6.113322883844376,
+          "class0_accuracy": 0.4140625,
+          "class1_accuracy": 0.34375,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.66796875,
+          "binary_nll": 3.2696120515465736,
+          "class0_accuracy": 0.640625,
+          "class1_accuracy": 0.6953125,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.5234375,
+          "binary_nll": 4.57052618265152,
+          "class0_accuracy": 0.390625,
+          "class1_accuracy": 0.65625,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.3671875,
+          "binary_nll": 6.085115730762482,
+          "class0_accuracy": 0.265625,
+          "class1_accuracy": 0.46875,
+          "examples": 256
+        }
+      },
+      "long_training": {
+        "last_train_binary_nll": 0.6938021183013916,
+        "steps": 5521,
+        "tokens_per_second": 31405.920989148817,
+        "tokens_seen": 2826752,
+        "train_seconds": 90.00697674099996
+      },
+      "name": "adaptive_scan",
+      "parameters": 29504
+    },
+    {
+      "easy_control_after_phase2": {
+        "accuracy": 0.54296875,
+        "binary_nll": 3.4273216873407364,
+        "class0_accuracy": 0.515625,
+        "class1_accuracy": 0.5703125,
+        "examples": 256
+      },
+      "easy_positive_control_after_phase1": {
+        "accuracy": 1.0,
+        "binary_nll": 4.7683712978141557e-07,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "easy_training": {
+        "last_train_binary_nll": 4.7683710135970614e-07,
+        "steps": 6677,
+        "tokens_per_second": 21365.80076086406,
+        "tokens_seen": 427328,
+        "train_seconds": 20.00056093300003
+      },
+      "initial_long_by_distance": {
+        "1": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6945387497544289,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6947067305445671,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6946757435798645,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6940470971167088,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6936456672847271,
+          "class0_accuracy": 0.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        }
+      },
+      "long_after_by_distance": {
+        "1": {
+          "accuracy": 1.0,
+          "binary_nll": 6.65895587559362e-08,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 1.0,
+          "binary_nll": 6.193294677103722e-08,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 1.0,
+          "binary_nll": 6.286426890156349e-08,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 1.0,
+          "binary_nll": 6.93835253695596e-08,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 1.0,
+          "binary_nll": 5.9604641222676946e-08,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        }
+      },
+      "long_before_by_distance": {
+        "1": {
+          "accuracy": 0.66796875,
+          "binary_nll": 4.650641679763794,
+          "class0_accuracy": 0.8984375,
+          "class1_accuracy": 0.4375,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.609375,
+          "binary_nll": 5.474600657820702,
+          "class0_accuracy": 0.890625,
+          "class1_accuracy": 0.328125,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.6484375,
+          "binary_nll": 4.881651431322098,
+          "class0_accuracy": 0.8828125,
+          "class1_accuracy": 0.4140625,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.60546875,
+          "binary_nll": 5.452973499894142,
+          "class0_accuracy": 0.9765625,
+          "class1_accuracy": 0.234375,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.515625,
+          "binary_nll": 6.829977750778198,
+          "class0_accuracy": 0.9921875,
+          "class1_accuracy": 0.0390625,
+          "examples": 256
+        }
+      },
+      "long_training": {
+        "last_train_binary_nll": 5.9604641222676946e-08,
+        "steps": 13841,
+        "tokens_per_second": 78739.63472624439,
+        "tokens_seen": 7086592,
+        "train_seconds": 90.00031590999998
+      },
+      "name": "transformer_control",
+      "parameters": 29504
+    }
+  ],
+  "runtime": {
+    "cpu_threads": 2,
+    "torch_version": "2.14.1+cu130"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "complete"
+}
