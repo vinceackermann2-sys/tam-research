@@ -1,0 +1,146 @@
+name: RLT CPU nearest last-write positive control AS
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-cpu-lastwrite-near-positive-control-20261009-as.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-cpu-lastwrite-near-positive-control-20261009-as
+  cancel-in-progress: false
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BRANCH: exp/rlt-colab
+      JOB_PATH: experiments/rlt/cpu/jobs/rlt-lastwrite-near-positive-control-20261009-as.json
+      RESULT_PATH: experiments/rlt/cpu/results/rlt-lastwrite-near-positive-control-20261009-as.json
+      SCRIPT_PATH: experiments/rlt/cpu_lastwrite_near_control_as.py
+      TEST_PATH: tests/test_rlt_cpu_lastwrite_near_control_as.py
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Reject consumed AS and verify immutable CPU protocol
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 33; fi
+          python -m py_compile "$SCRIPT_PATH" "$TEST_PATH"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('experiments/rlt/cpu/jobs/rlt-lastwrite-near-positive-control-20261009-as.json').read_text())
+          assert d=={
+            'schema':1,'job_id':'rlt-cpu-lastwrite-near-positive-control-20261009-as',
+            'purpose':'CPU-only learning sanity check after non-diagnostic AR',
+            'task':'nearest_write_binary_query',
+            'model_order':['residual_scan','adaptive_scan','transformer_control'],
+            'training_seed':20261062,'eval_seed':20291062,'model_seed':20301062,
+            'seq_len':8,'distance':1,'batch_size':8,'training_seconds_each':25,
+            'no_max_step_cap':True,'learning_rate':0.003,'optimizer':'AdamW',
+            'weight_decay':0.01,'heldout_examples_per_class':128,
+            'expected_parameters_each':29504,'training_backend':'cpu',
+            'gpu_requested':False,'scientific_execution':False,
+            'breakthrough_claim_supported':False,'automatic_retry':False
+          },d
+          src=Path('experiments/rlt/cpu_lastwrite_near_control_as.py').read_text()
+          for token in [
+            'JOB_ID = "rlt-cpu-lastwrite-near-positive-control-20261009-as"',
+            'TRAIN_SECONDS_PER_CANDIDATE = 25.0',
+            'TRAIN_SEED = 20_261_062','EVAL_SEED = 20_291_062',
+            'MODEL_SEED = 20_301_062','EVAL_PER_CLASS = 128',
+            'SEQ_LEN = 8','DISTANCES = (1,)',
+            'while True:','balanced_holdout()'
+          ]: assert token in src,token
+          assert 'MAX_TRAIN_STEPS' not in src
+          PY
+      - name: Install CPU test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Test positive-control oracle balanced labels and gradients
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q "$TEST_PATH" -vv
+      - name: Train easy near-write control with fully consumed CPU budgets
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          test ! -f "$RESULT_PATH"
+          timeout 12m python -m experiments.rlt.cpu_lastwrite_near_control_as
+          test -f "$RESULT_PATH"
+      - name: Validate and persist completed AS diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          path=pathlib.Path(os.environ['RESULT_PATH'])
+          r=json.loads(path.read_text())
+          assert r['status']=='complete'
+          assert r['job_id']=='rlt-cpu-lastwrite-near-positive-control-20261009-as'
+          assert r['classification']=='CPU_SYNTHETIC_NEAR_WRITE_POSITIVE_CONTROL_ONLY'
+          assert r['gpu_requested'] is False and r['scientific_execution'] is False
+          assert r['breakthrough_claim_supported'] is False
+          assert r['protocol']['expected_parameters_each']==29504
+          assert r['protocol']['no_max_step_cap'] is True
+          assert r['protocol']['train_seconds_each']==25
+          assert [x['name'] for x in r['results']]==[
+            'residual_scan','adaptive_scan','transformer_control'
+          ]
+          for row in r['results']:
+            assert row['parameters']==29504
+            assert row['actual_training_seconds']>=25 and row['steps']>0
+            for phase in ['initial','final']:
+              item=row[phase]
+              assert item['examples']==256 and 0<=item['accuracy']<=1
+              assert item['binary_nll']>=0
+              assert 0<=item['class0_accuracy']<=1
+              assert 0<=item['class1_accuracy']<=1
+          r['repository_provenance']={
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'source_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['SCRIPT_PATH']],text=True).strip(),
+            'test_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['TEST_PATH']],text=True).strip(),
+            'job_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['JOB_PATH']],text=True).strip()
+          }
+          path.write_text(json.dumps(r,indent=2,sort_keys=True)+'\n')
+          print('Positive control success criterion: >=85% independently heldout accuracy')
+          for row in r['results']:
+            print(row['name'],'steps=',row['steps'],'seconds=',row['actual_training_seconds'],
+                  'initial_accuracy=',row['initial']['accuracy'],
+                  'final_accuracy=',row['final']['accuracy'],
+                  'final_nll=',row['final']['binary_nll'])
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 34; fi
+          git add "$RESULT_PATH"
+          git commit -m "rlt cpu: freeze AS near-write positive-control training evidence"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
