@@ -1,0 +1,272 @@
+{
+  "breakthrough_claim_supported": false,
+  "classification": "CPU_SYNTHETIC_STATE_RETENTION_EXPLORATORY_ONLY",
+  "engineering_only": true,
+  "gpu_requested": false,
+  "interpretation_ceiling": "Single CPU seed, tiny synthetic state-tracking training with exactly 29,504 parameters each. Report per-distance held-out binary accuracy and NLL. No FineWeb/general language, scaling, scientific replication, or breakthrough inference is supported.",
+  "job_id": "rlt-cpu-lastwrite-distance-probe-20261009-ar",
+  "protocol": {
+    "batch_size": 8,
+    "distances": [
+      1,
+      4,
+      16,
+      40,
+      63
+    ],
+    "eval_seed": 20291061,
+    "evaluation_examples_per_distance": 128,
+    "learning_rate": 0.003,
+    "max_train_steps": 1000,
+    "model_init_seed": 20301061,
+    "model_order": [
+      "residual_scan",
+      "adaptive_scan",
+      "transformer_control"
+    ],
+    "optimizer": "AdamW",
+    "parameter_count_each": 29504,
+    "query_readout": "next-token binary logits at final QUERY",
+    "seq_len": 64,
+    "task": "binary last-write query after distractor sequence",
+    "train_seed": 20261061,
+    "training_seconds_per_candidate": 35.0,
+    "vocab": 16,
+    "weight_decay": 0.01
+  },
+  "repository_provenance": {
+    "branch": "exp/rlt-colab",
+    "job_blob_sha": "2bbdb07c3706a170d8190c2607c64870033912ab",
+    "source_blob_sha": "a9baec7661c657bc55bbea25612b42b17f19ede6",
+    "test_blob_sha": "045880236bf306bfab7cbb53192637dae47368f3",
+    "trigger_sha": "e310c7ec55a3b8b25ad4574060f6cd1b8d8ddb05"
+  },
+  "results": [
+    {
+      "final_by_distance": {
+        "1": {
+          "accuracy": 0.484375,
+          "binary_nll": 0.6962183862924576,
+          "examples": 128,
+          "target_ones": 62
+        },
+        "16": {
+          "accuracy": 0.5078125,
+          "binary_nll": 0.6937256008386612,
+          "examples": 128,
+          "target_ones": 65
+        },
+        "4": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6928976662456989,
+          "examples": 128,
+          "target_ones": 66
+        },
+        "40": {
+          "accuracy": 0.53125,
+          "binary_nll": 0.6912374272942543,
+          "examples": 128,
+          "target_ones": 68
+        },
+        "63": {
+          "accuracy": 0.578125,
+          "binary_nll": 0.6862560734152794,
+          "examples": 128,
+          "target_ones": 74
+        }
+      },
+      "initial_by_distance": {
+        "1": {
+          "accuracy": 0.484375,
+          "binary_nll": 0.6961852088570595,
+          "examples": 128,
+          "target_ones": 62
+        },
+        "16": {
+          "accuracy": 0.5078125,
+          "binary_nll": 0.6964888498187065,
+          "examples": 128,
+          "target_ones": 65
+        },
+        "4": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6886435225605965,
+          "examples": 128,
+          "target_ones": 66
+        },
+        "40": {
+          "accuracy": 0.53125,
+          "binary_nll": 0.6893213056027889,
+          "examples": 128,
+          "target_ones": 68
+        },
+        "63": {
+          "accuracy": 0.578125,
+          "binary_nll": 0.6800562813878059,
+          "examples": 128,
+          "target_ones": 74
+        }
+      },
+      "last_train_binary_nll": 0.7073055505752563,
+      "name": "residual_scan",
+      "parameters": 29504,
+      "steps": 1000,
+      "tokens_seen": 512000,
+      "training_seconds": 16.377377443,
+      "training_tokens_per_second": 31262.6366328779
+    },
+    {
+      "final_by_distance": {
+        "1": {
+          "accuracy": 0.484375,
+          "binary_nll": 0.6970356851816177,
+          "examples": 128,
+          "target_ones": 62
+        },
+        "16": {
+          "accuracy": 0.5078125,
+          "binary_nll": 0.694114163517952,
+          "examples": 128,
+          "target_ones": 65
+        },
+        "4": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6931414529681206,
+          "examples": 128,
+          "target_ones": 66
+        },
+        "40": {
+          "accuracy": 0.53125,
+          "binary_nll": 0.6911935694515705,
+          "examples": 128,
+          "target_ones": 68
+        },
+        "63": {
+          "accuracy": 0.578125,
+          "binary_nll": 0.6853509843349457,
+          "examples": 128,
+          "target_ones": 74
+        }
+      },
+      "initial_by_distance": {
+        "1": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6952385790646076,
+          "examples": 128,
+          "target_ones": 62
+        },
+        "16": {
+          "accuracy": 0.4921875,
+          "binary_nll": 0.698473010212183,
+          "examples": 128,
+          "target_ones": 65
+        },
+        "4": {
+          "accuracy": 0.484375,
+          "binary_nll": 0.7027246505022049,
+          "examples": 128,
+          "target_ones": 66
+        },
+        "40": {
+          "accuracy": 0.46875,
+          "binary_nll": 0.7067550159990788,
+          "examples": 128,
+          "target_ones": 68
+        },
+        "63": {
+          "accuracy": 0.421875,
+          "binary_nll": 0.714524157345295,
+          "examples": 128,
+          "target_ones": 74
+        }
+      },
+      "last_train_binary_nll": 0.7103246450424194,
+      "name": "adaptive_scan",
+      "parameters": 29504,
+      "steps": 1000,
+      "tokens_seen": 512000,
+      "training_seconds": 16.372622434999997,
+      "training_tokens_per_second": 31271.716063365027
+    },
+    {
+      "final_by_distance": {
+        "1": {
+          "accuracy": 0.484375,
+          "binary_nll": 0.6966512240469456,
+          "examples": 128,
+          "target_ones": 62
+        },
+        "16": {
+          "accuracy": 0.5078125,
+          "binary_nll": 0.6941227354109287,
+          "examples": 128,
+          "target_ones": 65
+        },
+        "4": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6928862407803535,
+          "examples": 128,
+          "target_ones": 66
+        },
+        "40": {
+          "accuracy": 0.53125,
+          "binary_nll": 0.6910713948309422,
+          "examples": 128,
+          "target_ones": 68
+        },
+        "63": {
+          "accuracy": 0.578125,
+          "binary_nll": 0.685869038105011,
+          "examples": 128,
+          "target_ones": 74
+        }
+      },
+      "initial_by_distance": {
+        "1": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6935575790703297,
+          "examples": 128,
+          "target_ones": 62
+        },
+        "16": {
+          "accuracy": 0.4921875,
+          "binary_nll": 0.6981625556945801,
+          "examples": 128,
+          "target_ones": 65
+        },
+        "4": {
+          "accuracy": 0.484375,
+          "binary_nll": 0.6987985409796238,
+          "examples": 128,
+          "target_ones": 66
+        },
+        "40": {
+          "accuracy": 0.46875,
+          "binary_nll": 0.7016881965100765,
+          "examples": 128,
+          "target_ones": 68
+        },
+        "63": {
+          "accuracy": 0.421875,
+          "binary_nll": 0.7107251212000847,
+          "examples": 128,
+          "target_ones": 74
+        }
+      },
+      "last_train_binary_nll": 0.7085141539573669,
+      "name": "transformer_control",
+      "parameters": 29504,
+      "steps": 1000,
+      "tokens_seen": 512000,
+      "training_seconds": 6.520453827000011,
+      "training_tokens_per_second": 78522.14179937926
+    }
+  ],
+  "runtime": {
+    "num_threads": 2,
+    "torch_version": "2.14.1+cu130"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "complete"
+}
