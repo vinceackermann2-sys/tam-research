@@ -1,0 +1,164 @@
+name: RLT CPU recurrent path attribution AU
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-cpu-recurrence-path-attribution-20261009-au.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-cpu-recurrence-path-attribution-20261009-au
+  cancel-in-progress: false
+
+jobs:
+  attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      BRANCH: exp/rlt-colab
+      SCRIPT_PATH: experiments/rlt/cpu_recurrence_ablation_au.py
+      TEST_PATH: tests/test_rlt_cpu_recurrence_ablation_au.py
+      JOB_PATH: experiments/rlt/cpu/jobs/rlt-recurrence-path-attribution-20261009-au.json
+      AT_PATH: experiments/rlt/cpu/results/rlt-lastwrite-curriculum-distance-20261009-at.json
+      RESULT_PATH: experiments/rlt/cpu/results/rlt-recurrence-path-attribution-20261009-au.json
+    steps:
+      - name: Checkout isolated RLT research branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Verify frozen AU protocol and negative AT evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 33; fi
+          python -m py_compile "$SCRIPT_PATH" "$TEST_PATH"
+          git show "origin/$BRANCH:$AT_PATH" >/tmp/at-result.json
+          python - <<'PY'
+          import json,os,pathlib
+          a=json.load(open('/tmp/at-result.json'))
+          assert a['job_id']=='rlt-cpu-lastwrite-curriculum-distance-20261009-at'
+          assert a['status']=='complete'
+          assert a['classification']=='CPU_SYNTHETIC_LASTWRITE_CURRICULUM_EXPLORATORY_ONLY'
+          assert a['gpu_requested'] is False
+          assert [r['name'] for r in a['results']]==[
+            'residual_scan','adaptive_scan','transformer_control'
+          ]
+          assert all(r['easy_positive_control_after_phase1']['accuracy']==1 for r in a['results'])
+          assert all(v['accuracy']==1 for v in a['results'][0]['long_after_by_distance'].values())
+          assert all(v['accuracy']==0.5 for v in a['results'][1]['long_after_by_distance'].values())
+          j=json.loads(pathlib.Path(os.environ['JOB_PATH']).read_text())
+          assert j=={
+            'schema':1,'job_id':'rlt-cpu-recurrence-path-attribution-20261009-au',
+            'purpose':'CPU-only inference path attribution after AT one-seed collapse; no architecture or breakthrough claim',
+            'candidate_order':['residual_scan','adaptive_scan'],
+            'ablations':['full','encoder_only','recurrent_only','static_gain'],
+            'model_seed':20301064,'easy_train_seed':20261064,
+            'long_train_seed':20271064,'eval_seed':20291064,
+            'easy_seq_len':8,'long_seq_len':64,'long_distances':[1,4,16,40,63],
+            'batch_size':8,'expected_parameters_each':29504,
+            'easy_seconds':20,'long_seconds':90,'easy_lr':0.003,'long_lr':0.001,
+            'weight_decay':0.01,'optimizer':'AdamW','no_max_step_cap':True,
+            'balanced_eval_examples_per_class_per_distance':128,
+            'inference_only_ablation_no_retraining':True,
+            'gpu_requested':False,'scientific_execution':False,
+            'breakthrough_claim_supported':False,'automatic_retry':False,
+            'prerequisite_at_result':'experiments/rlt/cpu/results/rlt-lastwrite-curriculum-distance-20261009-at.json'
+          },j
+          s=pathlib.Path(os.environ['SCRIPT_PATH']).read_text()
+          for token in [
+            'JOB_ID = "rlt-cpu-recurrence-path-attribution-20261009-au"',
+            'CANDIDATE_NAMES = ("residual_scan", "adaptive_scan")',
+            'ABLATIONS = ("full", "encoder_only", "recurrent_only", "static_gain")',
+            'EASY_SECONDS = 20.0','LONG_SECONDS = 90.0',
+            'EASY_SEED = 20_261_064','LONG_SEED = 20_271_064',
+            'EVAL_SEED = 20_291_064','MODEL_SEED = 20_301_064',
+            'inference_only_ablation_no_retraining'
+          ]: assert token in s,token
+          assert 'gpu="' not in s
+          PY
+      - name: Install torch and pytest for CPU
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Validate ablation math and exact restoration on CPU
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q "$TEST_PATH" -vv
+      - name: Train two bounded CPU curricula and measure inference interventions
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          test ! -f "$RESULT_PATH"
+          timeout 15m python -m experiments.rlt.cpu_recurrence_ablation_au
+          test -f "$RESULT_PATH"
+      - name: Validate and preserve AU terminal CPU evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess,math
+          p=pathlib.Path(os.environ['RESULT_PATH'])
+          r=json.loads(p.read_text())
+          assert r['status']=='complete'
+          assert r['job_id']=='rlt-cpu-recurrence-path-attribution-20261009-au'
+          assert r['classification']=='CPU_RECURRENT_PATH_ABLATION_EXPLORATORY_ONLY'
+          assert r['gpu_requested'] is False and r['scientific_execution'] is False
+          assert r['breakthrough_claim_supported'] is False
+          assert r['protocol']['expected_parameters_each']==29504
+          assert r['protocol']['inference_only_ablation_no_retraining'] is True
+          assert r['protocol']['easy_seconds']==20 and r['protocol']['long_seconds']==90
+          assert [x['name'] for x in r['results']]==['residual_scan','adaptive_scan']
+          for row in r['results']:
+            assert row['parameters']==29504
+            assert row['easy_training']['train_seconds']>=20
+            assert row['long_training']['train_seconds']>=90
+            assert row['easy_training']['steps']>0 and row['long_training']['steps']>0
+            assert set(row['ablated_long_by_distance'])=={
+              'full','encoder_only','recurrent_only','static_gain'
+            }
+            for gap_map in row['ablated_long_by_distance'].values():
+              assert set(gap_map)=={'1','4','16','40','63'}
+              for cell in gap_map.values():
+                assert cell['examples']==256
+                assert 0<=cell['accuracy']<=1 and cell['binary_nll']>=0
+            assert all(math.isfinite(v) for v in row['after_long_gate_stats'].values())
+          r['repository_provenance']={
+            'branch':os.environ['BRANCH'],
+            'trigger_sha':os.environ['GITHUB_SHA'],
+            'source_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['SCRIPT_PATH']],text=True).strip(),
+            'test_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['TEST_PATH']],text=True).strip(),
+            'job_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['JOB_PATH']],text=True).strip()
+          }
+          p.write_text(json.dumps(r,sort_keys=True,indent=2)+'\n')
+          for row in r['results']:
+            print(row['name'],
+              {ab:{k:round(v['accuracy'],3) for k,v in m.items()}
+               for ab,m in row['ablated_long_by_distance'].items()})
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 34; fi
+          git add "$RESULT_PATH"
+          git commit -m "rlt cpu: freeze AU recurrent-path attribution intervention evidence"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
