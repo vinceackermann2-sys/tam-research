@@ -138,7 +138,10 @@ def validate_group(episodes: tuple[PairedEpisode, ...]) -> None:
     base_view = seal_model_view(base)
     original_redacted = redact_memory_values(base_view)
     original_bag = model_code_bag(base_view)
-    if Counter(original_bag) != Counter(f"CODE-{code}" for code in ANSWER_IDS):
+    expected_bag = Counter(f"CODE-{code}" for code in ANSWER_IDS)
+    if base.family == "overwrite":
+        expected_bag[f"CODE-{STALE_CODE}"] += 1
+    if Counter(original_bag) != expected_bag:
         raise ValueError("memory candidate multiset must contain each code once")
     originals = sorted(x.code for x in base.facts if x.code is not None)
     original_target_pos = oracle_read(base)[2]
