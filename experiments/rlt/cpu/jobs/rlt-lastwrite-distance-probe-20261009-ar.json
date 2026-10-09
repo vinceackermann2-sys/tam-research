@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-lastwrite-distance-probe-20261009-ar",
+  "purpose": "exploratory synthetic long-distance last-write state retention vs causal Transformer; no GPU and no general-language claim",
+  "task": "last_write_binary_state_query",
+  "model_order": [
+    "residual_scan",
+    "adaptive_scan",
+    "transformer_control"
+  ],
+  "train_seed": 20261061,
+  "eval_seed": 20291061,
+  "model_seed": 20301061,
+  "seq_len": 64,
+  "vocab_size": 16,
+  "distances": [
+    1,
+    4,
+    16,
+    40,
+    63
+  ],
+  "batch_size": 8,
+  "time_budget_seconds_each": 35,
+  "max_train_steps": 1000,
+  "optimizer": "AdamW",
+  "learning_rate": 0.003,
+  "weight_decay": 0.01,
+  "evaluation_examples_per_distance": 128,
+  "expected_parameters_each": 29504,
+  "training_backend": "cpu",
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false
+}
