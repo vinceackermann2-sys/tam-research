@@ -101,9 +101,12 @@ def make_example(
     ordered_values = _ranked_unique(VALUE_TOKENS, f, "event_values")
     chunks: list[tuple[int, ...]] = []
     other_cursor = _entropy(f, "other_rotation") % len(unrelated)
+    other_index = 0
     for pos in range(EVENT_CHUNKS):
         is_tracked = pos in tracked_positions
-        event_key = tracked if is_tracked else unrelated[(other_cursor + pos) % len(unrelated)]
+        event_key = tracked if is_tracked else unrelated[(other_cursor + other_index) % len(unrelated)]
+        if not is_tracked:
+            other_index += 1
         chunk = (
             WRITE, event_key, ordered_values[pos],
             *_fill(f, pos, CHUNK_SIZE - 3),
