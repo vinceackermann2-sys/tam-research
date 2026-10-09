@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-lastwrite-near-positive-control-20261009-as",
+  "purpose": "CPU-only learning sanity check after non-diagnostic AR",
+  "task": "nearest_write_binary_query",
+  "model_order": [
+    "residual_scan",
+    "adaptive_scan",
+    "transformer_control"
+  ],
+  "training_seed": 20261062,
+  "eval_seed": 20291062,
+  "model_seed": 20301062,
+  "seq_len": 8,
+  "distance": 1,
+  "batch_size": 8,
+  "training_seconds_each": 25,
+  "no_max_step_cap": true,
+  "learning_rate": 0.003,
+  "optimizer": "AdamW",
+  "weight_decay": 0.01,
+  "heldout_examples_per_class": 128,
+  "expected_parameters_each": 29504,
+  "training_backend": "cpu",
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false
+}
