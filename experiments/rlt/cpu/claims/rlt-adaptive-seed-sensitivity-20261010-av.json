@@ -1,0 +1,37 @@
+{
+  "automatic_retry_authorized": false,
+  "branch": "exp/rlt-colab",
+  "claimed_unix": 1791646941.1543128,
+  "gpu_requested": false,
+  "job_blob_sha": "8208e98c7de2eacb70feea17379fba3b50abb2fa",
+  "job_id": "rlt-cpu-adaptive-seed-sensitivity-20261010-av",
+  "registered_case_seeds": [
+    {
+      "case": 0,
+      "easy_seed": 20261170,
+      "eval_seed": 20291170,
+      "long_seed": 20271170,
+      "model_seed": 20301170
+    },
+    {
+      "case": 1,
+      "easy_seed": 20261171,
+      "eval_seed": 20291171,
+      "long_seed": 20271171,
+      "model_seed": 20301171
+    },
+    {
+      "case": 2,
+      "easy_seed": 20261172,
+      "eval_seed": 20291172,
+      "long_seed": 20271172,
+      "model_seed": 20301172
+    }
+  ],
+  "schema": 1,
+  "scientific_execution": false,
+  "source_blob_sha": "efaf13895304423b46301a5dbdc16d2d7087d16a",
+  "status": "claimed",
+  "test_blob_sha": "5f46e35207463f92e29446adbd14519e80137870",
+  "trigger_sha": "fd6b9bc39d596d07923649b0240b5f94eb4ebf1a"
+}
