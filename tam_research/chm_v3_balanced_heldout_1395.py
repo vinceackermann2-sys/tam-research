@@ -40,7 +40,7 @@ EVAL_ENTITIES = {
 HISTORICAL_STOP = "CHM_V3_100M_DAEC_STAGE_C_STOP"
 HISTORICAL_SEED_CONSUMED = 2013161
 SOURCE_BLOBS = {
-    "model": "ffe14b0701e18493a2bf9b45a1238bacd5e3eab".replace("8bacd", "8bacd"),
+    "model": "ffe14b0701e18493a2bf9b45a1238b5acd5e3eab",
     "balanced_schedule": "6d40dafc7a487cfc8d5a39d5067ff00190e60181",
     "benchmark": "1b71eede754f7396ad2e7284693d6d5c1b8273b4",
     "sealed_view": "5bce89954d7a4fd788d1d1bdd972abf744399715",
