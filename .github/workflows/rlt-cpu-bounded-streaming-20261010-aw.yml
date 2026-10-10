@@ -1,0 +1,164 @@
+name: RLT CPU bounded streaming memory AW
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-cpu-bounded-streaming-20261010-aw.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-cpu-bounded-streaming-aw
+  cancel-in-progress: false
+
+jobs:
+  bounded-memory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      BRANCH: exp/rlt-colab
+      JOB_PATH: experiments/rlt/cpu/jobs/rlt-bounded-streaming-vs-reset-20261010-aw.json
+      SCRIPT_PATH: experiments/rlt/cpu_bounded_streaming_aw.py
+      TEST_PATH: tests/test_rlt_cpu_bounded_streaming_aw.py
+      MODEL_PATH: experiments/rlt/model_streaming_bounded.py
+      RESULT_PATH: experiments/rlt/cpu/results/rlt-bounded-streaming-vs-reset-20261010-aw.json
+    steps:
+      - name: Checkout RLT isolated branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Verify unused AW result, frozen protocol and prior CPU model success
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 33; fi
+          python -m py_compile "$SCRIPT_PATH" "$MODEL_PATH" "$TEST_PATH"
+          python - <<'PY'
+          import json,pathlib,urllib.request
+          p=pathlib.Path('experiments/rlt/cpu/jobs/rlt-bounded-streaming-vs-reset-20261010-aw.json')
+          j=json.loads(p.read_text())
+          assert j=={
+            'schema':1,'job_id':'rlt-cpu-bounded-streaming-vs-reset-20261010-aw',
+            'purpose':'First CPU-only model-level fixed-context cross-chunk memory vs reset control',
+            'candidates':['streaming_carry','same_compute_reset_control'],
+            'model_seed':20301081,'easy_seed':20261081,'long_seed':20271081,
+            'eval_seed':20291081,'seq_len':128,'chunk_size':8,
+            'distances':[1,4,16,64,127],'batch_size':8,
+            'expected_parameters_each':27712,'balanced_eval_per_class_per_distance':128,
+            'easy_seconds_each':15,'long_seconds_each':90,
+            'easy_lr':0.003,'long_lr':0.001,'weight_decay':0.01,
+            'optimizer':'AdamW','no_step_cap':True,
+            'only_cross_chunk_memory_is_affine_state':True,
+            'attention_limited_to_current_chunk':True,
+            'counterfactual_suffix_leakage_test':True,
+            'requires_bounded_streaming_cpu_run_id':38066301595,
+            'gpu_requested':False,'scientific_execution':False,
+            'breakthrough_claim_supported':False,'automatic_retry':False
+          },j
+          source=pathlib.Path('experiments/rlt/cpu_bounded_streaming_aw.py').read_text()
+          for token in [
+            'JOB_ID = "rlt-cpu-bounded-streaming-vs-reset-20261010-aw"',
+            'DISTANCES = (1, 4, 16, 64, 127)',
+            'PARAMETERS = 27_712',
+            'EASY_SECONDS = 15.0','LONG_SECONDS = 90.0',
+            'EASY_SEED = 20_261_081','LONG_SEED = 20_271_081',
+            'EVAL_SEED = 20_291_081','MODEL_SEED = 20_301_081',
+            'assert_no_target_information_in_bounded_suffix()',
+            '"CPU_BOUNDED_STREAMING_MEMORY_ENGINEERING_ONLY"',
+          ]: assert token in source,token
+          assert 'MAX_TRAIN_STEPS' not in source
+          url='https://api.github.com/repos/vinceackermann2-sys/tam-research/actions/runs/38066301595'
+          req=urllib.request.Request(url,headers={'User-Agent':'rlt-aw-prereq'})
+          with urllib.request.urlopen(req,timeout=30) as response:
+            run=json.load(response)
+          assert run['status']=='completed' and run['conclusion']=='success'
+          assert run['head_branch']=='exp/rlt-colab'
+          PY
+      - name: Install CPU-only torch pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Test equal parameters balanced targets and inaccessible suffix
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q "$TEST_PATH" -vv
+      - name: Run one zero-GPU bounded attention memory screen
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          test ! -f "$RESULT_PATH"
+          timeout 24m python -m experiments.rlt.cpu_bounded_streaming_aw
+          test -f "$RESULT_PATH"
+      - name: Verify and commit single immutable AW result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess,math
+          path=pathlib.Path(os.environ['RESULT_PATH'])
+          data=json.loads(path.read_text())
+          assert data['status']=='complete'
+          assert data['job_id']=='rlt-cpu-bounded-streaming-vs-reset-20261010-aw'
+          assert data['classification']=='CPU_BOUNDED_STREAMING_MEMORY_ENGINEERING_ONLY'
+          assert data['gpu_requested'] is False and data['scientific_execution'] is False
+          assert data['breakthrough_claim_supported'] is False
+          pr=data['protocol']
+          assert pr['params_each']==27712 and pr['chunk_size']==8
+          assert pr['seq_len']==128 and pr['distances']==[1,4,16,64,127]
+          assert pr['only_cross_chunk_memory_is_affine_state'] is True
+          assert pr['counterfactual_suffix_leakage_test'] is True
+          assert [r['name'] for r in data['results']]==[
+            'streaming_carry','same_compute_reset_control'
+          ]
+          for row in data['results']:
+            assert row['parameters']==27712
+            assert row['easy_training']['seconds']>=15
+            assert row['long_training']['seconds']>=90
+            assert row['easy_training']['steps']>0 and row['long_training']['steps']>0
+            assert set(row['final'])=={'1','4','16','64','127'}
+            for metric in row['final'].values():
+              assert metric['examples']==256
+              assert 0<=metric['accuracy']<=1
+              assert metric['binary_nll']>=0
+              assert 0<=metric['class0_accuracy']<=1
+              assert 0<=metric['class1_accuracy']<=1
+          data['repository_provenance']={
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'source_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['SCRIPT_PATH']],text=True).strip(),
+            'model_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['MODEL_PATH']],text=True).strip(),
+            'test_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['TEST_PATH']],text=True).strip(),
+            'job_blob_sha':subprocess.check_output(
+              ['git','rev-parse','HEAD:'+os.environ['JOB_PATH']],text=True).strip(),
+          }
+          path.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
+          for row in data['results']:
+            print(row['name'],'accuracy_by_distance',
+              {gap:round(v['accuracy'],4) for gap,v in row['final'].items()})
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT_PATH" 2>/dev/null; then exit 34; fi
+          git add "$RESULT_PATH"
+          git commit -m "rlt cpu: preserve AW bounded-streaming carry-vs-reset evidence"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
