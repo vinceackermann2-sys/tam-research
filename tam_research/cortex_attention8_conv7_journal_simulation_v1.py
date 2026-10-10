@@ -25,6 +25,9 @@ class SyntheticJournal:
 
     def _read(self, model: str | None, action: str) -> dict[str, Any] | None:
         path = self._path(model, action)
+        # Reject valid and dangling symlinks; neither is an authoritative marker.
+        if path.is_symlink():
+            raise RuntimeError("symlink synthetic marker is forbidden")
         if not path.exists():
             return None
         try:
@@ -90,10 +93,13 @@ class SyntheticJournal:
                 raise RuntimeError("attempt without reservation")
             state = "UNRESERVED"
         else:
-            state = "SYNTHETIC_ALL_COMPLETE_NOT_EVIDENCE"
-            for i, status in enumerate(statuses):
-                if i and statuses[i-1] != "COMPLETE" and status != "NONE":
+            # Audit every model transition before acting on any terminal status.
+            # An early break on ERROR/STARTED/NONE hid forged later markers.
+            for i in range(1, len(statuses)):
+                if statuses[i] != "NONE" and statuses[i - 1] != "COMPLETE":
                     raise RuntimeError("out of order, resumed, or post-failure attempt")
+            state = "SYNTHETIC_ALL_COMPLETE_NOT_EVIDENCE"
+            for status in statuses:
                 if status == "ERROR":
                     state = "TERMINAL_FAILURE_NO_RETRY"
                     break
