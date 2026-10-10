@@ -55,7 +55,7 @@ def test_eight_counterfactual_train_rotations_are_oracle_sound(family,entity):
     assert all(view.query==views[0].query for view in views)
     assert len({view.answer_options for view in views})==1
     assert all(set(view.answer_options)==set(f"CODE-{c}" for c in v4.CODES) for view in views)
-    assert all(not re.search(r"CODE-\\d+", view.query) for view in views)
+    assert all(not re.search(r"CODE-\d+", view.query) for view in views)
     if family in v4.POSITIVES:
         assert len({view.memory_text for view in views})==8
     else:
@@ -83,12 +83,12 @@ def test_adversarial_record_layout_and_query_bag_redaction_shortcuts(family):
         ]
         assert len(set(layout))==1
         redacted=[
-            re.sub(r"CODE-\\d+", "CODE-REDACTED", view.memory_text)
+            re.sub(r"CODE-\d+", "CODE-REDACTED", view.memory_text)
             for view in views
         ]
         assert len(set(redacted))==1
         bags=[
-            tuple(sorted(re.findall(r"CODE-\\d+",view.memory_text)))
+            tuple(sorted(re.findall(r"CODE-\d+",view.memory_text)))
             for view in views
         ]
         assert len(set(bags))==1
