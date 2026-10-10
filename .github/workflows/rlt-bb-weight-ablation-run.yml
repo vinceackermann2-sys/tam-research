@@ -1,0 +1,110 @@
+name: RLT BB inference-only trained BA state-erasure evidence
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-bb-weight-ablation-run.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-bb-weight-ablation-20261010
+  cancel-in-progress: false
+
+jobs:
+  inference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+      BRANCH: exp/rlt-ax-bounded-transformer
+      SRC: experiments/rlt/cpu_ba_weight_ablation_bb.py
+      JOB: experiments/rlt/cpu/jobs/rlt-ba-weight-ablation-20261010-bb.json
+      RESULT: experiments/rlt/cpu/results/rlt-ba-weight-ablation-20261010-bb.json
+      CHECKPOINT: experiments/rlt/cpu/checkpoints/rlt-carry-intervention-20261010-ba/carry.pt
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Verify immutable BA checkpoint and green BB preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse "origin/$BRANCH")" = "$GITHUB_SHA"
+          test ! -e "$RESULT"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 31; fi
+          git ls-files --error-unmatch "$CHECKPOINT"
+          test "$(git hash-object "$CHECKPOINT")" = "d9d536b1b626412e20d57042dd7d1730571be276"
+          python - <<'PY'
+          import json,os,pathlib,subprocess,urllib.request
+          job=json.loads(pathlib.Path(os.environ['JOB']).read_text())
+          assert job['schema']==1
+          assert job['job_id']=='rlt-cpu-ba-weight-ablation-20261010-bb'
+          assert job['preflight_run_id']==38081782859
+          assert job['preflight_commit']=='23b8c670ea2d0ca151d312aae986f128e4aefb3c'
+          assert job['runner_blob_sha']=='edcad5cef7d0385c70bc1721129ca4c1cea46f4d'
+          assert subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SRC']],text=True).strip()==job['runner_blob_sha']
+          assert job['eval_seeds']==[20631081,20641081]
+          assert job['counterfactual_seed']==20651081
+          assert job['gpu_requested'] is False and job['new_training'] is False
+          assert job['automatic_retry'] is False
+          req=urllib.request.Request('https://api.github.com/repos/vinceackermann2-sys/tam-research/actions/runs/38081782859',headers={'User-Agent':'rlt-bb-eval'})
+          with urllib.request.urlopen(req,timeout=30) as f: test=json.load(f)
+          assert test['conclusion']=='success' and test['status']=='completed'
+          assert test['head_sha']==job['preflight_commit'] and test['run_attempt']==1
+          PY
+      - name: Install CPU-only PyTorch
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Recheck checkpoint-loading and erasure controls, without training
+        run: python -m pytest -q tests/test_rlt_ba_weight_ablation_bb.py
+      - name: One inference-only registered holdout screen
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 12m python -m experiments.rlt.cpu_ba_weight_ablation_bb
+          test -s "$RESULT"
+      - name: Preserve BB read-only analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          p=pathlib.Path(os.environ['RESULT'])
+          d=json.loads(p.read_text())
+          assert d['status']=='complete' and d['job_id']=='rlt-cpu-ba-weight-ablation-20261010-bb'
+          assert d['new_training'] is False and d['gpu_requested'] is False
+          assert d['breakthrough_claim_supported'] is False
+          assert set(d['scores'])=={'carry','full_reset','erase_t120'}
+          for m in d['scores'].values():
+              assert set(m)=={'1','4','16','64','127'}
+              for r in m.values():
+                  assert r['examples']==512 and 0<=r['accuracy']<=1 and r['binary_nll']>=0
+          assert set(d['counterfactuals'])=={'16','64','127'}
+          for gap, models in d['counterfactuals'].items():
+              for name in ('full_reset','erase_t120'):
+                  assert models[name]['exact_same_logits'] is True
+          d['repository_provenance']={
+              'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+              'runner_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SRC']],text=True).strip(),
+              'job_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['JOB']],text=True).strip(),
+              'preflight_run_id':38081782859}
+          p.write_text(json.dumps(d,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          test "$(git rev-parse "origin/$BRANCH")" = "$GITHUB_SHA"
+          git add "$RESULT"
+          git commit -m "rlt bb: freeze inference-only BA trained-state causal ablation"
+          git push origin "HEAD:$BRANCH"
+          git fetch origin "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$BRANCH")"
+          git show "origin/$BRANCH:$RESULT" >/dev/null

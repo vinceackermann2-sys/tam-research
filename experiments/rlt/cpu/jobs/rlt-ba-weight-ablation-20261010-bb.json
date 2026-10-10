@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-ba-weight-ablation-20261010-bb",
+  "purpose": "Inference-only causal erasure of BA's frozen learned recurrent state on two fresh balanced heldout seeds",
+  "preflight_run_id": 38081782859,
+  "preflight_commit": "23b8c670ea2d0ca151d312aae986f128e4aefb3c",
+  "runner_blob_sha": "edcad5cef7d0385c70bc1721129ca4c1cea46f4d",
+  "ba_evidence_commit": "742fba9f9852e517efaba96743d4d3e2bb3a6f94",
+  "ba_checkpoint_sha256": "74fe2bb1cfb74242aaba3d0eb8ac5df13c1a421a7d50054a0d7dbf503fb4149b",
+  "eval_seeds": [
+    20631081,
+    20641081
+  ],
+  "counterfactual_seed": 20651081,
+  "models": [
+    "carry",
+    "full_reset",
+    "erase_t120"
+  ],
+  "distances": [
+    1,
+    4,
+    16,
+    64,
+    127
+  ],
+  "gpu_requested": false,
+  "new_training": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false
+}
