@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-bounded-threeway-20261010-ay",
+  "purpose": "Fresh one-shot CPU engineering benchmark after AX causal/KV correctness preflight",
+  "source_parent_commit": "771cf1d2d0d00d5d2415f8ee5fe9c1f20d89f82f",
+  "runner_blob_sha": "fc2cb22ca849cf1cc24b637c806765a0dc730555",
+  "preflight_run_id": 38072873895,
+  "candidates": [
+    "carry",
+    "reset",
+    "sliding_kv"
+  ],
+  "expected_parameters": {
+    "carry": 27712,
+    "reset": 27712,
+    "sliding_kv": 27680
+  },
+  "seeds": {
+    "easy": 20411081,
+    "long": 20421081,
+    "eval": 20431081,
+    "model": 20441081,
+    "diagnostic": 20451081
+  },
+  "window": 8,
+  "transformer_receptive_distance": 14,
+  "sequence_length": 128,
+  "distances": [
+    1,
+    4,
+    16,
+    64,
+    127
+  ],
+  "batch_size": 8,
+  "balanced_eval_examples_per_class_per_distance": 128,
+  "train_seconds_each": {
+    "easy": 15,
+    "long": 90
+  },
+  "optimizer": "AdamW",
+  "learning_rates": {
+    "easy": 0.003,
+    "long": 0.001
+  },
+  "weight_decay": 0.01,
+  "same_time_not_same_tokens_or_flops": true,
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false
+}
