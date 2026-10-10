@@ -1,0 +1,55 @@
+name: CHM-v3 tiny matched CPU report 1385
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  score:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      github.event.issue.title == '[chm-v3-1377-tiny-cpu-matched-one-shot-1400-v1]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - name: Freeze exact issue payload and forbid rerun
+        env:
+          ATTEMPT: ${{ github.run_attempt }
+          BODY: ${{ github.event.issue.body }
+        run: |
+          test "$ATTEMPT" = "1"
+          python - <<'PY'
+          import json,os,subprocess
+          body=json.loads(os.environ["BODY"])
+          assert body["phase"]=="chm-v3-1377-tiny-cpu-matched-one-shot-1400-v1"
+          assert body["control_issue"]==1385 and body["prereg_issue"]==1377
+          assert body["training_steps_per_arm"]==48
+          assert body["heldout_cases_per_split_per_arm"]==32
+          assert body["historical_scientific_seed_consumed"]==2013161
+          assert body["gpu_authorized"] is False
+          sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          tree=subprocess.check_output(["git","rev-parse","HEAD^{tree}"],text=True).strip()
+          assert sha==body["source_sha"] and tree==body["source_tree"]
+          assert subprocess.check_output(["git","rev-parse","HEAD:tam_research/chm_v3_matched_tiny_models_1377.py"],text=True).strip()=="ffe14b0701e18493a2bf9b45a1238b5acd5e3eab"
+          assert subprocess.check_output(["git","rev-parse","HEAD:tam_research/chm_v3_counterfactual_multiset_suite_1373.py"],text=True).strip()=="1b71eede754f7396ad2e7284693d6d5c1b8273b4"
+          PY
+      - name: Install CPU dependencies
+        run: |
+          python -m pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+      - name: Run frozen 48-step CPU comparison once
+        run: |
+          export CUDA_VISIBLE_DEVICES=""
+          export OMP_NUM_THREADS=1
+          export MKL_NUM_THREADS=1
+          python scripts/chm_v3_matched_tiny_cpu_report_1385.py
+          test -s chm-v3-1385-cpu-only-scored-report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chm-v3-1385-tiny-cpu-score
+          path: chm-v3-1385-cpu-only-scored-report.json
+          if-no-files-found: error
