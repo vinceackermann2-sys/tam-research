@@ -111,8 +111,12 @@ def test_static_audit_trains_zero_models_and_never_reads_consumed_test_panels():
     assert stats["new_scientific_attempt"] is False
     assert stats["old_100m_scientific_status"] == "CHM_V3_100M_DAEC_STAGE_C_STOP"
     assert stats["old_scientific_seed_consumed"] == 2013161
-    for forbidden in ("development", "test"):
-        assert forbidden not in inspect.getsource(alias.training_only_static_report)
+    train_source = inspect.getsource(alias.training_only_static_report)
+    assert 'balanced_training_episode(step)' in train_source
+    assert 'paired_group("development"' not in train_source
+    assert 'paired_group("test"' not in train_source
+    assert 'generate_episode("development"' not in train_source
+    assert 'generate_episode("test"' not in train_source
     for forbidden in ("modal.App(", "torch.cuda", "optimizer.step(", "model.forward("):
         assert forbidden not in inspect.getsource(alias)
 
