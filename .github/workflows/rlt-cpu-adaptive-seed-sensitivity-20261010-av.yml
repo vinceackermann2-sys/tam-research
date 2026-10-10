@@ -32,6 +32,10 @@ jobs:
         with:
           ref: exp/rlt-colab
           fetch-depth: 0
+      - name: Install CPU-only test dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
       - name: Reaudit live main and RLT and reject claimed or completed AV
         shell: bash
         run: |
@@ -98,10 +102,6 @@ jobs:
                   if reused:overlap.append((str(f),sorted(reused)))
           assert not overlap,overlap
           PY
-      - name: Install CPU-only test dependencies
-        run: |
-          set -euo pipefail
-          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
       - name: Test AV balanced seed protocol and finite gradients on CPU
         shell: bash
         env:
