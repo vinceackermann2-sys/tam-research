@@ -1,0 +1,59 @@
+name: RLT bounded streaming model CPU correctness
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-bounded-streaming-model-zero-gpu-20261010.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rlt-bounded-streaming-model-cpu-20261010
+  cancel-in-progress: false
+
+jobs:
+  streaming-model-correctness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Confirm branch source and no GPU execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab
+          test "$(git branch --show-current)" = "exp/rlt-colab"
+          python -m py_compile experiments/rlt/model_streaming_bounded.py tests/test_rlt_model_streaming_bounded.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/rlt/model_streaming_bounded.py').read_text()
+          assert 'class BoundedChunkGatedRLT' in p
+          assert 'carry_between_chunks' in p
+          assert 'BoundedStreamState' in p
+          assert 'self.encode(tokens)' in p
+          assert 'self._parallel_causal_cross_attention' in p
+          assert 'chunk_size' in p
+          assert 'associative_affine_scan' in p
+          assert 'gpu=' not in p
+          assert 'torch.cuda' not in p
+          PY
+      - name: Install CPU dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Verify streaming forward state parity causal gradients and bounded context
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_rlt_model_streaming_bounded.py -vv
