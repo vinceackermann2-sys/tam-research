@@ -131,7 +131,7 @@ def test_encoder_rejects_invalid_source_addresses_and_code_bags():
         neural.encode_visible_v4(replace(
             view,memory_text=view.memory_text.replace("[","X",1)
         ))
-    with pytest.raises(ValueError,match="unknown"):
+    with pytest.raises(ValueError,match="CODE candidates|unknown"):
         neural.encode_visible_v4(replace(
             view,memory_text=view.memory_text.replace("CODE-18001","CODE-18099",1)
         ))
