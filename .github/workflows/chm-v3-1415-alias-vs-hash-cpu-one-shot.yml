@@ -1,0 +1,153 @@
+name: "CHM-v3 #1415 one-shot aliased-vs-hashed identifier CPU score"
+
+# Path-only main push. Never rerun or amend after the original attempt.
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/chm-v3-1415-alias-vs-hash-cpu-one-shot.yml
+
+permissions:
+  contents: read
+
+jobs:
+  source-locked-unique-cpu-score:
+    if: github.run_attempt == 1 && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+    steps:
+      - name: Checkout exact first main push
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Freeze exact model, benchmark and one-shot scoring source blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:tam_research/chm_v3_alias_tiny_adapters_1410.py)" = "6e58602ac216213df340cd6c17d69104dc9b42fa"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_query_anchored_alias_1407.py)" = "0305b6c0452fb1e383d702ea4b194944ac8bf433"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_matched_tiny_models_1377.py)" = "ffe14b0701e18493a2bf9b45a1238b5acd5e3eab"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_balanced_train_schedule_1391.py)" = "6d40dafc7a487cfc8d5a39d5067ff00190e60181"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_multiset_suite_1373.py)" = "1b71eede754f7396ad2e7284693d6d5c1b8273b4"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_model_view_1365.py)" = "5bce89954d7a4fd788d1d1bdd972abf744399715"
+          test "$(git rev-parse HEAD:scripts/chm_v3_matched_tiny_one_shot_cpu_report_1377.py)" = "6e7d6cc1996e942cd7475a17af5f4a9a7928d031"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_alias_vs_hash_one_shot_1415.py)" = "8636a48e640cd0c30fb58e35124a4f546fb732b3"
+          test "$(git rev-parse HEAD:scripts/chm_v3_alias_vs_hash_one_shot_1415.py)" = "de800585446fce208ef6bd1f93fce55abcb776f3"
+          test "$(git rev-parse HEAD:tests/test_chm_v3_alias_vs_hash_one_shot_1415.py)" = "1d403443c59cb3b4930e3726cd398c5c6304a9c4"
+          test "$(git rev-parse HEAD:research/chm_v3_alias_vs_hash_one_shot_protocol_1415.md)" = "901aba7717a0d02667bf09cf230e417a49cdc545"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec.py)" = "77e9ccbff4383be40e6e2865503e1c3926bbda74"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_stage_c.py)" = "b1a58e52b76ff7d06f14a569a7b6274afee8076c"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_target_nll_stable.py)" = "482e2c930fa02448e45327747f10571315fd41dc"
+          echo "CHM_V3_1415_FIRST_RUN_SOURCE_BLOBS_PASS"
+
+      - name: Install CPU-only PyTorch 2.10 and project
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+
+      - name: Execute exactly one source-locked 256-step/arm CPU run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/chm_v3_alias_vs_hash_one_shot_1415.py | tee chm-v3-1415-one-shot.log
+
+      - name: Validate exactly 256 case-level predictions and negative controls
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          log=Path("chm-v3-1415-one-shot.log").read_text(encoding="utf-8")
+          marker="CHM_V3_1415_ALIAS_VS_HASH_ONE_SHOT="
+          rows=[line[len(marker):] for line in log.splitlines() if line.startswith(marker)]
+          assert len(rows)==1, "exactly one original source-bound result marker"
+          r=json.loads(rows[0])
+          assert r["classification"]=="CHM_V3_1415_ALIAS_VS_HASH_CPU_EXPLORATORY"
+          assert r["historical_100m_scientific_status"]=="CHM_V3_100M_DAEC_STAGE_C_STOP"
+          assert r["historical_scientific_seed_2013161_consumed"] is True
+          assert r["prior_confounded_48_step_run_not_replayed"]==38064856253
+          assert r["prior_balanced_256_step_run_not_replayed"]==38066888678
+          for flag in ("gpu_allocated","modal_used","new_scientific_attempt","breakthrough_claim"):
+              assert r[flag] is False
+          assert r["cpu_threads"]==1
+          assert r["train_steps_per_arm"]==256 and r["train_example_count_per_arm"]==256
+          assert r["train_audit"]["all_positive_groups_cover_all_eight_answers"] is True
+          assert r["training_tokens_per_arm"]==19264
+          arms=("whole_decoder","alias_decoder","whole_pointer_ce","alias_pointer_ce")
+          assert set(r["parameters"])==set(arms)
+          assert r["parameters"]["whole_decoder"]==r["parameters"]["alias_decoder"]==271049
+          assert r["parameters"]["whole_pointer_ce"]==r["parameters"]["alias_pointer_ce"]==273097
+          assert set(r["train_seconds_by_arm"])==set(arms)
+          assert all(0<x<35*60 for x in r["train_seconds_by_arm"].values())
+          assert r["encoder_cpu_timing"]["train_views"]==256
+          assert r["encoder_cpu_timing"]["shared_token_count"]==19264
+          assert r["heldout_entity_by_split"]=={"development":3,"test":3}
+          predictions=r["predictions"]
+          assert len(predictions)==256
+          assert len({(x["arm"],x["split"],x["family"],x["counterfactual_variant"])
+                      for x in predictions})==256
+          assert set(r["scores"])=={"development","test"}
+          families={"direct","overwrite","two_hop","no_match"}
+          for split in ("development","test"):
+              assert set(r["scores"][split])==set(arms)
+              assert set(r["analytic_memory_blind_controls"][split])==families
+              for arm in arms:
+                  cell=r["scores"][split][arm]
+                  assert cell["cases"]==32
+                  assert 0<=cell["overall_accuracy"]<=1
+                  assert 0<=cell["positive_memory_accuracy"]<=1
+                  assert set(cell["per_family"])==families
+                  for fam,info in cell["per_family"].items():
+                      assert info["cases"]==8
+                      assert info["independent_entity_groups"]==1
+                      assert info["confidence_interval_justified"] is False
+              for fam in ("direct","overwrite","two_hop"):
+                  blind=r["analytic_memory_blind_controls"][split][fam]
+                  assert blind["eight_way_complete"] is True
+                  for key in ("query_only_upper_bound_accuracy",
+                              "redacted_layout_only_upper_bound_accuracy",
+                              "bag_of_codes_only_upper_bound_accuracy"):
+                      assert blind[key]==.125
+          for x in predictions:
+              assert x["arm"] in arms and x["split"] in ("development","test")
+              assert x["counterfactual_variant"] in range(8)
+              assert x["entity"]==f"V3-{x['split']}-E003"
+              assert x["predicted_answer_id"] in (None,18001,18002,18003,18004,
+                                                   18005,18006,18007,18008)
+              assert x["gold_answer_id_evaluator_only"] in (
+                  None,18001,18002,18003,18004,18005,18006,18007,18008
+              )
+              assert isinstance(x["correct_answer"],bool)
+              assert math.isfinite(x["confidence"]) and 0<=x["confidence"]<=1
+          assert "not sequential hard" in r["interpretation_limit"] or (
+              "SOFT-conditioned" in r["interpretation_limit"]
+          )
+          Path("chm-v3-1415-full-first-run.json").write_text(
+              json.dumps(r,indent=2,sort_keys=True,allow_nan=False)+"\n",
+              encoding="utf-8",
+          )
+          print("CHM_V3_1415_ONE_SHOT_SOURCE_BOUND_SCHEMA_PASS")
+          PY
+
+      - name: Archive complete first original CPU score and 256 predictions
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v3-1415-alias-vs-hash-original-cpu-evidence
+          path: |
+            chm-v3-1415-one-shot.log
+            chm-v3-1415-full-first-run.json
+          retention-days: 90
