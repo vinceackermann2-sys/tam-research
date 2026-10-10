@@ -1,0 +1,334 @@
+name: RLT CPU adaptive seed sensitivity AV
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-cpu-adaptive-seed-sensitivity-20261010-av.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-cpu-adaptive-seed-sensitivity-20261010-av
+  cancel-in-progress: false
+
+env:
+  BRANCH: exp/rlt-colab
+  JOB_PATH: experiments/rlt/cpu/jobs/rlt-adaptive-seed-sensitivity-20261010-av.json
+  SCRIPT_PATH: experiments/rlt/cpu_seed_sensitivity_av.py
+  TEST_PATH: tests/test_rlt_cpu_seed_sensitivity_av.py
+  CLAIM_PATH: experiments/rlt/cpu/claims/rlt-adaptive-seed-sensitivity-20261010-av.json
+  AU_PATH: experiments/rlt/cpu/results/rlt-recurrence-path-attribution-20261009-au.json
+  OUTPUT_PREFIX: experiments/rlt/cpu/results/rlt-adaptive-seed-sensitivity-20261010-av
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout frozen AV source on isolated branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Reaudit live main and RLT and reject claimed or completed AV
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo "main=$(git rev-parse origin/main) rlt=$(git rev-parse origin/$BRANCH)"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          for index in 0 1 2; do
+            if git cat-file -e "origin/$BRANCH:${OUTPUT_PREFIX}-case${index}.json" 2>/dev/null; then exit 32; fi
+          done
+          if git cat-file -e "origin/$BRANCH:${OUTPUT_PREFIX}-summary.json" 2>/dev/null; then exit 33; fi
+          python -m py_compile "$SCRIPT_PATH" "$TEST_PATH"
+          git show "origin/$BRANCH:$AU_PATH" >/tmp/au.json
+          python - <<'PY'
+          import json,os,pathlib
+          au=json.load(open('/tmp/au.json'))
+          assert au['status']=='complete'
+          assert au['classification']=='CPU_RECURRENT_PATH_ABLATION_EXPLORATORY_ONLY'
+          assert au['gpu_requested'] is False
+          assert [r['name'] for r in au['results']]==['residual_scan','adaptive_scan']
+          assert all(all(c['accuracy']==1 for c in r['ablated_long_by_distance']['full'].values()) for r in au['results'])
+          p=pathlib.Path(os.environ['JOB_PATH'])
+          job=json.loads(p.read_text())
+          from experiments.rlt.cpu_seed_sensitivity_av import (
+              JOB_ID,CASES,MODELS,EASY_SECONDS,LONG_SECONDS,DISTANCES,
+              EXPECTED_PARAMETERS,
+          )
+          assert job['schema']==1 and job['job_id']==JOB_ID
+          assert job['purpose']=='three fresh CPU-only seeds to assess adaptive-vs-static RLT curriculum instability; no scientific replication'
+          assert job['cases']==list(CASES)
+          assert job['models']==list(MODELS)
+          assert job['easy_seconds_each']==EASY_SECONDS==20.0
+          assert job['long_seconds_each']==LONG_SECONDS==90.0
+          assert job['long_distances']==list(DISTANCES)
+          assert job['expected_parameters_each']==EXPECTED_PARAMETERS==29504
+          assert job['easy_seq_len']==8 and job['long_seq_len']==64
+          assert job['batch_size']==8
+          assert job['optimizer']=='AdamW' and job['weight_decay']==0.01
+          assert job['easy_lr']==0.003 and job['long_lr']==0.001
+          assert job['no_max_step_cap'] is True
+          assert job['balanced_eval_examples_per_class_per_distance']==128
+          assert job['gpu_requested'] is False and job['scientific_execution'] is False
+          assert job['breakthrough_claim_supported'] is False and job['automatic_retry'] is False
+          assert job['requires_au_job']=='rlt-cpu-recurrence-path-attribution-20261009-au'
+          all_seeds={v for c in CASES for key,v in c.items() if key.endswith('_seed')}
+          assert len(all_seeds)==12 and not ({58232,58233}&all_seeds)
+          # Never reuse a frozen CPU or Modal seed, even in a CPU-only panel.
+          from pathlib import Path
+          def values(x):
+              if isinstance(x,dict):
+                  for value in x.values():yield from values(value)
+              elif isinstance(x,list):
+                  for value in x:yield from values(value)
+              elif isinstance(x,int):yield x
+          overlap=[]
+          for root in ['experiments/rlt/cpu/jobs','experiments/rlt/modal/jobs','experiments/rlt/modal/claims']:
+              for f in Path(root).glob('*.json'):
+                  if f==p:continue
+                  try: other=json.loads(f.read_text())
+                  except Exception:continue
+                  reused=all_seeds.intersection(values(other))
+                  if reused:overlap.append((str(f),sorted(reused)))
+          assert not overlap,overlap
+          PY
+      - name: Install CPU-only test dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Test AV balanced seed protocol and finite gradients on CPU
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q "$TEST_PATH" -vv
+      - name: Durably reserve AV CPU cases before any model training
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$CLAIM_PATH" 2>/dev/null; then exit 31; fi
+          python - <<'PY'
+          import json,os,pathlib,time,subprocess
+          j=json.load(open(os.environ['JOB_PATH']))
+          data={
+           'schema':1,'job_id':j['job_id'],'status':'claimed',
+           'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+           'claimed_unix':time.time(),
+           'source_blob_sha':subprocess.check_output(
+               ['git','rev-parse','HEAD:'+os.environ['SCRIPT_PATH']],text=True).strip(),
+           'job_blob_sha':subprocess.check_output(
+               ['git','rev-parse','HEAD:'+os.environ['JOB_PATH']],text=True).strip(),
+           'test_blob_sha':subprocess.check_output(
+               ['git','rev-parse','HEAD:'+os.environ['TEST_PATH']],text=True).strip(),
+           'registered_case_seeds':j['cases'],
+           'gpu_requested':False,'scientific_execution':False,
+           'automatic_retry_authorized':False,
+          }
+          p=pathlib.Path(os.environ['CLAIM_PATH'])
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$CLAIM_PATH"
+          git commit -m "rlt cpu: claim AV three new CPU-only seeds before execution"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
+
+  case:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        case: [0, 1, 2]
+    env:
+      AV_CASE: ${{ matrix.case }}
+    steps:
+      - name: Checkout source exactly pinned to AV workflow trigger
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Confirm durable case claim and pinned source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git show "origin/$BRANCH:$CLAIM_PATH" >/tmp/av-claim.json
+          python - <<'PY'
+          import json,os,subprocess
+          c=json.load(open('/tmp/av-claim.json'))
+          assert c['status']=='claimed'
+          assert c['job_id']=='rlt-cpu-adaptive-seed-sensitivity-20261010-av'
+          assert c['trigger_sha']==os.environ['GITHUB_SHA']
+          assert c['gpu_requested'] is False and c['scientific_execution'] is False
+          assert c['automatic_retry_authorized'] is False
+          blob=subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SCRIPT_PATH']],text=True).strip()
+          assert c['source_blob_sha']==blob
+          assert int(os.environ['AV_CASE']) in [0,1,2]
+          PY
+      - name: Install CPU torch without GPU runtime execution
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3'
+      - name: Train exactly one frozen case with full CPU budgets
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          timeout 13m python -m experiments.rlt.cpu_seed_sensitivity_av --case "$AV_CASE"
+          test -f "${OUTPUT_PREFIX}-case${AV_CASE}.json"
+      - name: Upload one immutable case result artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: av-case-${{ matrix.case }}
+          path: experiments/rlt/cpu/results/rlt-adaptive-seed-sensitivity-20261010-av-case${{ matrix.case }}.json
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    needs: case
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout RLT branch to atomically persist full panel
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Download exactly three independently completed CPU results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: av-case-*
+          path: /tmp/av-artifacts
+          merge-multiple: true
+      - name: Validate case metadata, holdouts and compute use and commit all three
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:${OUTPUT_PREFIX}-summary.json" 2>/dev/null; then exit 34; fi
+          for i in 0 1 2; do
+            if git cat-file -e "origin/$BRANCH:${OUTPUT_PREFIX}-case${i}.json" 2>/dev/null; then exit 35; fi
+          done
+          git show "origin/$BRANCH:$CLAIM_PATH" >/tmp/av-claim.json
+          python - <<'PY'
+          import json,os,pathlib,shutil,subprocess,math
+          prefix=os.environ['OUTPUT_PREFIX']
+          claim=json.load(open('/tmp/av-claim.json'))
+          assert claim['job_id']=='rlt-cpu-adaptive-seed-sensitivity-20261010-av'
+          assert claim['status']=='claimed'
+          assert claim['trigger_sha']==os.environ['GITHUB_SHA']
+          base=pathlib.Path('/tmp/av-artifacts')
+          files=list(base.glob('*.json'))
+          assert len(files)==3,files
+          rows=[]
+          for index in range(3):
+              filename=f'rlt-adaptive-seed-sensitivity-20261010-av-case{index}.json'
+              path=base/filename
+              assert path.is_file(),filename
+              data=json.loads(path.read_text())
+              assert data['schema']==1 and data['case']==index
+              assert data['status']=='complete'
+              assert data['job_id']==claim['job_id']
+              assert data['classification']=='CPU_SYNTHETIC_ADAPTIVE_SEED_SENSITIVITY_EXPLORATORY_ONLY'
+              assert data['gpu_requested'] is False
+              assert data['scientific_execution'] is False
+              assert data['breakthrough_claim_supported'] is False
+              p=data['protocol']
+              assert p['case_seeds']==claim['registered_case_seeds'][index]
+              assert p['expected_parameters_each']==29504
+              assert p['easy_seconds']==20 and p['long_seconds']==90
+              assert p['distances']==[1,4,16,40,63]
+              assert p['eval_examples_per_class_per_distance']==128
+              assert [x['name'] for x in data['results']]==['residual_scan','adaptive_scan']
+              for model in data['results']:
+                  assert model['parameters']==29504
+                  assert model['easy_training']['train_seconds']>=20
+                  assert model['long_training']['train_seconds']>=90
+                  assert model['easy_training']['steps']>0 and model['long_training']['steps']>0
+                  for t in ['long_before_by_distance','long_after_by_distance']:
+                      d=model[t]
+                      assert set(d)=={'1','4','16','40','63'}
+                      for cell in d.values():
+                          assert cell['examples']==256 and 0<=cell['accuracy']<=1
+                          assert cell['binary_nll']>=0
+                          assert 0<=cell['class0_accuracy']<=1
+                          assert 0<=cell['class1_accuracy']<=1
+                  assert model['long_all_bins_95pct']==all(
+                      cell['accuracy']>=0.95 for cell in model['long_after_by_distance'].values()
+                  )
+                  assert all(math.isfinite(v) for v in model['after_long_gate_stats'].values())
+              data['repository_provenance']={
+                  'branch':os.environ['BRANCH'],
+                  'trigger_sha':os.environ['GITHUB_SHA'],
+                  'source_blob_sha':claim['source_blob_sha'],
+                  'job_blob_sha':claim['job_blob_sha'],
+                  'test_blob_sha':claim['test_blob_sha'],
+                  'case_workflow_job':'matrix'
+              }
+              destination=pathlib.Path(prefix+f'-case{index}.json')
+              destination.parent.mkdir(parents=True,exist_ok=True)
+              destination.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
+              rows.append(data)
+          summary={
+              'schema':1,'job_id':claim['job_id'],'status':'complete',
+              'classification':'CPU_SYNTHETIC_ADAPTIVE_SEED_SENSITIVITY_PANEL_EXPLORATORY_ONLY',
+              'gpu_requested':False,'scientific_execution':False,
+              'breakthrough_claim_supported':False,
+              'case_count':3,'cases':[
+                  {
+                    'case':d['case'],'seeds':d['protocol']['case_seeds'],
+                    'models':[
+                        {
+                          'name':m['name'],
+                          'easy_accuracy':m['easy_positive_control']['accuracy'],
+                          'after_long_easy_accuracy':m['easy_after_long']['accuracy'],
+                          'all_distance_accuracy':{
+                             key:cell['accuracy'] for key,cell in m['long_after_by_distance'].items()
+                          },
+                          'all_bins_95pct':m['long_all_bins_95pct'],
+                          'constant_class_collapse':m['long_constant_class_collapse'],
+                          'training_seconds':m['long_training']['train_seconds'],
+                          'training_steps':m['long_training']['steps']
+                        } for m in d['results']
+                    ]
+                  } for d in rows
+              ],
+              'interpretation_ceiling':'Three CPU exploratory seeds plus historical AT/AU, NOT scientific replication or any language-model breakthrough.',
+              'repository_provenance':{
+                 'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+                 'source_blob_sha':claim['source_blob_sha'],
+                 'job_blob_sha':claim['job_blob_sha']
+              }
+          }
+          pathlib.Path(prefix+'-summary.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
+          for d in summary['cases']:
+              print('case',d['case'],d['models'])
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/rlt/cpu/results/rlt-adaptive-seed-sensitivity-20261010-av-case*.json \
+                  experiments/rlt/cpu/results/rlt-adaptive-seed-sensitivity-20261010-av-summary.json
+          git commit -m "rlt cpu: preserve all AV seed outcomes and frozen sensitivity summary"
+          git fetch origin main "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
