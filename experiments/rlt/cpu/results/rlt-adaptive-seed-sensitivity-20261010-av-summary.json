@@ -1,0 +1,151 @@
+{
+  "breakthrough_claim_supported": false,
+  "case_count": 3,
+  "cases": [
+    {
+      "case": 0,
+      "models": [
+        {
+          "after_long_easy_accuracy": 0.5,
+          "all_bins_95pct": true,
+          "all_distance_accuracy": {
+            "1": 1.0,
+            "16": 1.0,
+            "4": 1.0,
+            "40": 1.0,
+            "63": 1.0
+          },
+          "constant_class_collapse": false,
+          "easy_accuracy": 1.0,
+          "name": "residual_scan",
+          "training_seconds": 90.00719065199999,
+          "training_steps": 5588
+        },
+        {
+          "after_long_easy_accuracy": 0.8828125,
+          "all_bins_95pct": true,
+          "all_distance_accuracy": {
+            "1": 1.0,
+            "16": 1.0,
+            "4": 1.0,
+            "40": 1.0,
+            "63": 1.0
+          },
+          "constant_class_collapse": false,
+          "easy_accuracy": 1.0,
+          "name": "adaptive_scan",
+          "training_seconds": 90.00413027600001,
+          "training_steps": 5605
+        }
+      ],
+      "seeds": {
+        "case": 0,
+        "easy_seed": 20261170,
+        "eval_seed": 20291170,
+        "long_seed": 20271170,
+        "model_seed": 20301170
+      }
+    },
+    {
+      "case": 1,
+      "models": [
+        {
+          "after_long_easy_accuracy": 0.97265625,
+          "all_bins_95pct": true,
+          "all_distance_accuracy": {
+            "1": 1.0,
+            "16": 1.0,
+            "4": 1.0,
+            "40": 1.0,
+            "63": 1.0
+          },
+          "constant_class_collapse": false,
+          "easy_accuracy": 1.0,
+          "name": "residual_scan",
+          "training_seconds": 90.007310012,
+          "training_steps": 10123
+        },
+        {
+          "after_long_easy_accuracy": 0.5234375,
+          "all_bins_95pct": true,
+          "all_distance_accuracy": {
+            "1": 1.0,
+            "16": 1.0,
+            "4": 1.0,
+            "40": 1.0,
+            "63": 1.0
+          },
+          "constant_class_collapse": false,
+          "easy_accuracy": 1.0,
+          "name": "adaptive_scan",
+          "training_seconds": 90.00791163299999,
+          "training_steps": 10160
+        }
+      ],
+      "seeds": {
+        "case": 1,
+        "easy_seed": 20261171,
+        "eval_seed": 20291171,
+        "long_seed": 20271171,
+        "model_seed": 20301171
+      }
+    },
+    {
+      "case": 2,
+      "models": [
+        {
+          "after_long_easy_accuracy": 0.7109375,
+          "all_bins_95pct": true,
+          "all_distance_accuracy": {
+            "1": 1.0,
+            "16": 1.0,
+            "4": 1.0,
+            "40": 1.0,
+            "63": 1.0
+          },
+          "constant_class_collapse": false,
+          "easy_accuracy": 1.0,
+          "name": "residual_scan",
+          "training_seconds": 90.01148982000001,
+          "training_steps": 6166
+        },
+        {
+          "after_long_easy_accuracy": 0.58984375,
+          "all_bins_95pct": true,
+          "all_distance_accuracy": {
+            "1": 1.0,
+            "16": 1.0,
+            "4": 1.0,
+            "40": 1.0,
+            "63": 1.0
+          },
+          "constant_class_collapse": false,
+          "easy_accuracy": 1.0,
+          "name": "adaptive_scan",
+          "training_seconds": 90.004120312,
+          "training_steps": 6625
+        }
+      ],
+      "seeds": {
+        "case": 2,
+        "easy_seed": 20261172,
+        "eval_seed": 20291172,
+        "long_seed": 20271172,
+        "model_seed": 20301172
+      }
+    }
+  ],
+  "classification": "CPU_SYNTHETIC_ADAPTIVE_SEED_SENSITIVITY_PANEL_EXPLORATORY_ONLY",
+  "gpu_requested": false,
+  "interpretation_ceiling": "Three CPU exploratory seeds plus historical AT/AU, NOT scientific replication or any language-model breakthrough.",
+  "job_id": "rlt-cpu-adaptive-seed-sensitivity-20261010-av",
+  "repository_provenance": {
+    "branch": "exp/rlt-colab",
+    "job_blob_sha": "8208e98c7de2eacb70feea17379fba3b50abb2fa",
+    "source_blob_sha": "efaf13895304423b46301a5dbdc16d2d7087d16a",
+    "trigger_sha": "fd6b9bc39d596d07923649b0240b5f94eb4ebf1a"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "complete"
+}

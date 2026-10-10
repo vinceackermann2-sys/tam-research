@@ -1,0 +1,303 @@
+{
+  "breakthrough_claim_supported": false,
+  "case": 0,
+  "classification": "CPU_SYNTHETIC_ADAPTIVE_SEED_SENSITIVITY_EXPLORATORY_ONLY",
+  "engineering_only": true,
+  "finished_unix": 1791647245.8609908,
+  "gpu_requested": false,
+  "interpretation_ceiling": "Three new *CPU-only exploratory* task seeds, not registered scientific replication. Small binary synthetic curriculum, no language quality claims, no GPU or 250M/5B authority.",
+  "job_id": "rlt-cpu-adaptive-seed-sensitivity-20261010-av",
+  "protocol": {
+    "batch_size": 8,
+    "case_count": 3,
+    "case_seeds": {
+      "case": 0,
+      "easy_seed": 20261170,
+      "eval_seed": 20291170,
+      "long_seed": 20271170,
+      "model_seed": 20301170
+    },
+    "distances": [
+      1,
+      4,
+      16,
+      40,
+      63
+    ],
+    "easy_lr": 0.003,
+    "easy_seconds": 20.0,
+    "easy_seq_len": 8,
+    "eval_examples_per_class_per_distance": 128,
+    "expected_parameters_each": 29504,
+    "long_lr": 0.001,
+    "long_seconds": 90.0,
+    "long_seq_len": 64,
+    "models": [
+      "residual_scan",
+      "adaptive_scan"
+    ],
+    "no_max_step_cap": true,
+    "optimizer": "AdamW",
+    "same_data_and_eval_seeds_across_models": true,
+    "same_initialization_seed_across_models": true,
+    "weight_decay": 0.01
+  },
+  "repository_provenance": {
+    "branch": "exp/rlt-colab",
+    "case_workflow_job": "matrix",
+    "job_blob_sha": "8208e98c7de2eacb70feea17379fba3b50abb2fa",
+    "source_blob_sha": "efaf13895304423b46301a5dbdc16d2d7087d16a",
+    "test_blob_sha": "5f46e35207463f92e29446adbd14519e80137870",
+    "trigger_sha": "fd6b9bc39d596d07923649b0240b5f94eb4ebf1a"
+  },
+  "results": [
+    {
+      "after_long_gate_stats": {
+        "encoder_rms": 0.9234791398048401,
+        "gain_mean": 1.005557894706726,
+        "gain_near_two_frac": 0.0426788330078125,
+        "gain_near_zero_frac": 0.0417327880859375,
+        "gain_std": 0.5612085461616516,
+        "hidden_rms": 1.3935576677322388,
+        "recurrent_rms": 0.941882312297821,
+        "retention_mean": 0.8042570948600769,
+        "retention_near_one_frac": 0.0671539306640625
+      },
+      "easy_after_long": {
+        "accuracy": 0.5,
+        "binary_nll": 4.77247816324234,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 256
+      },
+      "easy_positive_control": {
+        "accuracy": 1.0,
+        "binary_nll": 1.1788610038365732e-05,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "easy_training": {
+        "last_train_binary_nll": 1.1801649634435307e-05,
+        "steps": 2744,
+        "tokens_per_second": 8780.48421339746,
+        "tokens_seen": 175616,
+        "train_seconds": 20.000719292
+      },
+      "long_after_by_distance": {
+        "1": {
+          "accuracy": 1.0,
+          "binary_nll": 4.3438189322841936e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 1.0,
+          "binary_nll": 4.7552772230119444e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 1.0,
+          "binary_nll": 4.449197331268806e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 1.0,
+          "binary_nll": 4.163527410128154e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 1.0,
+          "binary_nll": 4.669817963076639e-05,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        }
+      },
+      "long_all_bins_90pct": true,
+      "long_all_bins_95pct": true,
+      "long_before_by_distance": {
+        "1": {
+          "accuracy": 0.5,
+          "binary_nll": 3.988224536180496,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.5,
+          "binary_nll": 4.067876651883125,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.5,
+          "binary_nll": 3.896723374724388,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.5,
+          "binary_nll": 3.981679379940033,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.5,
+          "binary_nll": 3.877259060740471,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        }
+      },
+      "long_constant_class_collapse": false,
+      "long_training": {
+        "last_train_binary_nll": 6.214935274329036e-05,
+        "steps": 5588,
+        "tokens_per_second": 31786.971455001483,
+        "tokens_seen": 2861056,
+        "train_seconds": 90.00719065199999
+      },
+      "name": "residual_scan",
+      "parameters": 29504
+    },
+    {
+      "after_long_gate_stats": {
+        "encoder_rms": 0.9015965461730957,
+        "gain_mean": 1.0687037706375122,
+        "gain_near_two_frac": 0.021240234375,
+        "gain_near_zero_frac": 0.0055084228515625,
+        "gain_std": 0.521731972694397,
+        "hidden_rms": 1.4823768138885498,
+        "recurrent_rms": 0.8774077296257019,
+        "retention_mean": 0.84156334400177,
+        "retention_near_one_frac": 0.03582763671875
+      },
+      "easy_after_long": {
+        "accuracy": 0.8828125,
+        "binary_nll": 0.7374694131631259,
+        "class0_accuracy": 0.765625,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "easy_positive_control": {
+        "accuracy": 1.0,
+        "binary_nll": 8.268247711384902e-06,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "easy_training": {
+        "last_train_binary_nll": 8.448922926618252e-06,
+        "steps": 2741,
+        "tokens_per_second": 8769.367517885998,
+        "tokens_seen": 175424,
+        "train_seconds": 20.00417927999999
+      },
+      "long_after_by_distance": {
+        "1": {
+          "accuracy": 1.0,
+          "binary_nll": 0.00018847692990675569,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 1.0,
+          "binary_nll": 0.00017245922299480299,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 1.0,
+          "binary_nll": 0.00025781579279282596,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 1.0,
+          "binary_nll": 0.00017833499805419706,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 1.0,
+          "binary_nll": 0.000207028866498149,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        }
+      },
+      "long_all_bins_90pct": true,
+      "long_all_bins_95pct": true,
+      "long_before_by_distance": {
+        "1": {
+          "accuracy": 0.50390625,
+          "binary_nll": 5.785462826490402,
+          "class0_accuracy": 0.984375,
+          "class1_accuracy": 0.0234375,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.515625,
+          "binary_nll": 5.640140980482101,
+          "class0_accuracy": 0.984375,
+          "class1_accuracy": 0.046875,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.50390625,
+          "binary_nll": 5.776954829692841,
+          "class0_accuracy": 0.9921875,
+          "class1_accuracy": 0.015625,
+          "examples": 256
+        },
+        "40": {
+          "accuracy": 0.51953125,
+          "binary_nll": 5.583034545183182,
+          "class0_accuracy": 0.953125,
+          "class1_accuracy": 0.0859375,
+          "examples": 256
+        },
+        "63": {
+          "accuracy": 0.53125,
+          "binary_nll": 5.426588714122772,
+          "class0_accuracy": 0.9609375,
+          "class1_accuracy": 0.1015625,
+          "examples": 256
+        }
+      },
+      "long_constant_class_collapse": false,
+      "long_training": {
+        "last_train_binary_nll": 0.00015729913138784468,
+        "steps": 5605,
+        "tokens_per_second": 31884.758968280745,
+        "tokens_seen": 2869760,
+        "train_seconds": 90.00413027600001
+      },
+      "name": "adaptive_scan",
+      "parameters": 29504
+    }
+  ],
+  "runtime": {
+    "cpu_threads": 2,
+    "torch_version": "2.14.1+cu130"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "started_unix": 1791647019.7276347,
+  "status": "complete"
+}
