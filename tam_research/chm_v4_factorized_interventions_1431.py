@@ -17,7 +17,7 @@ from .chm_v4_independent_binding_benchmark_1421 import (
     oracle_read, seal_input, train_counterfactual_group,
 )
 from .chm_v4_visible_hard_copy_train_1427 import (
-    VisibleRecord, _parse_completed_memory, read_visible_text,
+    VisibleRecord, _extract_query_subject, _parse_completed_memory, read_visible_text,
 )
 
 CLASSIFICATION = "CHM_V4_1431_TRAIN_ONLY_FACTORIZED_SOURCE_COPY_GATE"
@@ -184,7 +184,7 @@ def train_only_factorized_audit() -> dict[str, object]:
                     if family == "two_hop":
                         linked = sorted(
                             (r for r in rows
-                             if r.subject == ep.entity and
+                             if r.subject == _extract_query_subject(view) and
                              r.linked_document is not None),
                             key=lambda r: r.position,
                         )
