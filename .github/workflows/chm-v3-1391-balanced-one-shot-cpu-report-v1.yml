@@ -1,0 +1,136 @@
+name: "CHM-v3 #1391 balanced 256-step tiny CPU one-shot result"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/chm-v3-1391-balanced-one-shot-cpu-report-v1.yml
+
+permissions:
+  contents: read
+
+jobs:
+  once-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    steps:
+      - name: Checkout source-locked once-only balanced CPU experiment
+        uses: actions/checkout@v6
+
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only torch
+        run: |
+          python -m pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+
+      - name: Check immutable original and new source-locked blobs
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:tam_research/chm_v3_balanced_train_schedule_1391.py)" = "6d40dafc7a487cfc8d5a39d5067ff00190e60181"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_matched_tiny_models_1377.py)" = "ffe14b0701e18493a2bf9b45a1238b5acd5e3eab"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_multiset_suite_1373.py)" = "1b71eede754f7396ad2e7284693d6d5c1b8273b4"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_model_view_1365.py)" = "5bce89954d7a4fd788d1d1bdd972abf744399715"
+          test "$(git rev-parse HEAD:scripts/chm_v3_matched_tiny_one_shot_cpu_report_1377.py)" = "6e7d6cc1996e942cd7475a17af5f4a9a7928d031"
+          test "$(git rev-parse HEAD:scripts/chm_v3_balanced_one_shot_cpu_report_1391.py)" = "10315525ecea1199005ded32a05b934246f45566"
+          test "$(git rev-parse HEAD:research/chm_v3_balanced_one_shot_cpu_protocol_1391.md)" = "3881e5ff08ab2327f56652ba0b5a9a5f1af97ca7"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec.py)" = "77e9ccbff4383be40e6e2865503e1c3926bbda74"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_stage_c.py)" = "b1a58e52b76ff7d06f14a569a7b6274afee8076c"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_target_nll_stable.py)" = "482e2c930fa02448e45327747f10571315fd41dc"
+          echo "CHM_V3_1391_BALANCED_SOURCE_BLOBS_PASS"
+
+      - name: Exactly one new 256-step CPU training and fresh heldout evaluation
+        run: |
+          set -euo pipefail
+          python scripts/chm_v3_balanced_one_shot_cpu_report_1391.py | tee chm-v3-1391-balanced-one-shot.log
+
+      - name: Validate 192 predictions, answer balance, fresh split and no science
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          content=Path("chm-v3-1391-balanced-one-shot.log").read_text(encoding="utf-8")
+          marker="CHM_V3_1391_BALANCED_TINY_CPU_REPORT="
+          outputs=[line[len(marker):] for line in content.splitlines()
+                   if line.startswith(marker)]
+          assert len(outputs)==1, "one and only one original balanced report marker"
+          r=json.loads(outputs[0])
+          assert r["classification"]=="CHM_V3_1391_BALANCED_TINY_CPU_EXPLORATORY_REPORT"
+          assert r["source_original_confounded_cpu_run_not_repeated"]==38064856253
+          assert r["original_historical_scientific_classification"]=="CHM_V3_100M_DAEC_STAGE_C_STOP"
+          assert r["original_scientific_seed_2013161_consumed"] is True
+          for key in ("gpu_allocated","modal_used","paid_gpu_used","new_scientific_attempt","breakthrough_claim"):
+             assert r[key] is False
+          assert r["cpu_only"] is True
+          assert r["steps_per_arm"]==256
+          assert r["train_schedule"]["all_positive_groups_cover_all_eight_answers"] is True
+          assert r["train_schedule"]["family_examples"]=={
+              "direct":64,"overwrite":64,"two_hop":64,"no_match":64
+          }
+          assert r["train_schedule"]["positive_groups"]==24
+          assert r["train_tokens_per_arm"]>0
+          assert 0<r["total_cpu_train_seconds_all_arms"]<35*60
+          arms={"transformer","pointer_ce","pointer_no_ce"}
+          assert set(r["parameters"])==arms
+          assert r["parameters"]["pointer_ce"]==r["parameters"]["pointer_no_ce"]
+          p=r["parameters"]
+          assert abs(p["transformer"]-p["pointer_ce"])/max(p.values())<0.01
+          assert r["heldout_entity_indices"]=={"development":1,"test":2}
+          assert set(r["cpu_one_nonupdating_fwb_seconds_by_arm"])==arms
+          assert set(r["scores"])=={"development","test"}
+          rows=r["per_case_predictions"]
+          assert len(rows)==192
+          assert len({(row["split"],row["arm"],row["family"],row["variant"])
+                      for row in rows})==192
+          for row in rows:
+             assert row["split"] in ("development","test")
+             assert row["arm"] in arms
+             assert row["variant"] in range(8)
+             assert row["entity"]==(
+                 "V3-development-E001" if row["split"]=="development"
+                 else "V3-test-E002"
+             )
+             assert row["predicted_answer_id"] in (
+                 None,18001,18002,18003,18004,18005,18006,18007,18008
+             )
+             assert isinstance(row["answer_correct"],bool)
+             assert 0<=row["confidence"]<=1 and math.isfinite(row["confidence"])
+          for split in ("development","test"):
+             assert set(r["scores"][split])==arms
+             for arm in arms:
+                score=r["scores"][split][arm]
+                assert score["cases"]==32 and 0<=score["accuracy"]<=1
+                assert set(score["per_family"])=={"direct","overwrite","two_hop","no_match"}
+                for group in score["per_family"].values():
+                   assert group["cases"]==8
+                   assert group["independent_entity_groups"]==1
+                   assert group["confidence_interval_estimable"] is False
+             for family in ("direct","overwrite","two_hop"):
+                for ctrl in ("query_only_accuracy","layout_only_accuracy",
+                             "bag_of_codes_only_accuracy"):
+                   assert r["negative_controls"][split]["families"][family][ctrl]==0.125
+          assert "not sequential hard-read" in r["interpretation_ceiling"]
+          Path("chm-v3-1391-balanced-one-shot-full.json").write_text(
+              json.dumps(r,indent=2,sort_keys=True,allow_nan=False)+"\n",
+              encoding="utf-8",
+          )
+          print("CHM_V3_1391_BALANCED_ONE_SHOT_SCHEMA_PASS")
+          PY
+
+      - name: Preserve first-attempt balanced CPU evidence and all 192 records
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v3-1391-balanced-one-shot-cpu-evidence
+          path: |
+            chm-v3-1391-balanced-one-shot.log
+            chm-v3-1391-balanced-one-shot-full.json
+          retention-days: 90
