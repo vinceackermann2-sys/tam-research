@@ -1,0 +1,39 @@
+name: RLT AZ frozen AY forensic gate CPU read-only
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-az-ay-readonly-gate.yml
+
+permissions:
+  contents: read
+
+jobs:
+  forensic-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out exact branch without training
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+      - name: Verify forensic source and no GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "exp/rlt-ax-bounded-transformer"
+          python -m py_compile experiments/rlt/analysis/ay_postmortem_az.py tests/test_rlt_ay_postmortem_az.py
+          python - <<'PY'
+          from pathlib import Path
+          src=Path("experiments/rlt/analysis/ay_postmortem_az.py").read_text()
+          assert "import torch" not in src
+          assert ".backward(" not in src and "optimizer" not in src
+          assert "git ls-files" not in src or "git_tracked" in src
+          PY
+      - name: Install lightweight CPU tests
+        run: python -m pip install --disable-pip-version-check 'pytest>=8,<10'
+      - name: Check immutable AY evidence and missing checkpoint defect
+        run: python -m pytest -q tests/test_rlt_ay_postmortem_az.py -vv
+      - name: Print factual AY forensic summary
+        run: python -m experiments.rlt.analysis.ay_postmortem_az
