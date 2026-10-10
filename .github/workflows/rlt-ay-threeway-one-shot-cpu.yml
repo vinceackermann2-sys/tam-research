@@ -1,0 +1,128 @@
+name: RLT AY threeway bounded memory one-shot CPU
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-ay-threeway-one-shot-cpu.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-ay-threeway-one-shot-cpu-20261010
+  cancel-in-progress: false
+
+jobs:
+  train-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+      BRANCH: exp/rlt-ax-bounded-transformer
+      SCRIPT: experiments/rlt/cpu_bounded_threeway_ay.py
+      JOB: experiments/rlt/cpu/jobs/rlt-bounded-threeway-20261010-ay.json
+      CLAIM: experiments/rlt/cpu/claims/rlt-bounded-threeway-20261010-ay.json
+      RESULT: experiments/rlt/cpu/results/rlt-bounded-threeway-20261010-ay.json
+      CHECKPOINT: experiments/rlt/cpu/checkpoints/rlt-bounded-threeway-20261010-ay
+    steps:
+      - name: Checkout exact isolated research branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Immutable reservation and successful correctness preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          test ! -e "$RESULT"
+          test ! -e "$CHECKPOINT"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$CHECKPOINT" 2>/dev/null; then exit 32; fi
+          python - <<'PY'
+          import json,os,pathlib,subprocess,urllib.request
+          job=json.loads(pathlib.Path(os.environ['JOB']).read_text())
+          claim=json.loads(pathlib.Path(os.environ['CLAIM']).read_text())
+          assert job['schema']==1 and claim['schema']==1
+          assert job['job_id']==claim['job_id']=='rlt-cpu-bounded-threeway-20261010-ay'
+          assert job['source_parent_commit']=='771cf1d2d0d00d5d2415f8ee5fe9c1f20d89f82f'
+          assert job['runner_blob_sha']==claim['runner_blob_sha']=='fc2cb22ca849cf1cc24b637c806765a0dc730555'
+          assert subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SCRIPT']],text=True).strip()==job['runner_blob_sha']
+          assert job['seeds']=={'easy':20411081,'long':20421081,'eval':20431081,'model':20441081,'diagnostic':20451081}
+          assert job['candidates']==['carry','reset','sliding_kv']
+          assert job['distances']==[1,4,16,64,127]
+          assert job['train_seconds_each']=={'easy':15,'long':90}
+          assert job['expected_parameters']=={'carry':27712,'reset':27712,'sliding_kv':27680}
+          assert claim['status']=='reserved_before_execution'
+          assert job['gpu_requested'] is False and job['scientific_execution'] is False
+          assert job['automatic_retry'] is False and claim['automatic_retry'] is False
+          url='https://api.github.com/repos/vinceackermann2-sys/tam-research/actions/runs/38072873895'
+          req=urllib.request.Request(url,headers={'User-Agent':'rlt-ay-immutable-preflight'})
+          with urllib.request.urlopen(req,timeout=30) as stream: run=json.load(stream)
+          assert run['conclusion']=='success' and run['status']=='completed'
+          assert run['head_sha']=='771cf1d2d0d00d5d2415f8ee5fe9c1f20d89f82f'
+          PY
+      - name: Install CPU-only dependencies
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Pure AY preflight - no training
+        run: python -m pytest -q tests/test_rlt_cpu_bounded_threeway_ay.py
+      - name: Execute single reserved AY CPU attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 17m python -m experiments.rlt.cpu_bounded_threeway_ay
+          test -f "$RESULT"
+          test -f "$CHECKPOINT/carry.pt"
+          test -f "$CHECKPOINT/reset.pt"
+          test -f "$CHECKPOINT/sliding_kv.pt"
+      - name: Verify outcome and commit immutable evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib,subprocess
+          path=pathlib.Path(os.environ['RESULT'])
+          data=json.loads(path.read_text())
+          assert data['status']=='complete'
+          assert data['job_id']=='rlt-cpu-bounded-threeway-20261010-ay'
+          assert data['classification']=='CPU_SYNTHETIC_BOUNDED_MEMORY_ENGINEERING_ONLY'
+          assert data['gpu_requested'] is False and data['scientific_execution'] is False
+          assert data['breakthrough_claim_supported'] is False
+          assert [x['name'] for x in data['results']]==['carry','reset','sliding_kv']
+          assert data['protocol']['transformer_full_receptive_distance']==14
+          for m in data['results']:
+            assert m['parameters'] in {27680,27712}
+            assert m['easy_training']['seconds']>=15 and m['long_training']['seconds']>=90
+            assert m['easy_training']['tokens_seen']>0 and m['long_training']['tokens_seen']>0
+            assert set(m['final'])=={'1','4','16','64','127'}
+            for row in m['final'].values():
+              assert row['examples']==256 and 0<=row['accuracy']<=1 and row['binary_nll']>=0
+              assert 0<=row['class0_accuracy']<=1 and 0<=row['class1_accuracy']<=1
+            ckpt=pathlib.Path(m['checkpoint']['path'])
+            assert ckpt.exists() and ckpt.stat().st_size==m['checkpoint']['bytes']
+            assert hashlib.sha256(ckpt.read_bytes()).hexdigest()==m['checkpoint']['sha256']
+          data['repository_provenance']={
+            'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+            'runner_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SCRIPT']],text=True).strip(),
+            'job_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['JOB']],text=True).strip(),
+            'claim_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['CLAIM']],text=True).strip(),
+            'preflight_run_id':38072873895,
+          }
+          path.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
+          for x in data['results']:
+            print(x['name'],{k:round(v['accuracy'],4) for k,v in x['final'].items()})
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 33; fi
+          git add "$RESULT" "$CHECKPOINT"
+          git commit -m "rlt ay: freeze CPU bounded three-way evidence and checkpoints"
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 34; fi
+          git rebase "origin/$BRANCH"
+          git push origin "HEAD:$BRANCH"
