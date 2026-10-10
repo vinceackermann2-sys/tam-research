@@ -1,0 +1,106 @@
+name: "CHM-v3 #1410 TRAIN-only adapter integrity evidence"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/chm-v3-1410-train-adapter-evidence.yml
+
+permissions:
+  contents: read
+
+jobs:
+  first-merge-train-only-adapters:
+    if: github.run_attempt == 1 && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      CUDA_VISIBLE_DEVICES: ""
+    steps:
+      - name: Checkout exact merged source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Source-lock frozen model, new adapters, tests and protocol
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:tam_research/chm_v3_alias_trainable_adapters_1410.py)" = "fcbc89ff26c04a6775d328f1f7df8d1e13e33ec0"
+          test "$(git rev-parse HEAD:tests/test_chm_v3_alias_trainable_adapters_1410.py)" = "1c6651a7195b2d290dbb6691355bb089f0660bd6"
+          test "$(git rev-parse HEAD:research/chm_v3_alias_trainable_adapters_1410.md)" = "9202fc83eb9d2864e1d6823b8adc5c7f4fe42ebe"
+          test "$(git rev-parse HEAD:scripts/chm_v3_alias_trainable_adapters_1410.py)" = "711cf8674ef1cee3de8019444006edf333d50821"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_query_anchored_alias_1407.py)" = "0305b6c0452fb1e383d702ea4b194944ac8bf433"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_matched_tiny_models_1377.py)" = "ffe14b0701e18493a2bf9b45a1238b5acd5e3eab"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_balanced_train_schedule_1391.py)" = "6d40dafc7a487cfc8d5a39d5067ff00190e60181"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_model_view_1365.py)" = "5bce89954d7a4fd788d1d1bdd972abf744399715"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_multiset_suite_1373.py)" = "1b71eede754f7396ad2e7284693d6d5c1b8273b4"
+          echo "CHM_V3_1410_FROZEN_SOURCE_LOCK_PASS"
+
+      - name: Set up Python for CPU-only
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only PyTorch and research module
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+          python - <<'PY'
+          import torch
+          assert torch.version.cuda is None
+          print("CHM_V3_1410_CPU_ONLY_ENVIRONMENT_PASS")
+          PY
+
+      - name: One original static TRAIN-only matched adapter wiring audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/chm_v3_alias_trainable_adapters_1410.py | tee chm-v3-1410-train-adapters.log
+
+      - name: Verify and freeze JSON evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          s=Path("chm-v3-1410-train-adapters.log").read_text(encoding="utf8").splitlines()
+          prefix="CHM_V3_1410_TRAIN_ADAPTER_RESULT="
+          records=[x[len(prefix):] for x in s if x.startswith(prefix)]
+          assert len(records)==1
+          r=json.loads(records[0])
+          assert r["classification"]=="CHM_V3_1410_ALIAS_VS_HASH_TRAIN_ONLY_ADAPTER_CPU"
+          assert r["geometry"]["train_examples"]==256
+          assert r["geometry"]["identical_length_total_per_arm"]==19264
+          assert r["geometry"]["max_input_length_per_arm"]==83
+          assert r["single_training_step_smoke"]["smoke_updates_per_arm"]==1
+          assert len(r["single_training_step_smoke"]["arms"])==4
+          assert all(x["steps"]==1 for x in r["single_training_step_smoke"]["arms"].values())
+          assert r["old_sci_stop"]=="CHM_V3_100M_DAEC_STAGE_C_STOP"
+          assert r["old_seed_consumed"]==2013161
+          assert r["heldout_scoring"] is False
+          assert r["gpu_allocated"] is False
+          assert r["new_scientific_attempt"] is False
+          digest=r.pop("sha256_without_digest")
+          assert hashlib.sha256(json.dumps(r,sort_keys=True,separators=(",",":"),allow_nan=False).encode()).hexdigest()==digest
+          r["sha256_without_digest"]=digest
+          Path("chm-v3-1410-train-adapters.json").write_text(
+              json.dumps(r,sort_keys=True,indent=2,allow_nan=False)+"\n",encoding="utf8"
+          )
+          print("CHM_V3_1410_TRAIN_ADAPTER_STRUCTURAL_EVIDENCE_PASS")
+          PY
+
+      - name: Archive TRAIN-only report, not model checkpoints
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v3-1410-train-only-adapter-evidence
+          path: |
+            chm-v3-1410-train-adapters.log
+            chm-v3-1410-train-adapters.json
+          retention-days: 90
