@@ -1,0 +1,111 @@
+name: "CHM-v3 #1399 TRAIN-only identifier composition audit"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/chm-v3-1399-train-identifier-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  static-tokenizer-audit:
+    if: github.run_attempt == 1 && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      CUDA_VISIBLE_DEVICES: ""
+    steps:
+      - name: Read original merged source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Freeze source and no-regression identity before any processing
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:tam_research/chm_v3_identifier_composition_audit_1399.py)" = "c6e259f127a3f621110104d7da2cfa440b93561f"
+          test "$(git rev-parse HEAD:tests/test_chm_v3_identifier_composition_audit_1399.py)" = "dea87e7883293cd9a4bb7a0b1ad70d571d20ea16"
+          test "$(git rev-parse HEAD:scripts/chm_v3_identifier_composition_audit_1399.py)" = "474ea15a74572db9b3cce19aeef244fcff5566bc"
+          test "$(git rev-parse HEAD:research/chm_v3_identifier_composition_audit_1399.md)" = "3185cf15860eb596339969cfcc3b450dc89c3964"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_matched_tiny_models_1377.py)" = "ffe14b0701e18493a2bf9b45a1238b5acd5e3eab"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_balanced_train_schedule_1391.py)" = "6d40dafc7a487cfc8d5a39d5067ff00190e60181"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_multiset_suite_1373.py)" = "1b71eede754f7396ad2e7284693d6d5c1b8273b4"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_model_view_1365.py)" = "5bce89954d7a4fd788d1d1bdd972abf744399715"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec.py)" = "77e9ccbff4383be40e6e2865503e1c3926bbda74"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_stage_c.py)" = "b1a58e52b76ff7d06f14a569a7b6274afee8076c"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_target_nll_stable.py)" = "482e2c930fa02448e45327747f10571315fd41dc"
+          echo "CHM_V3_1399_STATIC_SOURCE_LOCK_PASS"
+
+      - name: Install CPU-only Python and frozen research dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install zero-GPU CPU-only torch for frozen model tokenizer imports
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+          python - <<'PY'
+          import torch
+          assert torch.version.cuda is None
+          print("CHM_V3_1399_CPU_ONLY_ENV_PASS")
+          PY
+
+      - name: Audit TRAIN-only visible identifier representations (no model training)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/chm_v3_identifier_composition_audit_1399.py | tee chm-v3-1399-train-static.log
+
+      - name: Validate full static evidence without learning or scored heldout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lines=Path("chm-v3-1399-train-static.log").read_text(encoding="utf-8").splitlines()
+          key="CHM_V3_1399_TRAIN_ID_AUDIT="
+          rows=[r[len(key):] for r in lines if r.startswith(key)]
+          assert len(rows)==1
+          r=json.loads(rows[0])
+          assert r["classification"]=="CHM_V3_1399_TRAIN_ONLY_STATIC_IDENTIFIER_AUDIT"
+          assert r["historical_science_status"]=="CHM_V3_100M_DAEC_STAGE_C_STOP"
+          assert r["historical_science_seed_consumed"]==2013161
+          assert r["input_domain"]=="TRAIN-only; invented synthetic names, no scored heldout"
+          assert r["training_episodes_audited"]==256
+          assert r["input_token_cap"]==384
+          assert r["original_input_max_tokens"]<=384
+          assert sum(v["count"] for v in r["per_family"].values())==256
+          assert r["character_budget_overflow_episodes"]==sum(
+              v["character_budget_overflows"] for v in r["per_family"].values()
+          )
+          assert r["legacy_encoder_exact_parity_for_all_train"] is True
+          assert r["payload_anchor_and_memory_query_boundaries_preserved"] is True
+          assert len(r["hypothetical_identifier_coverage"])==5
+          assert len(r["sha256_before_digest_field"])==64
+          assert r["gpu_used"] is False and r["models_trained"] is False
+          assert r["new_scientific_attempt"] is False
+          Path("chm-v3-1399-train-static.json").write_text(
+              json.dumps(r, sort_keys=True, indent=2, allow_nan=False)+"\n",
+              encoding="utf-8"
+          )
+          print("CHM_V3_1399_TRAIN_STATIC_AUDIT_VALIDATED")
+          PY
+
+      - name: Archive immutable source-bound TRAIN-only report
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v3-1399-train-static-id-audit
+          path: |
+            chm-v3-1399-train-static.log
+            chm-v3-1399-train-static.json
+          retention-days: 90
