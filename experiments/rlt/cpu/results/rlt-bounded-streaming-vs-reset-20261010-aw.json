@@ -1,0 +1,251 @@
+{
+  "breakthrough_claim_supported": false,
+  "classification": "CPU_BOUNDED_STREAMING_MEMORY_ENGINEERING_ONLY",
+  "engineering_only": true,
+  "gpu_requested": false,
+  "interpretation_ceiling": "CPU-only one-seed synthetic last-write task. The explicit binary SET/QUERY protocol favors architectures with learned persistent state when both architectures are denied old chunks. This does not establish Transformer inferiority at equal language context, compute, or capability. No GPU science, scaling, replication, or breakthrough claim.",
+  "job_id": "rlt-cpu-bounded-streaming-vs-reset-20261010-aw",
+  "protocol": {
+    "balanced_eval_examples_per_class_per_distance": 128,
+    "batch_size": 8,
+    "chunk_size": 8,
+    "counterfactual_suffix_leakage_test": true,
+    "distances": [
+      1,
+      4,
+      16,
+      64,
+      127
+    ],
+    "easy_lr": 0.003,
+    "easy_seconds_each": 15.0,
+    "easy_seed": 20261081,
+    "eval_seed": 20291081,
+    "full_cross_chunk_attention": false,
+    "long_lr": 0.001,
+    "long_seconds_each": 90.0,
+    "long_seed": 20271081,
+    "model_seed": 20301081,
+    "models": [
+      "streaming_carry",
+      "same_compute_reset_control"
+    ],
+    "no_step_cap": true,
+    "only_cross_chunk_memory_is_affine_state": true,
+    "optimizer": "AdamW",
+    "params_each": 27712,
+    "same_architecture_weights_except_carry": true,
+    "same_initialization_seed": true,
+    "seq_len": 128,
+    "weight_decay": 0.01
+  },
+  "repository_provenance": {
+    "branch": "exp/rlt-colab",
+    "job_blob_sha": "1545aa4e08782924dd726f9132f092f1878da865",
+    "model_blob_sha": "3967bcb2a1c308098bfd6624b7ac2485e36be47e",
+    "source_blob_sha": "c8319e7a291036739c2f11c55a52f098d1df604c",
+    "test_blob_sha": "1630a7e502473c358629942e046841d9385f8fee",
+    "trigger_sha": "ee43945e1190f8f45d05dedf582aa01fc1b19425"
+  },
+  "results": [
+    {
+      "easy_positive_control": {
+        "accuracy": 1.0,
+        "binary_nll": 2.4082777599687688e-05
+      },
+      "easy_training": {
+        "final_batch_binary_nll": 2.3752170818625018e-05,
+        "seconds": 15.001053467999995,
+        "steps": 2005,
+        "tokens_per_second": 8554.065904353327,
+        "tokens_seen": 128320
+      },
+      "final": {
+        "1": {
+          "accuracy": 1.0,
+          "binary_nll": 0.004672204580856487,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "127": {
+          "accuracy": 0.5390625,
+          "binary_nll": 0.6897083427757025,
+          "class0_accuracy": 0.9453125,
+          "class1_accuracy": 0.1328125,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.921875,
+          "binary_nll": 0.25865942769451067,
+          "class0_accuracy": 0.84375,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.9921875,
+          "binary_nll": 0.017937986143806484,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.984375,
+          "examples": 256
+        },
+        "64": {
+          "accuracy": 0.94140625,
+          "binary_nll": 0.19497227715328336,
+          "class0_accuracy": 0.8828125,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        }
+      },
+      "initial": {
+        "1": {
+          "accuracy": 0.5625,
+          "binary_nll": 0.6884852703660727,
+          "class0_accuracy": 0.2890625,
+          "class1_accuracy": 0.8359375,
+          "examples": 256
+        },
+        "127": {
+          "accuracy": 0.5078125,
+          "binary_nll": 0.6944422908127308,
+          "class0_accuracy": 0.1015625,
+          "class1_accuracy": 0.9140625,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.5234375,
+          "binary_nll": 0.6942707747220993,
+          "class0_accuracy": 0.125,
+          "class1_accuracy": 0.921875,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.54296875,
+          "binary_nll": 0.6867115199565887,
+          "class0_accuracy": 0.203125,
+          "class1_accuracy": 0.8828125,
+          "examples": 256
+        },
+        "64": {
+          "accuracy": 0.49609375,
+          "binary_nll": 0.6947565246373415,
+          "class0_accuracy": 0.0703125,
+          "class1_accuracy": 0.921875,
+          "examples": 256
+        }
+      },
+      "long_training": {
+        "final_batch_binary_nll": 0.4187895953655243,
+        "seconds": 90.081349932,
+        "steps": 926,
+        "tokens_per_second": 10526.307617678787,
+        "tokens_seen": 948224
+      },
+      "name": "streaming_carry",
+      "parameters": 27712
+    },
+    {
+      "easy_positive_control": {
+        "accuracy": 1.0,
+        "binary_nll": 2.3998030883376487e-05
+      },
+      "easy_training": {
+        "final_batch_binary_nll": 2.4527011191821657e-05,
+        "seconds": 15.004614040000007,
+        "steps": 2009,
+        "tokens_per_second": 8569.097456104904,
+        "tokens_seen": 128576
+      },
+      "final": {
+        "1": {
+          "accuracy": 1.0,
+          "binary_nll": 0.0023473173787351698,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "127": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6959153618663549,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6960951332002878,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 1.0,
+          "binary_nll": 0.002815911160723772,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 1.0,
+          "examples": 256
+        },
+        "64": {
+          "accuracy": 0.5,
+          "binary_nll": 0.6953891683369875,
+          "class0_accuracy": 1.0,
+          "class1_accuracy": 0.0,
+          "examples": 256
+        }
+      },
+      "initial": {
+        "1": {
+          "accuracy": 0.57421875,
+          "binary_nll": 0.6872819811105728,
+          "class0_accuracy": 0.34375,
+          "class1_accuracy": 0.8046875,
+          "examples": 256
+        },
+        "127": {
+          "accuracy": 0.5078125,
+          "binary_nll": 0.6949536111205816,
+          "class0_accuracy": 0.1171875,
+          "class1_accuracy": 0.8984375,
+          "examples": 256
+        },
+        "16": {
+          "accuracy": 0.50390625,
+          "binary_nll": 0.6946841422468424,
+          "class0_accuracy": 0.109375,
+          "class1_accuracy": 0.8984375,
+          "examples": 256
+        },
+        "4": {
+          "accuracy": 0.5625,
+          "binary_nll": 0.6858212798833847,
+          "class0_accuracy": 0.265625,
+          "class1_accuracy": 0.859375,
+          "examples": 256
+        },
+        "64": {
+          "accuracy": 0.515625,
+          "binary_nll": 0.6952966470271349,
+          "class0_accuracy": 0.125,
+          "class1_accuracy": 0.90625,
+          "examples": 256
+        }
+      },
+      "long_training": {
+        "final_batch_binary_nll": 0.26946887373924255,
+        "seconds": 90.01505511300002,
+        "steps": 934,
+        "tokens_per_second": 10625.067093491942,
+        "tokens_seen": 956416
+      },
+      "name": "same_compute_reset_control",
+      "parameters": 27712
+    }
+  ],
+  "runtime": {
+    "cpu_threads": 2,
+    "torch": "2.14.1+cu130"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "status": "complete"
+}
