@@ -150,7 +150,12 @@ class TinyV4HardCopyPointer(nn.Module):
         h = self.base(encoded.model_tokens)
         memory = h[:encoded.model_tokens.memory_length]
         question = h[-1]
-        line_index = tuple(pos for _,pos in encoded.model_tokens.line_anchors)
+        # Each causal line-end state has actually SEEN its own subject/code.
+        # The line-start anchor state cannot see subsequent tokens on that line.
+        starts = tuple(pos for _,pos in encoded.model_tokens.line_anchors)
+        line_index = tuple((starts[k+1] if k+1 < len(starts)
+                            else encoded.model_tokens.memory_length)-1
+                           for k in range(len(starts)))
         line_hidden = memory[list(line_index)]
         keys = self.first_key(line_hidden)
         first_logits = (keys @ self.first_query(question)) / math.sqrt(DIM)
