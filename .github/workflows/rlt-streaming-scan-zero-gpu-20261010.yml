@@ -1,0 +1,57 @@
+name: RLT streaming state-carry CPU correctness
+
+on:
+  push:
+    branches: [exp/rlt-colab]
+    paths:
+      - .github/workflows/rlt-streaming-scan-zero-gpu-20261010.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rlt-streaming-scan-cpu-correctness-20261010
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout isolated RLT branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-colab
+          fetch-depth: 0
+      - name: Reaudit live main and RLT sources and syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab
+          test "$(git branch --show-current)" = "exp/rlt-colab"
+          echo "main=$(git rev-parse origin/main) rlt=$(git rev-parse origin/exp/rlt-colab)"
+          python -m py_compile experiments/rlt/model_gated_scan.py \
+           experiments/rlt/streaming_scan.py tests/test_rlt_streaming_scan.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/rlt/streaming_scan.py').read_text()
+          assert 'def chunked_affine_scan(' in p
+          assert 'def chunked_affine_scan_inference(' in p
+          assert 'carried = local_states[:, -1, :]' in p
+          assert 'associative_affine_scan(' in p
+          assert '.detach(' not in p
+          assert 'torch.no_grad()' in p
+          PY
+      - name: Install PyTorch CPU test prerequisites
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Test streaming forward, full BPTT, and no future leakage
+        shell: bash
+        env:
+          CUDA_VISIBLE_DEVICES: ""
+          OMP_NUM_THREADS: 2
+          MKL_NUM_THREADS: 2
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_rlt_streaming_scan.py tests/test_rlt_gated_scan.py -vv
