@@ -51,7 +51,7 @@ def test_pr_is_source_only_and_workflow_is_one_shot_main_path_gated():
                  "chm_v3_counterfactual_model_view_1365.py"):
         assert path in wf
     assert report.ORIGINAL_CONFUNDED_RUN == 38064856253
-    assert report.GPU_AUTHORIZED is False if hasattr(report,"GPU_AUTHORIZED") else True
+    assert report.NEW_SCIENTIFIC_RUN is False
     assert report.TRAIN_STEPS == TRAIN_STEPS == 256
     assert report.EVAL_ENTITY_INDICES == {"development":1,"test":2}
     assert "train_balanced_cpu_models(steps=TRAIN_STEPS)" in source
