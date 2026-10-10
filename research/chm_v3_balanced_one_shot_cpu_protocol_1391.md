@@ -1,0 +1,19 @@
+# CHM-v3 #1391 — frozen balanced 256-step CPU one-shot report
+
+**Scope:** CPU Stage-A synthetic engineering, not scientific validation. Original #1377 one-shot run `38064856253` (48-step confounded schedule) remains immutable and is never dispatched again; its observed development/test entity index 0 is excluded from all new scoring.
+
+## Frozen source and schedule
+
+- Already-merged model + tokenization `tam_research/chm_v3_matched_tiny_models_1377.py`, the #1373 multiset-preserving data suite, the #1365 sealed text input contract, and `tam_research/chm_v3_balanced_train_schedule_1391.py` are immutable source dependencies, Git blobs pinned in the dedicated workflow. No model architecture, loss coefficient or tokenizer may be altered.
+- 256 deterministic train examples per arm (8 train entities × 4 families × 8 rotations). Exact new permutation seed `13772001`, same three models/init, AdamW LR 0.005, zero weight decay, one CPU thread. Each positive (family,entity) sees all eight answers once; negatives explicitly supervise abstention. Every model gets the same example order, 256 optimizer steps and the same data.
+- Scored panels: development entity index **1**, heldout test entity index **2**. Neither appeared in the previous scored report, which used index 0 only. Each panel has 8 rotations × four families = **32 cases per arm**, or **192 recorded predictions** across 3 arms and both splits. No test tuning, retest, rerun or adaptive choice of entities.
+- For every case: exact predicted candidate ID or abstention, calibrated-model confidence (not evidence of correctness), soft-attention argmax indices, oracle address/gold values **only on evaluator side**, and family/entity/split/variant. Report answer accuracy per family, same-entity answer-change following, no-match false-positive rates, exact count of pointer source hits, and answer-prediction diversity.
+- Controls: exact one-of-each eight candidate token bag across counterfactual variants, identical query/layout/subjects; query-only, code-redacted layout-only, bag-of-values-only controls all exactly 12.5% on positive family groups; always-abstain separately on negatives.
+- Runtime: record exact parameter counts for each arm, tokens/arm, total training CPU wall time for all arms, additional non-updating train-only positive two-hop forward/backward time per arm, and inference wall time by arm/split.
+- The one-shot GitHub Actions workflow triggers on **first merge to main** of only its own unique workflow file path; no dispatch, schedule or Modal secrets, CPU PyTorch 2.10.0, 35-minute cap. It checks original model and science Git blob SHAs and new protocol/script/scheduler blobs before training. Persist exact JSON report and all 192 case-level records to an Actions artifact with 90-day retention. Freeze any failed/cancelled head or run; never retry/amend; do not relaunch this first scored source.
+
+## Scientific claim ceiling
+
+This is a *correction of an experimental training schedule* on synthetic fact-binding. Only one independent entity group per family/split, so statistical confidence intervals are not estimable. Parameter parity (~0.75%) is not FLOP or supervision parity: pointer+CE gets extra training address labels and extra computation, with soft-conditioned pointer hops and diagnostic hard argmax indices (NOT a true sequential hard two-hop rollout). Current hashed whole-identifier tokenizer has unseen split-specific entity/document embedding IDs; this may limit generalization independently of memory architecture.
+
+**Regardless of improvement or failure, these tiny scores cannot establish natural-language reasoning, a matched scientific Transformer win, 100M scaling, or a breakthrough.** Original scientific #1323 `CHM_V3_100M_DAEC_STAGE_C_STOP` and consumed seed `2013161` remain binding; no GPU/Modal spend or new scientific attempt.
