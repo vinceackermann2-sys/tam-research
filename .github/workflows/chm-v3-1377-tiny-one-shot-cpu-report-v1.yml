@@ -1,0 +1,125 @@
+name: "CHM-v3 #1377 one-shot tiny CPU matched-arm report"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/chm-v3-1377-tiny-one-shot-cpu-report-v1.yml
+
+permissions:
+  contents: read
+
+jobs:
+  locked-cpu-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      CUDA_VISIBLE_DEVICES: ""
+    steps:
+      - name: Checkout frozen source-locked CPU report
+        uses: actions/checkout@v6
+
+      - name: Install Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only PyTorch
+        run: |
+          python -m pip install "torch==2.10.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+
+      - name: Verify source-locked model, benchmark, script and protocol blobs
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:tam_research/chm_v3_matched_tiny_models_1377.py)" = "ffe14b0701e18493a2bf9b45a1238b5acd5e3eab"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_multiset_suite_1373.py)" = "1b71eede754f7396ad2e7284693d6d5c1b8273b4"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_counterfactual_model_view_1365.py)" = "5bce89954d7a4fd788d1d1bdd972abf744399715"
+          test "$(git rev-parse HEAD:scripts/chm_v3_matched_tiny_one_shot_cpu_report_1377.py)" = "6e7d6cc1996e942cd7475a17af5f4a9a7928d031"
+          test "$(git rev-parse HEAD:research/chm_v3_tiny_one_shot_cpu_report_protocol_1377.md)" = "0c0e05afe1c87637540dc64e952cbaa7fb4f9511"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec.py)" = "77e9ccbff4383be40e6e2865503e1c3926bbda74"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_stage_c.py)" = "b1a58e52b76ff7d06f14a569a7b6274afee8076c"
+          test "$(git rev-parse HEAD:tam_research/chm_v3_100m_daec_target_nll_stable.py)" = "482e2c930fa02448e45327747f10571315fd41dc"
+          printf '%s\n' "CHM_V3_1377_FROZEN_SOURCE_BLOBS_PASS"
+
+      - name: Execute exactly one capped CPU-only train-and-score pass
+        run: |
+          set -euo pipefail
+          python scripts/chm_v3_matched_tiny_one_shot_cpu_report_1377.py | tee chm-v3-1377-one-shot.log
+
+      - name: Validate evidence and preserve all case-level predictions
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          log=Path("chm-v3-1377-one-shot.log").read_text(encoding="utf-8")
+          key="CHM_V3_1377_TINY_CPU_REPORT="
+          markers=[line[len(key):] for line in log.splitlines() if line.startswith(key)]
+          assert len(markers)==1, "one and only one source-locked report"
+          x=json.loads(markers[0])
+          assert x["classification"]=="CHM_V3_1377_MATCHED_TINY_CPU_EXPLORATORY_REPORT"
+          assert x["historical_scientific_classification"]=="CHM_V3_100M_DAEC_STAGE_C_STOP"
+          assert x["historical_scientific_seed_2013161_consumed"] is True
+          assert x["scientific_breakthrough_claim"] is False
+          assert x["gpu_allocated"] is False and x["modal_used"] is False
+          assert x["paid_compute_used"] is False and x["new_scientific_attempt"] is False
+          assert x["training_steps_per_arm"]==48 and x["training_examples_per_arm"]==48
+          assert x["training_token_count_per_arm"]>0
+          arms={"transformer","pointer_ce","pointer_no_ce"}
+          assert set(x["parameters"])==arms
+          assert x["parameters"]["pointer_ce"]==x["parameters"]["pointer_no_ce"]
+          a=x["parameters"]["transformer"]; b=x["parameters"]["pointer_ce"]
+          assert abs(a-b)/max(a,b)<=0.01
+          assert 0 < x["total_cpu_train_seconds_all_three_arms"] < 35*60
+          assert set(x["one_additional_nonupdating_cpu_fwb_seconds_by_arm"])==arms
+          assert set(x["evaluation_panels"])=={"development","test"}
+          assert set(x["scores"])=={"development","test"}
+          rows=x["per_case_predictions"]
+          assert len(rows)==192
+          assert len({
+             (v["split"],v["arm"],v["family"],v["variant"])
+             for v in rows
+          })==192
+          for split in ("development","test"):
+            assert x["evaluation_panels"][split]["cases_per_arm"]==32
+            assert x["evaluation_panels"][split]["entity_index"]==0
+            assert set(x["scores"][split])==arms
+            for arm in arms:
+              s=x["scores"][split][arm]
+              assert s["cases"]==32 and 0<=s["accuracy"]<=1
+              assert set(s["per_family"])=={"direct","overwrite","two_hop","no_match"}
+              for family,part in s["per_family"].items():
+                assert part["cases"]==8 and 0<=part["answer_accuracy"]<=1
+                assert part["independent_entity_groups"]==1
+                assert part["confidence_interval_estimable"] is False
+            for family in ("direct","overwrite","two_hop"):
+              for key in ("query_only_accuracy","layout_only_accuracy",
+                          "bag_of_codes_only_accuracy"):
+                assert x["negative_controls"][split]["families"][family][key]==0.125
+          for row in rows:
+            assert row["arm"] in arms and row["split"] in ("development","test")
+            assert row["variant"] in range(8)
+            assert row["predicted_answer_id"] in (None,18001,18002,18003,18004,18005,18006,18007,18008)
+            assert isinstance(row["answer_correct"],bool)
+            assert isinstance(row["abstained"],bool)
+            assert math.isfinite(row["confidence"]) and 0<=row["confidence"]<=1
+          assert "not sequential hard-read" in x["interpretation_ceiling"]
+          Path("chm-v3-1377-one-shot-full.json").write_text(
+             json.dumps(x,sort_keys=True,indent=2,allow_nan=False)+"\n",
+             encoding="utf-8"
+          )
+          print("CHM_V3_1377_ONE_SHOT_CPU_REPORT_SCHEMA_PASS")
+          PY
+
+      - name: Archive immutable per-case exploratory CPU result
+        uses: actions/upload-artifact@v4
+        with:
+          name: chm-v3-1377-tiny-one-shot-cpu-evidence
+          path: |
+            chm-v3-1377-one-shot.log
+            chm-v3-1377-one-shot-full.json
+          retention-days: 90
