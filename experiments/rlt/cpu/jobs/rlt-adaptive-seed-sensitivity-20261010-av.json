@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-adaptive-seed-sensitivity-20261010-av",
+  "purpose": "three fresh CPU-only seeds to assess adaptive-vs-static RLT curriculum instability; no scientific replication",
+  "cases": [
+    {
+      "case": 0,
+      "model_seed": 20301170,
+      "easy_seed": 20261170,
+      "long_seed": 20271170,
+      "eval_seed": 20291170
+    },
+    {
+      "case": 1,
+      "model_seed": 20301171,
+      "easy_seed": 20261171,
+      "long_seed": 20271171,
+      "eval_seed": 20291171
+    },
+    {
+      "case": 2,
+      "model_seed": 20301172,
+      "easy_seed": 20261172,
+      "long_seed": 20271172,
+      "eval_seed": 20291172
+    }
+  ],
+  "models": [
+    "residual_scan",
+    "adaptive_scan"
+  ],
+  "easy_seconds_each": 20,
+  "long_seconds_each": 90,
+  "easy_seq_len": 8,
+  "long_seq_len": 64,
+  "long_distances": [
+    1,
+    4,
+    16,
+    40,
+    63
+  ],
+  "batch_size": 8,
+  "expected_parameters_each": 29504,
+  "optimizer": "AdamW",
+  "weight_decay": 0.01,
+  "easy_lr": 0.003,
+  "long_lr": 0.001,
+  "no_max_step_cap": true,
+  "balanced_eval_examples_per_class_per_distance": 128,
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false,
+  "requires_au_job": "rlt-cpu-recurrence-path-attribution-20261009-au"
+}
