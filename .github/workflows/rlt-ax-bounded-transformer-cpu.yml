@@ -30,12 +30,12 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git branch --show-current)" = "exp/rlt-ax-bounded-transformer"
-          python -m py_compile experiments/rlt/model_sliding_window_ax.py experiments/rlt/cpu_bounded_ax_audit.py tests/test_rlt_sliding_window_ax.py tests/test_rlt_cpu_bounded_ax_audit.py
+          python -m py_compile experiments/rlt/model_sliding_window_ax.py experiments/rlt/cpu_bounded_ax_audit.py tests/test_rlt_sliding_window_ax.py tests/test_rlt_cpu_bounded_ax_audit.py experiments/rlt/cpu_bounded_threeway_ay.py tests/test_rlt_cpu_bounded_threeway_ay.py
       - name: Install CPU requirements only
         run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
       - name: Test KV bound, causal field, gradients, controls and regression
         run: |
           set -euo pipefail
-          python -m pytest -q tests/test_rlt_sliding_window_ax.py tests/test_rlt_cpu_bounded_ax_audit.py tests/test_rlt_model_streaming_bounded.py
+          python -m pytest -q tests/test_rlt_sliding_window_ax.py tests/test_rlt_cpu_bounded_ax_audit.py tests/test_rlt_cpu_bounded_threeway_ay.py tests/test_rlt_model_streaming_bounded.py
       - name: Read-only AW bias and causal-pair diagnostic
         run: python -m experiments.rlt.cpu_bounded_ax_audit
