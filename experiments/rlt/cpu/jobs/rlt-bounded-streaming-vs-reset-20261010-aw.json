@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-bounded-streaming-vs-reset-20261010-aw",
+  "purpose": "First CPU-only model-level fixed-context cross-chunk memory vs reset control",
+  "candidates": [
+    "streaming_carry",
+    "same_compute_reset_control"
+  ],
+  "model_seed": 20301081,
+  "easy_seed": 20261081,
+  "long_seed": 20271081,
+  "eval_seed": 20291081,
+  "seq_len": 128,
+  "chunk_size": 8,
+  "distances": [
+    1,
+    4,
+    16,
+    64,
+    127
+  ],
+  "batch_size": 8,
+  "expected_parameters_each": 27712,
+  "balanced_eval_per_class_per_distance": 128,
+  "easy_seconds_each": 15,
+  "long_seconds_each": 90,
+  "easy_lr": 0.003,
+  "long_lr": 0.001,
+  "weight_decay": 0.01,
+  "optimizer": "AdamW",
+  "no_step_cap": true,
+  "only_cross_chunk_memory_is_affine_state": true,
+  "attention_limited_to_current_chunk": true,
+  "counterfactual_suffix_leakage_test": true,
+  "requires_bounded_streaming_cpu_run_id": 38066301595,
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false
+}
