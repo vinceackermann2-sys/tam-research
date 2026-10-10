@@ -1,0 +1,50 @@
+name: RLT BA fresh carry-counterfactual preflight CPU-only
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-ba-carry-counterfactual-preflight.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rlt-ba-causal-preflight
+  cancel-in-progress: false
+
+jobs:
+  pure-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+    steps:
+      - name: Checkout isolated topic branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Confirm scope, compile and no consumed BA output
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab exp/rlt-ax-bounded-transformer
+          test "$(git branch --show-current)" = "exp/rlt-ax-bounded-transformer"
+          test ! -f experiments/rlt/cpu/results/rlt-carry-intervention-20261010-ba.json
+          test ! -e experiments/rlt/cpu/checkpoints/rlt-carry-intervention-20261010-ba
+          python -m py_compile experiments/rlt/cpu_carry_intervention_ba.py tests/test_rlt_carry_intervention_ba.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('experiments/rlt/cpu_carry_intervention_ba.py').read_text()
+          assert 'rlt-cpu-carry-intervention-20261010-ba' in s
+          assert '"gpu_requested": False' in s
+          assert '"scientific_execution": False' in s
+          assert '"results": [{"name": "carry", "checkpoint": checkpoint}]' in s
+          PY
+      - name: Install CPU Torch and pytest
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Validate paired oracles and differentiable memory
+        run: python -m pytest -q tests/test_rlt_carry_intervention_ba.py tests/test_rlt_model_streaming_bounded.py -vv
