@@ -21,7 +21,16 @@ uv tool install --python 3.13 git+https://github.com/googlecolab/colab-mcp@b9ab3
 codex mcp add colab -- colab-mcp
 ```
 
-On Windows, use the absolute path of `colab-mcp.exe` if it is not on PATH. In
+On Windows, use this repo's launcher to avoid upstream's `localhost` binding
+selecting different ephemeral ports for IPv4 and IPv6:
+
+```powershell
+$colabPython = Join-Path (uv tool dir) "colab-mcp\Scripts\python.exe"
+codex mcp add colab -- $colabPython (Resolve-Path scripts/colab_mcp_windows.py).Path
+```
+
+The launcher binds only `127.0.0.1` and preserves upstream's temporary token
+and Colab-origin checks. Keep the launcher at its configured path. In
 the desktop app, reload the MCP configuration or reopen the chat to load the
 new tools if necessary. Ask the agent to call
 `open_colab_browser_connection`, then approve the Colab browser's connection
@@ -32,7 +41,10 @@ WebSocket restricted to Colab origins; it does not publish an internet endpoint.
 Open the connection notebook in the paired Colab browser. Run its setup and
 smoke cells. The agent can then execute bounded repo commands in notebook cells
 and read their outputs. Keep the connected tab open; reconnect after the local
-server or browser session restarts. This local bridge is for the desktop app;
+server or browser session restarts. If an embedded browser closes the localhost
+connection before a WebSocket handshake, open Colab in a regular local browser
+and pair there instead. The repo notebook also works through ordinary notebook
+cell execution. This local bridge is for the desktop app;
 an ordinary ChatGPT web conversation cannot reach this computer's localhost
 server directly.
 
