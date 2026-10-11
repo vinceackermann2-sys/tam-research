@@ -10,6 +10,10 @@ TAM v3 is the successor to ATAM/TAM v1/TAM v2 after mechanism ablations showed t
 
 No broad breakthrough claim is made yet.
 
+## Colab compute
+
+[Open the connection notebook](https://colab.research.google.com/github/vinceackermann2-sys/tam-research/blob/main/colab/TAM_Research_Compute.ipynb) to run repo code from a Colab CPU or GPU runtime with the local desktop agent. See [setup and session limits](docs/COLAB_COMPUTE.md).
+
 ## Start here
 
 For a complete recovery/continuation package, read:
