@@ -23,6 +23,10 @@ For a complete recovery/continuation package, read:
 
 GitHub issue comments are the authoritative callback log for actual Modal/H100 runs.
 
+Google Cloud CPU compute uses the same issue-driven pattern. See
+[`docs/GOOGLE_CLOUD_COMPUTE.md`](docs/GOOGLE_CLOUD_COMPUTE.md) for connection setup,
+`[gcp-run]` requests, permissions, and runtime limits.
+
 ## Completed end-to-end TAM model
 
 The first fully pretrained + post-trained TAM v3 lineage is complete at ~25M parameters (seed 7400):

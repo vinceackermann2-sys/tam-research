@@ -1,0 +1,99 @@
+name: Google Cloud TAM compute
+
+on:
+  workflow_dispatch:
+    inputs:
+      config:
+        description: 'JSON: script, args, timeout_seconds (60-1800), install_dependencies'
+        required: true
+        default: '{"script":"scripts/gcp_compute_smoke.py","timeout_seconds":600}'
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tam-google-cloud-compute
+  cancel-in-progress: false
+
+jobs:
+  compute:
+    if: >-
+      github.repository == 'vinceackermann2-sys/tam-research' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == github.repository_owner &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'issues' &&
+        github.event.issue.user.login == github.repository_owner &&
+        startsWith(github.event.issue.title, '[gcp-run]')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    permissions:
+      contents: read
+      id-token: write
+      issues: write
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_RUNTIME_ACCOUNT: ${{ vars.GCP_RUNTIME_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate request and pin the source commit
+        id: request
+        run: python scripts/gcp_batch.py prepare
+      - name: Authenticate to Google Cloud without a private key
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_LAUNCHER_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Record Compute Engine job request
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              ...context.repo, issue_number: context.issue.number,
+              body: `Google Cloud authenticated. Submitting bounded CPU job from commit ${context.sha}. Logs: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+      - name: Run and collect the Compute Engine job
+        env:
+          JOB_ID: ${{ steps.request.outputs.job_id }}
+        run: python scripts/gcp_batch.py execute
+      - name: Stop an unfinished job after failure or cancellation
+        if: ${{ always() && steps.auth.outcome == 'success' && steps.request.outputs.job_id != '' }}
+        env:
+          JOB_ID: ${{ steps.request.outputs.job_id }}
+        run: |
+          state=$(gcloud batch jobs describe "$JOB_ID" --location="$GCP_REGION" --project="$GCP_PROJECT_ID" --format='value(status.state)' 2>/dev/null) || exit 0
+          case "$state" in
+            SUCCEEDED|FAILED|DELETION_IN_PROGRESS) ;;
+            *) gcloud batch jobs delete "$JOB_ID" --location="$GCP_REGION" --project="$GCP_PROJECT_ID" --quiet ;;
+          esac
+      - name: Save configuration, cloud status, and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-cloud-${{ github.run_id }}
+          path: gcp-results/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Report result to the requesting issue
+        if: always() && github.event_name == 'issues'
+        uses: actions/github-script@v8
+        env:
+          COMPUTE_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const fs = require('fs');
+            const log = fs.existsSync('gcp-results/task.log') ? fs.readFileSync('gcp-results/task.log', 'utf8').slice(-12000) : 'No task logs were collected; inspect the workflow failure.';
+            await github.rest.issues.createComment({
+              ...context.repo, issue_number: context.issue.number,
+              body: `Google Cloud compute: **${process.env.COMPUTE_STATUS}**. Commit: ${context.sha}.\n\n[Workflow and artifacts](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n\`\`\`text\n${log.replaceAll('```', "'''")}\n\`\`\``
+            });

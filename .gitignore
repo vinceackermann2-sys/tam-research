@@ -8,3 +8,5 @@ __pycache__/
 *.bin
 runs/
 data/
+gcp-results/
+gha-creds-*.json
