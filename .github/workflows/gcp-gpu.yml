@@ -1,0 +1,91 @@
+name: Google Cloud GPU
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      config:
+        description: 'JSON: gpu, minutes, source_sha, script, args, zone'
+        required: true
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+concurrency:
+  group: tam-research-google-cloud-gpu
+  cancel-in-progress: false
+
+jobs:
+  guard-tests:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       github.event.issue.title == '[gcp-run]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - run: python tests/test_gcp_gpu.py
+  gpu:
+    needs: guard-tests
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       github.event.issue.title == '[gcp-run]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 260
+    env:
+      GCP_RUN_CONFIG: ${{ inputs.config || github.event.issue.body }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_RESULTS_BUCKET: ${{ secrets.GCP_RESULTS_BUCKET }}
+      GCP_WORKER_SERVICE_ACCOUNT: ${{ secrets.GCP_WORKER_SERVICE_ACCOUNT }}
+      GCP_CREDIT_EXPIRES_AT: ${{ secrets.GCP_CREDIT_EXPIRES_AT }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate source and job before authentication
+        run: python scripts/gcp_gpu.py --validate-only
+      - name: Fail closed until safety configuration is enabled
+        env:
+          ENABLED: ${{ vars.GCP_GPU_ENABLED }}
+        run: |
+          test "$ENABLED" = true || { echo 'Google Cloud GPU is disabled pending billing/quota/safety verification'; exit 1; }
+          test -n "$GCP_PROJECT_ID"
+          test -n "$GCP_RESULTS_BUCKET"
+          test -n "$GCP_WORKER_SERVICE_ACCOUNT"
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Launch bounded GPU and collect results
+        run: python scripts/gcp_gpu.py
+      - name: Save logs and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcp-gpu-${{ github.run_id }}-${{ github.run_attempt }}
+          path: gcp-results/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Report back to requesting issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" \
+            -f body="Google Cloud GPU job: **$JOB_STATUS**. Logs, results and cleanup report: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID . Spot interruption or timeout is a failed/incomplete run, never a research success."

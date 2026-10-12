@@ -14,6 +14,10 @@ No broad breakthrough claim is made yet.
 
 [Open the connection notebook](https://colab.research.google.com/github/vinceackermann2-sys/tam-research/blob/main/colab/TAM_Research_Compute.ipynb) to run repo code from a Colab CPU or GPU runtime with the local desktop agent. See [setup and session limits](docs/COLAB_COMPUTE.md).
 
+## Google Cloud GPU compute
+
+Agent-selected L4/T4/A100/H100 jobs use owner-created `[gcp-run]` issues, automatic VM deletion and a non-resetting $260 reservation allowance. The backend stays disabled until billing, GPU quota and safety checks are complete. See [Google Cloud setup and spending limits](docs/GOOGLE_CLOUD_COMPUTE.md).
+
 ## Start here
 
 For a complete recovery/continuation package, read:
