@@ -8,6 +8,10 @@ on:
       config:
         description: 'JSON: gpu, minutes, source_sha, script, args, zone'
         required: true
+      check_connection:
+        description: 'Verify cloud login and budget access without creating a VM'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,6 +51,7 @@ jobs:
       GCP_RESULTS_BUCKET: ${{ secrets.GCP_RESULTS_BUCKET }}
       GCP_WORKER_SERVICE_ACCOUNT: ${{ secrets.GCP_WORKER_SERVICE_ACCOUNT }}
       GCP_CREDIT_EXPIRES_AT: ${{ secrets.GCP_CREDIT_EXPIRES_AT }}
+      CHECK_CONNECTION: ${{ github.event_name == 'workflow_dispatch' && inputs.check_connection }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -61,7 +66,7 @@ jobs:
         env:
           ENABLED: ${{ vars.GCP_GPU_ENABLED }}
         run: |
-          test "$ENABLED" = true || { echo 'Google Cloud GPU is disabled pending billing/quota/safety verification'; exit 1; }
+          test "$ENABLED" = true || test "$CHECK_CONNECTION" = true || { echo 'Google Cloud GPU is disabled pending billing/quota/safety verification'; exit 1; }
           test -n "$GCP_PROJECT_ID"
           test -n "$GCP_RESULTS_BUCKET"
           test -n "$GCP_WORKER_SERVICE_ACCOUNT"
@@ -70,7 +75,13 @@ jobs:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v3
+      - name: Verify connection without paid compute
+        if: env.CHECK_CONNECTION == 'true'
+        run: |
+          gcloud compute project-info describe --project="$GCP_PROJECT_ID" --format='table(quotas.metric,quotas.limit,quotas.usage)'
+          gcloud storage cat "gs://$GCP_RESULTS_BUCKET/budget/reservations/initial-safety-baseline.json"
       - name: Launch bounded GPU and collect results
+        if: env.CHECK_CONNECTION != 'true'
         run: python scripts/gcp_gpu.py
       - name: Save logs and results
         if: always()
