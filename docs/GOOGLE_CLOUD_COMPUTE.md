@@ -4,7 +4,11 @@ This is a separate backend for agent-selected GPU jobs. Modal workflows and cred
 
 ## Current activation state
 
-Disabled pending cloud IAM approval, GPU quota, billing verification and budget safety review. On 2026-10-12 the selected project (`project-c40afe76-9188-4739-b66`) had global GPU quota 0; us-central1 L4, T4 and A100 quotas were also 0. No GPU was provisioned during setup.
+The keyless GitHub connection is installed and verified by [the successful connection check](https://github.com/vinceackermann2-sys/tam-research/actions/runs/38256328433). The cloud identities, closed-ingress VPC, private results bucket and permanent budget baseline are created. GPU execution remains disabled pending GPU quota. On 2026-10-12 the selected project (`project-c40afe76-9188-4739-b66`) had global GPU quota 0; us-central1 L4, T4 and A100 quotas were also 0. No GPU was provisioned during setup.
+
+The single-GPU global quota request `tam-single-gpu-global` was submitted and declined by Google: preferred value 1, granted value 0. The quota API reports `NOT_ENOUGH_USAGE_HISTORY` for the global quota and relevant GPU types. Google must approve quota before this backend can run; never spend credits on unrelated resources to bypass this restriction. Once quota is approved, recheck the available hardware and remaining credits before enabling `GCP_GPU_ENABLED` and running a short GPU smoke check.
+
+Billing was verified as a paid account on 2026-10-12, with 100% of the welcome credit available: SEK 2,985.81. Google lists its expiry as November 21, 2026. The launcher stops accepting jobs ahead of that date, at November 20, 2026 00:00 UTC. A project budget named `TAM compute lifetime 260 USD credit allowance` tracks gross usage, excludes all credits, does not reset monthly, and alerts at 50%, 80% and 100%. Its amount is SEK 2,587, rounded down from 260/300 of Google's recorded original credit value. This is an alert budget; Compute Engine has no enforced spend-cap status.
 
 Google's non-billable free trial does not permit GPU VMs. The account owner must upgrade billing if still on that trial, then obtain GPU quota. The remaining unexpired welcome credit is retained after upgrade. Do not upgrade billing automatically.
 
@@ -26,6 +30,8 @@ An agent with GitHub issue-write access can open an issue in this repository wit
 The agent chooses L4, T4, A100 or H100 according to the experiment, memory requirements and available quota. It must select the smallest sufficient device and duration. Each machine has one GPU. H100 is 80 GB; A100 here is 40 GB. These are Spot machines: interrupted runs are incomplete, and there are no automatic retries, paid reservations or hardware substitutions. Zones are limited to us-central1-a/b/c/f; hardware availability still varies by zone.
 
 Only owner-created issues trigger jobs. For future ChatGPT sessions, the GitHub connection must be able to create an issue as the repository owner. Repository access alone does not make GPU tools appear in every chat. The workflow also supports manual dispatch on main.
+
+Manual dispatch with `check_connection=true` checks keyless login and reads the budget baseline while paid execution stays disabled. It always skips VM creation. The regular source/config validation and guard tests still run.
 
 Use a committed Python experiment entry point, not a Modal wrapper or `.remote()` invocation. Existing Modal volumes and checkpoints do not move to Google Cloud automatically. Save outputs under `TAM_RESULTS_DIR`; maximum returned output is 100 MiB. The workflow posts a result link on the issue and uploads a GitHub artifact. GCS results expire after seven days.
 
