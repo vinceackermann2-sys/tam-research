@@ -126,3 +126,33 @@ issue is intentionally disabled.
 
 An actual end-to-end GPU test requires your Google OAuth sign-in and
 explicit approval. No token should be supplied through this chat.
+
+## Research job durability and continuation
+
+See [COLAB_RESEARCH_ORCHESTRATION.md](COLAB_RESEARCH_ORCHESTRATION.md) for the
+five separate project states and pending job scopes. New `colab_jobs` scripts
+must declare a reviewed literal `COLAB_JOB_ID`. The worker reserves an atomic,
+never-updated GitHub tag `colab-attempts/<job-id>` before provisioning, in addition
+to the local issue receipt and remote issue callback. Existing identity means
+no launch even if a new issue or machine tries to repeat it. GitHub authentication
+needs Contents write for this receipt, as well as issue comment access.
+
+Research runs use CLI `run --keep --timeout ...`: allocation, execution and
+collection share the worker deadline. The CLI default code timeout is 30s, so the
+wrapper now explicitly passes the remaining deadline. The reviewed standalone
+script receives the exact issue commit, issue number, script path and requested
+GPU; it must bootstrap the exact public repository SHA itself. No credential is
+sent to Colab. Current CPU scripts reject other GPUs before repository setup.
+
+The worker downloads `/content/tam-results/bundle.zip`, verifies its declared
+SHA-256/size, every manifest member and issue/commit/script provenance, then
+fsyncs it locally **before** calling stop. It never extracts untrusted archives.
+Bundles are bounded to 32 MiB. Research success additionally requires confirmed
+teardown and fresh post-attempt usage. Missing artifacts or teardown are failures,
+not architecture evidence. Cleanup is attempted even on timeout; if retrieval
+cannot complete, record artifact loss and release the runtime to bound exposure.
+
+Run `python3 scripts/colab_pro_issue_worker.py --status` on the local WSL machine
+for a read-only lock-based worker check and fresh account balance. A stale
+heartbeat alone is not proof that the worker is running. No automatic worker
+restart or attempt retry is introduced. Default limits and maximum 300s unchanged.
