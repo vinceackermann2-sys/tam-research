@@ -50,7 +50,7 @@ bridge is not connected until you complete OAuth and run the worker.
        git clone https://github.com/vinceackermann2-sys/tam-research.git
        cd tam-research
        python3 -m py_compile scripts/colab_pro_issue_worker.py scripts/colab_bridge_gpu_probe.py
-       python3 scripts/colab_pro_issue_worker.py --poll
+       python3 scripts/colab_pro_issue_worker.py --poll --max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4
 
    Leave the WSL terminal and computer running. Stop with Ctrl+C.
    The worker polls GitHub every 45 seconds. It requires NO personal
@@ -84,6 +84,17 @@ issue is intentionally disabled.
 
 ## Costs, security and scientific rules
 
+- **Default worker limits:** one attempted issue per worker invocation, CPU/T4
+  only, with an outer wall-clock execution timeout of 180 seconds including
+  provisioning. Hard-coded maximum accepted by the CLI wrapper is 300 seconds.
+  The Linux/macOS/WSL worker holds an exclusive lock to prevent simultaneous
+  workers sharing the same state directory. No automatic retry.
+- **Compute-unit cap caveat:** the three-minute watchdog is **not** a hard
+  Google billing/compute-unit limit. A timeout or machine shutdown might
+  fail to release a session immediately. Review `colab --auth=oauth2 usage`
+  and `colab --auth=oauth2 sessions` before and after each job. Colab Pro
+  itself controls quota and accelerator availability. Do not assume a
+  particular cost in units based only on requested hardware.
 - This PR does not itself start a GPU or spend any compute units.
 - A T4 probe consumes some Colab Pro quota, subject to availability.
 - Colab Pro may impose compute-unit, session, and accelerator limits.
