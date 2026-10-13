@@ -33,7 +33,7 @@ class BoundedStreamingConfig:
     chunk_size: int = 8
 
     def __post_init__(self) -> None:
-        if isinstance(self.chunk_size, bool) or self.chunk_size < 1:
+        if isinstance(self.chunk_size, bool) or not isinstance(self.chunk_size, int) or self.chunk_size < 1:
             raise ValueError("chunk_size must be a positive integer")
         if self.chunk_size > self.rlt.max_seq_len:
             raise ValueError("chunk_size exceeds per-chunk learned positional embedding")

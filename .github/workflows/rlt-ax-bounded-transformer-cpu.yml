@@ -1,0 +1,41 @@
+name: RLT AX bounded transformer CPU correctness
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rlt-ax-bounded-transformer-cpu
+  cancel-in-progress: false
+
+jobs:
+  cpu-correctness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+    steps:
+      - name: Checkout this exact AX topic branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Verify isolation and compile the source
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "exp/rlt-ax-bounded-transformer"
+          python -m py_compile experiments/rlt/model_sliding_window_ax.py experiments/rlt/cpu_bounded_ax_audit.py tests/test_rlt_sliding_window_ax.py tests/test_rlt_cpu_bounded_ax_audit.py experiments/rlt/cpu_bounded_threeway_ay.py tests/test_rlt_cpu_bounded_threeway_ay.py
+      - name: Install CPU requirements only
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Test KV bound, causal field, gradients, controls and regression
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_rlt_sliding_window_ax.py tests/test_rlt_cpu_bounded_ax_audit.py tests/test_rlt_cpu_bounded_threeway_ay.py tests/test_rlt_model_streaming_bounded.py
+      - name: Read-only AW bias and causal-pair diagnostic
+        run: python -m experiments.rlt.cpu_bounded_ax_audit

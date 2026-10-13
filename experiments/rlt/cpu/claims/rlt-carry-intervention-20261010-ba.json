@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-carry-intervention-20261010-ba",
+  "status": "reserved_before_execution",
+  "source_preflight_commit": "3a00b0f8c64547d8bff7086f5e307dac172a1679",
+  "runner_blob_sha": "911daef4545d0a2a2718fd9660d9208061466948",
+  "preflight_run_id": 38081218543,
+  "no_replay": true,
+  "no_resume": true,
+  "no_amend": true,
+  "automatic_retry": false,
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "notes": "This reservation is immutable and the new BA attempt is consumed after its first execution, including failure."
+}

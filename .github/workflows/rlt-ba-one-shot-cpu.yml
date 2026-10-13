@@ -1,0 +1,140 @@
+name: RLT BA reserved one-shot CPU experiment
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-ba-one-shot-cpu.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-ba-one-shot-20261010
+  cancel-in-progress: false
+
+jobs:
+  run-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+      BRANCH: exp/rlt-ax-bounded-transformer
+      SRC: experiments/rlt/cpu_carry_intervention_ba.py
+      JOB: experiments/rlt/cpu/jobs/rlt-carry-intervention-20261010-ba.json
+      CLAIM: experiments/rlt/cpu/claims/rlt-carry-intervention-20261010-ba.json
+      RESULT: experiments/rlt/cpu/results/rlt-carry-intervention-20261010-ba.json
+      CHECKPOINT: experiments/rlt/cpu/checkpoints/rlt-carry-intervention-20261010-ba/carry.pt
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Verify frozen BA reservation and passing CPU preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse "origin/$BRANCH")" = "$GITHUB_SHA"
+          test ! -e "$RESULT" && test ! -e "$CHECKPOINT"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 31; fi
+          if git cat-file -e "origin/$BRANCH:$CHECKPOINT" 2>/dev/null; then exit 32; fi
+          python - <<'PY'
+          import json,os,pathlib,subprocess,urllib.request
+          job=json.loads(pathlib.Path(os.environ['JOB']).read_text())
+          claim=json.loads(pathlib.Path(os.environ['CLAIM']).read_text())
+          assert job['schema']==claim['schema']==1
+          assert job['job_id']==claim['job_id']=='rlt-cpu-carry-intervention-20261010-ba'
+          assert job['source_preflight_commit']=='3a00b0f8c64547d8bff7086f5e307dac172a1679'
+          assert job['runner_blob_sha']==claim['runner_blob_sha']=='911daef4545d0a2a2718fd9660d9208061466948'
+          assert subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SRC']],text=True).strip()==job['runner_blob_sha']
+          assert job['seeds']=={'model':20541081,'easy':20511081,'long':20521081,'eval':20531081,'diagnostic':20551081}
+          assert job['parameters']==27712 and job['chunk_size']==8
+          assert job['distances']==[1,4,16,64,127]
+          assert job['train_seconds']=={'easy':15,'long':90}
+          assert claim['status']=='reserved_before_execution'
+          assert job['gpu_requested'] is False and job['scientific_execution'] is False
+          assert job['automatic_retry'] is False and claim['automatic_retry'] is False
+          req=urllib.request.Request('https://api.github.com/repos/vinceackermann2-sys/tam-research/actions/runs/38081218543',headers={'User-Agent':'rlt-ba-one-shot'})
+          with urllib.request.urlopen(req,timeout=30) as f: preflight=json.load(f)
+          assert preflight['status']=='completed' and preflight['conclusion']=='success'
+          assert preflight['run_attempt']==1 and preflight['head_sha']==job['source_preflight_commit']
+          PY
+      - name: Install CPU PyTorch
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Run only registered preflight tests
+        run: python -m pytest -q tests/test_rlt_carry_intervention_ba.py
+      - name: Execute one registered BA CPU attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 16m python -m experiments.rlt.cpu_carry_intervention_ba
+          test -s "$RESULT" && test -s "$CHECKPOINT"
+      - name: Upload backup result and trained weight checkpoint
+        uses: actions/upload-artifact@v4
+        with:
+          name: rlt-ba-evidence-20261010
+          path: |
+            experiments/rlt/cpu/results/rlt-carry-intervention-20261010-ba.json
+            experiments/rlt/cpu/checkpoints/rlt-carry-intervention-20261010-ba/carry.pt
+          if-no-files-found: error
+          retention-days: 90
+      - name: Freeze full evidence including ignored checkpoint in Git
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          p=pathlib.Path(os.environ['RESULT'])
+          d=json.loads(p.read_text())
+          assert d['status']=='complete' and d['job_id']=='rlt-cpu-carry-intervention-20261010-ba'
+          assert d['gpu_requested'] is False and d['scientific_execution'] is False
+          assert d['breakthrough_claim_supported'] is False
+          assert d['checkpoint']==d['results'][0]['checkpoint']
+          assert d['protocol']['seeds']=={'model':20541081,'easy':20511081,'long':20521081,'eval':20531081,'diagnostic':20551081}
+          assert d['training']['easy']['seconds']>=15 and d['training']['long']['seconds']>=90
+          assert set(d['final'])==set(d['counterfactual_diagnostics'])=={'1','4','16','64','127'}
+          for k,v in d['final'].items():
+              assert v['examples']==256 and 0<=v['accuracy']<=1 and v['binary_nll']>=0
+          for k,v in d['counterfactual_diagnostics'].items():
+              assert v['examples']==16 and len(v['state_l2_by_chunk'])==16
+              assert v['class_balance_each']==8
+              if int(k)>=8: assert v['identical_final_chunk']
+          d['repository_provenance']={
+              'branch':os.environ['BRANCH'],'trigger_sha':os.environ['GITHUB_SHA'],
+              'runner_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SRC']],text=True).strip(),
+              'job_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['JOB']],text=True).strip(),
+              'claim_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['CLAIM']],text=True).strip(),
+              'preflight_run_id':38081218543}
+          p.write_text(json.dumps(d,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          test "$(git rev-parse "origin/$BRANCH")" = "$GITHUB_SHA"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 33; fi
+          git add "$RESULT"
+          git add -f "$CHECKPOINT"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from experiments.rlt.analysis.checkpoint_archive_guard import validate_staged_checkpoints
+          assert validate_staged_checkpoints(Path('.'), Path(os.environ['RESULT']))==1
+          PY
+          git commit -m "rlt ba: freeze carry diagnostics and trained checkpoint"
+          git push origin "HEAD:$BRANCH"
+          git fetch origin "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$BRANCH")"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from experiments.rlt.analysis.checkpoint_archive_guard import validate_persisted_checkpoints
+          assert validate_persisted_checkpoints(
+              Path('.'), Path(os.environ['RESULT']), 'origin/'+os.environ['BRANCH']
+          )==1
+          PY
+          echo "BA terminal result and SHA256-verified checkpoint persisted remotely"

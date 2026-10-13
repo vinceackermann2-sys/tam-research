@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-carry-intervention-20261010-ba",
+  "purpose": "One-shot CPU-only trained carry-RLT causal-counterfactual retention/readout diagnostic with durable model checkpoint",
+  "source_preflight_commit": "3a00b0f8c64547d8bff7086f5e307dac172a1679",
+  "runner_blob_sha": "911daef4545d0a2a2718fd9660d9208061466948",
+  "preflight_run_id": 38081218543,
+  "candidates": [
+    "bounded_chunk_gated_carry"
+  ],
+  "parameters": 27712,
+  "chunk_size": 8,
+  "seq_len": 128,
+  "distances": [
+    1,
+    4,
+    16,
+    64,
+    127
+  ],
+  "batch_size": 8,
+  "balanced_eval_examples_per_class": 128,
+  "counterfactual_pairs_per_class": 8,
+  "seeds": {
+    "model": 20541081,
+    "easy": 20511081,
+    "long": 20521081,
+    "eval": 20531081,
+    "diagnostic": 20551081
+  },
+  "train_seconds": {
+    "easy": 15,
+    "long": 90
+  },
+  "optimizer": "AdamW",
+  "learning_rates": {
+    "easy": 0.003,
+    "long": 0.001
+  },
+  "weight_decay": 0.01,
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false,
+  "need_trained_checkpoint": true,
+  "checkpoint_persistence": "force-add ignored *.pt; check staged SHA256; push; fetch remote ref; verify git show blob SHA256; backup upload-artifact"
+}

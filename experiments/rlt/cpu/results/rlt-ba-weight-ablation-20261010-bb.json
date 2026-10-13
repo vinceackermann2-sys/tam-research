@@ -1,0 +1,220 @@
+{
+  "breakthrough_claim_supported": false,
+  "classification": "CPU_INFERENCE_ONLY_TRAINED_STATE_ABLATION_ENGINEERING",
+  "counterfactuals": {
+    "127": {
+      "carry": {
+        "both_correct_fraction": 1.0,
+        "exact_same_logits": false,
+        "mean_absolute_binary_logit_difference": 7.891075134277344,
+        "paired_examples": 16
+      },
+      "erase_t120": {
+        "both_correct_fraction": 0.0,
+        "exact_same_logits": true,
+        "mean_absolute_binary_logit_difference": 0.0,
+        "paired_examples": 16
+      },
+      "full_reset": {
+        "both_correct_fraction": 0.0,
+        "exact_same_logits": true,
+        "mean_absolute_binary_logit_difference": 0.0,
+        "paired_examples": 16
+      }
+    },
+    "16": {
+      "carry": {
+        "both_correct_fraction": 1.0,
+        "exact_same_logits": false,
+        "mean_absolute_binary_logit_difference": 7.8166937828063965,
+        "paired_examples": 16
+      },
+      "erase_t120": {
+        "both_correct_fraction": 0.0,
+        "exact_same_logits": true,
+        "mean_absolute_binary_logit_difference": 0.0,
+        "paired_examples": 16
+      },
+      "full_reset": {
+        "both_correct_fraction": 0.0,
+        "exact_same_logits": true,
+        "mean_absolute_binary_logit_difference": 0.0,
+        "paired_examples": 16
+      }
+    },
+    "64": {
+      "carry": {
+        "both_correct_fraction": 1.0,
+        "exact_same_logits": false,
+        "mean_absolute_binary_logit_difference": 7.969246864318848,
+        "paired_examples": 16
+      },
+      "erase_t120": {
+        "both_correct_fraction": 0.0,
+        "exact_same_logits": true,
+        "mean_absolute_binary_logit_difference": 0.0,
+        "paired_examples": 16
+      },
+      "full_reset": {
+        "both_correct_fraction": 0.0,
+        "exact_same_logits": true,
+        "mean_absolute_binary_logit_difference": 0.0,
+        "paired_examples": 16
+      }
+    }
+  },
+  "gpu_requested": false,
+  "interpretation_ceiling": "One fixed BA checkpoint and new inference-only synthetic examples. Causal state intervention tests whether carry is required for long distance SET recall under per-chunk local attention. It is not scientific replication, equal-compute Transformer science, or a general language-model breakthrough.",
+  "job_id": "rlt-cpu-ba-weight-ablation-20261010-bb",
+  "new_training": false,
+  "protocol": {
+    "balanced_eval_examples_per_class_per_gap": 256,
+    "chunk_count": 16,
+    "counterfactual_pairs_per_gap": 16,
+    "counterfactual_seed": 20651081,
+    "distances": [
+      1,
+      4,
+      16,
+      64,
+      127
+    ],
+    "eval_seeds": [
+      20631081,
+      20641081
+    ],
+    "final_window": 8,
+    "last_chunk_erasure_boundary": 120,
+    "models": [
+      "carry",
+      "full_reset",
+      "erase_t120"
+    ],
+    "same_trained_parameters": true
+  },
+  "repository_provenance": {
+    "branch": "exp/rlt-ax-bounded-transformer",
+    "job_blob_sha": "306ae3435f932a60987436d34a0018d782e78c63",
+    "preflight_run_id": 38081782859,
+    "runner_blob_sha": "edcad5cef7d0385c70bc1721129ca4c1cea46f4d",
+    "trigger_sha": "32483f37081cdb083717f764bd0a07fc23dc73fb"
+  },
+  "schema": 1,
+  "scientific_execution": false,
+  "scores": {
+    "carry": {
+      "1": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00030091902408457827,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "127": {
+        "accuracy": 1.0,
+        "binary_nll": 0.0003607568323786836,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "16": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00043374070855861646,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "4": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00027321856009621115,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "64": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00039317771052083117,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      }
+    },
+    "erase_t120": {
+      "1": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00027330014199833386,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "127": {
+        "accuracy": 0.5,
+        "binary_nll": 2.201146710664034,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 512
+      },
+      "16": {
+        "accuracy": 0.5,
+        "binary_nll": 2.214046262204647,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 512
+      },
+      "4": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00024776451959951373,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "64": {
+        "accuracy": 0.5,
+        "binary_nll": 2.20146631449461,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 512
+      }
+    },
+    "full_reset": {
+      "1": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00027330014199833386,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "127": {
+        "accuracy": 0.5,
+        "binary_nll": 2.201146710664034,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 512
+      },
+      "16": {
+        "accuracy": 0.5,
+        "binary_nll": 2.214046262204647,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 512
+      },
+      "4": {
+        "accuracy": 1.0,
+        "binary_nll": 0.00024776451959951373,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 512
+      },
+      "64": {
+        "accuracy": 0.5,
+        "binary_nll": 2.20146631449461,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.0,
+        "examples": 512
+      }
+    }
+  },
+  "source_ba_job_id": "rlt-cpu-carry-intervention-20261010-ba",
+  "source_checkpoint_sha256": "74fe2bb1cfb74242aaba3d0eb8ac5df13c1a421a7d50054a0d7dbf503fb4149b",
+  "status": "complete"
+}

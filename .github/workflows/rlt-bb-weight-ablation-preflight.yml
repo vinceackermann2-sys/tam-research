@@ -1,0 +1,50 @@
+name: RLT BB BA checkpoint ablation CPU correctness
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-bb-weight-ablation-preflight.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rlt-bb-inference-preflight
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Confirm BA checkpoint is durably tracked and BB has no terminal result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab exp/rlt-ax-bounded-transformer
+          test "$(git branch --show-current)" = "exp/rlt-ax-bounded-transformer"
+          git ls-files --error-unmatch experiments/rlt/cpu/checkpoints/rlt-carry-intervention-20261010-ba/carry.pt
+          test "$(git hash-object experiments/rlt/cpu/checkpoints/rlt-carry-intervention-20261010-ba/carry.pt)" = "d9d536b1b626412e20d57042dd7d1730571be276"
+          test ! -e experiments/rlt/cpu/results/rlt-ba-weight-ablation-20261010-bb.json
+          python -m py_compile experiments/rlt/cpu_ba_weight_ablation_bb.py tests/test_rlt_ba_weight_ablation_bb.py
+          python - <<'PY'
+          from pathlib import Path
+          source=Path("experiments/rlt/cpu_ba_weight_ablation_bb.py").read_text()
+          assert 'new_training": False' in source
+          assert 'weights_only=True' in source
+          assert 'EraseBeforeFinalChunk' in source
+          assert 'rlt-cpu-ba-weight-ablation-20261010-bb' in source
+          PY
+      - name: Install CPU-only dependencies
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Verify trained checkpoint load, causal erasure and no historical leakage
+        run: python -m pytest -q tests/test_rlt_ba_weight_ablation_bb.py -vv
