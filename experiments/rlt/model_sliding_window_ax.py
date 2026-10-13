@@ -29,6 +29,8 @@ class SlidingWindowConfig:
     eps: float = 1e-6
 
     def __post_init__(self) -> None:
+        if isinstance(self.window, bool) or not isinstance(self.window, int) or self.window < 1:
+            raise ValueError("window must be a positive integer")
         if min(self.vocab_size, self.width, self.heads, self.layers, self.window, self.ff_inner) < 1:
             raise ValueError("positive configuration fields required")
         if self.width % self.heads:
