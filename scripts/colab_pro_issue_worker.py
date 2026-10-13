@@ -163,7 +163,7 @@ def execute(args, issue, job, source):
     return True
 
 
-def sweep(args):
+def sweep(args, remaining):
     """Consume at most args.max_attempts jobs; return attempts consumed."""
     owner = args.repo.split("/", 1)[0]
     endpoint = f"repos/{args.repo}/issues?state=open&labels=colab-approved&per_page=100"
@@ -184,7 +184,7 @@ def sweep(args):
             continue
         if execute(args, issue, job, source):
             consumed += 1
-        if consumed >= args.max_attempts:
+        if consumed >= remaining:
             break
     return consumed
 
@@ -222,7 +222,7 @@ def main():
     attempts = 0
     while attempts < a.max_attempts:
         try:
-            attempts += sweep(a)
+            attempts += sweep(a, a.max_attempts - attempts)
         except Exception as ex:
             print(f"Poll error: {ex}", file=sys.stderr)
             if not a.poll:
