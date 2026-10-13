@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 
 SOURCE = Path(__file__).resolve().parents[1] / "scripts/colab_pro_issue_worker.py"
 spec = importlib.util.spec_from_file_location("colab_bridge", SOURCE)
@@ -52,6 +54,28 @@ class ColabProBridgeTests(unittest.TestCase):
             job = {"commit": "a" * 40, "script": "scripts/colab_bridge_gpu_probe.py", "gpu": "T4"}
             self.assertIsNotNone(bridge.reserve(state, 12, job))
             self.assertIsNone(bridge.reserve(state, 12, job))
+
+
+    def test_sweep_respects_gpu_allowlist_and_one_attempt(self):
+        blocked = sample_issue({"commit": "a" * 40,
+                                "script": "scripts/colab_bridge_gpu_probe.py",
+                                "gpu": "H100"})
+        blocked["number"] = 42
+        allowed = sample_issue()
+        allowed["number"] = 43
+        second = sample_issue()
+        second["number"] = 44
+        with tempfile.TemporaryDirectory() as tmp:
+            args = SimpleNamespace(repo="vinceackermann2-sys/tam-research",
+                                   state_dir=Path(tmp), repo_path=Path(tmp),
+                                   allowed_gpus={"T4"})
+            with patch.object(bridge, "gh_json", return_value=[blocked, allowed, second]), \
+                 patch.object(bridge, "source_from_main", return_value="print(1)"), \
+                 patch.object(bridge, "execute", return_value=True) as execute:
+                attempts = bridge.sweep(args, remaining=1)
+            self.assertEqual(attempts, 1)
+            self.assertEqual(execute.call_count, 1)
+            self.assertEqual(execute.call_args[0][1]["number"], 43)
 
 
 if __name__ == "__main__":
