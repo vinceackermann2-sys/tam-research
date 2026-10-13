@@ -1,0 +1,27 @@
+name: Colab Pro bridge CPU checks
+on:
+  pull_request:
+    paths:
+      - scripts/colab_pro_issue_worker.py
+      - scripts/colab_bridge_gpu_probe.py
+      - tests/test_colab_pro_issue_worker.py
+      - docs/COLAB_PRO_CHATGPT_BRIDGE.md
+      - .github/workflows/colab-pro-bridge-cpu-ci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-gpu-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax checks
+        run: python -m py_compile scripts/colab_pro_issue_worker.py scripts/colab_bridge_gpu_probe.py
+      - name: Bridge security and idempotency tests
+        run: python -m unittest discover -s tests -p 'test_colab_pro_issue_worker.py' -v
