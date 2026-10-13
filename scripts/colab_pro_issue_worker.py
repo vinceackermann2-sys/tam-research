@@ -132,8 +132,12 @@ def execute(args, issue, job, source):
         error = str(ex)[:250]
     finally:
         try:
-            stop_ok = cmd(["colab", "--auth=oauth2", "stop", "--session", session],
-                          timeout=90, check=False).returncode == 0
+            cmd(["colab", "--auth=oauth2", "stop", "--session", session],
+                timeout=90, check=False)
+            # 'colab run' normally auto-stops, so a second stop may exit nonzero.
+            sessions = cmd(["colab", "--auth=oauth2", "sessions"],
+                           timeout=60, check=False)
+            stop_ok = sessions.returncode == 0 and session not in sessions.stdout
         except Exception:
             pass
         log.write_text(output[-150000:], encoding="utf-8")
@@ -171,7 +175,7 @@ def sweep(args):
         except Exception as ex:
             print(f"Issue #{issue['number']} preflight skipped: {ex}", file=sys.stderr)
             continue
-        execute(args, issue, job, source,)
+        execute(args, issue, job, source)
 
 
 def main():
