@@ -61,12 +61,10 @@ bridge is not connected until you complete OAuth and run the worker.
 Ask ChatGPT to create a pending Colab Pro GPU probe issue, using the
 current **merged** main commit. It will have this exact body format:
 
-```text
-<!-- colab-pro-job:v1 -->
-```json
-{"commit":"REPLACE_WITH_ACTUAL_40_CHARACTER_MERGED_COMMIT_SHA","script":"scripts/colab_bridge_gpu_probe.py","gpu":"T4"}
-```
-```
+    <!-- colab-pro-job:v1 -->
+    ```json
+    {"commit":"REPLACE_WITH_ACTUAL_40_CHARACTER_MERGED_COMMIT_SHA","script":"scripts/colab_bridge_gpu_probe.py","gpu":"T4"}
+    ```
 
 The first line must be the marker, followed by a JSON code fence.
 The job will NOT execute until the label **colab-approved** is applied.
