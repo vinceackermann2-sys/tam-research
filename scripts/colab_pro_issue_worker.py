@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Execute approved GitHub issue jobs on personal Colab Pro (Linux/macOS/WSL)."""
 import argparse
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -104,7 +105,7 @@ def execute(args, issue, job, source):
     number = issue["number"]
     receipt = reserve(args.state_dir, number, job)
     if receipt is None:
-        return
+        return False
     session = f"chatgpt-issue-{number}"
     log = args.state_dir / f"issue-{number}.log"
     output = ""
@@ -159,14 +160,20 @@ def execute(args, issue, job, source):
                                         "exit_code": exit_code, "stop_ok": stop_ok,
                                         "local_log": str(log)}, indent=2) + "\n")
         print(f"Issue #{number}: {status}; local log: {log}; stop: {stop_ok}")
+    return True
 
 
 def sweep(args):
+    """Consume at most args.max_attempts jobs; return attempts consumed."""
     owner = args.repo.split("/", 1)[0]
     endpoint = f"repos/{args.repo}/issues?state=open&labels=colab-approved&per_page=100"
+    consumed = 0
     for issue in gh_json(endpoint):
         job = parse_issue(issue, owner)
         if not job:
+            continue
+        if job["gpu"] not in args.allowed_gpus:
+            print(f"Issue #{issue['number']} skipped: GPU {job['gpu']} not allowed", file=sys.stderr)
             continue
         if (args.state_dir / f"issue-{issue['number']}.json").exists():
             continue
@@ -175,7 +182,11 @@ def sweep(args):
         except Exception as ex:
             print(f"Issue #{issue['number']} preflight skipped: {ex}", file=sys.stderr)
             continue
-        execute(args, issue, job, source)
+        if execute(args, issue, job, source):
+            consumed += 1
+        if consumed >= args.max_attempts:
+            break
+    return consumed
 
 
 def main():
@@ -184,23 +195,43 @@ def main():
     p.add_argument("--repo-path", type=Path, default=Path("."))
     p.add_argument("--state-dir", type=Path,
                    default=Path.home() / ".local/state/colab-pro-chatgpt")
-    p.add_argument("--poll", action="store_true", help="Keep polling GitHub")
+    p.add_argument("--poll", action="store_true", help="Keep polling until one attempt")
     p.add_argument("--interval", type=int, default=45)
-    p.add_argument("--max-seconds", type=int, default=1200)
+    p.add_argument("--max-seconds", type=int, default=180,
+                   help="Wall-clock timeout including GPU allocation (max 300)")
+    p.add_argument("--max-attempts", type=int, default=1,
+                   help="Max attempts per worker invocation (default: 1)")
+    p.add_argument("--allowed-gpus", default="CPU,T4",
+                   help="Comma-separated accelerator allowlist; default CPU,T4")
     a = p.parse_args()
-    if not 10 <= a.interval <= 3600 or not 30 <= a.max_seconds <= 3600:
-        p.error("interval must be 10..3600; max-seconds must be 30..3600")
+    if not 10 <= a.interval <= 3600 or not 30 <= a.max_seconds <= 300:
+        p.error("interval must be 10..3600; max-seconds must be 30..300")
+    if not 1 <= a.max_attempts <= 10:
+        p.error("max-attempts must be 1..10; default is 1")
+    a.allowed_gpus = {g.strip() for g in a.allowed_gpus.split(",") if g.strip()}
+    if not a.allowed_gpus or not a.allowed_gpus.issubset(ALLOWED_GPUS):
+        p.error("Allowed GPUs must be a subset of " + ",".join(sorted(ALLOWED_GPUS)))
     a.repo_path = a.repo_path.resolve()
-    while True:
+    a.state_dir.mkdir(parents=True, exist_ok=True)
+    # Prevent multiple workers on one computer from silently running in parallel.
+    lock_file = open(a.state_dir / "worker.lock", "a+")
+    try:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        p.error("Another Colab bridge worker is already running in this state directory")
+    attempts = 0
+    while attempts < a.max_attempts:
         try:
-            sweep(a)
+            attempts += sweep(a)
         except Exception as ex:
             print(f"Poll error: {ex}", file=sys.stderr)
             if not a.poll:
                 raise
         if not a.poll:
             break
-        time.sleep(a.interval)
+        if attempts < a.max_attempts:
+            time.sleep(a.interval)
+
 
 
 if __name__ == "__main__":
