@@ -10,6 +10,23 @@ LOCK_PATH = "research/reduced_attention/attention8_conv7_execution_lock_readonly
 PROPOSAL_PATH = "research/reduced_attention/attention8_conv7_engineering_proposal_v1.json"
 MODEL_NAMES = ("fresh_transformer", "reduced_attention_dense_v2_attention8", "attention8_causal_depthwise_conv7")
 PARAMETERS = (101803520, 101795328, 101803536)
+# Anchor the reviewed manifest outside its own mutable hash map. Updating this
+# digest or source set requires a separate reviewed successor, not rehashing a
+# changed proposal to make the current validation pass.
+EXPECTED_LOCK_SHA256 = "07392393728872ed5c9d37fea33bd9ff9d53b31ab50f5112efb51cbfe19880a3"
+EXPECTED_SOURCE_PATHS = frozenset({
+    "tam_research/train.py", "tam_research/models.py", "tam_research/data.py",
+    "architectures/cortex_s/reduced_attention_200m_panel_v2.py",
+    "architectures/cortex_s/reduced_attention_100m_v2_attention8.py",
+    "architectures/cortex_s/attention8_causal_conv7_v1.py",
+    PROPOSAL_PATH,
+    "scripts/cortex_attention8_conv7_readiness_v1.py",
+    "tam_research/cortex_attention8_conv7_engineering_cpu_kernel_v1.py",
+    "tam_research/cortex_attention8_conv7_data_stream_parity_v1.py",
+    "tam_research/cortex_attention8_conv7_dispatch_dryrun_v1.py",
+    "tam_research/cortex_attention8_conv7_journal_simulation_v1.py",
+    "tam_research/cortex_attention8_conv7_engineering_rehearsal_v1.py",
+})
 
 
 def blob_sha(data: bytes) -> str:
@@ -19,14 +36,17 @@ def blob_sha(data: bytes) -> str:
 def check_execution_lock(root: Path = ROOT) -> dict[str, Any]:
     root = Path(root)
     raw = (root / LOCK_PATH).read_bytes()
+    manifest_sha256 = hashlib.sha256(raw).hexdigest()
+    if manifest_sha256 != EXPECTED_LOCK_SHA256:
+        raise RuntimeError("protected source-lock manifest drift")
     lock = json.loads(raw)
     if (lock.get("schema") != "cortex.attention8.conv7.read_only_execution_lock.v1" or
         lock.get("classification") != "ZERO_GPU_REVIEW_ONLY_NO_PAID_AUTHORITY" or
         lock.get("reference_repo") != "vinceackermann2-sys/tam-research"):
         raise RuntimeError("wrong read-only execution lock identity")
     hashes = lock.get("trusted_source_blobs")
-    if not isinstance(hashes, dict) or len(hashes) != 13 or PROPOSAL_PATH not in hashes:
-        raise RuntimeError("exact thirteen source locks required")
+    if not isinstance(hashes, dict) or set(hashes) != EXPECTED_SOURCE_PATHS:
+        raise RuntimeError("exact protected source paths required")
     for path, expected in hashes.items():
         if (not isinstance(path, str) or path.startswith("/") or ".." in Path(path).parts or
             not isinstance(expected, str) or len(expected) != 40):
@@ -114,7 +134,7 @@ def check_execution_lock(root: Path = ROOT) -> dict[str, Any]:
         raise RuntimeError("modal account/gpu drift")
     return {
         "classification": "CONV7_EXECUTION_LOCK_CPU_PASS_GPU_BLOCKED",
-        "source_lock_sha256": hashlib.sha256(raw).hexdigest(),
+        "source_lock_sha256": manifest_sha256,
         "source_blobs_checked": len(hashes),
         "three_model_token_exposures": 3 * b["tokens_per_model"],
         "heldout_tokens_per_model": b["final_eval_tokens"],
