@@ -131,7 +131,7 @@ existing active assignment blocks allocation. Google credentials stay on WSL.
 
 The five-track continuation record and Modal transfer inventory are in
 [COLAB_RESEARCH_CONTINUATION.md](COLAB_RESEARCH_CONTINUATION.md). The first
-prepared job is [the CPU CHM-v4 engineering audit](../research/colab/chm_v4_train_audit_job.md),
+prepared job is [the existing CPU source/artifact preflight](../research/colab/chm_v4_readiness_job.md),
 not new training or a GPU probe.
 
 ### Private cloud artifacts
@@ -172,27 +172,32 @@ python3 scripts/colab_pro_issue_worker.py --status
 colab --auth=oauth2 sessions
 ```
 
-`--status` requires a held exclusive lock and a recent heartbeat to report a
-running worker. It also queries current usage. A worker that consumed its one
-attempt exits and reports stopped. A status command on a different machine
+`--status` probes the held exclusive lock to report a running worker and shows
+its last recorded settings. It also queries current usage. A worker that consumed
+its one attempt exits and releases that lock. A status command on a different machine
 does not verify your Windows worker. Keep this output private; public job
 comments contain only balance-check/teardown booleans and opted-in telemetry.
 
 ### Bootstrap, export, and failure behavior
 
-Every new `colab_jobs/*.py` script receives the exact reviewed full commit SHA
-and requested accelerator as arguments. The CHM script fetches and verifies
-that exact repository commit, installs CPU Torch 2.10.0 and NumPy 2.5.4 with
-normal TLS verification, and calls the existing audit unchanged. CLI source
-alone carries neither repository files nor Modal datasets/checkpoints.
+Every new `colab_jobs/*.py` script receives the exact reviewed full commit SHA,
+issue identity, script path/hash and requested accelerator as arguments. The
+readiness script fetches that exact commit, verifies the submitted script bytes
+and three frozen source blobs, and uses the standard library only. The separate,
+unapproved microfit adapter installs CPU Torch2.10.0 with normal TLS verification;
+its 256-step/18,560-token scientific configuration remains unchanged from #1444.
+CLI source alone carries neither repository files nor Modal datasets/checkpoints.
 
 Research scripts create `/content/tam-results/bundle.zip` containing
-`config.json`, `result.json`, `environment.json`, `job.log` and a SHA256/byte
+`configuration.json`, `metrics.json`, `provenance.json`, `run.log`, any required
+terminal checkpoint, and a SHA256 member
 manifest. The worker downloads and validates the bundle, uploads it to the
 cloud, downloads it again and verifies every hash **before** stopping the
 runtime. The full transport log is independently uploaded/read back first;
-an incomplete bundle also triggers retrieval of the current partial job log.
-Pending bundles or missing/failed exports cannot produce SUCCESS. No result,
+an incomplete bundle also triggers retrieval of any current log/configuration/
+provenance/checkpoint files. Failed exports cannot produce SUCCESS. The runtime
+packages ordinary failures as evidence and raises afterward; partial recovery is
+explicitly marked incomplete. No result,
 checkpoint or downloaded bundle is retained on the worker: temporary transfer
 files are removed. Mandatory attempt receipts and authentication metadata remain
 local. The official CLI also maintains local connection diagnostics/history;
@@ -202,11 +207,12 @@ The unchanged 180-second allocation/execution/export deadline reserves 45
 seconds for retrieval (135 seconds for provisioning/execution). Cleanup is
 attempted separately with the existing stop/session-check timeouts, then usage
 is queried. This is **not a hard compute-unit cap**. Unknown teardown or unknown
-post-attempt usage blocks the next worker using `worker-blocked.json`. Resolve
-the actual runtime state, confirm zero active assignments and current usage,
-then remove only that blocker; never delete issue receipts to enable retries.
+post-attempt usage blocks the next worker using its existing consumed receipt.
+Resolve the actual runtime state and confirm zero active assignments/current
+usage before recording verified cleanup in that receipt; never delete issue
+receipts or global job tags to enable retries.
 
-Small bundles are capped at 64 MiB compressed and uncompressed. Larger
+Small bundles keep #1444's 32 MiB compressed and uncompressed limit. Larger
 checkpoint workflows need a separately reviewed exporter/storage plan, not a
 quietly increased limit. Storage/network failure can prevent complete recovery;
 the worker reports FAILED, retains any verified cloud evidence and still attempts
@@ -225,3 +231,34 @@ paths; they do not establish live Google OAuth, cloud write access or quota.
 
 An actual end-to-end GPU test requires your Google OAuth sign-in and
 explicit approval. No token should be supplied through this chat.
+
+## Research job durability and continuation
+
+See [COLAB_RESEARCH_ORCHESTRATION.md](COLAB_RESEARCH_ORCHESTRATION.md) for the
+five separate project states and pending job scopes. New `colab_jobs` scripts
+must declare a reviewed literal `COLAB_JOB_ID`. The worker reserves an atomic,
+never-updated GitHub tag `colab-attempts/<job-id>` before provisioning, in addition
+to the local issue receipt and remote issue callback. Existing identity means
+no launch even if a new issue or machine tries to repeat it. GitHub authentication
+needs Contents write for this receipt, as well as issue comment access.
+
+Research runs use CLI `run --keep --timeout ...`: allocation, execution and
+collection share the worker deadline. The CLI default code timeout is 30s, so the
+wrapper now explicitly passes the remaining deadline. The reviewed standalone
+script receives the exact issue commit, issue number, script path and requested
+GPU; it must bootstrap the exact public repository SHA itself. No credential is
+sent to Colab. Current CPU scripts reject other GPUs before repository setup.
+
+The worker downloads `/content/tam-results/bundle.zip`, verifies its declared
+SHA-256/size, every manifest member and issue/commit/script provenance, then
+uploads and independently reads back the cloud copy **before** calling stop.
+Local transfer files are temporary; it never extracts untrusted archives.
+Bundles are bounded to 32 MiB. Research success additionally requires confirmed
+teardown and fresh post-attempt usage. Missing artifacts or teardown are failures,
+not architecture evidence. Cleanup is attempted even on timeout; if retrieval
+cannot complete, record artifact loss and release the runtime to bound exposure.
+
+Run `python3 scripts/colab_pro_issue_worker.py --status` on the local WSL machine
+for a read-only lock-based worker check and fresh account balance. A stale
+heartbeat alone is not proof that the worker is running. No automatic worker
+restart or attempt retry is introduced. Default limits and maximum 300s unchanged.

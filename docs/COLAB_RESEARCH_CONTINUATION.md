@@ -6,7 +6,8 @@ and read-only remote branch inspection. The owner's clarified architectures are
 another project's evidence to it. GitHub issue/API reads were denied in this
 cloud task, so the state below is frozen repository evidence, not a fresh
 verification of issue approvals or callbacks. Other ChatGPT project chats are
-not available to this task.
+not available to this task. API access later became available; fresh issue/PR
+readbacks below supersede the initial access limitation.
 
 Implementation and CPU correctness checks are authorized. New training,
 replication, scaling, scored heldouts and paid probes still need a concrete
@@ -17,10 +18,10 @@ Future execution uses Colab; no Modal jobs or fallback are launched.
 | Track | Latest recoverable state | Next permitted preparation / blocker |
 |---|---|---|
 | CONV7 | Cortex attention-8 plus 16 causal depthwise conv7 mixers. Main includes PR #1423 data-stream parity. New source-lock branch `research/cortex-attention8-conv7-execution-lock-readonly-v1` at `6e0173fb719af30f78df9f8197f01dd03bf3b4b3` is unmerged. | CPU readiness, geometry and synthetic sampler checks. Proposed 3-arm 200M screen requires H100 80GB/BF16, a new seed/job ID, corpus transfer and explicit paid approval; it cannot fit T4 memory or this deadline. |
-| PGW | Main includes Stage-2B5 static corpus/metrics, issue #1429; source branch `research/pgw-v3-stage2b5-corpus-metrics-v1` at `311b18c4d618b79121574d23aeb0f91f17c55cd9`. | CPU corpus integrity: 5,760 samples / 522,240 tokens and algorithmic controls. No optimizer, training seed, checkpoint or learned claim exists. Training fairness, seeds, optimizer and budgets are still unfrozen. |
-| CPW | Canonical separate line `experiment/cpw-v0-brain-predictive-workspace-20261005` at `aa8bdafa47e27a91ce64ba3771f1515603f815f9`; latest `audit/cpw-binding-gradient-1335` at `7b0579cf08304779f1df8267f032e944a27caf6a`. Both unmerged into main. | Corrected #1307 eight-slot binding task; #1335 random-init five-arm gradient audit, no updates. Review/import its dependency closure into main first. Engineering init 1335001/source 1345001 are not scientific seeds. |
+| PGW | Main includes Stage-2B5 static corpus/metrics, issue #1429; next #1437 Stage-2B6 is design-only. | CPU corpus integrity: 5,760 samples / 522,240 tokens and algorithmic controls. Training fairness, seeds, optimizer and budgets remain unfrozen; no CPU research or GPU job approved. |
+| CPW | Canonical `aa8bdafa47e27a91ce64ba3771f1515603f815f9`; latest audit `7b0579cf08304779f1df8267f032e944a27caf6a`, open PR #1338 against the isolated branch. | Corrected #1307 eight-slot task; #1335 no-update audit already completed. Dedicated diagnostic CI passed, original full CI failed. Inspect that original failure without rerunning/amending the frozen head; main import remains unreviewed. |
 | RLT | Latest BB decision on `exp/rlt-ax-bounded-transformer` at `7cff4302caed515b19f683ba1a0f9be10a065659`; `exp/rlt-colab` at `b1bac447f9327ec15e0b17f60df03519988aba6e` is older AW. Unmerged into main. | Preregister an independent CPU training-stability panel and richer inference tasks; do not replay AW–BB. Three-way 315+ second training already exceeds both current 180 seconds and 300-second accepted maximum. |
-| CHM-v4 | Main #1431 factorized source/copy/gate audit, following #1430 TRAIN-only gradient engineering. DEV16/TEST32 remain unopened. | Prepared first Colab CPU engineering job calls unchanged `train_only_factorized_audit()`: 2,048 TRAIN fixtures, no updates/forwards/heldouts/scientific seeds. Needs reviewed main script, cloud storage and a live local worker. |
+| CHM-v4 | Main #1431 factorized audit closed as completed; #1436 fixed TRAIN microfit is open and unapproved for Colab. DEV16/TEST32 remain unopened. | Preserve #1444's exact pending stdlib source/artifact preflight (#1445), now with private cloud retention. The 256-step microfit needs separate approval and outstanding original merged-main source CI evidence. |
 
 ## Frozen results and scientific gates
 
@@ -99,8 +100,11 @@ Transfer procedure:
 
 ## Current implementation and validation limits
 
-This PR adds one standalone CHM engineering job and generic small-job cloud
-export/preflight/cleanup. It does not import unmerged CPW/RLT models, rewrite
+This follow-up integrates immutable PR #1444 head
+`ea062eca77ad58669a85cabf6a6528ba0623bfad` without amending its history. It preserves
+the standalone source preflight, fixed unexecuted microfit and global once-only
+job tags, adds private cloud export/readback and ordinary failure packaging,
+and retains the existing limits. It does not import unmerged CPW/RLT models, rewrite
 scientific launchers, disable historical records or silently modify hardware,
 precision, data, seeds, token budgets, optimizer settings or acceptance criteria.
 
@@ -115,14 +119,23 @@ Validation in this task (no Colab allocation or scientific training):
 
 | Source | Checks | Outcome |
 |---|---|---|
-| Changed bridge + standalone job + main CHM-v4 | `test_colab_pro_issue_worker`, `test_colab_chm_v4_job`, four `test_chm_v4_*` files; exclude the single optimizer smoke | 150 passed, 1 deselected |
+| Changed bridge + standalone helpers + main CHM-v4 | Three `test_colab_*` suites and four `test_chm_v4_*` files; exclude the single optimizer smoke | 156 passed, 1 deselected |
 | Main PGW-v3 | Stage-2B5 corpus and Stage-2B4 preflight suites | 42 passed |
-| Main CONV7 | Conv7 architecture, proposal, LR prefix, readiness, sampler parity, dispatch dry-run | 46 passed |
+| Main CONV7 | 12 architecture/proposal/LR/readiness/parity/dispatch/journal/postmortem suites | 101 passed |
 | CPW `7b0579cf08304779f1df8267f032e944a27caf6a` | Isolated `/tmp` git-archive; gradient1335/readout1330/safety1326/science1321/task1307 suites; exclude optimizer parametrizations | 65 passed, 5 deselected |
 | RLT `7cff4302caed515b19f683ba1a0f9be10a065659` | Isolated `/tmp` git-archive; bounded model, two scan suites, sliding window, checkpoint retention guard | 112 passed |
 
-Total: **415 passed, 6 deliberately deselected optimizer checks**. Branch-export
+Total: **476 passed, 6 deliberately deselected optimizer checks**. Branch-export
 checks do not establish integration of CPW/RLT onto main. Syntax checks and
-whitespace checks passed. The real bootstrap helper also fetched/verified
-`107342cb15fa53e81948869eac450f2c69d1419a` and installed its pinned requirements
-in this CPU environment; standalone runtime/cloud transport remains simulated.
+whitespace checks passed. The real stdlib source/artifact helper runs under
+Python `-S` with no site packages or torch import. CLI allocation/cloud transport
+remain simulated. Original #1444 CI runs38455242935/38455242931 passed at attempt1;
+this follow-up's CI is separate evidence, not a rerun of those heads.
+
+Fresh GitHub readbacks: #1443 confirms TeslaT4/CUDA/teardown and is consumed;
+#1445 has no approval label. PGW #1429 confirms all literal corpus roots and
+merged-main CI38081489818; #1437 has no training authority. CONV7 PR #1433 remains
+open with original CI38081234987 passed. CPW #1338's dedicated CI37831387322
+passed but original full CI37831566349 failed. RLT draft PR #1416 targets
+`exp/rlt-colab`, not main; BA/BB runs38081374598/38081891782 passed, AY artifacts
+are absent. None of these observations establishes current WSL liveness/balance.
