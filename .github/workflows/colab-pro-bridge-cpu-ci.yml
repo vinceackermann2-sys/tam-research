@@ -4,6 +4,7 @@ on:
     paths:
       - scripts/colab_pro_issue_worker.py
       - scripts/colab_bridge_gpu_probe.py
+      - scripts/colab_github_readiness_artifacts.py
       - tests/test_colab*.py
       - colab_jobs/**
       - tam_research/colab*.py
@@ -27,6 +28,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Syntax checks
-        run: python -m py_compile scripts/colab_pro_issue_worker.py scripts/colab_bridge_gpu_probe.py colab_jobs/*.py tam_research/colab*.py
+        run: python -m py_compile scripts/colab_pro_issue_worker.py scripts/colab_bridge_gpu_probe.py scripts/colab_github_readiness_artifacts.py colab_jobs/*.py tam_research/colab*.py
       - name: Bridge security and idempotency tests
         run: python -m unittest discover -s tests -p 'test_colab*.py' -v

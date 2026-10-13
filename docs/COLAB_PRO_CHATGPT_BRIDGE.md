@@ -126,7 +126,8 @@ issue is intentionally disabled.
 Issue #1443 tested a T4 and teardown successfully and is permanently consumed.
 The worker excludes it even if started with a new receipt directory. Its last
 reported 108.89 units is historical; the worker queries current usage before
-any allocation and after every attempt. Unknown balance, zero balance or an
+storage preflight, refreshes it immediately before allocation and queries it
+after every attempt. Unknown balance, zero balance or an
 existing active assignment blocks allocation. Google credentials stay on WSL.
 
 The five-track continuation record and Modal transfer inventory are in
@@ -136,9 +137,10 @@ not new training or a GPU probe.
 
 ### Private cloud artifacts
 
-Colab's disk is temporary. Research jobs therefore require a private cloud
-folder configured locally through `rclone`; Google Drive is the recommended
-destination. No credentials belong in issues, scripts, or this chat. Review the
+Colab's disk is temporary. Training jobs require an agreed durable destination;
+the implemented full-bundle path uses a private cloud folder through `rclone`.
+The separate GitHub readiness mode below needs no Drive connection. No
+credentials belong in issues, scripts, or this chat. Review the
 storage destination and locally authorize it before any approved job starts:
 
 ```sh
@@ -154,6 +156,12 @@ These are storage setup commands, not Colab allocation. The named folder is a
 proposal until the owner chooses and verifies it. Existing Colab OAuth does not
 prove that a Drive upload connection is available. A different approved cloud
 remote may be supplied; do not configure a local-filesystem remote.
+
+Before reserving an attempt, the worker verifies the configured backend is a
+supported direct cloud service, rejects local/alias/crypt/unknown remotes, checks
+the backend's `IsLocal=false`, then uploads and independently reads back a tiny
+nonsecret sentinel. Listing alone does not prove write access. Probe deletion is
+best effort and its outcome is recorded. These checks allocate no Colab runtime.
 
 After this PR is reviewed and merged, leave this worker running in one WSL
 terminal, preserving its existing state directory and limits:
@@ -178,6 +186,68 @@ its one attempt exits and releases that lock. A status command on a different ma
 does not verify your Windows worker. Keep this output private; public job
 comments contain only balance-check/teardown booleans and opted-in telemetry.
 
+On a host without Colab OAuth, `--status` reports `account=null` and
+`account_verified=false` without starting a login or using unrelated ADC
+credentials. It cannot report the current balance. This task installed official
+CLI 0.7.4 in an isolated cloud tool environment and verified its `--keep` and
+`--timeout` options; its actual status showed no OAuth cache and no running
+worker. The owner's WSL login is not inherited by this cloud host. Do not paste
+OAuth codes, tokens, session state or Google credentials into chat to connect it.
+The official CLI uses home-directory files for OAuth and diagnostics; this
+development host's home directory is read-only. Installed option declarations
+were inspected without initiating CLI authentication. Live execution needs an
+authorized host with writable private CLI state and securely configured Google
+login, not just an installed package.
+
+### GitHub retention for the source-readiness job
+
+GitHub is sufficient for the small nonsecret readiness artifacts; Google Drive
+is optional for that job. This repository is public. The dedicated
+`--artifact-github-readiness` mode accepts only
+`colab_jobs/chm_v4_readiness.py` on CPU and cannot accept microfit/training jobs,
+checkpoints, raw transport logs or arbitrary JSON/log values. It is mutually
+exclusive with `--artifact-remote`.
+
+The owner issue must include the following standalone consent marker outside
+code fences, in addition to the unchanged exact job JSON and approved label:
+
+```text
+<!-- colab-public-readiness-artifacts:v1 -->
+```
+
+The marker alone does not authorize allocation. Review/merged-main gates, fresh
+Google usage, the real worker lock, one-attempt reservation and explicit job
+approval still apply. Read-only GitHub preflight verifies the authenticated
+repository owner, public/nonarchived repository, issues enabled, write permission,
+same job and explicit public consent; it does not prove live comment-upload
+privilege. Actual creation and independent readback must succeed before teardown.
+
+```sh
+python3 scripts/colab_pro_issue_worker.py --poll \
+  --max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4 \
+  --artifact-github-readiness
+```
+
+Before stop, the worker downloads the readiness bundle temporarily, verifies its
+original SHA256/size/member/provenance, then strictly validates all four members
+against the known nonsecret source-check contract and original JSON encoding.
+It posts a create-only owner issue comment containing configuration, metrics,
+provenance, canonical readiness log and original member/manifest/bundle hashes,
+then independently GETs and verifies the exact report and digest. The original
+ZIP and raw CLI output are not published or retained. The report preserves all
+four member contents; `reconstruct_members(report, job, issue)` can reproduce
+their original bytes and manifest with hash verification. Public reports are
+bounded to 24 KiB and source bundles to 128 KiB. GitHub comments remain editable
+by their owner; the adapter never edits/deletes or recreates an existing report,
+and the global single-use tag still prevents a new attempt.
+
+A missing/rejected bundle produces only a fixed incomplete provenance receipt,
+never arbitrary private logs or a success claim. Failure still consumes the
+attempt and triggers stop plus fresh usage. This mode covers readiness only;
+future checkpoints or other research artifacts require a separately agreed
+storage scope and supported exporter. No live public artifact was uploaded by
+the CPU validation.
+
 ### Bootstrap, export, and failure behavior
 
 Every new `colab_jobs/*.py` script receives the exact reviewed full commit SHA,
@@ -193,9 +263,12 @@ Research scripts create `/content/tam-results/bundle.zip` containing
 terminal checkpoint, and a SHA256 member
 manifest. The worker downloads and validates the bundle, uploads it to the
 cloud, downloads it again and verifies every hash **before** stopping the
-runtime. The full transport log is independently uploaded/read back first;
+runtime. This describes the full private-cloud path; GitHub readiness uses the
+strict report path above. The full private transport log is independently uploaded/read back first;
 an incomplete bundle also triggers retrieval of any current log/configuration/
-provenance/checkpoint files. Failed exports cannot produce SUCCESS. The runtime
+metrics/provenance/checkpoint files. Partial source identity is classified as
+matched, mismatched, invalid or unavailable; it cannot imply a resumable
+checkpoint, and no loadability claim is made. Failed exports cannot produce SUCCESS. The runtime
 packages ordinary failures as evidence and raises afterward; partial recovery is
 explicitly marked incomplete. No result,
 checkpoint or downloaded bundle is retained on the worker: temporary transfer
@@ -211,6 +284,12 @@ post-attempt usage blocks the next worker using its existing consumed receipt.
 Resolve the actual runtime state and confirm zero active assignments/current
 usage before recording verified cleanup in that receipt; never delete issue
 receipts or global job tags to enable retries.
+
+New receipts use schema 2 and block startup on unknown post-attempt usage even
+when teardown was confirmed. Historical receipts remain unchanged. A legacy
+receipt missing post-usage is explicitly listed as unknown by `--status`; its
+old balance is never invented, and every new allocation still requires a fresh
+account query. Issue #1443 remains excluded regardless of local receipt history.
 
 Small bundles keep #1444's 32 MiB compressed and uncompressed limit. Larger
 checkpoint workflows need a separately reviewed exporter/storage plan, not a
@@ -247,7 +326,10 @@ collection share the worker deadline. The CLI default code timeout is 30s, so th
 wrapper now explicitly passes the remaining deadline. The reviewed standalone
 script receives the exact issue commit, issue number, script path and requested
 GPU; it must bootstrap the exact public repository SHA itself. No credential is
-sent to Colab. Current CPU scripts reject other GPUs before repository setup.
+sent to Colab. Current CPU scripts reject other GPUs before repository setup;
+the worker also rejects non-CPU requests for those two scripts. It rechecks
+owner, label, open state and unchanged job specification after source retrieval
+and again immediately before allocation. Revocation never authorizes a retry.
 
 The worker downloads `/content/tam-results/bundle.zip`, verifies its declared
 SHA-256/size, every manifest member and issue/commit/script provenance, then

@@ -12,8 +12,8 @@ existing owner issue; no duplicate job identity. #1443 remains consumed.
 | Workload | Exact-commit checkout, submitted-script SHA256 check, three frozen CHM source blob/syntax checks |
 | Excluded scope | Zero episodes, updates, model forwards, heldouts, scientific seeds or resume |
 | Limits | `--max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4`; unchanged |
-| Storage | Owner-approved private cloud folder; proposed `tam-drive:TAM Research Artifacts`, not yet configured; ≤32MiB bundle |
-| Acceptance | Source passes; config/metrics/provenance/run log and transport log checksum-verified by cloud readback before stop; zero assignments and fresh post-attempt usage |
+| Storage | Proposed GitHub readiness-report mode on owner issue #1445; public nonsecret allowlist only, ≤128KiB input bundle / ≤24KiB report; no retained local artifact or Drive requirement |
+| Acceptance | Source passes; all four readiness member contents plus original hashes preserved, independent issue-comment GET/digest verified before stop; zero assignments and fresh post-attempt usage |
 | Failure | FAILED and consumed; retain available verified cloud evidence and attempt teardown |
 | Meaning | Infrastructure only; no learned capability or breakthrough claim |
 
@@ -23,24 +23,36 @@ Exact pending JSON:
 {"commit":"ea062eca77ad58669a85cabf6a6528ba0623bfad","script":"colab_jobs/chm_v4_readiness.py","gpu":"CPU"}
 ```
 
-Requires original #1444 gates, reviewed cloud follow-up #1446 and merged-main CI,
-source ancestry, approved cloud write/retrieval connection, live WSL worker,
+Requires original #1444 gates, reviewed storage follow-up #1446 and merged-main CI,
+source ancestry, explicit public-readiness retention approval, authorized live worker,
 fresh positive balance/zero assignments, then explicit one-job approval.
-Historical balance is not fresh evidence. No live Colab/cloud connection was
+Historical balance is not fresh evidence. No live Colab/storage attempt was
 verified here. Allocation/execution/export share180s with up to45s reserved for
 retrieval; bounded cleanup/account checks can take extra time. This is not a
 compute-unit cap.
 
-Verify on the owner's WSL machine:
+After review/merge, on the owner's authorized WSL or trusted Linux host:
 
 ```sh
 python3 scripts/colab_pro_issue_worker.py --status
 colab --auth=oauth2 sessions
-rclone lsf 'tam-drive:TAM Research Artifacts' --max-depth 1
+python3 scripts/colab_pro_issue_worker.py --poll --max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4 --artifact-github-readiness
 ```
 
-Also verify a small upload/readback in the chosen folder locally; listing or
-Colab OAuth alone does not prove write access. Leave #1445 without
+The owner issue includes a proposed standalone
+`<!-- colab-public-readiness-artifacts:v1 -->` marker. It is required for this
+backend but grants no allocation without the separately approved label and gates.
+GitHub preflight is read-only; actual one-time report POST and independent GET
+must succeed during the approved attempt before teardown. All JSON values,
+encoding and the canonical log are allowlisted; raw CLI logs/checkpoints/source
+ZIP never enter the public issue. Original member bytes/manifest can be
+reconstructed and rehashed from the report. A failure retains only a fixed
+incomplete provenance receipt and cannot claim complete retrieval.
+
+The current cloud host has official CLI 0.7.4 but no Colab OAuth cache and no
+worker. Actual `--status` returns `account=null`, `account_verified=false`,
+`worker_running=false`; current balance is unknown. GitHub auth cannot supply
+Google login. Never share credential values through chat. Leave #1445 without
 `colab-approved` until all prerequisites and this single attempt are approved.
 
 The separate 256-update #1436 TRAIN microfit remains unapproved. Its original

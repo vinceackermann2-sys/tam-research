@@ -62,8 +62,12 @@ No Modal execution or fallback. This PR does not create an unattended scheduler.
 - No retry or resume. Allocation/execution/collection share the 180s deadline;
   bounded cleanup/checks can take additional time. This is not a compute-unit cap.
 - Storage: owner declined retained local artifacts. An approved private cloud
-  folder (Google Drive recommended) is required; upload and independent readback
-  happen before stop. WSL uses only temporary transfer files. Authentication,
+  destination is required. For this source-only job the GitHub readiness mode
+  retains strictly allowlisted configuration/metrics/provenance/log contents and
+  original hashes, with independent issue-comment readback before stop; Drive
+  is optional. Full training bundles use separately agreed private cloud storage.
+  The source ZIP/raw transport log are not retained by GitHub mode. The worker
+  uses only temporary transfer files. Authentication,
   mandatory receipts and upstream CLI diagnostics remain local. No credential
   is sent to the runtime/repo. Existing #1445 is pending storage review; do not
   create another issue or reuse its literal job ID to bypass a consumed attempt.
@@ -140,7 +144,7 @@ After review/merge, owner checks in WSL:
 ```sh
 git pull --ff-only
 python3 scripts/colab_pro_issue_worker.py --status
-python3 scripts/colab_pro_issue_worker.py --poll --max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4 --artifact-remote 'tam-drive:TAM Research Artifacts'
+python3 scripts/colab_pro_issue_worker.py --poll --max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4 --artifact-github-readiness
 ```
 
 Run `--status` in a second WSL terminal while worker polls. It probes the held
@@ -148,6 +152,17 @@ exclusive lock and reports actual worker settings plus freshly queried balance
 and assignment count. Only this nonsecret JSON may be shared; OAuth, session
 URLs/endpoints and upstream CLI diagnostics stay local; research artifacts/logs
 use private cloud storage. No job is labeled for execution here.
+
+The official Colab CLI 0.7.4 was also installed here in an isolated tool venv;
+its actual status has `worker_running=false`, `oauth_cache_present=false`,
+`account_verified=false` and no current balance. It cannot inherit WSL OAuth.
+GitHub authentication alone cannot authorize the owner's Google account.
+No unattended worker or login flow was started.
+
+Separate successors #1447 (CPW stale test contract), #1448 (CONV7 immutable
+manifest validation) and #1449 (RLT dimension types) passed their original
+first-attempt CPU CI at exact heads recorded in the continuation ledger.
+PGW and RLT prospective designs are linked there; no seeds/jobs are assigned.
 
 ## Validation scope
 

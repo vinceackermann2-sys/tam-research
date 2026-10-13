@@ -135,9 +135,17 @@ class WorkerLifecycleTests(unittest.TestCase):
                     raise RuntimeError("Stop client failed after server cleanup")
                 return SimpleNamespace(returncode=0, stdout="", stderr="")
             before = {"balance_units": 100., "active_assignments": 0, "sessions": ""}
+            fresh = dict(before, balance_units=99.95)
+            if mode == "balance-changed":
+                fresh["balance_units"] = 0
+            if mode == "assignment-changed":
+                fresh["active_assignments"] = 1
             after = dict(before, balance_units=99.9)
+            snapshots = [before, after] if mode in {"duplicate", "revoked"} else [before, fresh, after]
             with patch.object(worker, "cmd", side_effect=fake_cmd), \
-                 patch.object(worker, "account_snapshot", side_effect=[before, after]) as snapshot, \
+                 patch.object(worker, "cloud_preflight", return_value={"write_readback_verified": True}), \
+                 patch.object(worker, "current_approval", return_value=mode != "revoked"), \
+                 patch.object(worker, "account_snapshot", side_effect=snapshots) as snapshot, \
                  patch.object(worker, "comment"):
                 self.assertTrue(worker.execute(args, {"number": 123}, job, "COLAB_JOB_ID = 'fixture-job-123-v1'"))
             receipt = json.loads((root / "issue-123.json").read_text())
@@ -146,8 +154,11 @@ class WorkerLifecycleTests(unittest.TestCase):
             success = mode in {"success", "stop-failure"}
             self.assertEqual(receipt["artifact_ok"], success)
             self.assertEqual(receipt["state"], "SUCCESS" if success else "FAILED")
-            self.assertEqual(snapshot.call_count, 2)
-            self.assertEqual(sum("run" in c and "--help" not in c for c in calls), 0 if mode == "duplicate" else 1)
+            self.assertEqual(snapshot.call_count, len(snapshots))
+            self.assertEqual(sum("run" in c and "--help" not in c for c in calls), 0 if mode in {"duplicate", "revoked", "balance-changed", "assignment-changed"} else 1)
+            if len(snapshots) == 3:
+                self.assertEqual(receipt["before"], fresh)
+                self.assertEqual(receipt["preflight_account"], before)
             self.assertIsNone(receipt["local_archive"])
             self.assertIsNone(receipt["local_log"])
             self.assertEqual(sum("stop" in c for c in calls), 1)
@@ -171,12 +182,25 @@ class WorkerLifecycleTests(unittest.TestCase):
     def test_stop_failure_does_not_skip_usage_check(self):
         self.lifecycle("stop-failure")
 
+    def test_approval_revoked_during_preflight_never_allocates(self):
+        self.lifecycle("revoked")
+
+    def test_empty_balance_after_storage_preflight_never_allocates(self):
+        self.lifecycle("balance-changed")
+
+    def test_new_active_assignment_after_storage_preflight_never_allocates(self):
+        self.lifecycle("assignment-changed")
+
     def test_usage_parser_and_fail_closed(self):
         with patch.object(worker, "cmd", side_effect=[
             SimpleNamespace(stdout="Current balance: 108.89 compute units\nActive assignments: 0"),
-            SimpleNamespace(stdout="No sessions")]):
+            SimpleNamespace(stdout="No sessions")]), \
+             patch.object(worker.shutil, "which", return_value="colab"), \
+             patch.object(worker.Path, "is_file", return_value=True):
             self.assertEqual(worker.account_snapshot()["balance_units"], 108.89)
-        with patch.object(worker, "cmd", return_value=SimpleNamespace(stdout="unknown")):
+        with patch.object(worker, "cmd", return_value=SimpleNamespace(stdout="unknown")), \
+             patch.object(worker.shutil, "which", return_value="colab"), \
+             patch.object(worker.Path, "is_file", return_value=True):
             with self.assertRaises(ValueError):
                 worker.account_snapshot()
 

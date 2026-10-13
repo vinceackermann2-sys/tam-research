@@ -4,15 +4,18 @@ import argparse
 import ast
 import fcntl
 import hashlib
+import importlib.util
 import math
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import uuid
 import zipfile
 
 MARKER = "<!-- colab-pro-job:v1 -->"
@@ -23,6 +26,8 @@ ARTIFACT_REMOTE = "/content/tam-results/bundle.zip"
 MAX_ARTIFACT_BYTES = 32 * 1024 * 1024
 ATTEMPT_MARKER = "<!-- colab-attempt-reserved:v1 -->"
 CONSUMED_JOBS = {("vinceackermann2-sys/tam-research", 1443)}
+CLOUD_STORAGE_TYPES = {"drive", "s3", "googlecloudstorage", "azureblob", "b2", "dropbox", "onedrive", "box"}
+CPU_ONLY_JOBS = {"colab_jobs/chm_v4_readiness.py", "colab_jobs/chm_v4_microfit_1436.py"}
 PUBLIC_KEYS = {"status", "gpu", "cuda_available", "torch", "elapsed_sec", "loss", "note"}
 
 
@@ -66,6 +71,8 @@ def parse_issue(issue, owner):
         return None
     if job["gpu"] not in ALLOWED_GPUS:
         return None
+    if job["script"] in CPU_ONLY_JOBS and job["gpu"] != "CPU":
+        return None
     return job
 
 
@@ -104,7 +111,7 @@ def reserve(state_dir, issue_number, job):
     except FileExistsError:
         return None
     with os.fdopen(fd, "w") as file:
-        json.dump({"issue": issue_number, "job": job,
+        json.dump({"schema": 2, "issue": issue_number, "job": job,
                    "state": "reserved", "retry_allowed": False}, file)
         file.flush()
         os.fsync(file.fileno())
@@ -133,6 +140,11 @@ def atomic_json(path, value):
 
 
 def account_snapshot():
+    # A readiness query must not initiate interactive OAuth or use unrelated ADC.
+    if shutil.which("colab") is None:
+        raise FileNotFoundError("Colab CLI is not installed on this worker host")
+    if not (Path.home() / ".config/colab-cli/token.json").is_file():
+        raise PermissionError("Local Colab OAuth is not configured on this worker host")
     usage = cmd(["colab", "--auth=oauth2", "usage"]).stdout
     sessions = cmd(["colab", "--auth=oauth2", "sessions"]).stdout
     match = re.search(r"^Current balance: ([0-9]+(?:\.[0-9]+)?) compute units$",
@@ -248,6 +260,78 @@ def cloud_copy_verified(path, destination, deadline):
         return {"destination": destination, "sha256": digest, "bytes": path.stat().st_size}
 
 
+def cloud_preflight(destination):
+    """Verify actual cloud type and write/readback before reserving compute."""
+    name = destination.split(":", 1)[0]
+    deadline = time.monotonic() + 60
+    # Names/types only; never inspect or print a credential configuration.
+    metadata = cmd(["rclone", "listremotes", "--long"], timeout=remaining_seconds(deadline)).stdout
+    remotes = dict(re.findall(r"^([A-Za-z0-9_-]+):\s+(\S+)\s*$", metadata, re.M))
+    backend = remotes.get(name)
+    if backend not in CLOUD_STORAGE_TYPES:
+        raise ValueError("Select a supported direct private cloud remote; local/wrapped remotes are rejected")
+    features = json.loads(cmd(["rclone", "backend", "features", destination],
+                              timeout=remaining_seconds(deadline)).stdout)
+    if features.get("Features", {}).get("IsLocal") is not False:
+        raise ValueError("Cloud backend identity could not be verified")
+    cmd(["rclone", "lsf", destination, "--max-depth", "1"], timeout=remaining_seconds(deadline))
+    probe = destination.rstrip("/") + "/.colab-preflight/" + uuid.uuid4().hex + ".json"
+    cleanup_ok = False
+    try:
+        with tempfile.TemporaryDirectory(prefix="colab-cloud-preflight-") as temporary:
+            path = Path(temporary) / "probe.json"
+            path.write_text('{"purpose":"Colab artifact write/readback preflight","schema":1}\n')
+            verified = cloud_copy_verified(path, probe, deadline)
+    finally:
+        try:
+            cmd(["rclone", "deletefile", probe, "--retries", "1", "--low-level-retries", "1"],
+                timeout=remaining_seconds(deadline))
+            cleanup_ok = True
+        except Exception:
+            pass
+    return {"backend_type": backend, "write_readback_verified": True,
+            "probe_cleanup_ok": cleanup_ok, "probe": None if cleanup_ok else verified}
+
+
+def current_approval(repo, number, job):
+    issue = gh_json(f"repos/{repo}/issues/{number}")
+    return (issue.get("state") == "open" and
+            "colab-approved" in {x["name"] for x in issue.get("labels", [])} and
+            parse_issue(issue, repo.split("/", 1)[0]) == job)
+
+
+def github_artifacts_module():
+    spec = importlib.util.spec_from_file_location("colab_github_readiness_artifacts",
+        Path(__file__).with_name("colab_github_readiness_artifacts.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def collect_github_readiness(args, job, number, session, output, deadline):
+    """Retain only a strictly validated public readiness report, before stop."""
+    adapter = github_artifacts_module()
+    adapter.require_readiness_job(job)
+    report = adapter.incomplete_report(job, number, "artifact-unavailable")
+    error_type = None
+    try:
+        descriptor = artifact_descriptor(output)
+        if descriptor["bytes"] > adapter.MAX_BUNDLE_BYTES:
+            raise ValueError("Readiness bundle exceeds public artifact limit")
+        with tempfile.TemporaryDirectory(prefix="colab-readiness-transfer-") as temporary:
+            archive = Path(temporary) / "bundle.zip"
+            cmd(["colab", "--auth=oauth2", "download", "--session", session,
+                 ARTIFACT_REMOTE, str(archive)], timeout=remaining_seconds(deadline))
+            report = adapter.sanitized_report(archive, descriptor, job, number, verify_artifact)
+    except Exception as error:
+        error_type = type(error).__name__
+        report = adapter.incomplete_report(job, number, "artifact-rejected")
+    evidence = adapter.publish_report(args.repo, number, job, report, cmd, deadline)
+    if error_type:
+        evidence["bundle_error_type"] = error_type
+    return evidence
+
+
 def collect_cloud_artifacts(args, job, number, session, output, deadline):
     destination = args.artifact_remote.rstrip("/") + f"/issue-{number}/{job['commit']}/"
     evidence = {"complete": False}
@@ -272,7 +356,7 @@ def collect_cloud_artifacts(args, job, number, session, output, deadline):
             # Contents API retrieval needs no running kernel. Preserve a current
             # partial training log if a interrupted script created one.
             evidence["partial_files"] = {}
-            for name in ("run.log", "configuration.json", "provenance.json", "checkpoint.pt"):
+            for name in ("run.log", "configuration.json", "metrics.json", "provenance.json", "checkpoint.pt"):
                 try:
                     partial = root / name
                     cmd(["colab", "--auth=oauth2", "download", "--session", session,
@@ -280,10 +364,23 @@ def collect_cloud_artifacts(args, job, number, session, output, deadline):
                     if partial.stat().st_size > MAX_ARTIFACT_BYTES:
                         raise ValueError("Partial file too large")
                     evidence["partial_files"][name] = cloud_copy_verified(partial, destination + "partial-" + name, deadline)
+                    if name == "checkpoint.pt":
+                        evidence["partial_files"][name].update({"loadability_verified": False, "resume_allowed": False})
                 except Exception as error:
                     evidence["partial_files"][name] = {"error_type": type(error).__name__}
                     if isinstance(error, TimeoutError):
                         break
+            identity = "unavailable"
+            if "sha256" in evidence["partial_files"].get("provenance.json", {}):
+                try:
+                    provenance = json.loads((root / "provenance.json").read_text())
+                    identity = "matched" if (provenance.get("commit") == job["commit"] and
+                        provenance.get("issue") == number and provenance.get("script") == job["script"] and
+                        provenance.get("requested_gpu") == job["gpu"]) else "mismatched"
+                except (ValueError, UnicodeError, AttributeError):
+                    identity = "invalid"
+            evidence["partial_source_identity"] = identity
+            evidence["partial_source_identity_verified"] = identity == "matched"
     return evidence
 
 
@@ -292,15 +389,26 @@ def execute(args, issue, job, source):
     if (args.repo.lower(), number) in CONSUMED_JOBS:
         return False
     research = job["script"].startswith("colab_jobs/")
+    github_readiness = getattr(args, "artifact_github_readiness", False)
+    if github_readiness:
+        adapter = github_artifacts_module()
+        adapter.require_readiness_job(job)
     identity = research_identity(source) if research else None
     # Read-only account check before reservation or provisioning. Never use an old balance.
     before = account_snapshot()
+    preflight_account = before
     if before["balance_units"] <= 0 or before["active_assignments"] != 0:
         raise ValueError("Allocation blocked: empty balance or existing active assignment")
+    storage = None
     if research:
-        if not getattr(args, "artifact_remote", None):
+        if github_readiness and getattr(args, "artifact_remote", None):
+            raise ValueError("Select exactly one artifact backend")
+        if github_readiness:
+            storage = adapter.github_preflight(args.repo, number, job, cmd, time.monotonic() + 60)
+        elif not getattr(args, "artifact_remote", None):
             raise ValueError("An owner-approved private cloud artifact remote is required")
-        cmd(["rclone", "lsf", args.artifact_remote, "--max-depth", "1"])
+        else:
+            storage = cloud_preflight(args.artifact_remote)
         help_output = cmd(["colab", "--auth=oauth2", "run", "--help"]).stdout
         if "--keep" not in help_output or "--timeout" not in help_output:
             raise ValueError("Installed Colab CLI lacks required lifecycle options")
@@ -329,7 +437,7 @@ def execute(args, issue, job, source):
             command = ["colab", "--auth=oauth2", "run", "--session", session,
                        "--timeout", str(max(0.01, remaining_seconds(deadline) - min(45, args.max_seconds // 3)))]
             if research:
-                # Keep only until private cloud export/readback; then stop in finally.
+                # Keep only until approved durable export/readback; then stop in finally.
                 command += ["--keep"]
             if job["gpu"] != "CPU":
                 command += ["--gpu", job["gpu"]]
@@ -338,6 +446,16 @@ def execute(args, issue, job, source):
                 command += ["--repo-commit", job["commit"], "--issue", str(number),
                             "--job-script", job["script"], "--requested-gpu", job["gpu"],
                             "--script-sha256", hashlib.sha256(source.encode("utf-8")).hexdigest()]
+            if not current_approval(args.repo, number, job):
+                raise PermissionError("Owner job approval changed before allocation")
+            if github_readiness:
+                adapter.github_preflight(args.repo, number, job, cmd, deadline)
+            # Storage/API preflights may be slow. Re-query immediately before run.
+            before = account_snapshot()
+            if before["balance_units"] <= 0 or before["active_assignments"] != 0:
+                raise ValueError("Allocation blocked: fresh balance or assignment state changed")
+            command[command.index("--timeout") + 1] = str(max(0.01,
+                remaining_seconds(deadline) - min(45, args.max_seconds // 3)))
             try:
                 p = cmd(command, timeout=max(0.01, remaining_seconds(deadline) - min(45, args.max_seconds // 3)), check=False)
                 exit_code = p.returncode
@@ -349,7 +467,10 @@ def execute(args, issue, job, source):
                 output += "\n" + (raw.decode(errors="replace") if isinstance(raw, bytes) else raw)
                 error = type(ex).__name__
             if research:
-                evidence = collect_cloud_artifacts(args, job, number, session, output, deadline)
+                if github_readiness:
+                    evidence = collect_github_readiness(args, job, number, session, output, deadline)
+                else:
+                    evidence = collect_cloud_artifacts(args, job, number, session, output, deadline)
                 artifact_ok = evidence["complete"]
                 if evidence.get("job_failed"):
                     error = "RuntimeJobFailed"
@@ -375,20 +496,23 @@ def execute(args, issue, job, source):
                 os.fsync(file.fileno())
         status = ("SUCCESS" if exit_code == 0 and error is None and stop_ok and
                   after is not None and (artifact_ok or not research) else "FAILED")
-        record = {"issue": number, "job": job, "state": status, "retry_allowed": False,
+        record = {"schema": 2, "issue": number, "job": job, "state": status, "retry_allowed": False,
                   "exit_code": exit_code, "stop_ok": stop_ok, "artifact_ok": artifact_ok,
                   "before": before, "after": after, "error_type": error,
+                  "preflight_account": preflight_account,
                   "job_id": identity, "local_log": str(log) if log else None,
-                  "local_archive": None, "cloud_evidence": evidence}
+                  "local_archive": None, "cloud_evidence": evidence,
+                  "cloud_preflight": storage}
         # Final receipt is durable even if public callback fails.
         atomic_json(receipt, record)
         summary = (f"Colab Pro bridge: {status}; no automatic retries.\n"
                    f"Commit: {job['commit']}; script: {job['script']}; "
                    f"requested GPU: {job['gpu']}; exit: {exit_code}; stop confirmed: {stop_ok}; "
                    f"artifact retrieval verified: {artifact_ok}.\n"
-                   f"Fresh usage checked before/after: {after is not None}.\n"
-                   "Research artifacts/logs use private cloud storage; local credentials, "
-                   "attempt receipts and CLI diagnostics stay local.")
+                   f"Fresh usage checked before/after: {after is not None}.\n" +
+                   ("Validated nonsecret readiness artifacts use GitHub; " if github_readiness else
+                    "Research artifacts/logs use private cloud storage; ") +
+                   "local credentials, attempt receipts and CLI diagnostics stay local.")
         metrics = publishable_metrics(output)
         if metrics:
             summary += "\nPublic result: " + json.dumps(metrics, sort_keys=True)[:1200]
@@ -415,6 +539,9 @@ def sweep(args, remaining):
         job = parse_issue(issue, owner)
         if not job:
             continue
+        if getattr(args, "artifact_github_readiness", False) and (
+                job["script"] != "colab_jobs/chm_v4_readiness.py" or job["gpu"] != "CPU"):
+            continue
         if job["gpu"] not in args.allowed_gpus:
             print(f"Issue #{issue['number']} skipped: GPU {job['gpu']} not allowed", file=sys.stderr)
             continue
@@ -424,10 +551,7 @@ def sweep(args, remaining):
             if remotely_consumed(args.repo, issue["number"]):
                 continue
             source = source_from_main(args.repo_path, job)
-            current = gh_json(f"repos/{args.repo}/issues/{issue['number']}")
-            if (current.get("state") != "open" or
-                "colab-approved" not in {x["name"] for x in current.get("labels", [])} or
-                parse_issue(current, owner) != job):
+            if not current_approval(args.repo, issue["number"], job):
                 continue
         except Exception as ex:
             print(f"Issue #{issue['number']} preflight skipped: {type(ex).__name__}; inspect locally", file=sys.stderr)
@@ -460,8 +584,11 @@ def main():
     p.add_argument("--allowed-gpus", default="CPU,T4",
                    help="Comma-separated accelerator allowlist; default CPU,T4")
     p.add_argument("--status", action="store_true", help="Read-only worker/quota readiness")
-    p.add_argument("--artifact-remote", default=None,
+    storage_args = p.add_mutually_exclusive_group()
+    storage_args.add_argument("--artifact-remote", default=None,
                    help="Approved private rclone cloud folder; required for research jobs")
+    storage_args.add_argument("--artifact-github-readiness", action="store_true",
+                   help="Approved public nonsecret readiness report only; excludes training/raw logs")
     a = p.parse_args()
     if not 10 <= a.interval <= 3600 or not 30 <= a.max_seconds <= 300:
         p.error("interval must be 10..3600; max-seconds must be 30..300")
@@ -485,12 +612,25 @@ def main():
             running = True
         finally:
             status_lock.close()
-        snapshot = account_snapshot()
-        snapshot.pop("sessions")
+        snapshot, account_error = None, None
+        try:
+            snapshot = account_snapshot()
+            snapshot.pop("sessions")
+        except Exception as error:
+            account_error = type(error).__name__
         heartbeat = a.state_dir / "worker-status.json"
         details = json.loads(heartbeat.read_text()) if heartbeat.exists() else None
+        legacy_unknown = []
+        for path in a.state_dir.glob("issue-*.json"):
+            receipt = json.loads(path.read_text())
+            if receipt.get("schema") != 2 and receipt.get("after") is None:
+                legacy_unknown.append(receipt.get("issue"))
         print(json.dumps({"worker_running": running, "worker": details,
-                          "account": snapshot}, sort_keys=True))
+                          "account": snapshot, "account_verified": snapshot is not None,
+                          "account_error_type": account_error,
+                          "cli_installed": shutil.which("colab") is not None,
+                          "oauth_cache_present": (Path.home() / ".config/colab-cli/token.json").is_file(),
+                          "legacy_post_usage_unknown": legacy_unknown}, sort_keys=True))
         return
     # Prevent multiple workers on one computer from silently running in parallel.
     lock_file = open(a.state_dir / "worker.lock", "a+")
@@ -503,13 +643,20 @@ def main():
         previous = json.loads(receipt_path.read_text())
         if previous.get("state") == "reserved" or not previous.get("stop_ok", False):
             p.error("Previous attempt has unverified teardown; inspect local receipts and sessions")
+        if previous.get("schema") == 2:
+            after = previous.get("after")
+            if (not isinstance(after, dict) or type(after.get("active_assignments")) is not int or
+                after["active_assignments"] != 0 or type(after.get("balance_units")) not in (int, float) or
+                not math.isfinite(after["balance_units"])):
+                p.error("Previous attempt has unverified post-usage; inspect receipts and current account")
     attempts = 0
     while attempts < a.max_attempts:
         atomic_json(a.state_dir / "worker-status.json", {
             "pid": os.getpid(), "last_poll": time.time(), "max_seconds": a.max_seconds,
             "max_attempts": a.max_attempts, "allowed_gpus": sorted(a.allowed_gpus),
             "attempts_consumed": attempts,
-            "cloud_artifacts_configured": bool(a.artifact_remote),
+            "cloud_artifacts_configured": bool(a.artifact_remote or a.artifact_github_readiness),
+            "artifact_backend": "github-readiness" if a.artifact_github_readiness else "private-cloud" if a.artifact_remote else None,
         })
         try:
             attempts += sweep(a, a.max_attempts - attempts)

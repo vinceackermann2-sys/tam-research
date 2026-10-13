@@ -3,11 +3,10 @@
 Prepared 2026-10-13 from main `107342cb15fa53e81948869eac450f2c69d1419a`
 and read-only remote branch inspection. The owner's clarified architectures are
 **CONV7, PGW, CPW, RLT, CHM-v4**. CPW is separate from PGW and CHM; never assign
-another project's evidence to it. GitHub issue/API reads were denied in this
-cloud task, so the state below is frozen repository evidence, not a fresh
-verification of issue approvals or callbacks. Other ChatGPT project chats are
-not available to this task. API access later became available; fresh issue/PR
-readbacks below supersede the initial access limitation.
+another project's evidence to it. Other ChatGPT project chats are not available
+to this task. Repository inspection and fresh GitHub issue/PR readbacks establish
+the continuation points below; they do not establish current Google account
+access or execution authority.
 
 Implementation and CPU correctness checks are authorized. New training,
 replication, scaling, scored heldouts and paid probes still need a concrete
@@ -19,9 +18,9 @@ Future execution uses Colab; no Modal jobs or fallback are launched.
 |---|---|---|
 | CONV7 | Cortex attention-8 plus 16 causal depthwise conv7 mixers. Main includes PR #1423 data-stream parity. New source-lock branch `research/cortex-attention8-conv7-execution-lock-readonly-v1` at `6e0173fb719af30f78df9f8197f01dd03bf3b4b3` is unmerged. | CPU readiness, geometry and synthetic sampler checks. Proposed 3-arm 200M screen requires H100 80GB/BF16, a new seed/job ID, corpus transfer and explicit paid approval; it cannot fit T4 memory or this deadline. |
 | PGW | Main includes Stage-2B5 static corpus/metrics, issue #1429; next #1437 Stage-2B6 is design-only. | CPU corpus integrity: 5,760 samples / 522,240 tokens and algorithmic controls. Training fairness, seeds, optimizer and budgets remain unfrozen; no CPU research or GPU job approved. |
-| CPW | Canonical `aa8bdafa47e27a91ce64ba3771f1515603f815f9`; latest audit `7b0579cf08304779f1df8267f032e944a27caf6a`, open PR #1338 against the isolated branch. | Corrected #1307 eight-slot task; #1335 no-update audit already completed. Dedicated diagnostic CI passed, original full CI failed. Inspect that original failure without rerunning/amending the frozen head; main import remains unreviewed. |
+| CPW | Canonical `aa8bdafa47e27a91ce64ba3771f1515603f815f9`; frozen audit `7b0579cf08304779f1df8267f032e944a27caf6a`, open PR #1338. | Separate draft #1447 corrects three stale run-control test literals. Original full CI failure remains historical; this correction is not proof of its sole cause. Corrected eight-slot scientific protocol and main import remain gates. |
 | RLT | Latest BB decision on `exp/rlt-ax-bounded-transformer` at `7cff4302caed515b19f683ba1a0f9be10a065659`; `exp/rlt-colab` at `b1bac447f9327ec15e0b17f60df03519988aba6e` is older AW. Unmerged into main. | Preregister an independent CPU training-stability panel and richer inference tasks; do not replay AW–BB. Three-way 315+ second training already exceeds both current 180 seconds and 300-second accepted maximum. |
-| CHM-v4 | Main #1431 factorized audit closed as completed; #1436 fixed TRAIN microfit is open and unapproved for Colab. DEV16/TEST32 remain unopened. | Preserve #1444's exact pending stdlib source/artifact preflight (#1445), now with private cloud retention. The 256-step microfit needs separate approval and outstanding original merged-main source CI evidence. |
+| CHM-v4 | Main #1431 factorized audit closed as completed; #1436 fixed TRAIN microfit is open and unapproved for Colab. DEV16/TEST32 remain unopened. | Preserve #1444's exact pending stdlib source/artifact preflight (#1445), with proposed allowlisted GitHub retention. The 256-step microfit needs separate approval, checkpoint storage and outstanding original merged-main source CI evidence. |
 
 ## Frozen results and scientific gates
 
@@ -103,7 +102,8 @@ Transfer procedure:
 This follow-up integrates immutable PR #1444 head
 `ea062eca77ad58669a85cabf6a6528ba0623bfad` without amending its history. It preserves
 the standalone source preflight, fixed unexecuted microfit and global once-only
-job tags, adds private cloud export/readback and ordinary failure packaging,
+job tags, adds private cloud export/readback, a strict public GitHub readiness
+report and ordinary failure packaging,
 and retains the existing limits. It does not import unmerged CPW/RLT models, rewrite
 scientific launchers, disable historical records or silently modify hardware,
 precision, data, seeds, token budgets, optimizer settings or acceptance criteria.
@@ -111,9 +111,41 @@ precision, data, seeds, token budgets, optimizer settings or acceptance criteria
 CPU validation covers actual CHM fixtures, PGW corpus/preflight, CONV7 causality/
 readiness/parity, and simulated CLI launch/export/timeout/cleanup. Live Google
 OAuth, Drive writes, current balance, WSL worker and Colab allocation remain
-unverified here. No Modal or Colab job was executed. The cloud folder proposal
-must be approved/configured, and the new script must be merged into main before
+unverified here. No Modal or Colab job was executed. The selected retention scope
+must be approved, and the new script must be merged into main before
 an issue may receive `colab-approved`.
+
+## Reviewed successors and prospective designs
+
+Original heads, first-attempt CI and scientific results remain frozen. Three
+separate draft successors carry the old branch work unchanged and add bounded
+CPU correctness fixes:
+
+| Track | Successor | Additional change | Focused local validation |
+|---|---|---|---|
+| CPW | [#1447](https://github.com/vinceackermann2-sys/tam-research/pull/1447), `6acfa969aaf57aacf028d901fad41b6526246215` | Align three test assertions with the unchanged workflow and launch manifest | 1 failed / 1 passed before; 2 passed after |
+| CONV7 | [#1448](https://github.com/vinceackermann2-sys/tam-research/pull/1448), `325feb47b00911f649329fa160b81670393dafb5` | Pin original manifest digest and exact 13 protected paths; reject coordinated manifest/proposal edits | 16 passed; stdlib CLI still blocks paid execution |
+| RLT | [#1449](https://github.com/vinceackermann2-sys/tam-research/pull/1449), `3d3d73a5d167cad2321c99e73686300a7484c2c1` | Reject bool/noninteger chunk/window sizes before model initialization | New suite 16 failed / 9 passed before; focused regression 56 passed after |
+
+These checks do not replay scientific jobs, update an optimizer, score heldouts,
+reserve scientific seeds, change a valid historical model or authorize compute.
+CPW's signed original full-CI log download is unavailable here; the reproduced
+stale contract is a demonstrated defect, not a complete original-failure diagnosis.
+
+All three successors passed their original first-attempt full CPU CI at the
+exact heads above: CPW [38472593233](https://github.com/vinceackermann2-sys/tam-research/actions/runs/38472593233),
+CONV7 [38472599719](https://github.com/vinceackermann2-sys/tam-research/actions/runs/38472599719),
+RLT [38472604476](https://github.com/vinceackermann2-sys/tam-research/actions/runs/38472604476).
+These are new-source checks, not reruns or revised conclusions for historical CI.
+
+[PGW Stage-2B6 design](../research/colab/pgw_stage2b6_design.md) proposes a
+prospective frozen-arm study, disclosing active-capacity, depth and auxiliary-loss
+confounds. [RLT continuation design](../research/colab/rlt_continuation_design.md)
+proposes training stability and separate richer inference. Both are review drafts,
+with seeds and attempts **UNASSIGNED** and no execution authority. One proposed
+RLT triplet already needs 315 training seconds; it cannot fit the existing limits.
+
+## Validation record
 
 Validation in this task (no Colab allocation or scientific training):
 
@@ -131,6 +163,20 @@ whitespace checks passed. The real stdlib source/artifact helper runs under
 Python `-S` with no site packages or torch import. CLI allocation/cloud transport
 remain simulated. Original #1444 CI runs38455242935/38455242931 passed at attempt1;
 this follow-up's CI is separate evidence, not a rerun of those heads.
+
+After the follow-up reviews, all **73** current `test_colab*.py` checks pass
+under stdlib unittest discovery. They cover public report allowlists and exact
+member reconstruction, explicit consent, owner/source checks, create-once
+publication, independent readback before stop, private-log rejection, changed
+balance/active assignment before allocation, missing local OAuth, and schema-2
+receipts. Two actual rclone CLI checks use temporary local fixtures only; the
+production preflight rejects that backend. Live storage/Colab remains untested.
+This overlaps the initial 476 checks and is not added to that historical total.
+
+Actual cloud readiness: official CLI 0.7.4 installed, required lifecycle options
+present; `--status` shows no OAuth cache, no running worker, unverified account
+and unknown current balance. Google credentials/session metadata were neither
+read nor transferred. The owner's closed Windows host cannot execute its queue.
 
 Fresh GitHub readbacks: #1443 confirms TeslaT4/CUDA/teardown and is consumed;
 #1445 has no approval label. PGW #1429 confirms all literal corpus roots and
