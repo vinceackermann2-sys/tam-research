@@ -70,6 +70,7 @@ class ColabProBridgeTests(unittest.TestCase):
                                    state_dir=Path(tmp), repo_path=Path(tmp),
                                    allowed_gpus={"T4"})
             with patch.object(bridge, "gh_json", return_value=[blocked, allowed, second]), \
+                 patch.object(bridge, "remotely_consumed", return_value=False), \
                  patch.object(bridge, "source_from_main", return_value="print(1)"), \
                  patch.object(bridge, "execute", return_value=True) as execute:
                 attempts = bridge.sweep(args, remaining=1)
