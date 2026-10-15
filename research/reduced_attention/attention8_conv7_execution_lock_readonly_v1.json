@@ -1,0 +1,85 @@
+{
+  "schema": "cortex.attention8.conv7.read_only_execution_lock.v1",
+  "classification": "ZERO_GPU_REVIEW_ONLY_NO_PAID_AUTHORITY",
+  "reference_repo": "vinceackermann2-sys/tam-research",
+  "creation_main_commit": "690b072e67623925e6b77c322ea4150441ca0d5a",
+  "trusted_source_blobs": {
+    "tam_research/train.py": "101a18c3cd8d0be23f01e9251a9b76b7a7be9787",
+    "tam_research/models.py": "90e77bcbaa39a20d336628acc60db26b05c17895",
+    "tam_research/data.py": "f73e85ebfa861927827b59716a1f7152dd3bcfc6",
+    "architectures/cortex_s/reduced_attention_200m_panel_v2.py": "2f954a4f40d681279efd9f6635d71192a0f9ab1e",
+    "architectures/cortex_s/reduced_attention_100m_v2_attention8.py": "d16e5e901f0ac5b6d52e434c3467308de9701874",
+    "architectures/cortex_s/attention8_causal_conv7_v1.py": "8c8ad5437378a08f996589b2fb7c967dcbefdb92",
+    "research/reduced_attention/attention8_conv7_engineering_proposal_v1.json": "fc403bdcd78c9351fd6c928d40b49d045265d5e6",
+    "scripts/cortex_attention8_conv7_readiness_v1.py": "e6d5be610f97518d244b5f1e2c8c42c9066602ce",
+    "tam_research/cortex_attention8_conv7_engineering_cpu_kernel_v1.py": "a1b4ca891d546cd9c9116a6b0590f57cd094e03d",
+    "tam_research/cortex_attention8_conv7_data_stream_parity_v1.py": "c8445cb8f52c4d4d55a5d94070dd5d8e79268043",
+    "tam_research/cortex_attention8_conv7_dispatch_dryrun_v1.py": "15ca30d67986894f9e074c99df281a19f0c2025d",
+    "tam_research/cortex_attention8_conv7_journal_simulation_v1.py": "5f896a1e9047c10deee3396a9e2a9f5da162c395",
+    "tam_research/cortex_attention8_conv7_engineering_rehearsal_v1.py": "7408c1d23b0d3bf50c23374c72df47ab116d5242"
+  },
+  "model_parameters": [
+    101803520,
+    101795328,
+    101803536
+  ],
+  "model_names": [
+    "fresh_transformer",
+    "reduced_attention_dense_v2_attention8",
+    "attention8_causal_depthwise_conv7"
+  ],
+  "pilot": {
+    "model_steps": 3052,
+    "tokens_per_step": 65536,
+    "tokens_per_model": 200015872,
+    "full_horizon_steps": 30518,
+    "full_horizon_tokens": 2000027648,
+    "warmup_steps": 610,
+    "sequence_length": 512,
+    "micro_batch": 64,
+    "gradient_accumulation": 2,
+    "final_eval_batches": 50,
+    "eval_batch_size": 32,
+    "final_eval_tokens": 819200,
+    "lr_peak": 0.0003,
+    "adamw_betas": [
+      0.9,
+      0.95
+    ],
+    "weight_decay": 0.1,
+    "grad_clip": 1
+  },
+  "corpus_expected_sha256": {
+    "train": "93e9cb0b7076a4ddd855fc696f657ea62592b8a03a05220be99c402f9043265b",
+    "val": "ae0bc5adf36d0aa8e55e5e3903401d3f114b93037f43221944b4e88c5d1a5760",
+    "metadata": "14bbbcf0ab0b8cba374074ef8ccb80a04ecead06c74780f35a1becd5aef1b8f3"
+  },
+  "screen_thresholds": {
+    "nll_delta_vs_transformer_max": 0.015,
+    "nll_improvement_vs_parent_min": 0.01,
+    "tps_vs_transformer_min": 1.03
+  },
+  "frozen_failed_scientific_result_sha256": "872daab1193742942ef01fd8dee77080a07272eee4b55aa0b9236cffb584d88d",
+  "consumed_scientific_seeds": [
+    60231,
+    60232
+  ],
+  "execution": {
+    "modal_account": "primary",
+    "gpu_class": "H100 80GB",
+    "approved": false,
+    "seed": null,
+    "max_spend_usd": null,
+    "job_id": null,
+    "one_shot": true,
+    "retries": 0,
+    "resume": false,
+    "real_reservation_created": false,
+    "remote_volume_verified": false,
+    "paid_launcher_present": false,
+    "paid_dispatch_permitted": false,
+    "scientific_replication_permitted": false,
+    "scale_250m_5b_permitted": false,
+    "breakthrough_claim_permitted": false
+  }
+}
