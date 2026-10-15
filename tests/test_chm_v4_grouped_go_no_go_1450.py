@@ -176,7 +176,7 @@ def test_no_historical_data_generation_in_source_or_tests():
             imp.append(node.module)
         if isinstance(node,ast.Import):
             imp.extend(a.name for a in node.names)
-    assert imp==["dataclasses","math","typing"]
+    assert imp==["__future__","dataclasses","math","typing"]
     prohibited={"torch", "modal", "tensorflow", "chm_v4_independent_binding_benchmark_1421"}
     assert not prohibited.intersection(imp)
     calls={ast.unparse(n.func) for n in ast.walk(tree) if isinstance(n,ast.Call)}
