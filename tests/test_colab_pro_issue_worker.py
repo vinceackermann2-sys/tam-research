@@ -44,6 +44,13 @@ class ColabProBridgeTests(unittest.TestCase):
         issue = sample_issue({"commit": "a" * 40, "script": "scripts/colab_bridge_gpu_probe.py", "gpu": "B200"})
         self.assertIsNone(bridge.parse_issue(issue, "vinceackermann2-sys"))
 
+    def test_cpu_only_research_script_cannot_allocate_an_allowed_t4(self):
+        for script in bridge.CPU_ONLY_JOBS:
+            issue = sample_issue({"commit": "a" * 40, "script": script, "gpu": "T4"})
+            self.assertIsNone(bridge.parse_issue(issue, "vinceackermann2-sys"))
+            issue = sample_issue({"commit": "a" * 40, "script": script, "gpu": "CPU"})
+            self.assertIsNotNone(bridge.parse_issue(issue, "vinceackermann2-sys"))
+
     def test_publish_filtered_metrics(self):
         output = 'noise\nCOLAB_PUBLIC_RESULT={"gpu":"T4","loss":0.8,"secret":"PRIVATE"}\n'
         self.assertEqual(bridge.publishable_metrics(output), {"gpu": "T4", "loss": 0.8})
@@ -69,7 +76,9 @@ class ColabProBridgeTests(unittest.TestCase):
             args = SimpleNamespace(repo="vinceackermann2-sys/tam-research",
                                    state_dir=Path(tmp), repo_path=Path(tmp),
                                    allowed_gpus={"T4"})
-            with patch.object(bridge, "gh_json", return_value=[blocked, allowed, second]), \
+            current = dict(allowed, state="open", labels=[{"name": "colab-approved"}])
+            with patch.object(bridge, "gh_json", side_effect=[[blocked, allowed, second], current]), \
+                 patch.object(bridge, "remotely_consumed", return_value=False), \
                  patch.object(bridge, "source_from_main", return_value="print(1)"), \
                  patch.object(bridge, "execute", return_value=True) as execute:
                 attempts = bridge.sweep(args, remaining=1)

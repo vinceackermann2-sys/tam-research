@@ -70,8 +70,8 @@ The first line must be the marker, followed by a JSON code fence.
 The job will NOT execute until the label **colab-approved** is applied.
 When you authorize the GPU test, ChatGPT's GitHub connection can
 add the label. The worker then runs one task on your Colab Pro quota,
-writes a nonsecret public summary back to the issue, and stores the full
-log only on your PC at:
+writes a nonsecret public summary back to the issue. Legacy probe logs and
+durable no-retry receipts are stored on your PC at:
 
        ~/.local/state/colab-pro-chatgpt/
 
@@ -106,6 +106,8 @@ issue is intentionally disabled.
   additionally attempts colab stop in a finally block. If an attempt
   fails or times out, use colab --auth=oauth2 sessions to check and
   clean up residual runtimes; do not rerun a consumed attempt.
+  Research scripts use `run --keep` to allow verified cloud retrieval before
+  the worker's `finally` stops the runtime. `--keep` never grants ongoing use.
 - For research, retain pinned baselines, preregistration, unique
   job ID/seed, review and CI gates, and explicit GPU authorization.
   No automatic experimental retry, replication or scaling is granted.
@@ -119,6 +121,188 @@ issue is intentionally disabled.
   plugin in this chat. If your Windows machine or WSL worker is off,
   the queued job waits.
 
+## Research jobs after the consumed #1443 probe
+
+Issue #1443 tested a T4 and teardown successfully and is permanently consumed.
+The worker excludes it even if started with a new receipt directory. Its last
+reported 108.89 units is historical; the worker queries current usage before
+storage preflight, refreshes it immediately before allocation and queries it
+after every attempt. Unknown balance, zero balance or an
+existing active assignment blocks allocation. Google credentials stay on WSL.
+
+The five-track continuation record and Modal transfer inventory are in
+[COLAB_RESEARCH_CONTINUATION.md](COLAB_RESEARCH_CONTINUATION.md). The first
+prepared job is [the existing CPU source/artifact preflight](../research/colab/chm_v4_readiness_job.md),
+not new training or a GPU probe.
+
+### Private cloud artifacts
+
+Colab's disk is temporary. Training jobs require an agreed durable destination;
+the implemented full-bundle path uses a private cloud folder through `rclone`.
+The separate GitHub readiness mode below needs no Drive connection. No
+credentials belong in issues, scripts, or this chat. Review the
+storage destination and locally authorize it before any approved job starts:
+
+```sh
+sudo apt-get install -y rclone
+rclone config
+# Create a Google Drive remote named tam-drive using local browser OAuth.
+# Choose your own account and permissions; do not publish the configuration.
+rclone mkdir 'tam-drive:TAM Research Artifacts'
+rclone lsf 'tam-drive:TAM Research Artifacts' --max-depth 1
+```
+
+These are storage setup commands, not Colab allocation. The named folder is a
+proposal until the owner chooses and verifies it. Existing Colab OAuth does not
+prove that a Drive upload connection is available. A different approved cloud
+remote may be supplied; do not configure a local-filesystem remote.
+
+Before reserving an attempt, the worker verifies the configured backend is a
+supported direct cloud service, rejects local/alias/crypt/unknown remotes, checks
+the backend's `IsLocal=false`, then uploads and independently reads back a tiny
+nonsecret sentinel. Listing alone does not prove write access. Probe deletion is
+best effort and its outcome is recorded. These checks allocate no Colab runtime.
+
+After this PR is reviewed and merged, leave this worker running in one WSL
+terminal, preserving its existing state directory and limits:
+
+```sh
+python3 scripts/colab_pro_issue_worker.py --poll \
+  --max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4 \
+  --artifact-remote 'tam-drive:TAM Research Artifacts'
+```
+
+In a second WSL terminal, inspect real worker liveness and **fresh** account
+usage without allocating compute:
+
+```sh
+python3 scripts/colab_pro_issue_worker.py --status
+colab --auth=oauth2 sessions
+```
+
+`--status` probes the held exclusive lock to report a running worker and shows
+its last recorded settings. It also queries current usage. A worker that consumed
+its one attempt exits and releases that lock. A status command on a different machine
+does not verify your Windows worker. Keep this output private; public job
+comments contain only balance-check/teardown booleans and opted-in telemetry.
+
+On a host without Colab OAuth, `--status` reports `account=null` and
+`account_verified=false` without starting a login or using unrelated ADC
+credentials. It cannot report the current balance. This task installed official
+CLI 0.7.4 in an isolated cloud tool environment and verified its `--keep` and
+`--timeout` options; its actual status showed no OAuth cache and no running
+worker. The owner's WSL login is not inherited by this cloud host. Do not paste
+OAuth codes, tokens, session state or Google credentials into chat to connect it.
+The official CLI uses home-directory files for OAuth and diagnostics; this
+development host's home directory is read-only. Installed option declarations
+were inspected without initiating CLI authentication. Live execution needs an
+authorized host with writable private CLI state and securely configured Google
+login, not just an installed package.
+
+### GitHub retention for the source-readiness job
+
+GitHub is sufficient for the small nonsecret readiness artifacts; Google Drive
+is optional for that job. This repository is public. The dedicated
+`--artifact-github-readiness` mode accepts only
+`colab_jobs/chm_v4_readiness.py` on CPU and cannot accept microfit/training jobs,
+checkpoints, raw transport logs or arbitrary JSON/log values. It is mutually
+exclusive with `--artifact-remote`.
+
+The owner issue must include the following standalone consent marker outside
+code fences, in addition to the unchanged exact job JSON and approved label:
+
+```text
+<!-- colab-public-readiness-artifacts:v1 -->
+```
+
+The marker alone does not authorize allocation. Review/merged-main gates, fresh
+Google usage, the real worker lock, one-attempt reservation and explicit job
+approval still apply. Read-only GitHub preflight verifies the authenticated
+repository owner, public/nonarchived repository, issues enabled, write permission,
+same job and explicit public consent; it does not prove live comment-upload
+privilege. Actual creation and independent readback must succeed before teardown.
+
+```sh
+python3 scripts/colab_pro_issue_worker.py --poll \
+  --max-seconds 180 --max-attempts 1 --allowed-gpus CPU,T4 \
+  --artifact-github-readiness
+```
+
+Before stop, the worker downloads the readiness bundle temporarily, verifies its
+original SHA256/size/member/provenance, then strictly validates all four members
+against the known nonsecret source-check contract and original JSON encoding.
+It posts a create-only owner issue comment containing configuration, metrics,
+provenance, canonical readiness log and original member/manifest/bundle hashes,
+then independently GETs and verifies the exact report and digest. The original
+ZIP and raw CLI output are not published or retained. The report preserves all
+four member contents; `reconstruct_members(report, job, issue)` can reproduce
+their original bytes and manifest with hash verification. Public reports are
+bounded to 24 KiB and source bundles to 128 KiB. GitHub comments remain editable
+by their owner; the adapter never edits/deletes or recreates an existing report,
+and the global single-use tag still prevents a new attempt.
+
+A missing/rejected bundle produces only a fixed incomplete provenance receipt,
+never arbitrary private logs or a success claim. Failure still consumes the
+attempt and triggers stop plus fresh usage. This mode covers readiness only;
+future checkpoints or other research artifacts require a separately agreed
+storage scope and supported exporter. No live public artifact was uploaded by
+the CPU validation.
+
+### Bootstrap, export, and failure behavior
+
+Every new `colab_jobs/*.py` script receives the exact reviewed full commit SHA,
+issue identity, script path/hash and requested accelerator as arguments. The
+readiness script fetches that exact commit, verifies the submitted script bytes
+and three frozen source blobs, and uses the standard library only. The separate,
+unapproved microfit adapter installs CPU Torch2.10.0 with normal TLS verification;
+its 256-step/18,560-token scientific configuration remains unchanged from #1444.
+CLI source alone carries neither repository files nor Modal datasets/checkpoints.
+
+Research scripts create `/content/tam-results/bundle.zip` containing
+`configuration.json`, `metrics.json`, `provenance.json`, `run.log`, any required
+terminal checkpoint, and a SHA256 member
+manifest. The worker downloads and validates the bundle, uploads it to the
+cloud, downloads it again and verifies every hash **before** stopping the
+runtime. This describes the full private-cloud path; GitHub readiness uses the
+strict report path above. The full private transport log is independently uploaded/read back first;
+an incomplete bundle also triggers retrieval of any current log/configuration/
+metrics/provenance/checkpoint files. Partial source identity is classified as
+matched, mismatched, invalid or unavailable; it cannot imply a resumable
+checkpoint, and no loadability claim is made. Failed exports cannot produce SUCCESS. The runtime
+packages ordinary failures as evidence and raises afterward; partial recovery is
+explicitly marked incomplete. No result,
+checkpoint or downloaded bundle is retained on the worker: temporary transfer
+files are removed. Mandatory attempt receipts and authentication metadata remain
+local. The official CLI also maintains local connection diagnostics/history;
+never upload those files because they can contain runtime connection secrets.
+
+The unchanged 180-second allocation/execution/export deadline reserves 45
+seconds for retrieval (135 seconds for provisioning/execution). Cleanup is
+attempted separately with the existing stop/session-check timeouts, then usage
+is queried. This is **not a hard compute-unit cap**. Unknown teardown or unknown
+post-attempt usage blocks the next worker using its existing consumed receipt.
+Resolve the actual runtime state and confirm zero active assignments/current
+usage before recording verified cleanup in that receipt; never delete issue
+receipts or global job tags to enable retries.
+
+New receipts use schema 2 and block startup on unknown post-attempt usage even
+when teardown was confirmed. Historical receipts remain unchanged. A legacy
+receipt missing post-usage is explicitly listed as unknown by `--status`; its
+old balance is never invented, and every new allocation still requires a fresh
+account query. Issue #1443 remains excluded regardless of local receipt history.
+
+Small bundles keep #1444's 32 MiB compressed and uncompressed limit. Larger
+checkpoint workflows need a separately reviewed exporter/storage plan, not a
+quietly increased limit. Storage/network failure can prevent complete recovery;
+the worker reports FAILED, retains any verified cloud evidence and still attempts
+teardown rather than keeping paid compute alive indefinitely. No job retry,
+replication, scaling, precision change or Modal fallback is automatic.
+
+CLI lifecycle contracts were checked against official `googlecolab/google-colab-cli`
+commit `d4f855d885cf39f47af5bcae9cd7f7963c18ef09`. The worker checks required
+`--keep`/`--timeout` support locally before allocation. CPU mocks validate these
+paths; they do not establish live Google OAuth, cloud write access or quota.
+
 ## Zero-GPU validation
 
        python3 -m py_compile scripts/colab_pro_issue_worker.py scripts/colab_bridge_gpu_probe.py
@@ -126,3 +310,37 @@ issue is intentionally disabled.
 
 An actual end-to-end GPU test requires your Google OAuth sign-in and
 explicit approval. No token should be supplied through this chat.
+
+## Research job durability and continuation
+
+See [COLAB_RESEARCH_ORCHESTRATION.md](COLAB_RESEARCH_ORCHESTRATION.md) for the
+five separate project states and pending job scopes. New `colab_jobs` scripts
+must declare a reviewed literal `COLAB_JOB_ID`. The worker reserves an atomic,
+never-updated GitHub tag `colab-attempts/<job-id>` before provisioning, in addition
+to the local issue receipt and remote issue callback. Existing identity means
+no launch even if a new issue or machine tries to repeat it. GitHub authentication
+needs Contents write for this receipt, as well as issue comment access.
+
+Research runs use CLI `run --keep --timeout ...`: allocation, execution and
+collection share the worker deadline. The CLI default code timeout is 30s, so the
+wrapper now explicitly passes the remaining deadline. The reviewed standalone
+script receives the exact issue commit, issue number, script path and requested
+GPU; it must bootstrap the exact public repository SHA itself. No credential is
+sent to Colab. Current CPU scripts reject other GPUs before repository setup;
+the worker also rejects non-CPU requests for those two scripts. It rechecks
+owner, label, open state and unchanged job specification after source retrieval
+and again immediately before allocation. Revocation never authorizes a retry.
+
+The worker downloads `/content/tam-results/bundle.zip`, verifies its declared
+SHA-256/size, every manifest member and issue/commit/script provenance, then
+uploads and independently reads back the cloud copy **before** calling stop.
+Local transfer files are temporary; it never extracts untrusted archives.
+Bundles are bounded to 32 MiB. Research success additionally requires confirmed
+teardown and fresh post-attempt usage. Missing artifacts or teardown are failures,
+not architecture evidence. Cleanup is attempted even on timeout; if retrieval
+cannot complete, record artifact loss and release the runtime to bound exposure.
+
+Run `python3 scripts/colab_pro_issue_worker.py --status` on the local WSL machine
+for a read-only lock-based worker check and fresh account balance. A stale
+heartbeat alone is not proof that the worker is running. No automatic worker
+restart or attempt retry is introduced. Default limits and maximum 300s unchanged.
