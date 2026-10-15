@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-fixed-update-seed-stability-20261015-bc",
+  "purpose": "Fresh CPU-only three-seed fixed-optimizer-update bounded carry-RLT stability panel",
+  "runner_blob_sha": "cc96c802c46a81a8c42fb45df6b11c6e62d3c432",
+  "preflight_commit": "df56de49ab20249495c2e26f9c357dcdc3d422ec",
+  "preflight_run_id": 38798812834,
+  "model_seeds": [
+    20671081,
+    20671082,
+    20671083
+  ],
+  "training_data_seeds": {
+    "easy": 20681081,
+    "long": 20691081
+  },
+  "eval_seed": 20701081,
+  "easy_updates": 2100,
+  "long_updates": 1200,
+  "milestones": [
+    400,
+    800,
+    1200
+  ],
+  "parameters": 27712,
+  "distances": [
+    1,
+    4,
+    16,
+    64,
+    127
+  ],
+  "batch": 8,
+  "sequence_length": 128,
+  "window": 8,
+  "success_definition": "both class0 and class1 accuracy >=0.95 at gaps 16,64,127 at final step 1200",
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "breakthrough_claim_supported": false,
+  "automatic_retry": false,
+  "checkpoint_persistence": "force-add 3 .pt files; staged SHA256 verify; commit; push; remote SHA256 readback; artifact upload always"
+}

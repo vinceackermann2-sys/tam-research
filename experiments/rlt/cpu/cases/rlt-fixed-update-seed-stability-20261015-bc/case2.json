@@ -1,0 +1,239 @@
+{
+  "after_long_milestones": {
+    "1200": {
+      "1": {
+        "accuracy": 1.0,
+        "binary_nll": 0.0020344591757748276,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "127": {
+        "accuracy": 0.515625,
+        "binary_nll": 0.6929213516414165,
+        "class0_accuracy": 0.0390625,
+        "class1_accuracy": 0.9921875,
+        "examples": 256
+      },
+      "16": {
+        "accuracy": 0.5234375,
+        "binary_nll": 0.6925565991550684,
+        "class0_accuracy": 0.078125,
+        "class1_accuracy": 0.96875,
+        "examples": 256
+      },
+      "4": {
+        "accuracy": 0.98828125,
+        "binary_nll": 0.057673828643601155,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.9765625,
+        "examples": 256
+      },
+      "64": {
+        "accuracy": 0.4921875,
+        "binary_nll": 0.6950018871575594,
+        "class0_accuracy": 0.0078125,
+        "class1_accuracy": 0.9765625,
+        "examples": 256
+      }
+    },
+    "400": {
+      "1": {
+        "accuracy": 1.0,
+        "binary_nll": 0.0017171880081150448,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "127": {
+        "accuracy": 0.53125,
+        "binary_nll": 0.7371430583298206,
+        "class0_accuracy": 0.90625,
+        "class1_accuracy": 0.15625,
+        "examples": 256
+      },
+      "16": {
+        "accuracy": 0.5390625,
+        "binary_nll": 0.7143599148839712,
+        "class0_accuracy": 0.8828125,
+        "class1_accuracy": 0.1953125,
+        "examples": 256
+      },
+      "4": {
+        "accuracy": 1.0,
+        "binary_nll": 0.0015677049123041797,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "64": {
+        "accuracy": 0.53125,
+        "binary_nll": 0.7375028599053621,
+        "class0_accuracy": 0.8828125,
+        "class1_accuracy": 0.1796875,
+        "examples": 256
+      }
+    },
+    "800": {
+      "1": {
+        "accuracy": 1.0,
+        "binary_nll": 0.002930782276962418,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 1.0,
+        "examples": 256
+      },
+      "127": {
+        "accuracy": 0.50390625,
+        "binary_nll": 0.6958278510719538,
+        "class0_accuracy": 0.0234375,
+        "class1_accuracy": 0.984375,
+        "examples": 256
+      },
+      "16": {
+        "accuracy": 0.515625,
+        "binary_nll": 0.6909660827368498,
+        "class0_accuracy": 0.0625,
+        "class1_accuracy": 0.96875,
+        "examples": 256
+      },
+      "4": {
+        "accuracy": 0.9921875,
+        "binary_nll": 0.024708503824513173,
+        "class0_accuracy": 1.0,
+        "class1_accuracy": 0.984375,
+        "examples": 256
+      },
+      "64": {
+        "accuracy": 0.5,
+        "binary_nll": 0.6956585198640823,
+        "class0_accuracy": 0.0390625,
+        "class1_accuracy": 0.9609375,
+        "examples": 256
+      }
+    }
+  },
+  "case": 2,
+  "checkpoint": {
+    "bytes": 120530,
+    "path": "experiments/rlt/cpu/checkpoints/rlt-fixed-update-seed-stability-20261015-bc/case2.pt",
+    "sha256": "9b89eda7de641638d6c5605a032e846dec9d2e8923f6c02213aa4f095cf6030b"
+  },
+  "easy": {
+    "last_batch_binary_nll": 1.8700782675296068e-05,
+    "seconds": 18.716615181000066,
+    "stage": "easy",
+    "steps": 2100,
+    "tokens_per_second": 7180.785558728293,
+    "tokens_seen": 134400
+  },
+  "easy_positive_control": {
+    "accuracy": 1.0,
+    "binary_nll": 1.8407889001537114e-05,
+    "examples": 256
+  },
+  "final": {
+    "1": {
+      "accuracy": 1.0,
+      "binary_nll": 0.0020344591757748276,
+      "class0_accuracy": 1.0,
+      "class1_accuracy": 1.0,
+      "examples": 256
+    },
+    "127": {
+      "accuracy": 0.515625,
+      "binary_nll": 0.6929213516414165,
+      "class0_accuracy": 0.0390625,
+      "class1_accuracy": 0.9921875,
+      "examples": 256
+    },
+    "16": {
+      "accuracy": 0.5234375,
+      "binary_nll": 0.6925565991550684,
+      "class0_accuracy": 0.078125,
+      "class1_accuracy": 0.96875,
+      "examples": 256
+    },
+    "4": {
+      "accuracy": 0.98828125,
+      "binary_nll": 0.057673828643601155,
+      "class0_accuracy": 1.0,
+      "class1_accuracy": 0.9765625,
+      "examples": 256
+    },
+    "64": {
+      "accuracy": 0.4921875,
+      "binary_nll": 0.6950018871575594,
+      "class0_accuracy": 0.0078125,
+      "class1_accuracy": 0.9765625,
+      "examples": 256
+    }
+  },
+  "initial": {
+    "1": {
+      "accuracy": 0.5,
+      "binary_nll": 0.7041593790054321,
+      "class0_accuracy": 0.0,
+      "class1_accuracy": 1.0,
+      "examples": 256
+    },
+    "127": {
+      "accuracy": 0.5,
+      "binary_nll": 0.7000701148062944,
+      "class0_accuracy": 0.0,
+      "class1_accuracy": 1.0,
+      "examples": 256
+    },
+    "16": {
+      "accuracy": 0.5,
+      "binary_nll": 0.6987651251256466,
+      "class0_accuracy": 0.0,
+      "class1_accuracy": 1.0,
+      "examples": 256
+    },
+    "4": {
+      "accuracy": 0.5,
+      "binary_nll": 0.7018494307994843,
+      "class0_accuracy": 0.0,
+      "class1_accuracy": 1.0,
+      "examples": 256
+    },
+    "64": {
+      "accuracy": 0.5,
+      "binary_nll": 0.6979919876903296,
+      "class0_accuracy": 0.0,
+      "class1_accuracy": 1.0,
+      "examples": 256
+    }
+  },
+  "long_segments": [
+    {
+      "last_batch_binary_nll": 0.2808217406272888,
+      "seconds": 43.22121197900003,
+      "stage": "long_0_to_400",
+      "steps": 400,
+      "tokens_per_second": 9476.828187951163,
+      "tokens_seen": 409600
+    },
+    {
+      "last_batch_binary_nll": 0.6243085265159607,
+      "seconds": 43.078541933,
+      "stage": "long_400_to_800",
+      "steps": 400,
+      "tokens_per_second": 9508.214104299313,
+      "tokens_seen": 409600
+    },
+    {
+      "last_batch_binary_nll": 0.6197220087051392,
+      "seconds": 42.79131941000003,
+      "stage": "long_800_to_1200",
+      "steps": 400,
+      "tokens_per_second": 9572.03483434258,
+      "tokens_seen": 409600
+    }
+  ],
+  "model_seed": 20671083,
+  "name": "carry",
+  "parameters": 27712,
+  "total_long_steps": 1200,
+  "total_long_tokens": 1228800
+}

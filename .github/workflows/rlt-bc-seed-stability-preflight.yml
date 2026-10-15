@@ -1,0 +1,53 @@
+name: RLT BC fixed-update three-seed CPU preflight
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-bc-seed-stability-preflight.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rlt-bc-fixed-update-preflight
+  cancel-in-progress: false
+
+jobs:
+  protocol-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+    steps:
+      - name: Checkout exact isolated research branch
+        uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Check BC is new and not an existing consumed result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab exp/rlt-ax-bounded-transformer
+          test "$(git branch --show-current)" = "exp/rlt-ax-bounded-transformer"
+          test ! -e experiments/rlt/cpu/results/rlt-fixed-update-seed-stability-20261015-bc.json
+          test ! -e experiments/rlt/cpu/cases/rlt-fixed-update-seed-stability-20261015-bc
+          test ! -e experiments/rlt/cpu/checkpoints/rlt-fixed-update-seed-stability-20261015-bc
+          python -m py_compile experiments/rlt/cpu_fixed_update_stability_bc.py tests/test_rlt_cpu_fixed_update_stability_bc.py
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('experiments/rlt/cpu_fixed_update_stability_bc.py').read_text()
+          assert '"gpu_requested": False' in src
+          assert '"scientific_execution": False' in src
+          assert 'EASY_UPDATES, LONG_UPDATES = 2100, 1200' in src
+          assert 'MODEL_SEEDS = (20671081, 20671082, 20671083)' in src
+          assert 'rlt-cpu-fixed-update-seed-stability-20261015-bc' in src
+          assert 'no resume/no rerun' in src
+          PY
+      - name: Install CPU-only PyTorch and pytest
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Validate model, independent holdouts, cross-window oracle and gradient
+        run: python -m pytest -q tests/test_rlt_cpu_fixed_update_stability_bc.py -vv

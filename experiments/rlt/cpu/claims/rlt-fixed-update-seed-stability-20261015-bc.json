@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "job_id": "rlt-cpu-fixed-update-seed-stability-20261015-bc",
+  "status": "reserved_before_execution",
+  "runner_blob_sha": "cc96c802c46a81a8c42fb45df6b11c6e62d3c432",
+  "preflight_run_id": 38798812834,
+  "no_rerun": true,
+  "no_resume": true,
+  "no_amend": true,
+  "automatic_retry": false,
+  "gpu_requested": false,
+  "scientific_execution": false,
+  "notes": "One fresh 3-seed CPU engineering attempt. If any step fails, retain failure evidence; do not retrigger or reuse its seeds."
+}
