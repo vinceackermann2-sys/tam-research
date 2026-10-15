@@ -1,0 +1,108 @@
+name: "CPW #1452 four-query random-init gradient matrix — original CPU evidence"
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - .github/workflows/cpw-1452-four-query-gradient-matrix.yml
+
+permissions:
+  contents: read
+
+jobs:
+  first-source-locked-cpu-only:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    steps:
+      - name: Checkout exact canonical CPW branch commit
+        uses: actions/checkout@v6
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Freeze existing five-arm science and new source blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:tam_research/cpw_binding_v2/task.py)" = "79dc0ceda617985eba40f119343bdb2992aa395d"
+          test "$(git rev-parse HEAD:tam_research/cpw_binding_science/harness.py)" = "63ab35fc82ea06d91ce2a9b5cbd1d2d9c56baf3f"
+          test "$(git rev-parse HEAD:tam_research/cpw_binding_grad_audit/audit.py)" = "49c6154e48fce7edace97ad630783153d39a6b0d"
+          test "$(git rev-parse HEAD:tam_research/cpw_query_gradient_matrix_1452.py)" = "a3da256c549b59dd26d4faeb53b972d9d1143384"
+          test "$(git rev-parse HEAD:tests/test_cpw_query_gradient_matrix_1452.py)" = "77fe3fe95d7fc948ce0a48c5b2c42e2926c31c2a"
+          test "$(git rev-parse HEAD:research/cpw_four_query_gradient_routing_1452.md)" = "5de4c4d33cbbaa3c114562d1872668b5bc170101"
+          echo "CPW_1452_SOURCE_LOCK_PASS"
+      - name: Install CPU PyTorch and project
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+      - name: Original CPU-only five-arm four-query routing measurements
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m tam_research.cpw_query_gradient_matrix_1452 | tee cpw-1452-original-matrix.jsonl
+      - name: Validate single result and preserve complete source matrices
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, math
+          from pathlib import Path
+          marker="CPW_1452_FOUR_QUERY_GRADIENT_MATRIX="
+          lines=Path("cpw-1452-original-matrix.jsonl").read_text().splitlines()
+          values=[json.loads(line[len(marker):]) for line in lines if line.startswith(marker)]
+          assert len(values)==1, "exactly one original five-arm matrix result required"
+          r=values[0]
+          assert r["classification"]=="CPW_1452_RANDOM_INIT_QUERY_GRADIENT_ROUTING_ONLY"
+          assert r["engineering_seed_not_scientific"]==1452001
+          assert r["four_query_delays"]==[32,64,128,256]
+          assert r["eight_source_pair_delays"]==[32,64,96,128,160,192,224,256]
+          assert r["key_blind_accuracy"]==.25
+          assert r["training_performed"] is False and r["optimizer_steps"]==0
+          assert r["scientific_attempt"] is False
+          assert r["gpu_allocated"] is False and r["breakthrough_claim"] is False
+          arms=["transformer","sequence_only","afm_last1","afm_first1","r1_final"]
+          assert [x["arm"] for x in r["results"]]==arms
+          assert len({x["source_prefix_sha256"] for x in r["results"]})==1
+          for arm in r["results"]:
+              assert len(arm["rows"])==4
+              assert arm["training_performed"] is False
+              assert arm["gpu_requested"] is False
+              assert arm["science_seed_consumed"] is False
+              assert len(arm["source_gradients_key_l2_4x8"])==4
+              assert len(arm["source_gradients_value_l2_4x8"])==4
+              for row in arm["rows"]:
+                  assert row["query_delay"] in (32,64,128,256)
+                  for name in ("key_gradient_l2","value_gradient_l2"):
+                      values=row[name]
+                      assert len(values)==8
+                      assert all(math.isfinite(x) and x>=0 for x in values)
+                  assert math.isfinite(row["loss"])
+                  for label in ("key_concentration","value_concentration"):
+                      c=row[label]
+                      assert c["zero_norm"] == (c["normalized_eight_positions"] is None)
+                      if not c["zero_norm"]:
+                          assert abs(sum(c["normalized_eight_positions"])-1)<1e-5
+          local=next(x for x in r["results"] if x["arm"]=="sequence_only")
+          assert all(all(x==0 for x in row) for row in local["source_gradients_key_l2_4x8"])
+          assert all(all(x==0 for x in row) for row in local["source_gradients_value_l2_4x8"])
+          Path("cpw-1452-complete-evidence.json").write_text(
+              json.dumps(r,indent=2,sort_keys=True,allow_nan=False)+"\n"
+          )
+          print("CPW_1452_FIRST_ATTEMPT_MATRIX_SCHEMA_PASS")
+          PY
+      - name: Archive exact original four-query matrix evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpw-1452-original-five-arm-gradient-matrices
+          path: |
+            cpw-1452-original-matrix.jsonl
+            cpw-1452-complete-evidence.json
+          retention-days: 90
