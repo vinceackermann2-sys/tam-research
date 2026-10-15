@@ -1,0 +1,156 @@
+name: RLT BC reserved fixed-update 3-seed CPU panel
+
+on:
+  push:
+    branches: [exp/rlt-ax-bounded-transformer]
+    paths:
+      - .github/workflows/rlt-bc-three-seed-one-shot-cpu.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rlt-bc-fixed-update-seeds-20261015
+  cancel-in-progress: false
+
+jobs:
+  three-seeds-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+      BRANCH: exp/rlt-ax-bounded-transformer
+      SRC: experiments/rlt/cpu_fixed_update_stability_bc.py
+      JOB: experiments/rlt/cpu/jobs/rlt-fixed-update-seed-stability-20261015-bc.json
+      CLAIM: experiments/rlt/cpu/claims/rlt-fixed-update-seed-stability-20261015-bc.json
+      RESULT: experiments/rlt/cpu/results/rlt-fixed-update-seed-stability-20261015-bc.json
+      CASE_DIR: experiments/rlt/cpu/cases/rlt-fixed-update-seed-stability-20261015-bc
+      CHECKPOINT_DIR: experiments/rlt/cpu/checkpoints/rlt-fixed-update-seed-stability-20261015-bc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: exp/rlt-ax-bounded-transformer
+          fetch-depth: 0
+      - name: Verify frozen claim, source and successful first-attempt preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          test "$(git branch --show-current)" = "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse "origin/$BRANCH")" = "$GITHUB_SHA"
+          test ! -e "$RESULT" && test ! -e "$CASE_DIR" && test ! -e "$CHECKPOINT_DIR"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 37; fi
+          python - <<'PY'
+          import json,os,pathlib,subprocess,urllib.request
+          job=json.loads(pathlib.Path(os.environ['JOB']).read_text())
+          claim=json.loads(pathlib.Path(os.environ['CLAIM']).read_text())
+          assert job['schema']==claim['schema']==1
+          assert job['job_id']==claim['job_id']=='rlt-cpu-fixed-update-seed-stability-20261015-bc'
+          assert job['preflight_run_id']==38798812834
+          assert job['preflight_commit']=='df56de49ab20249495c2e26f9c357dcdc3d422ec'
+          assert job['runner_blob_sha']==claim['runner_blob_sha']=='cc96c802c46a81a8c42fb45df6b11c6e62d3c432'
+          assert subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SRC']],text=True).strip()==job['runner_blob_sha']
+          assert job['model_seeds']==[20671081,20671082,20671083]
+          assert job['training_data_seeds']=={'easy':20681081,'long':20691081}
+          assert job['eval_seed']==20701081
+          assert job['easy_updates']==2100 and job['long_updates']==1200
+          assert job['milestones']==[400,800,1200] and job['parameters']==27712
+          assert job['distances']==[1,4,16,64,127]
+          assert job['gpu_requested'] is False and job['scientific_execution'] is False
+          assert claim['status']=='reserved_before_execution'
+          assert claim['automatic_retry'] is False and job['automatic_retry'] is False
+          req=urllib.request.Request('https://api.github.com/repos/vinceackermann2-sys/tam-research/actions/runs/38798812834',headers={'User-Agent':'rlt-bc-frozen-preflight'})
+          with urllib.request.urlopen(req,timeout=30) as f: passed=json.load(f)
+          assert passed['status']=='completed' and passed['conclusion']=='success'
+          assert passed['run_attempt']==1 and passed['head_sha']==job['preflight_commit']
+          PY
+      - name: Install CPU-only PyTorch
+        run: python -m pip install --disable-pip-version-check 'torch>=2.3,<3' 'pytest>=8,<10'
+      - name: Validate new seed protocol without training
+        run: python -m pytest -q tests/test_rlt_cpu_fixed_update_stability_bc.py
+      - name: Consume one registered BC three-seed CPU engineering attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 32m python -m experiments.rlt.cpu_fixed_update_stability_bc
+          test -s "$RESULT"
+          for i in 0 1 2; do
+            test -s "$CASE_DIR/case$i.json"
+            test -s "$CHECKPOINT_DIR/case$i.pt"
+          done
+      - name: Backup frozen and partial evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rlt-bc-fixed-update-20261015
+          path: |
+            experiments/rlt/cpu/results/rlt-fixed-update-seed-stability-20261015-bc.json
+            experiments/rlt/cpu/cases/rlt-fixed-update-seed-stability-20261015-bc/
+            experiments/rlt/cpu/checkpoints/rlt-fixed-update-seed-stability-20261015-bc/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Validate every seed and freeze results and trained weights remotely
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          p=pathlib.Path(os.environ['RESULT'])
+          data=json.loads(p.read_text())
+          assert data['job_id']=='rlt-cpu-fixed-update-seed-stability-20261015-bc'
+          assert data['status']=='complete' and data['gpu_requested'] is False
+          assert data['scientific_execution'] is False and data['breakthrough_claim_supported'] is False
+          assert data['protocol']['model_seeds']==[20671081,20671082,20671083]
+          assert data['protocol']['early_updates']==2100 and data['protocol']['long_updates']==1200
+          assert len(data['results'])==len(data['pass_by_case'])==3
+          assert data['success_count']+data['failure_count']==3
+          for i,row in enumerate(data['results']):
+              assert row['case']==i and row['model_seed']==data['protocol']['model_seeds'][i]
+              assert row['easy']['steps']==2100 and row['total_long_steps']==1200
+              assert set(row['final'])=={'1','4','16','64','127'}
+              assert set(row['after_long_milestones'])=={'400','800','1200'}
+              assert row['final']==row['after_long_milestones']['1200']
+              for scores in row['after_long_milestones'].values():
+                  for val in scores.values():
+                      assert val['examples']==256
+                      assert 0<=val['class0_accuracy']<=1 and 0<=val['class1_accuracy']<=1
+                      assert val['binary_nll']>=0
+              casepath=pathlib.Path(os.environ['CASE_DIR'])/f'case{i}.json'
+              assert json.loads(casepath.read_text())==row
+          data['repository_provenance']={
+              'branch':os.environ['BRANCH'], 'trigger_sha':os.environ['GITHUB_SHA'],
+              'runner_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['SRC']],text=True).strip(),
+              'job_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['JOB']],text=True).strip(),
+              'claim_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:'+os.environ['CLAIM']],text=True).strip(),
+              'preflight_run_id':38798812834}
+          p.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main exp/rlt-colab "$BRANCH"
+          test "$(git rev-parse "origin/$BRANCH")" = "$GITHUB_SHA"
+          if git cat-file -e "origin/$BRANCH:$RESULT" 2>/dev/null; then exit 37; fi
+          git add "$RESULT" "$CASE_DIR"
+          for i in 0 1 2; do git add -f "$CHECKPOINT_DIR/case$i.pt"; done
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from experiments.rlt.analysis.checkpoint_archive_guard import validate_staged_checkpoints
+          assert validate_staged_checkpoints(Path('.'),Path(os.environ['RESULT']))==3
+          PY
+          git commit -m "rlt bc: freeze three fixed-update seed results and all model weights"
+          git push origin "HEAD:$BRANCH"
+          git fetch origin "$BRANCH"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$BRANCH")"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from experiments.rlt.analysis.checkpoint_archive_guard import validate_persisted_checkpoints
+          assert validate_persisted_checkpoints(
+              Path('.'),Path(os.environ['RESULT']),'origin/'+os.environ['BRANCH']
+          )==3
+          PY
+          echo 'BC terminal evidence, all three cases and checkpoints verified on remote Git'
