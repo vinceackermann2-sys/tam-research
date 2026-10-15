@@ -131,7 +131,8 @@ def one_arm(arm: str, *, seed: int = ENGINEERING_SEED) -> dict[str, Any]:
     rows, fingerprint = _counterfactual_source(seed)
     torch.set_num_threads(1)
     torch.manual_seed(seed)
-    model = build_arm(arm).cpu().train()
+    # Disable stochastic dropout while retaining backpropagation.
+    model = build_arm(arm).cpu().eval()
     params = sum(p.numel() for p in model.parameters())
     if params != PARAMETERS[arm]:
         raise AssertionError("frozen arm parameter count changed")
