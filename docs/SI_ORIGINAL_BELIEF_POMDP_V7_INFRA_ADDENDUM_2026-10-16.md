@@ -1,0 +1,7 @@
+# Original SI v7: interrupted local seed and transparent replacement (2026-10-16)
+
+The frozen local benchmark file `si_original_belief_task_v7.py` retains blob `c5531695e7c4eaee6e3974d80f540a067dbaea4b` and original preregistered seeds 99611,99612,99613. The initial shell invoked seeds serially under one **40-second external command timeout**. Seed **99611** began but produced **zero bytes** in `result_99611.json` when the shell was terminated. No result is available, and the process is no longer running. This is **infra-interrupted/consumed**; never rerun 99611 or call it negative model evidence. Seeds 99612/99613 had **not started**; they remain valid untouched original planned attempts.
+
+**Before any replacement execution**, register fresh engineering seed **99614** as the single replacement for consumed 99611, with exactly the same frozen script, 240 optimizer steps, batch256, 8192 evaluation worlds/family, trained control models and scoring. Execute 99612, 99613, 99614 independently, with per-seed durable outputs, bounded monitoring and no automatic retries. No model, threshold, simulator or evaluation change after observing confirmation results. Results will be labeled **engineering evidence with preregistered interrupted-seed replacement**, *not unamended scientific replication*.
+
+No expensive scientific/GPU attempt involved, no Modal/Colab credits, no other project branches or main writes. This addendum is committed before attempting 99614.
