@@ -30,7 +30,7 @@ def test_private_labels_and_unpurchased_probe_do_not_affect_belief_or_policy():
         model=Controller(kind,True).eval()
         with torch.no_grad():
             assert torch.allclose(model.values(e),model.values(changed),atol=1e-6)
-            assert torch.allclose(model.decision_logits(e,never),model.decision_logits(changed,never),atol=1e-6
+            assert torch.allclose(model.decision_logits(e,never),model.decision_logits(changed,never),atol=1e-6)
 
 
 def test_posterior_normalizes_and_recognizes_one_change():
