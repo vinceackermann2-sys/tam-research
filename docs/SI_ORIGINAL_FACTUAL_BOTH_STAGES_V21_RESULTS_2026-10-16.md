@@ -1,0 +1,57 @@
+# Original SI v21 — Factual logged Q1 and Q0 with known costs factored out (2026-10-16)
+
+**LOCKED VERDICT:** Task validity A **PASS**. Causal/code integrity D **PASS**. Robust learned sequential acquisition B **FAIL** for both full neural architectures. Relative original SI hybrid/Transformer numerical comparison C **PASS**, but **not a standalone architectural breakthrough** and no GPU scaling/merge authority. A cheap privileged-structure contextual ridge controller outperforms the full neural variants. Full per-seed raw evidence retained.
+
+## Original SI provenance, frozen protocol and attempts
+- Stacked isolated on exact-head CI-successful **v20 PR #1493**, ultimately the user's **original screenshot-inspired hybrid PR #1459**, not unrelated EHW/CPW/PGW/RLT/CHM work. The underlying 298-line exact **`tam_research/si_original_hybrid_v0.py` Git blob `575c17dc2f39a29d930d82179aa0c96dcbdc7d0f`** is unchanged; includes 3-layer local attention/gated recurrence/top-1 sparse MoE/refinement. True persistent external memory/fast adapter/multimodal features remain inactive. Original backbone params **64,614** vs Transformer **64,637**, smaller unmatched GRU **10,283**.
+- `docs/SI_ORIGINAL_FACTUAL_BOTH_STAGES_V21_PROTOCOL_2026-10-16.md` committed **BEFORE** any confirmation seeds. Source `scripts/si_original_joint_logged_v21.py` Git blob **`b72f313d894830322a92ecdd60c95b34a1b83b31`**, SHA256 `8f3b45a52aac527676e3c3ca6df7c732cb9e4cced2444adb7026a8b29b1dba7c`; second source `scripts/si_original_linear_context_v21.py` Git blob **`f7decf785182b311c7ebcd3be784b70af601f129`**, SHA256 `8c0b99baaa79c08ecd4157d3f1b60b0e696ef0440c0fc5ee9614c7d0f2d3709f`; tests `tests/test_si_original_joint_logged_v21.py` blob **`a2b58432e78337124e5b4e41f70a83452a752e53`**, SHA256 `428438d5c8f92709d137a234b4372b85e50e6c77cec566c86dd007aa9f8836b7`. **All 3 GitHub blobs byte-verified against local executed/tested source. 9/9 tests pass**, including no private/future probe leakage, selected logged-arm gradient, cost factorization, original backbone frozen, independent agreement masks and baseline finite checks.
+- **Excluded engineering development**: original full-budget `113010` was killed by local execution timeout and produced **0-byte JSON/no scientific output, not rerun**; `113011` reduced-budget diagnostic completed; `113013` small smoke; `113014` completed full budget with 256 twin pairs/family and recorded mixed outcomes **BEFORE freeze**. Dev original hybrid v21 normal ~0.6865 vs old v20~0.6587; Transformer ~0.718 vs~0.656; small GRU~0.725; but v21 second buys only hybrid~2.1%, Transformer~4.5%, GRU~0.6%. No tuning after these results.
+- **Fresh predeclared CPU confirmation seeds exactly `113211,113212,113213`**, each **durably reserved BEFORE execution, launched ONCE, returned exit code0, empty stderr, complete parseable ~26KB JSON**, no retry/replacement/paid GPU. CPU PyTorch2.10+cpu, two threads. Each seed trains original hybrid, matched Transformer and small GRU with one unchanged v19 actor160 + critic240 full model, then v20 Q0-only direct refit160 and new v21 separate Q1-only success head160 + Q0-only factual refit160, batch96. The model seed count is **3**, not high-powered independent science. Evaluation: **512 exactly coupled opposite-answer twin pairs per family per seed** (1024 episodes/family/seed) in normal, high-cost, weak-sensor, strong-discount families, all methods same heldout worlds. Bayes, greedy, fixed cheap, fixed strong, both and never included.
+
+## Causal mechanism and cost fairness
+Original v19 actor/final binary classifier and backbone stay **frozen and identical** for v20/v21. v21 adds 2 disjoint-logged-arm **correctness logits** heads whose sigmoid predicts observed binary final correctness for purchased/skip second; public remaining probe cost is subtracted *outside* the neural predictor. A new Q0 head learns from actually executed complete-return trajectories with independent random stop/cheap/strong and independent buy/skip second; bought-first Q0 labels retained only if logged second choice agrees with deployed Q1 (50% propensity, independent of hidden correctness). Q0 predicts continuation net return before first fee, and the public first fee is subtracted explicitly at action selection. **No analytical Bayes purchase labels, unpurchased probe values, private true query labels or hypothetical counterfactual outcome losses are neural training targets**; binary correctness after *actual executed choice* is the training feedback. Task head params: v19 64,646 hybrid /64,669 Transformer /10,315 GRU; v21 **64,674 /64,697 /10,343** including old unused cloned heads. Extra Q1 training steps, separate heads and cost factorization are confounded relative to v20 and **not equal active FLOPs**, so do not attribute gains solely to one ingredient or to original architecture design.
+
+The classical `linear_contextual` comparator fits cheap ridge Q1/Q0 purchase values from 6000 randomized base worlds and actual observed outcomes, with **explicitly known Gaussian likelihood signs to choose final answers**. This is a **privileged known-observation-model prior**, NOT equal-information to an outcome-trained neural final classifier. It shows that a relatively cheap hand-engineered solution solves most of this synthetic setup.
+
+## Exact three-seed mean *realized net reward*, after every probe price
+
+| Policy | Normal/base | High-cost OOD | Weak-sensor OOD | Discounted-strong OOD |
+|---|---:|---:|---:|---:|
+| **Known-model two-stage Bayes** | **0.73954** | **0.64046** | **0.63625** | **0.86015** |
+| Greedy with conditional second | 0.73902 | 0.63872 | 0.63636 | 0.86024 |
+| **Privileged contextual ridge** | **0.73790** | **0.63536** | **0.62149** | **0.85954** |
+| Fixed stronger sensor only | 0.71003 | 0.57157 | 0.59433 | 0.85983 |
+| Fixed cheaper sensor only | 0.68382 | 0.62299 | 0.58292 | 0.64357 |
+| Original hybrid, frozen v19 | 0.64272 | 0.52956 | 0.54903 | 0.65552 |
+| Original hybrid, **v20 direct Q0** | 0.66088 | 0.50628 | 0.56002 | 0.75151 |
+| **Original hybrid, v21 factual both stages** | **0.70886** | **0.59711** | **0.59908** | **0.84323** |
+| Transformer, frozen v19 | 0.64927 | 0.57926 | 0.56497 | 0.63313 |
+| Transformer, **v20 direct Q0** | 0.67549 | 0.57310 | 0.58100 | 0.73867 |
+| **Transformer, v21 factual both stages** | **0.69019** | **0.59508** | **0.59244** | **0.81535** |
+| Small GRU, v21 | 0.70152 | 0.61034 | 0.60922 | 0.83529 |
+
+The synthetic strong-discount family rewards a high-first response: Bayes first strong ~near 100%, v21 hybrid high-first **95.25%**, Transformer **89.52%**, GRU ~91%. The v21 hybrid comes within **0.01660** of fixed strong-only discounted reward; both neural models remain below the best normal fixed single-sensor0.71003 and above no-probe0.5.
+
+### Paired seeds and second-stage calibration (unfavorable details mandatory)
+
+**Normal v21 vs v20 factual Q0, per seed in frozen order 113211/113212/113213:**
+- Hybrid v21 rewards **[0.7167,0.7043,0.7056]**, v20 **[0.6298,0.6971,0.6558]**; gain **+0.04798 mean, 3/3 paired wins**.
+- Transformer v21 **[0.6449,0.7017,0.7239]**, v20 **[0.6530,0.7011,0.6724]**; gain **+0.01469 mean, 2/3 wins**, narrowly FAILS frozen +0.015 margin without rounding.
+- Original hybrid v21 minus Transformer v21 per seed **[+0.0718,+0.0026,−0.0183]**, mean **+0.01867**, wins **2/3**. This is seed-variable and not proof of overall architecture superiority.
+- **Normal purchase second rate, per seed:** hybrid v21 **[9.47%,3.03%,5.18%]**, Transformer **[1.76%,1.07%,3.32%]**, GRU **[0.29%,0.20%,0%]**. Hybrid seed113212 and every Transformer seed fail frozen >=5% lower bound. Learned controllers underpurchase second information even though Bayes buys second in about 18% of base cases. A reward-only average hides this failure.
+- **Normal randomized factual second-arm correctness MSE (lower better):** hybrid v20 **0.11709** → v21 **0.11084**, gain **0.00625**, clears >=0.005 numerical threshold. Transformer v20 **0.10438** → v21 **0.10547**, **WORSENS by 0.00109**, FAIL. GRU v20 **0.12229** → v21 **0.11811**, improvement0.00418.
+- **Mean measured per-seed total training CPU wall:** hybrid **16.82s**, Transformer **12.63s** (ratio **1.33x**), GRU **4.49s**. V21 uses additional heads and updates and does NOT demonstrate superior inference FLOPs/latency/energy. Small GRU + cheap ridge are strong no-novelty comparators. Total parameters v21 hybrid 64,674 vs Transformer 64,697: same nominal scale with more extra heads than frozen v20.
+
+## Preregistered decision gates
+
+**A Task/distribution control PASS:** known Bayes normal0.73954 minus best fixed0.71003 = **+0.02951** (>0.025). Discounted strong: fixed high-only0.85983 vs low-only0.64357, difference +0.21626 (>0.10), Bayes first high >80%. Same-world opposite-label no-probe symmetry held as in v17 and original canonical hash verified.
+
+**B Full learned 2-stage feedback mechanism FAIL for BOTH full architectures:** Hybrid meets normal reward +0.015 vs v20, seed wins3/3, Q1 MSE improvement +0.00625 and strong-discount first-high/cost-transfer conditions, but **fails mandatory every-seed second purchase ≥5%** and **fails normal reward >= best fixed+0.015** (hybrid0.70886 is **0.00117 BELOW** fixed0.71003, not +0.015 ABOVE). Transformer additionally misses normal reward improvement+0.015 (0.01469), Q1 MSE worsens, every-seed second purchase fails, normal reward lags fixed by0.01984 and Bayes by0.04935 (maximum allowed gap0.045). Both remain below privileged contextual linear reference0.73790. Therefore no advancement/scaling based on B.
+
+**C Relative original SI hybrid over matched Transformer PASS as a bounded numerical panel ONLY:** hybrid v21 normal0.70886 vs Transformer0.69019, delta **+0.01867** (required >=.015), wins **2/3** paired seeds, exceeds Transformer mean reward on all OOD families (high-cost +0.0020, weak +0.0066, discounted +0.0279), CPU hybrid/Transformer ~1.33x (<=1.5). **This does not override B FAIL** and does not establish a distinct architectural inductive bias because both are poor vs classical simple/privileged controls and no active FLOP parity/many-seed replication.
+
+**D Source/logging/correctness checks PASS:** all exact Git blobs and nine targeted tests, reserved once/zero retries per fresh seed, no unobserved-arm or Bayesian purchase labels in neural training, only factual logged success and reward, all three exits0 and stderr empty. However this is a *synthetic* small environment and only 3 independent training seeds.
+
+## Decision and next scientific question
+
+**NO-GO for unchanged v21 mechanism as competitive two-stage feedback learning, NO GPU scaling, NO main merge, NO SI breakthrough.** Separating predictable costs from observed outcome probabilities markedly fixes price-shift selection, but the models consistently **underestimate conditional value of buying the SECOND probe**; optimizing first-stage actions alone cannot remedy that. The very strong simple contextual ridge under a known Gaussian terminal action suggests prioritizing **coverage-adjusted uncertainty/calibration of Q1 incremental value** and a fair terminal-classifier matched simple/linear ablation. Use more training seeds, actual active FLOP and latency measurement, genuine unknown observation-law shifts instead of just changes in publicly announced costs. Keep draft PR, demand exact-head CI and independent scientific review. Never rerun consumed seeds.
