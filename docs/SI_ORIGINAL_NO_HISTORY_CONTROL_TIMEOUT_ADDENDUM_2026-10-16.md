@@ -1,0 +1,5 @@
+# SI no-history CPU Gate — local runner interruption addendum (2026-10-16)
+
+Code/protocol frozen at `scripts/si_original_no_history_control.py` commit `e64aa7a7ae973d29188cc97f0e648d5cfb9878b4` and `docs/SI_ORIGINAL_NO_HISTORY_CONTROL_PROTOCOL_2026-10-16.md`. Seed 95213 began under a bounded local command and was interrupted by command timeout, leaving an empty output file; **do not rerun 95213 or infer its result**. The CPU-only runs for 95211 and 95212 completed and remain unchanged.
+
+**Before executing any replacement** designate `95214` as the sole fresh engineering replacement for 95213. Keep the exact frozen source, hyperparameters, evaluation streams, all baselines and no-history logic. Do not tune after inspecting the two completed results. These are engineering findings with a transparently substituted seed, not unamended preregistered scientific replication. Local process check found no detached job remaining; no GPUs/Modal/Colab consumed. Preserve any subsequent interruption as a failed attempt; never silently retry consumed seeds.
