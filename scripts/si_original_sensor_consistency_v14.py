@@ -128,6 +128,7 @@ def _execute_mix(raw,bel,e,g,priced,repair):
     return _summarize(_select_actions(_actions(raw,e),_actions(bel,e),g),e,priced,repair,g)
 
 
+
 @torch.no_grad()
 def evaluate_cached(raw,bel,e,logseed):
     """Equivalent to score_policy variants, but only four model-action calls.
@@ -160,7 +161,6 @@ def evaluate_cached(raw,bel,e,logseed):
             _select_actions(repaired_fallback,base_fallback,fault),e,True,fault,raw_gate),
     }
     return result
-
 
 @torch.no_grad()
 def detector_metrics(e):
