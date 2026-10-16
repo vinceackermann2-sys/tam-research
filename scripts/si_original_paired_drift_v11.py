@@ -55,7 +55,7 @@ def switch_aware_posterior(d):
     return torch.sigmoid(candidates[0] - candidates[1])
 
 
-def policy_given_polarity_posterior(d, pz):
+def policy_given_polarity_posterior(d, pz, force_buy=None):
     """Bayes VOI given calibrated p(z); no unpurchased probe used to decide buy."""
     x, mu = d['x_query'], d['mu0']
     pz = pz.clamp(1e-9, 1-1e-9)
@@ -69,6 +69,8 @@ def policy_given_polarity_posterior(d, pz):
     after=q*cdf(d['mu_p']-threshold)+(1-q)*cdf(d['mu_p']+threshold)
     gain=after-torch.maximum(q,1-q)
     buy=gain>d['c']
+    if force_buy is not None:
+        buy=torch.full_like(buy, bool(force_buy))
     updated=odds+buy.float()*2*d['mu_p']*d['y_probe']
     chosen=updated>=0
     return buy,chosen,gain
@@ -79,11 +81,10 @@ def known_drift_reference(d, method):
     pz=switch_aware_posterior(d)
     buy,chosen,gain=policy_given_polarity_posterior(d,pz)
     if method in ('never_probe', 'always_probe'):
-        buy=torch.full_like(buy, method=='always_probe')
-        # same posterior but override measurement action, update action belief
-        modified={**d,'c':torch.zeros_like(d['c']) if method=='always_probe' else torch.full_like(d['c'],1.0)}
-        ignored,chosen,_=policy_given_polarity_posterior(modified,pz)
-        assert torch.equal(ignored,buy)
+        # Force observed arm directly. Zero cost does NOT guarantee a buy,
+        # because an essentially certain posterior can make VOI round to 0.
+        buy,chosen,_=policy_given_polarity_posterior(
+            d,pz,force_buy=(method=='always_probe'))
     if method=='misspecified_stationary':
         buy=bayes_policy(d)['buy']
         chosen=bayes_policy(d)['choice']>0
