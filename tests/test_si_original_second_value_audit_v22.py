@@ -11,7 +11,6 @@ def test_canonical_original_and_backbone_parity():
     for name,n in [('hybrid',64614),('transformer',64637)]:
         assert sum(p.numel() for p in v18.LoggedController(name).backbone.parameters())==n
 
-
 def test_no_unpurchased_probe_or_hidden_label_in_second_choice():
     torch.set_num_threads(2)
     e=v19.evaluation_world(6,114001,'base')
