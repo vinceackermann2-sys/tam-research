@@ -65,3 +65,15 @@ def test_unchanged_trainer_disjoint_arm_gradient_and_finite_smoke():
     assert all(torch.isfinite(p).all() for p in model.parameters())
     assert all(torch.isfinite(p).all() for p in value.parameters())
     assert timing['actor_seconds']>=0
+
+
+def test_forced_probe_always_means_always_even_when_expected_gain_zero():
+    # At high confidence expected gain can round to zero in float32.
+    d=drift_episode(4096,103004)
+    a=known_drift_reference(d,'always_probe')
+    b=known_drift_reference(d,'never_probe')
+    assert a['probe_rate']==1.0
+    assert b['probe_rate']==0.0
+    x=switch_aware_posterior(d)
+    bought,_,_=policy_given_polarity_posterior(d,x,force_buy=True)
+    assert bought.all()
