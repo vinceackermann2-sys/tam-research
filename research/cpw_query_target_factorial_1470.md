@@ -1,0 +1,9 @@
+# CPW #1470 — factorial query vs CE-target-gradient control
+
+Isolated zero-GPU TRAIN-engineering-only source-locked design as preregistered in [issue #1470](https://github.com/vinceackermann2-sys/tam-research/issues/1470). Never alter main, CHM, PGW, RLT, Conv7 or consumed CPW source/heldout.
+
+Freeze engineering seed 1453001 (not scientific), same 319-token prefix and eight distinct key/value slots, and four queries at offsets 32, 64, 128, 256. For each unchanged five-arm model measure 4 query × 4 loss labels = 16 cells; off-diagonal loss labels are intentionally wrong and are **only differential probes**, never training targets or quality measures. Model tensors cryptographically compared before vs after grid. No optimizer or model updates. The prior #1452 seed and artifact are not reused.
+
+Store all 4×4×8 gradient key/value magnitudes, normalized/null source distributions, query/label IDs, CE loss, query-last15 controls, full signed-gradient key/value contrasts (4×4×16×hidden only transient), source/model SHA256, complete derived query-fixed-label versus label-fixed-query mean TV, diagonal/offdiagonal query/label slot shares, raw gradient masses, query×label interactions, and signed gradient telescoping identities. The CE label contrast is verified against ∂(logit[label1]-logit[label0])/∂source within tolerance 1e-4+1e-3*gradient-size. Query/label effects cannot alone prove causal learned retrieval.
+
+Freeze old generator blob 79dc0ceda617985eba40f119343bdb2992aa395d, five-arm harness 63ab35fc82ea06d91ce2a9b5cbd1d2d9c56baf3f, and prior #1452 code a3da256c549b59dd26d4faeb53b972d9d1143384. First-attempt full PR CI PASS, freshly audited exact-head pinned merge to canonical CPW only, original once-only CPU path evidence workflow; if failed/cancelled freeze head and all first attempt evidence, no retries. Keep scientific #1319 in PREAUTHORITY. No breakthrough claim from random-init gradients.
