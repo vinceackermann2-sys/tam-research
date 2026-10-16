@@ -216,7 +216,6 @@ def score_policy(e,policy,model=None):
             buy_second[active]=s
         elif policy=='always_both':buy_second[active]=True
         elif policy=='neural':
-            # Final decision after ONLY actually purchased observations.
             logits=model(token_data(m,first))
             s=logits[:,0]>0;buy_second[active]=s
         first_mu=torch.where(first==1,m['mu_low'],m['mu_high'])
@@ -224,6 +223,7 @@ def score_policy(e,policy,model=None):
         logged=2*first_mu*first_read
         remaining=torch.where(first==1,2,1)
         if policy=='neural':
+            # Final decision after ONLY actually purchased observations.
             no_second=~s
             decisions=torch.ones_like(m['latent_answer'])
             if no_second.any():
