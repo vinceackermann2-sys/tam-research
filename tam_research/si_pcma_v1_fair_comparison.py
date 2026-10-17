@@ -7,6 +7,7 @@ metrics. Private Python attributes are NOT an adversarial security boundary.
 """
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from time import perf_counter_ns
 from typing import Callable, Mapping, Protocol
@@ -165,8 +166,15 @@ def account_run(name: str, wrapper: MeasuredFactualPolicy,
         adapter = getattr(state, "adapter", None)
         if memory is not None and hasattr(memory, "items"):
             memory_entries = len(memory.items)
+        elif isinstance(memory, (tuple, list, deque)):
+            # Two-step PCMA keeps a bounded deque of ACTUAL paired feedback.
+            memory_entries = len(memory)
         if adapter is not None and hasattr(adapter, "total_updates"):
             adapter_updates = adapter.total_updates
+        elif hasattr(state, "total_updates"):
+            # Two-step PCMA owns its rank-2 residual directly rather than
+            # delegating it to the one-step adapter which ignores probes.
+            adapter_updates = state.total_updates
     return PublicAccount(
         name, worlds, len(records), sum(e.action == 3 for e in records),
         float(gross), float(fee), float(gross - fee),
