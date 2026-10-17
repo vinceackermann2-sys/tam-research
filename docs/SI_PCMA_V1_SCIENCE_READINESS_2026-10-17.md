@@ -1,0 +1,31 @@
+# SI / PCMA-v1: Scientific readiness and source-attestation checkpoint
+
+**2026-10-17 · Engineering only · NOT an approved experiment · No scientific seeds reserved.**
+
+## Research lineage and immutable negative evidence
+This isolated draft descends from #1508 → #1507 → #1505 → #1504 → #1503 → #1502 → #1501, ultimately from the original screenshot-inspired SI v26 branch, without changing any unrelated AI research track or `main`. The original hybrid blob must remain **`575c17dc2f39a29d930d82179aa0c96dcbdc7d0f`**. The original unchanged 64,614-parameter hybrid's v26 NO-GO remains authoritative; the consumed v25 117214 duplicate remains quarantined. This successor is not a reopening of either experiment.
+
+## New non-executable source review manifest
+`docs/SI_PCMA_V1_SCIENCE_PREFLIGHT_DRAFT_2026-10-17.json` pins **25 relevant Git blobs** (SI original model, PCMA implementation modules and interface tests) as of source commit `5b0b87c1934c5d7b853efcb92bc8c1f5ce1a606d`, before the documentation-only commit. Each file can be checked using `git hash-object`; the draft verifier also checks `git rev-parse HEAD` when asked to verify a local checkout. A later PR commit may legitimately differ from the source snapshot commit because the document itself was added afterward. Pin the exact experiment runner commit **again** after any future material source change and BEFORE scientific execution.
+
+The manifest is marked `DRAFT_UNAPPROVED`. It contains no science seeds, no durable scientific attempt reservations, no compute permission, and explicit nulls for training, heldout distribution, frozen checkpoints, CPU budget, actual active-FLOP match, classical controls, uncertainty method, success/stop thresholds and destination. The review tool **never returns execution authority**, even if a caller inserts self-declared approval, novel-looking seeds or a flattering result. Missing fields and alterations to historical NO-GO evidence are flagged. This tool is read-only; it cannot reserve seeds or launch anything.
+
+**Known consumed seed exclusions are deliberately incomplete**: 117010,117211–117214,118010,118211–118213. Other tracks and frozen/canceled attempt ledgers may contain further consumed IDs. No new scientific seed may be inferred available from an absence in this short list; full independent ledger reconciliation with GitHub issue/PR artifacts is mandatory.
+
+## New diagnostic cost profiler
+`tam_research/si_pcma_v1_cost_profile.py` instruments a forward pass of each supported public-token predictor on the **same zero-valued synthetic tensor shape**. It reports total parameters, parameter memory bytes, rough CPU elapsed time, profiler-reported FLOPs for supported operations and the number of operator keys lacking a FLOP estimate.
+
+The profiler is intentionally marked **PARTIAL**: PyTorch's FLOP counters do not cover all custom recurrence, gating, routing, memory, control-flow or Python work. Equal parameter counts, identical public token inputs, identical number of optimizer updates or similar CPU timings **DO NOT** establish equal effective training compute. The cost report explicitly sets `active_flops_matched=false`, `matched_scientific_training_compute=false` and `valid_scientific_quality_result=false` until a separately audited, complete comparison exists. The compact GRU is an **unmatched** cheaper comparator. Add a higher-budget Transformer control before any hybrid-specific advancement claim.
+
+## Nonnegotiable preregistration prerequisites
+1. **Strongest nonprivileged controls**, frozen on development only: no-probe fixed and learned policies, factual sliding-value, change detection, lookup, TD, randomized first-arm two-step learner, matched memory-only/adapter-only/reset/shuffled retrieval. A privileged upper bound must be clearly labelled as having extra information.
+2. **Fair training**: same development-only factual data, equal optimizer and validation rules, independent training seeds, frozen model files and checksum, explicit total parameter count AND active training/inference compute accounting. Existing ≤32-step smoke helpers are *not* adequate model training.
+3. **Independent heldout families**: disjoint unseen mapping laws, stable, noisy, rule shift and 16-step long cases; true paid probe fee and lost guessing opportunity; no access to heldout behavior during model selection. Run each policy on its own causal world and report that action-specific noise trajectories may differ.
+4. **Valid inference**: randomized action propensity/fixed public continuation for attributing information-purchase effects, world-cluster uncertainty (actions in one world are NOT independent), predeclared primary net reward per actual executed action, post-restart and post-shift measures, smallest meaningful benefit threshold and worst-family regressions.
+5. **Attestable science attempts**: one prospective uniquely reserved run ID and unused science seed per attempted scientific execution, verified against all past consumed/frozen attempts, retries=0, no resume, and durable raw evidence/exit status. Infrastructure failure is not performance evidence and does not refund a consumed seed. No paid GPU without explicit user approval.
+6. **Real isolation**: the current Python same-process environment and underscore-prefixed hidden fields are an API convention, not a sandbox. Separate policy/world process and enforce authenticated public feedback before trusting adversarial claims or generating a sealed experiment.
+
+## Stop/go criteria
+**Current readiness: BLOCKED.** Unit-test CI confirms engineering correctness only; it cannot certify a causal learning advantage, compute advantage, long-horizon agent competence or superintelligence. Do not tune the experiment after inspecting confirmation results. For PCMA to deserve an independent scientific continuation it must beat the **strongest cheaper classical baseline** and a matched-access compute-accounted Transformer, plus reproduce across independent worlds/training seeds without worst-family collapse. Failure is a **NO-GO for this successor under the registered regime**, not a general impossibility result.
+
+No PR is merged and no research approval is implied by this checklist or manifest.
