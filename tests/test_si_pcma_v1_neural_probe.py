@@ -225,3 +225,43 @@ def test_factual_pair_replay_rejected_independently_of_memory_eviction():
     assert len(state.memory) == 1 and state.memory[0].first_time == f2.time
     with pytest.raises(ValueError):
         state.record(f1, s1)
+
+
+def test_pairwise_pcma_accounting_reports_real_memory_and_updates():
+    from tam_research.si_pcma_v1_fair_comparison import (
+        MeasuredFactualPolicy, account_run,
+    )
+    torch.manual_seed(0)
+    torch.set_num_threads(2)
+    policy = FrozenNeuralTwoStepPolicy(
+        PCMAGRURewardPredictor(), memory_enabled=True,
+        adaptation_enabled=True,
+    )
+    wrapper = MeasuredFactualPolicy(policy)
+    traces = run_ood_sessions(
+        wrapper, OODWorldConfig(57, "development"), sessions=2)
+    summary = account_run("gru-two-step", wrapper, traces)
+    assert summary.actions == 12
+    assert summary.memory_entries == 6
+    assert summary.adapter_updates == 6
+    assert summary.probes == sum(e.action == 3 for t in traces for e in t)
+    assert summary.net_reward == pytest.approx(
+        summary.gross_reward - summary.total_fee)
+
+
+def test_pairwise_no_persistence_ablation_resets_between_sessions():
+    from tam_research.si_pcma_v1_fair_comparison import (
+        MeasuredFactualPolicy, account_run,
+    )
+    torch.manual_seed(0)
+    torch.set_num_threads(2)
+    policy = FrozenNeuralTwoStepPolicy(PCMAGRURewardPredictor())
+    wrapper = MeasuredFactualPolicy(policy)
+    traces = run_ood_sessions(wrapper,
+        OODWorldConfig(58, "development"), sessions=2,
+        erase_persistent=True,
+    )
+    summary = account_run("gru-two-step-reset", wrapper, traces)
+    assert summary.actions == 12
+    assert summary.memory_entries == 3
+    assert summary.adapter_updates == 3
