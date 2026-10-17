@@ -29,6 +29,10 @@ def test_randomization_is_reproducible_and_first_arm_propensity_explicit():
     assert all(p.first_event.done is False for p in a)
     assert all(p.second_event.action < 3 for p in a)
     assert all(p.continuation_actions == (0, 1, 2) for p in a)
+    assert [(p.world_index, p.session_index, p.pair_index) for p in a] == (
+        [(0, 0, i) for i in range(3)] +
+        [(1, 0, i) for i in range(8)]
+    )
 
 
 def test_probe_fee_and_opportunity_cost_are_real_not_counterfactual():
@@ -80,6 +84,15 @@ def test_reject_modified_propensity_and_future_reward_assignment():
             second_event=replace(a[0].second_event, time=100))])
     with pytest.raises(ValueError):
         descriptive_randomized_arm_values([replace(a[0], assigned_first_action=10)])
+
+
+def test_descriptive_values_reject_replayed_grouping_key():
+    pairs = _log()
+    with pytest.raises(ValueError, match="duplicate"):
+        descriptive_randomized_arm_values((pairs[0], pairs[0]))
+    with pytest.raises(ValueError, match="invalid"):
+        descriptive_randomized_arm_values((
+            replace(pairs[0], world_index=-1),))
 
 
 def test_logger_rejects_duplicate_development_world():
