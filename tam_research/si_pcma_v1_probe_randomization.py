@@ -33,6 +33,10 @@ class FrozenPublicContinuation:
 
 @dataclass(frozen=True)
 class RandomizedFactualPair:
+    # Stable grouping units: repeated actions in one world are NOT independent.
+    world_index: int
+    session_index: int
+    pair_index: int
     first_observation: PublicObservation
     assigned_first_action: int
     assignment_probability: float
@@ -77,7 +81,7 @@ def randomized_development_first_actions(
         for session in range(sessions):
             if session:
                 world.restart_session()
-            for _ in range(cfg.session_horizon // 2):
+            for pair_index in range(cfg.session_horizon // 2):
                 before = world.observe()
                 assigned = rng.randrange(4)  # Known P(A=a | public history) = 1/4
                 first = world.step(assigned)
@@ -86,6 +90,9 @@ def randomized_development_first_actions(
                 if first.done or second.time != first.time + 1:
                     raise RuntimeError("invalid first-action acquisition pair")
                 pairs.append(RandomizedFactualPair(
+                    world_index=configs.index(cfg),
+                    session_index=session,
+                    pair_index=pair_index,
                     first_observation=before,
                     assigned_first_action=assigned,
                     assignment_probability=0.25,
@@ -119,7 +126,7 @@ def descriptive_randomized_arm_values(
     table: dict[tuple[int, int], list[float]] = {
         (symbol, action): [] for symbol in range(3) for action in range(4)
     }
-    seen = set()
+    seen: set[tuple[int, int, int]] = set()
     fixed_continuations = set()
     for p in pairs:
         if type(p) is not RandomizedFactualPair:
@@ -136,6 +143,10 @@ def descriptive_randomized_arm_values(
             raise ValueError("continuation changed after randomization")
         # Each world has its own clock: provenance alone is not globally unique;
         # do not treat per-world timestamps as independent-world identifiers.
+        group = (p.world_index, p.session_index, p.pair_index)
+        if group in seen or any(type(x) is not int or x < 0 for x in group):
+            raise ValueError("duplicate or invalid independent-world grouping key")
+        seen.add(group)
         fixed_continuations.add(p.continuation_actions)
         table[(p.first_observation.symbol, first.action)].append(p.observed_net)
     if len(fixed_continuations) != 1:
