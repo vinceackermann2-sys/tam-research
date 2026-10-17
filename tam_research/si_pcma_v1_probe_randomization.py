@@ -76,7 +76,7 @@ def randomized_development_first_actions(
 
     rng = random.Random(fixture_randomization_seed)
     pairs: list[RandomizedFactualPair] = []
-    for cfg in configs:
+    for world_index, cfg in enumerate(configs):
         world = OODRuleWorld(cfg)
         for session in range(sessions):
             if session:
@@ -90,7 +90,7 @@ def randomized_development_first_actions(
                 if first.done or second.time != first.time + 1:
                     raise RuntimeError("invalid first-action acquisition pair")
                 pairs.append(RandomizedFactualPair(
-                    world_index=configs.index(cfg),
+                    world_index=world_index,
                     session_index=session,
                     pair_index=pair_index,
                     first_observation=before,
