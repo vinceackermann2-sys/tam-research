@@ -149,12 +149,12 @@ def account_run(name: str, wrapper: MeasuredFactualPolicy,
     if not traces or not all(traces) or worlds < 1:
         raise ValueError("need factual terminal traces")
     records = [e for session in traces for e in session]
+    if len({e.time for e in records}) != len(records):
+        raise ValueError("replayed logical time")
     if not all(session[-1].done for session in traces):
         raise ValueError("nonterminal trace")
     if wrapper.feedback_events != len(records) or wrapper.calls != len(records):
         raise ValueError("unmatched action / observation budget")
-    if len({e.time for e in records}) != len(records):
-        raise ValueError("replayed logical time")
     gross = sum(e.reward for e in records)
     fee = sum(e.fee for e in records)
     state = getattr(wrapper.policy, "state", None)
