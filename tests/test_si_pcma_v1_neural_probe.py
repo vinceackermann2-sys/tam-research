@@ -265,3 +265,28 @@ def test_pairwise_no_persistence_ablation_resets_between_sessions():
     assert summary.actions == 12
     assert summary.memory_entries == 3
     assert summary.adapter_updates == 3
+
+
+def test_pair_memory_auxiliary_provenance_is_bounded_after_eviction():
+    state = TwoStepPCMAState(capacity=2, adaptation_enabled=False)
+    for i in range(300):
+        t = 2 * i + 1
+        before = PublicObservation(i % 3, 2)
+        after = PublicObservation(i % 3, 1)
+        done = PublicObservation(i % 3, 0)
+        first = FactualTransition(before, 0, after, 0.0, 0.0,
+                                  t, f"test-first-{i}", False)
+        second = FactualTransition(after, 1, done, 1.0, 0.0,
+                                   t + 1, f"test-second-{i}", True)
+        state.record(first, second)
+    assert len(state.memory) == 2
+    assert len(state._seen_provenance) == state.provenance_capacity == 256
+    assert len(state._seen_queue) == 256
+    # Old feedback remains invalid even once its provenance leaves the cache.
+    with pytest.raises(ValueError, match="duplicate/out-of-order"):
+        state.record(
+            FactualTransition(PublicObservation(0, 2), 0, PublicObservation(0, 1),
+                              0.0, 0.0, 1, "test-first-0", False),
+            FactualTransition(PublicObservation(0, 1), 1, PublicObservation(0, 0),
+                              1.0, 0.0, 2, "test-second-0", True),
+        )
