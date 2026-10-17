@@ -172,7 +172,7 @@ def test_trace_contract_rejects_missing_or_duplicate_events():
     actor = MeasuredFactualPolicy(FixedGuessControl(0))
     trace = run_ood_sessions(actor, OODWorldConfig(1, "development"),
                              sessions=1)
-    with pytest.raises(ValueError, match="unmatched"):
+    with pytest.raises(ValueError, match="nonterminal"):
         account_run("bad", actor, (trace[0][:-1],))
     with pytest.raises(ValueError, match="replayed"):
         account_run("bad", actor, (trace[0], trace[0]))
