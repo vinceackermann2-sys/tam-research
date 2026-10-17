@@ -46,6 +46,18 @@ _CODE_PATHS = (
     "tam_research/si_pcma_v1_persistence.py",
     "tam_research/si_pcma_v1_science_preflight.py",
     "tam_research/si_pcma_v1_cost_profile.py",
+    # Every original-SI / PCMA interface test is also pinned for review.
+    "tests/test_si_pcma_v1.py",
+    "tests/test_si_pcma_v1_factual_learning.py",
+    "tests/test_si_pcma_v1_calibration.py",
+    "tests/test_si_pcma_v1_ood_world.py",
+    "tests/test_si_pcma_v1_ood_development.py",
+    "tests/test_si_pcma_v1_fair_comparison.py",
+    "tests/test_si_pcma_v1_probe_value.py",
+    "tests/test_si_pcma_v1_probe_randomization.py",
+    "tests/test_si_pcma_v1_neural_probe.py",
+    "tests/test_si_pcma_v1_persistence.py",
+    "tests/test_si_pcma_v1_science_preflight.py",
 )
 _TEST_PREFIX = "tests/test_si_pcma_v1_"
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
