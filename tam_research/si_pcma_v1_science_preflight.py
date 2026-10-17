@@ -44,6 +44,8 @@ _CODE_PATHS = (
     "tam_research/si_pcma_v1_probe_randomization.py",
     "tam_research/si_pcma_v1_neural_probe.py",
     "tam_research/si_pcma_v1_persistence.py",
+    "tam_research/si_pcma_v1_science_preflight.py",
+    "tam_research/si_pcma_v1_cost_profile.py",
 )
 _TEST_PREFIX = "tests/test_si_pcma_v1_"
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
