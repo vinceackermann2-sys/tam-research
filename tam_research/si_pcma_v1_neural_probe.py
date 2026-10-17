@@ -121,7 +121,11 @@ class TwoStepPCMAState:
         self.memory_enabled, self.adaptation_enabled = memory_enabled, adaptation_enabled
         self.capacity, self.rank, self.update_limit, self.lr = capacity, rank, update_limit, lr
         self.memory: deque[ActualTwoStepRecord] = deque(maxlen=capacity)
+        # Recent provenance is bounded; the evaluator's strictly increasing
+        # event clock is the authoritative defense against older replays.
         self._seen_provenance: set[str] = set()
+        self._seen_queue: deque[str] = deque()
+        self.provenance_capacity = max(256, 2 * capacity)
         self._last_time = 0
         self.u = [[0.1 if (j + i) % rank == 0 else -0.05 for j in range(8)]
                   for i in range(rank)]
@@ -177,9 +181,15 @@ class TwoStepPCMAState:
                 first.before, first.action, first.time, result,
                 first.provenance, second.provenance,
             ))
-        # Do NOT truncate seen-provenance with bounded memory, since eviction
-        # must never permit replay of an old factual pair.
-        self._seen_provenance.update((first.provenance, second.provenance))
+        # Limit auxiliary metadata too. Older stale messages are rejected
+        # by monotonic event-time; the runner also verifies chosen-action
+        # feedback and provenance for the current execution.
+        for provenance in (first.provenance, second.provenance):
+            if len(self._seen_queue) == self.provenance_capacity:
+                obsolete = self._seen_queue.popleft()
+                self._seen_provenance.remove(obsolete)
+            self._seen_queue.append(provenance)
+            self._seen_provenance.add(provenance)
         self._last_time = second.time
         if self.adaptation_enabled and self.session_updates < self.update_limit:
             x = self.features(first.before, first.action)
@@ -200,6 +210,7 @@ class TwoStepPCMAState:
         if erase_persistent:
             self.memory.clear()
             self._seen_provenance.clear()
+            self._seen_queue.clear()
             self._last_time = 0
             self.u = [[0.1 if (j+i) % self.rank == 0 else -0.05 for j in range(8)]
                       for i in range(self.rank)]
