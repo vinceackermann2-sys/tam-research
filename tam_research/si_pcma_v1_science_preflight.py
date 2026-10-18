@@ -46,6 +46,7 @@ _CODE_PATHS = (
     "tam_research/si_pcma_v1_persistence.py",
     "tam_research/si_pcma_v1_science_preflight.py",
     "tam_research/si_pcma_v1_cost_profile.py",
+    "tam_research/si_pcma_v1_attempt_audit.py",
     # Every original-SI / PCMA interface test is also pinned for review.
     "tests/test_si_pcma_v1.py",
     "tests/test_si_pcma_v1_factual_learning.py",
@@ -58,6 +59,7 @@ _CODE_PATHS = (
     "tests/test_si_pcma_v1_neural_probe.py",
     "tests/test_si_pcma_v1_persistence.py",
     "tests/test_si_pcma_v1_science_preflight.py",
+    "tests/test_si_pcma_v1_attempt_audit.py",
 )
 _TEST_PREFIX = "tests/test_si_pcma_v1_"
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -237,6 +239,21 @@ def validate_review_manifest(
     # Always blocked by design even with all code hashes pinned; a separate
     # immutable protocol, attempt-ledger reservation and explicit approval
     # would be needed before actual science can start.
+    if repo_root is not None:
+        # The repository's own historical result/protocol/addendum scan is
+        # informative only; a complete cross-branch issue/worker ledger is
+        # still mandatory even when this local report has no missing anchors.
+        from tam_research.si_pcma_v1_attempt_audit import audit_original_si_docs
+        try:
+            historical = audit_original_si_docs(Path(repo_root))
+            if historical.missing_anchor_ids:
+                blockers.append(
+                    "original SI interrupted/consumed anchors missing from "
+                    "document scan: " + ",".join(map(str, historical.missing_anchor_ids)))
+            if historical.global_attempt_ledger_covered or historical.may_reserve_or_execute:
+                blockers.append("invalid historical ledger authority claim")
+        except (OSError, UnicodeError, ValueError):
+            blockers.append("historical original SI attempt source unreadable")
     blockers.extend((
         "historical consumed-seed ledger not exhaustively audited",
         "approval and unique-attempt reservation not granted",
