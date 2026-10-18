@@ -21,10 +21,10 @@ DOCUMENT_TYPES = ("PROTOCOL", "RESULTS", "ADDENDUM")
 # 4-6 digit IDs are what this particular original SI track historically used.
 # This deliberately also picks up training budgets; false positives are
 # clearly labelled as candidates and may only deny permission, never grant it.
-NUMBER = re.compile(r"(?<![0-9A-Za-z])([1-9][0-9]{3,5})(?![0-9A-Za-z])")
-RANGE = re.compile(r"(?<![0-9A-Za-z])([1-9][0-9]{3,5})\s*[-–—]\s*([1-9][0-9]{3,5})(?![0-9A-Za-z])")
+NUMBER = re.compile(r"(?<![0-9])([1-9][0-9]{3,5})(?![0-9])")
+RANGE = re.compile(r"(?<![0-9])([1-9][0-9]{3,5})\s*[-–—]\s*([1-9][0-9]{3,5})(?![0-9])")
 SEED_CONTEXT = re.compile(
-    r"\bseed(?:s|ed)?\b|\battempt(?:s|ed)?\b|\breplac(?:ement|ed|ing)\b"
+    r"\bseed(?:s|ed)?(?=\b|[0-9])|\battempt(?:s|ed)?\b|\breplac(?:ement|ed|ing)\b"
     r"|\brerun\b|\bretr(?:y|ies|ied)\b|\bconsumed\b",
     re.IGNORECASE,
 )
