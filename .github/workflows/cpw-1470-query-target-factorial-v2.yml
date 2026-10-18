@@ -1,0 +1,129 @@
+name: "CPW #1470 v2 original CPU factorial KEY/VALUE evidence"
+
+on:
+  push:
+    branches:
+      - experiment/cpw-v0-brain-predictive-workspace-20261005
+    paths:
+      - .github/workflows/cpw-1470-query-target-factorial-v2.yml
+
+permissions:
+  contents: read
+
+jobs:
+  original-first-attempt-five-arm-cpu:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Freeze CPW source, tests and preregistration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:tam_research/cpw_binding_v2/task.py)" = "79dc0ceda617985eba40f119343bdb2992aa395d"
+          test "$(git rev-parse HEAD:tam_research/cpw_binding_science/harness.py)" = "63ab35fc82ea06d91ce2a9b5cbd1d2d9c56baf3f"
+          test "$(git rev-parse HEAD:tam_research/cpw_query_gradient_matrix_1452.py)" = "a3da256c549b59dd26d4faeb53b972d9d1143384"
+          test "$(git rev-parse HEAD:tam_research/cpw_query_target_factorial_1470_v2.py)" = "b1ae2319084433b3faace78f59a7c031842c20e9"
+          test "$(git rev-parse HEAD:tests/test_cpw_query_target_factorial_1470_v2.py)" = "16b0d37487ce5488480884d86373c8af6d57436c"
+          test "$(git rev-parse HEAD:research/cpw_query_target_factorial_1470_v2.md)" = "d66cf1c1d91ca354d474d4c6a4d0ded3d1b61835"
+          echo "CPW_1470_V2_SOURCE_LOCK_PASS"
+      - name: Install CPU-only dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'torch==2.10.0' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e '.[test]'
+      - name: Run frozen source structural CPU tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_cpw_query_target_factorial_1470_v2.py
+      - name: Execute original CPU-only five-arm 4x4 factorial ONCE
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m tam_research.cpw_query_target_factorial_1470_v2 | tee cpw-1470-v2-first.jsonl
+      - name: Validate original full evidence and separate KEY and VALUE signed contrasts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,math
+          from pathlib import Path
+          lines=Path("cpw-1470-v2-first.jsonl").read_text().splitlines()
+          marker="CPW_1470_V2_FACTORIAL="
+          rows=[json.loads(s[len(marker):]) for s in lines if s.startswith(marker)]
+          assert len(rows)==1
+          r=rows[0]
+          assert r["classification"]=="CPW_1470_V2_RANDOM_INIT_FACTORIAL_QUERY_TARGET_ONLY"
+          assert r["engineering_seed_not_scientific"]==1453001
+          assert r["query_delays"]==[32,64,128,256]
+          assert r["source_delays"]==[32,64,96,128,160,192,224,256]
+          assert r["key_blind_accuracy"]==.25
+          assert r["optimizer_steps"]==0 and r["training_performed"] is False
+          assert r["gpu_allocated"] is False and r["scientific_attempt"] is False
+          assert r["breakthrough_claim"] is False
+          names=["transformer","sequence_only","afm_last1","afm_first1","r1_final"]
+          expected=[24940288,21745408,21721344,21721344,21745408]
+          assert [a["arm"] for a in r["results"]]==names
+          assert [a["parameter_count"] for a in r["results"]]==expected
+          assert len({a["source_prefix_sha256"] for a in r["results"]})==1
+          for a in r["results"]:
+              assert len(a["model_initial_and_final_state_sha256"])==64
+              assert len(a["query_tokens"])==4 and len(set(a["query_tokens"]))==4
+              assert len(a["target_tokens"])==4 and len(set(a["target_tokens"]))==4
+              assert len(a["grid_4x4"])==4
+              assert a["training_performed"] is False and a["optimizer_steps"]==0
+              assert a["max_fixed_query_logit_identity_residual"] < 1e-2
+              for side in ("key","value"):
+                  d=a["signed_"+side+"_differences"]
+                  assert d["interaction_count"]==36
+                  assert math.isfinite(d["query_fixed_label_signed_mean_l2"])
+                  assert math.isfinite(d["label_fixed_query_signed_mean_l2"])
+                  assert math.isfinite(d["query_label_interaction_signed_mean_l2"])
+                  assert math.isfinite(d["max_diagonal_telescoping_residual"])
+                  assert d["max_diagonal_telescoping_residual"]<1e-3
+                  metric=a[side+"_metrics"]
+                  assert metric["zero_norm_cells"] in range(17)
+                  assert metric["query_pair_count"] in range(25)
+                  assert metric["label_pair_count"] in range(25)
+              for i,row in enumerate(a["grid_4x4"]):
+                  assert len(row)==4
+                  for j,c in enumerate(row):
+                      assert c["query_index"]==i and c["label_index"]==j
+                      assert c["correct_binding_label"] is (i==j)
+                      assert math.isfinite(c["loss"])
+                      for side in ("key","value"):
+                          x=c[side+"_gradient_l2"]
+                          assert len(x)==8 and all(math.isfinite(z) and z>=0 for z in x)
+                          dist=c[side+"_concentration"]["normalized_eight_positions"]
+                          if dist is not None:
+                              assert abs(sum(dist)-1)<1e-5
+          local=next(a for a in r["results"] if a["arm"]=="sequence_only")
+          assert all(all(v==0 for v in c["key_gradient_l2"]+c["value_gradient_l2"])
+                     for row in local["grid_4x4"] for c in row)
+          for side in ("key","value"):
+              assert local[side+"_metrics"]["zero_norm_cells"]==16
+              assert local["signed_"+side+"_differences"]["query_fixed_label_signed_mean_l2"]==0
+              assert local["signed_"+side+"_differences"]["label_fixed_query_signed_mean_l2"]==0
+          Path("cpw-1470-v2-first-complete.json").write_text(
+              json.dumps(r,indent=2,sort_keys=True,allow_nan=False)+"\n")
+          print("CPW_1470_V2_ORIGINAL_CPU_SCHEMA_PASS")
+          PY
+      - name: Archive original five-arm signed KEY/VALUE factorial evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpw-1470-v2-original-five-arm-factorial
+          path: |
+            cpw-1470-v2-first.jsonl
+            cpw-1470-v2-first-complete.json
+          retention-days: 90
