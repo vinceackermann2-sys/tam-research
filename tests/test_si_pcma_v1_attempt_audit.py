@@ -87,6 +87,17 @@ def test_report_path_provenance_line_and_no_approval(tmp_path):
     assert display["may_reserve_or_execute"] is False
 
 
+def test_compact_seed_label_is_conservatively_flagged(tmp_path):
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "SI_ORIGINAL_TEST_RESULTS.md").write_text(
+        "excluded development seed117010 is consumed in this branch\n",
+        encoding="utf-8")
+    ids = {entry.candidate_id for entry in documented_mentions(tmp_path)}
+    assert 117010 in ids
+    assert not review_seed_request(tmp_path, 117010).can_reserve
+
+
 def test_result_must_not_be_confused_with_scientific_seed(tmp_path):
     docs = tmp_path / "docs"
     docs.mkdir()
