@@ -160,6 +160,11 @@ def test_verified_only_experience_never_accepts_future_or_forged_reward():
         model.ingest_executed(before,2,float("nan"),after,world="A")
     with pytest.raises(ValueError):
         model.ingest_executed(before,3,1.0,before,world="A")
+    # A caller must not substitute a different earlier public observation
+    # while claiming to report only the most recently executed next event.
+    tampered=[("text",torch.tensor([99]))]+after[1:]
+    with pytest.raises(ValueError,match="unaltered public history"):
+        model.ingest_executed(before,2,0.5,tampered,world="A")
     assert model.fast_updates==0 and not model.memory.rows and not model.replay
 
 
