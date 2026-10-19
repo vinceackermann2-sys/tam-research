@@ -51,6 +51,7 @@ _CODE_PATHS = (
     "tam_research/si_pcma_v1_world_ipc.py",
     "tam_research/si_pcma_v1_strong_controls.py",
     "tam_research/si_pcma_v1_history_world.py",
+    "tam_research/si_pcma_v1_history_information.py",
     # Every original-SI / PCMA interface test is also pinned for review.
     "tests/test_si_pcma_v1.py",
     "tests/test_si_pcma_v1_factual_learning.py",
@@ -67,6 +68,7 @@ _CODE_PATHS = (
     "tests/test_si_pcma_v1_world_ipc.py",
     "tests/test_si_pcma_v1_strong_controls.py",
     "tests/test_si_pcma_v1_history_world.py",
+    "tests/test_si_pcma_v1_history_information.py",
 )
 _TEST_PREFIX = "tests/test_si_pcma_v1_"
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
