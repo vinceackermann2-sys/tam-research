@@ -1,7 +1,7 @@
 {
   "schema": "si-pcma-v1-science-preflight-draft/1",
   "research_lineage": "original-screenshot-SI/PCMA-v1",
-  "source_commit": "b392b10ea82c4a3f5fba278c4d4588f15a84b0e4",
+  "source_commit": "41b89245f2f990f808891dd687e84e6010ac4588",
   "source_blobs": {
     "tam_research/si_original_hybrid_v0.py": "575c17dc2f39a29d930d82179aa0c96dcbdc7d0f",
     "tam_research/si_pcma_v1_attempt_audit.py": "5773e16ee908d41c62656e6dff8cbbc89efb35c1",
@@ -16,7 +16,7 @@
     "tam_research/si_pcma_v1_ood_development.py": "442ffecb36b40fbf7040a6ea8927c9cea001c87a",
     "tam_research/si_pcma_v1_ood_world.py": "0fb2258da342b9cdb1cac2c305ae023790d0084f",
     "tam_research/si_pcma_v1_persistence.py": "6d1f0840c3097bfe18d9fcce6ff4f92421a65fae",
-    "tam_research/si_pcma_v1_popgym_factual_ablation.py": "d065e263b42f7c40d719ce5c8e22a70f54b57950",
+    "tam_research/si_pcma_v1_popgym_factual_ablation.py": "e48c93618ddbc8b0b20670a83d54cf26603c40c2",
     "tam_research/si_pcma_v1_popgym_neural_pilot.py": "7f88fe3da3b27adee48f34d34e3e0cfb3506789c",
     "tam_research/si_pcma_v1_probe_randomization.py": "552c366e5508502e0eb64f758e0491db9bc40aab",
     "tam_research/si_pcma_v1_probe_value.py": "cf2577da137127a40b4300174f5b87dd48eda482",
@@ -36,7 +36,7 @@
     "tests/test_si_pcma_v1_ood_development.py": "ff34d78fa3863f6dd1e35ab5cc1e66ac6a85336a",
     "tests/test_si_pcma_v1_ood_world.py": "3725618c3eeebdf4209ec1bf7a1a6393c64a9b7f",
     "tests/test_si_pcma_v1_persistence.py": "2a5b70e469d936603a72de3bf332a937fee58920",
-    "tests/test_si_pcma_v1_popgym_factual_ablation.py": "9dbfc17f2ab725926e80f522259d51fd2ff3ad1a",
+    "tests/test_si_pcma_v1_popgym_factual_ablation.py": "1cfd75be837879d6a340b592a0bf146bbe8e2644",
     "tests/test_si_pcma_v1_popgym_neural_pilot.py": "4850968683835a5ded66a41a6afc4447af01112f",
     "tests/test_si_pcma_v1_probe_randomization.py": "28fee185408e473c094ff00d6957b5a94bd83679",
     "tests/test_si_pcma_v1_probe_value.py": "802ca1d25ebe12054e498f8d3fd0901cd280e31d",
