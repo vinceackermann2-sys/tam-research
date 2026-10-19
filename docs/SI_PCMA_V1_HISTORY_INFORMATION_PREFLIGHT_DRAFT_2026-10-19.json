@@ -1,7 +1,7 @@
 {
   "schema": "si-pcma-v1-science-preflight-draft/1",
   "research_lineage": "original-screenshot-SI/PCMA-v1",
-  "source_commit": "c674aea3b2f908fb866b61e5c11f55aa1ac34880",
+  "source_commit": "76d596f8c197b82d4e296ec69d52789608eafc64",
   "source_blobs": {
     "tam_research/si_original_hybrid_v0.py": "575c17dc2f39a29d930d82179aa0c96dcbdc7d0f",
     "tam_research/si_pcma_v1_attempt_audit.py": "5773e16ee908d41c62656e6dff8cbbc89efb35c1",
@@ -27,7 +27,7 @@
     "tests/test_si_pcma_v1_calibration.py": "1779046556b6bf1ac7615f25f74f697082d4b36f",
     "tests/test_si_pcma_v1_factual_learning.py": "e335259b7c38b5fd3ef0302969b5dcbe3a28663d",
     "tests/test_si_pcma_v1_fair_comparison.py": "0eade51c4765f7f51ebf7ec35735b03fba0b343d",
-    "tests/test_si_pcma_v1_history_information.py": "4069f3fc45cfcdb044adaa035edc01af6d0c0a5a",
+    "tests/test_si_pcma_v1_history_information.py": "e93970352a8a2b752d29881063a617f5ba4fd55e",
     "tests/test_si_pcma_v1_history_world.py": "58a6b61169a3aec2b4fa24229efa18c2e65e0da6",
     "tests/test_si_pcma_v1_neural_probe.py": "47be4344a54957cc2c1d3999e79b80d0b5468135",
     "tests/test_si_pcma_v1_ood_development.py": "ff34d78fa3863f6dd1e35ab5cc1e66ac6a85336a",
