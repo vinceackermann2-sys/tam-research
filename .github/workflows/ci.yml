@@ -31,5 +31,11 @@ jobs:
       - name: POPGym published memory-positive control (nonconfirmatory)
         if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019'
         run: python -m tam_research.si_pcma_v1_published_memory
+      - name: Install pinned POPGym bandit benchmark (this PR only)
+        if: github.head_ref == 'experiment/si-pcma-v1-external-bandit-triage-20261019'
+        run: pip install 'popgym==1.0.7'
+      - name: Published bandit factual acquisition screen (development only)
+        if: github.head_ref == 'experiment/si-pcma-v1-external-bandit-triage-20261019'
+        run: python -m tam_research.si_pcma_v1_external_bandit
       - name: Run tests
         run: pytest -q
