@@ -37,5 +37,8 @@ jobs:
       - name: SI PCMA public-factual online ablations on POPGym (development only)
         if: github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019'
         run: python -m tam_research.si_pcma_v1_popgym_factual_ablation
+      - name: SI PCMA original paid-probe randomized factual screen (dev only)
+        if: github.head_ref == 'experiment/si-pcma-v1-randomized-probe-gate-20261019'
+        run: python -m tam_research.si_pcma_v1_randomized_probe_gate
       - name: Run tests
         run: pytest -q
