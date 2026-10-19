@@ -178,14 +178,17 @@ def test_verifier_and_world_transition_are_trained_from_executed_replay():
     assert len(model.replay)==3
     weights=model.transition[0].weight.detach().clone()
     verifier=model.verifier[-1].weight.detach().clone()
+    halt_before=model.halt.weight.detach().clone()
     optimizer=torch.optim.AdamW(
         list(model.transition.parameters())+
         list(model.reward_head.parameters())+
-        list(model.verifier.parameters()),lr=.005)
+        list(model.verifier.parameters())+
+        list(model.halt.parameters())+[model.halt_bias],lr=.005)
     loss=model.consolidate_verified_replay(optimizer,count=3)
     assert math.isfinite(loss) and loss>=0
     assert not torch.equal(weights,model.transition[0].weight)
     assert not torch.equal(verifier,model.verifier[-1].weight)
+    assert not torch.equal(halt_before,model.halt.weight)
 
 
 def test_skill_adapter_is_separate_and_can_be_trained_without_overwriting_backbone():
