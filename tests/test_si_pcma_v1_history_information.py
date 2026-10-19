@@ -105,7 +105,11 @@ def test_no_world_level_pseudoreplication_or_breakthrough_gates():
     )
     assert report.status == "DESCRIPTIVE_DEVELOPMENT_ONLY"
     assert report.train_worlds == report.validation_worlds == 2
-    assert report.train_factual_pairs == report.validation_factual_pairs == 22
+    # One 6-step + one 16-step TRAIN world => 3*2 + 8*2 = 22 pairs;
+    # both VALIDATION worlds have 6 steps => 3*2 + 3*2 = 12 pairs.
+    # Independent-world parity never requires an equal number of actions.
+    assert report.train_factual_pairs == 22
+    assert report.validation_factual_pairs == 12
     assert len(report.per_world) == 2
     assert report.per_world[0].factual_pairs == 6
     assert report.per_world[1].factual_pairs == 6
