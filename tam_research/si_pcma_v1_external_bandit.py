@@ -107,6 +107,7 @@ class FactualOnlineBanditPolicy:
                 or type(feedback.step) is not int
                 or feedback.step != self._time + 1
                 or type(feedback.reward) is not float
+                or not math.isfinite(feedback.reward)
                 or abs(feedback.reward - (
                     (2*feedback.observed_payout - 1)/HORIZON
                 )) > 1e-12):
