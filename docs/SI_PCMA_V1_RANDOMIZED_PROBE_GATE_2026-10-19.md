@@ -1,0 +1,32 @@
+# Original SI PCMA-v1: paid sensor value under randomized first-action assignment
+
+**2026-10-19 · DEVELOPMENT-ONLY FALSIFICATION · Not a scientific experiment or any SI capability claim**
+
+## Provenance and bound science history
+Stacked on source-verified PR #1518 (original screenshot-inspired SI) with frozen canonical original `tam_research/si_original_hybrid_v0.py` blob `575c17dc2f39a29d930d82179aa0c96dcbdc7d0f`. Original unchanged 64,614-parameter v26 is **NO-GO**, v25 duplicate consumed seed117214 remains quarantined; engineered history benchmark #1515 and public-memory+adapter port #1518 were **NO-SCALE**; both hybrid and Transformer were far below cheap perfect classical memory in the published task. This PR does not edit original source, main, any other project, prior findings or completed scientific ledgers.
+
+## Why go BACK to original paid probes
+The earlier externally published POPGym tests had **no paid information action**, and their rank-2 public reward adapter delivered no additional effect beyond basic factual memory. Therefore they did NOT directly test the user-proposed original PCMA information-acquisition mechanism. The existing original `OODRuleWorld`, by contrast, offers action 3 as a zero-reward **paid 0.1 observation**, sacrificing a guess, while guesses 0/1/2 pay 1 or 0. The world has hidden persistent context/permutation; ordinary observation may be noisy. The original `randomized_development_first_actions` already supplies a genuine known randomized first-arm assignment P=1/4, fixed precommitted public second action, and **only actual factual realized returns**. This is useful for a direct, cheap, transparent falsification screen.
+
+## Frozen descriptive development screen
+Before observing any result, the source code freezes **24 different development-world fixture IDs 401..424**, exactly six per stable/shift/noisy/long scenario, eight sessions/world, independent first-arm PRNG fixture 271828, no heldout. Every session is 6 or 16 actual action slots; use nonoverlapping first+second pairs. **816 factual paired decisions** across 24 independently instantiated worlds. First chosen action is randomly one of guess0/guess1/guess2/probe3 with P=0.25 each; first action's real transition/reward/cost executes before a **fixed public continuation** of second guess `FrozenPublicContinuation((0,1,2))`.
+
+Target is actual two-step net return, INCLUDING paid probe fee and the sacrificed first guess opportunity. The direct randomization-contrast estimator is per observed pair
+
+`Y * (4 * I(first=probe) - (4/3) * I(first in {0,1,2}))`.
+
+This is a Horvitz-Thompson first-action **"blip" assignment effect** (probe vs a uniformly randomized guess), under the randomly evolving logging-policy history and the **same** predetermined public second-action policy. It does NOT require seeing any unchosen action reward. It is *not* the causal benefit of a multi-session adaptive policy because early assignments modify future world context; it is not the value of optimal probing conditioned on all factual history; it is not the effect of letting the probe choose an optimized second action; and it is NOT an SI neural experiment. The source's allowed development cyclic rule permutations are few and exposed in the repo; this is only a controlled mechanistic toy study.
+
+All 816 action-pair outcomes are grouped into **24 independent world estimates** and then averaged **equal world-weight**, so 816 correlated first actions are not misrepresented as 816 independent replications. Descriptive two-sided Student-t intervals use 24-world t≈2.069 overall and six-world t≈2.571 per family, without any multiple-testing correction or claim of confirmatory coverage from independent protected future worlds. The early pragmatic **NO-SCALE development screen** flags a robust negative only if world-level upper interval is below −0.05 and all four family upper intervals are below 0. There is no symmetric success gate: positive developers-only estimates cannot certify a breakthrough.
+
+## Fair comparators and what remains blocked
+The first-arm alternative is **uniformly random guessing**. This is intentionally a weak nonlearned comparator. It may establish whether the paid sensor has elementary immediate value under this **fixed continuation**, but is insufficient to establish the value of a learned policy. A learned classical belief filter can use feedback, select a better guess, and optimize whether/when to pay; every PCMA claim must beat that strongest cheap approach as well as an original-hybrid-vs-same-PCMA Transformer.
+
+Important: An overall negative effect would reject scaling the **fixed second-action implementation** of paid probes. It would not prove that a probe is useless when an informed continuation or longer planning horizon can exploit trusted observations, nor that general information acquisition cannot work.
+
+## Implementation and governance
+`si_pcma_v1_randomized_probe_gate.py` computes exact logged propensity HT estimates and per-independent-world exploratory intervals, forbids malformed/future/replayed events, fake fees, altered continuation or incomplete session logs. `tests/test_si_pcma_v1_randomized_probe_gate.py` tests actual randomized assignment, grouping independence, 24-world / 816-pair plan, no hidden/heldout import, no scientific permission and tampering rejection. Isolated GitHub PR branch only adds a conditionally executed pure CPU development screen plus ordinary tests. The output always reports `scientific_gate_passed=false`, `may_claim_probe_is_useful=false`, `may_claim_si_breakthrough=false`, `learned_neural_models_evaluated=0`, `heldout_worlds_evaluated=0` and no science seeds.
+
+A real **PCMA-v1 GO/NO-GO** remains contingent on independently authored persistent and identifiable causal worlds, a strong learned probe/no-probe classical policy, identical factual PCMA attached to original hybrid and compute-matched Transformer, frozen sufficiently trained neural checkpoints, complete scientific seed/attempt ledger, one-use heldout evaluation, world-cluster confidence and precommitted stop margins. If the direct affordable paid sensor is not useful even under favorable informational conditions, this is early negative evidence worth recording, not something to tune away.
+
+**Scientific status: original v26 NO-GO; PCMA-v1 UNKNOWN. No paid GPU, Modal or Colab, no new scientific seeds, merges or automation.**
