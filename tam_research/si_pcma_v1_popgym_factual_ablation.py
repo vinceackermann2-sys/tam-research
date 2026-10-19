@@ -35,6 +35,14 @@ MAX_FACTUAL_MEMORY = 128
 MAX_ADAPTER_UPDATES = 8
 PCMA_BLEND = 0.5
 FEATURE_WIDTH = 9
+# External POPGym 1.0.7 reward normalization:
+# RepeatPrevious(k=4) rewards 52-4=48 steps, others reward 51.
+# This is published simulator accounting, not a fitted hyperparameter.
+ACTUAL_REWARD_DENOMINATOR = {
+    "RepeatFirstEasy": 51,
+    "RepeatPreviousEasy": 48,
+    "CountRecallEasy": 51,
+}
 
 
 @dataclass(frozen=True)
@@ -100,7 +108,7 @@ class PublicFactualRank2State:
         action: int, step: int,
     ) -> float:
         x = self.features(task, public, action, step)
-        matches = [e.observed_reward * PUBLIC_EPISODE_STEPS
+        matches = [e.observed_reward * ACTUAL_REWARD_DENOMINATOR[task]
                    for e in reversed(self.memory)
                    if e.task == task and e.public == public and
                    e.chosen_action == action and e.step < step]
@@ -115,7 +123,7 @@ class PublicFactualRank2State:
     ) -> None:
         features = self.features(task, public, action, step)
         if (type(reward) not in (float, int) or not math.isfinite(reward)
-                or abs(reward * PUBLIC_EPISODE_STEPS) > 1.01
+                or abs(reward * ACTUAL_REWARD_DENOMINATOR[task]) > 1.01
                 or step != self.observations):
             raise ValueError("only chronological bounded executed reward allowed")
         if self.memory_enabled:
@@ -125,7 +133,7 @@ class PublicFactualRank2State:
             z = [sum(a*x for a, x in zip(row, features)) for row in self.u]
             prediction = sum(w*zi for w, zi in zip(self.v, z))
             delta = max(-1.0, min(1.0,
-                       reward * PUBLIC_EPISODE_STEPS - prediction))
+                       reward * ACTUAL_REWARD_DENOMINATOR[task] - prediction))
             old_v = self.v[:]
             old_u = self.u
             self.v = [max(-1., min(1., vi+0.05*delta*zi))
