@@ -22,5 +22,8 @@ jobs:
         run: pip install -e '.[test]'
       - name: Syntax-check Modal launchers
         run: python -m py_compile modal_*_app.py
+      - name: Original user-architecture integrated fidelity checks (engineering only)
+        if: github.head_ref == 'experiment/si-original-full-architecture-integration-v1-20261019'
+        run: pytest -q tests/test_si_original_integrated_v1.py
       - name: Run tests
         run: pytest -q
