@@ -324,8 +324,11 @@ class SIOriginalIntegratedV1(nn.Module):
                 not math.isfinite(reward) or not -1 <= reward <= 1 or
                 (skill is not None and skill not in self.skills)):
             raise ValueError("executed public experience required")
-        if len(after)!=len(before)+1:
-            raise ValueError("one actual next observation required")
+        if (len(after)!=len(before)+1 or
+                any(old_kind != new_kind or not torch.equal(old_value,new_value)
+                    for (old_kind,old_value),(new_kind,new_value)
+                    in zip(before,after[:-1]))):
+            raise ValueError("unaltered public history and one real next observation required")
         b,_,_=self._backbone(before)
         nxt,_,_=self._backbone(after)
         if b.shape != (1,self.width) or nxt.shape != b.shape:
