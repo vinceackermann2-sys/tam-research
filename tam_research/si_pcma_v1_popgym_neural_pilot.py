@@ -186,7 +186,8 @@ class OriginalWorldHeadMemoryReadout(nn.Module):
 
 
 def _mask_class_logits(logits: torch.Tensor, allowed: torch.Tensor) -> torch.Tensor:
-    if logits.ndim != 3 or allowed.shape != (logits.size(0), ACTION_DIM):
+    if (logits.ndim != 3 or logits.size(-1) != ACTION_DIM
+            or allowed.shape != (logits.size(0), ACTION_DIM)):
         raise ValueError("invalid common neural prediction shape")
     return logits.masked_fill(~allowed[:, None, :], -1.0e6)
 
