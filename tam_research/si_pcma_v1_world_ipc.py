@@ -67,12 +67,16 @@ class DevelopmentWorldIPC:
     inside the worker. Only the chosen action passes into the child.
     """
 
-    def __init__(self, config: OODWorldConfig, *, timeout: float = 10.0):
+    def __init__(self, config: OODWorldConfig, *, timeout: float = 10.0,
+                 world_kind: str = "ood"):
         if type(config) is not OODWorldConfig or config.split != "development":
             raise ValueError("heldout worlds prohibited by IPC development runner")
+        if type(world_kind) is not str or world_kind not in ("ood", "history"):
+            raise ValueError("unsupported development world kind")
         if type(timeout) not in (int, float) or not 0 < timeout <= 60:
             raise ValueError("invalid request timeout")
         self.config = config
+        self.world_kind = world_kind
         self.timeout = float(timeout)
         self._proc: subprocess.Popen[bytes] | None = None
         self.observation: PublicObservation | None = None
@@ -93,7 +97,8 @@ class DevelopmentWorldIPC:
                "tam_research.si_pcma_v1_world_worker",
                "--split", "development",
                "--seed", str(self.config.seed),
-               "--scenario", self.config.scenario]
+               "--scenario", self.config.scenario,
+               "--world-kind", self.world_kind]
         self._proc = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env=env,
@@ -209,6 +214,7 @@ class DevelopmentWorldIPC:
 def run_ipc_development_sessions(
     policy: PublicPolicy, config: OODWorldConfig, *,
     sessions: int = 2, erase_persistent: bool = False,
+    world_kind: str = "ood",
 ) -> tuple[tuple[FactualTransition, ...], ...]:
     """Development only; policy callbacks see nothing except public facts.
 
@@ -221,7 +227,7 @@ def run_ipc_development_sessions(
     if type(sessions) is not int or not 1 <= sessions <= 32:
         raise ValueError("invalid bounded development session count")
     traces: list[tuple[FactualTransition, ...]] = []
-    with DevelopmentWorldIPC(config) as world:
+    with DevelopmentWorldIPC(config, world_kind=world_kind) as world:
         for session in range(sessions):
             if session:
                 world.restart_session()
