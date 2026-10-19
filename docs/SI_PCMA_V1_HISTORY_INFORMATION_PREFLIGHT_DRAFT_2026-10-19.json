@@ -1,7 +1,7 @@
 {
   "schema": "si-pcma-v1-science-preflight-draft/1",
   "research_lineage": "original-screenshot-SI/PCMA-v1",
-  "source_commit": "bdd3e32c1591bed15fc3538e5993adecb0687e8c",
+  "source_commit": "c674aea3b2f908fb866b61e5c11f55aa1ac34880",
   "source_blobs": {
     "tam_research/si_original_hybrid_v0.py": "575c17dc2f39a29d930d82179aa0c96dcbdc7d0f",
     "tam_research/si_pcma_v1_attempt_audit.py": "5773e16ee908d41c62656e6dff8cbbc89efb35c1",
@@ -9,7 +9,7 @@
     "tam_research/si_pcma_v1_cost_profile.py": "963a4ef442daba76da739d000195ff2005f8201c",
     "tam_research/si_pcma_v1_factual_learning.py": "80a017190d68761c2c3ab0e0773c37eb53e58565",
     "tam_research/si_pcma_v1_fair_comparison.py": "5d7dcdc257674c44285d1a75c3e04845d31ddd09",
-    "tam_research/si_pcma_v1_history_information.py": "278da45009df53cf9bdd16f8d7644a79efca25e0",
+    "tam_research/si_pcma_v1_history_information.py": "23a6162d0cd1df9c094cae28ff3be0e77644834f",
     "tam_research/si_pcma_v1_history_world.py": "6d77e2b2ba6e78e44bdfcc2940dbc7da52612376",
     "tam_research/si_pcma_v1_neural_probe.py": "15049ef6d814692ca2006d020578922b8131dfd8",
     "tam_research/si_pcma_v1_ood_controls.py": "f905c0f23968669a68e81478d4b791be16d905ce",
