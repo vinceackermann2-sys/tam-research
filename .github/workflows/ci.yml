@@ -37,5 +37,11 @@ jobs:
       - name: Published bandit factual acquisition screen (development only)
         if: github.head_ref == 'experiment/si-pcma-v1-external-bandit-triage-20261019'
         run: python -m tam_research.si_pcma_v1_external_bandit
+      - name: Install pinned POPGym for shared ten-arm neural adapter (this PR only)
+        if: github.head_ref == 'experiment/si-pcma-v1-bandit-neural-adapter-20261019'
+        run: pip install 'popgym==1.0.7'
+      - name: CPU hybrid vs Transformer factual prediction smoke (not scientific)
+        if: github.head_ref == 'experiment/si-pcma-v1-bandit-neural-adapter-20261019'
+        run: python -m tam_research.si_pcma_v1_bandit_neural_adapter
       - name: Run tests
         run: pytest -q
