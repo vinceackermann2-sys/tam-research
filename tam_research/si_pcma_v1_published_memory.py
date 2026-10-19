@@ -111,8 +111,9 @@ class PublishedMemoryDiagnostic:
 
 
 def _make_published_task(task: str) -> Any:
+    from importlib.metadata import version
     import popgym
-    if popgym.__version__ != POPGYM_VERSION:
+    if version("popgym") != POPGYM_VERSION:
         raise RuntimeError("external task release changed")
     if task == "RepeatFirstEasy":
         return popgym.envs.RepeatFirstEasy()
