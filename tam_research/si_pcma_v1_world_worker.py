@@ -17,6 +17,7 @@ import sys
 from typing import Any
 
 from tam_research.si_pcma_v1_ood_world import OODRuleWorld, OODWorldConfig
+from tam_research.si_pcma_v1_history_world import HistoryNecessaryDevelopmentWorld
 
 MAX_REQUEST_BYTES = 4096
 MAX_RESPONSE_BYTES = 4096
@@ -36,9 +37,12 @@ def worker_main(argv: list[str] | None = None) -> int:
     parser.add_argument("--scenario", choices=("stable", "shift", "noisy", "long"),
                         default="stable")
     parser.add_argument("--split", choices=("development",), default="development")
+    parser.add_argument("--world-kind", choices=("ood", "history"), default="ood")
     args = parser.parse_args(argv)
     # No `heldout` option exists, even when a caller bypasses the harness.
-    world = OODRuleWorld(OODWorldConfig(args.seed, "development", args.scenario))
+    cfg = OODWorldConfig(args.seed, "development", args.scenario)
+    world = (HistoryNecessaryDevelopmentWorld(cfg)
+             if args.world_kind == "history" else OODRuleWorld(cfg))
     started = False
     done = False
     closed = False
