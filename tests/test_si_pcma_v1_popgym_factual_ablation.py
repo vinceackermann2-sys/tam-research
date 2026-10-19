@@ -45,6 +45,21 @@ def test_online_factual_adapter_uses_only_past_executed_actions():
         state.record("RepeatFirstEasy", 3, 2, 1 / 51, 0)
 
 
+def test_external_repeat_previous_k4_reward_scale_is_correct():
+    from tam_research.si_pcma_v1_popgym_factual_ablation import (
+        ACTUAL_REWARD_DENOMINATOR,)
+    assert ACTUAL_REWARD_DENOMINATOR == {
+        "RepeatFirstEasy": 51,
+        "RepeatPreviousEasy": 48,
+        "CountRecallEasy": 51,
+    }
+    state = PublicFactualRank2State(
+        memory_enabled=True, adaptation_enabled=True)
+    state.record("RepeatPreviousEasy", 3, 2, 1/48, 0)
+    assert state.observations == 1
+    assert state.correction("RepeatPreviousEasy", 3, 2, 1) > 0
+
+
 def test_zero_state_and_independent_episode_resets_are_exact():
     no_pcma = PublicFactualRank2State(
         memory_enabled=False, adaptation_enabled=False)
