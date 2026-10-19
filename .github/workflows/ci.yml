@@ -25,5 +25,11 @@ jobs:
       - name: Original user-architecture integrated fidelity checks (engineering only)
         if: github.head_ref == 'experiment/si-original-full-architecture-integration-v1-20261019'
         run: pytest -q tests/test_si_original_integrated_v1.py
+      - name: Original SI integrated cross-modal learning pilot (fixed CPU developer data)
+        if: github.head_ref == 'experiment/si-original-crossmodal-learning-v1-20261019'
+        run: python -m tam_research.si_original_crossmodal_learning_v1
+      - name: Original SI cross-modal data leakage and training parity tests
+        if: github.head_ref == 'experiment/si-original-crossmodal-learning-v1-20261019'
+        run: pytest -q tests/test_si_original_integrated_v1.py tests/test_si_original_crossmodal_learning_v1.py
       - name: Run tests
         run: pytest -q
