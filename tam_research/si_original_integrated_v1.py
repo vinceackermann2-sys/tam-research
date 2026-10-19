@@ -364,7 +364,15 @@ class SIOriginalIntegratedV1(nn.Module):
         mse=(predicted-next_real).square().mean(dim=-1)
         unc=torch.sigmoid(self.verifier(predicted)).flatten()
         calibration=(unc-mse.detach().clamp(0,1)).square().mean()
-        loss=mse.mean()+F.mse_loss(predicted_reward,rewards)+.1*calibration
+        # Learn the adaptive-compute halt policy from ACTUALLY OBSERVED
+        # next-state prediction error in replay, not hidden oracle labels.
+        # Discrete skip decisions remain exact at inference; this auxiliary
+        # factual difficulty target supplies their otherwise absent gradient.
+        halt_target=(mse.detach()<.05).to(predicted.dtype)
+        halt_logits=self.halt(before).flatten()+self.halt_bias
+        halt_loss=F.binary_cross_entropy_with_logits(halt_logits,halt_target)
+        loss=(mse.mean()+F.mse_loss(predicted_reward,rewards)
+              +.1*calibration+.05*halt_loss)
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
