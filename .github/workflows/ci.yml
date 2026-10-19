@@ -26,7 +26,7 @@ jobs:
         if: github.head_ref == 'experiment/si-pcma-v1-history-information-gate-20261019'
         run: python -m tam_research.si_pcma_v1_history_information
       - name: Install pinned external POPGym memory benchmark (this PR only)
-        if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019' || github.head_ref == 'experiment/si-pcma-v1-randomized-probe-gate-20261019'
+        if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019' || github.head_ref == 'experiment/si-pcma-v1-randomized-probe-gate-20261019' || github.head_ref == 'experiment/si-pcma-v1-belief-probe-falsifier-20261019'
         run: pip install 'popgym==1.0.7'
       - name: POPGym published memory-positive control (nonconfirmatory)
         if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019'
@@ -40,5 +40,8 @@ jobs:
       - name: SI PCMA original paid-probe randomized factual screen (dev only)
         if: github.head_ref == 'experiment/si-pcma-v1-randomized-probe-gate-20261019'
         run: python -m tam_research.si_pcma_v1_randomized_probe_gate
+      - name: SI PCMA known-family classical belief probe ablation (development only)
+        if: github.head_ref == 'experiment/si-pcma-v1-belief-probe-falsifier-20261019'
+        run: python -m tam_research.si_pcma_v1_belief_probe_falsifier
       - name: Run tests
         run: pytest -q
