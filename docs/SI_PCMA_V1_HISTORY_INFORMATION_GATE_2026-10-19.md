@@ -31,3 +31,9 @@ Original unchanged v26 already has **NO-GO**. PCMA remains **UNKNOWN** unless ea
 
 ## Security and provenance limitations
 The developer world process uses public JSONL feedback but shares OS account with the controller; it is not a sandbox. The data generator is public code and can be overfit. No part of this PR reserves seeds, accesses private heldout worlds or trains a model with a confirmatory budget. Any world score here is **descriptive, exploratory, and potentially distribution-dependent**.
+
+
+## Fixed CPU-only developer screen in PR CI
+This isolated PR's CI includes an additional **read-only, development-only** step invoking `python -m tam_research.si_pcma_v1_history_information`. It uses 8 predefined development-training worlds (fixture seeds 11–18) and 8 nonoverlapping development-validation worlds (31–38), cycling through stable/shift/noisy/long scenarios, 2 sessions each, fixed first-arm randomizers 23/24. It logs the **same actual** validation-first-arm factual two-step outcomes for all four cheap forecasters, prints per-independent-world MSE and unweighted world means, and hardcodes the warning `NOT scientific validation; NOT a novel seed reservation; NOT a PCMA verdict`.
+
+These developer fixture IDs are NOT reserved or available as scientific seeds and this report does NOT train or evaluate neural PCMA. The workflow step is conditional on this exact experimental branch name; it is not a scheduled research job and does not touch `main`. Its values are exploratory and cannot support a scientific breakthrough claim, statistical significance, or promotion. In particular, no independent world distribution, complete cost-parity audit, preregistered gain threshold or external heldout trial exists. No benchmark tuning may be done in response to this first descriptive report.
