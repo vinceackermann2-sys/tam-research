@@ -267,3 +267,37 @@ def development_history_information_audit(
         may_evaluate_heldout=False,
         may_claim_architecture_gain=False,
     )
+
+
+def print_fixed_development_screen() -> None:
+    """Emit one developer-only descriptive report; NEVER an approval.
+
+    The configuration is hardcoded for reviewability. This is NOT a unique
+    scientific attempt or independent unseen-law confirmation. Re-running it
+    does not generate an independent replication. No heldout rule is created.
+    """
+    from dataclasses import asdict
+    import json
+
+    train = tuple(OODWorldConfig(seed, "development", scenario)
+                  for seed, scenario in (
+                      (11, "stable"), (12, "shift"), (13, "noisy"), (14, "long"),
+                      (15, "stable"), (16, "shift"), (17, "noisy"), (18, "long")))
+    validation = tuple(OODWorldConfig(seed, "development", scenario)
+                       for seed, scenario in (
+                           (31, "stable"), (32, "shift"), (33, "noisy"),
+                           (34, "long"), (35, "stable"), (36, "shift"),
+                           (37, "noisy"), (38, "long")))
+    report = development_history_information_audit(
+        train, validation,
+        training_randomization_fixture=23,
+        validation_randomization_fixture=24, sessions=2,
+    )
+    print("NONCONFIRMATORY SI PCMA HISTORY DEVELOPMENT DIAGNOSTIC")
+    print("NOT scientific validation; NOT a novel seed reservation; NOT a PCMA verdict")
+    print(json.dumps(asdict(report), sort_keys=True, indent=2,
+                     allow_nan=False))
+
+
+if __name__ == "__main__":
+    print_fixed_development_screen()
