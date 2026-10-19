@@ -26,13 +26,16 @@ jobs:
         if: github.head_ref == 'experiment/si-pcma-v1-history-information-gate-20261019'
         run: python -m tam_research.si_pcma_v1_history_information
       - name: Install pinned external POPGym memory benchmark (this PR only)
-        if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019'
+        if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019'
         run: pip install 'popgym==1.0.7'
       - name: POPGym published memory-positive control (nonconfirmatory)
-        if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019'
+        if: github.head_ref == 'experiment/si-pcma-v1-published-memory-controls-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019'
         run: python -m tam_research.si_pcma_v1_published_memory
       - name: Run original SI hybrid vs Transformer POPGym CPU pilot (nonconfirmatory)
-        if: github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019'
+        if: github.head_ref == 'experiment/si-pcma-v1-popgym-neural-pilot-20261019' || github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019'
         run: python -m tam_research.si_pcma_v1_popgym_neural_pilot
+      - name: SI PCMA public-factual online ablations on POPGym (development only)
+        if: github.head_ref == 'experiment/si-pcma-v1-popgym-factual-ablation-20261019'
+        run: python -m tam_research.si_pcma_v1_popgym_factual_ablation
       - name: Run tests
         run: pytest -q
