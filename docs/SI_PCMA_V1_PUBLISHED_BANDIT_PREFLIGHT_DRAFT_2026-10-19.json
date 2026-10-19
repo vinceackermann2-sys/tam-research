@@ -1,13 +1,13 @@
 {
   "schema": "si-pcma-v1-science-preflight-draft/1",
   "research_lineage": "original-screenshot-SI/PCMA-v1",
-  "source_commit": "13739b1f185cdfccca1cc4ff8c39ec0bdf5e5646",
+  "source_commit": "9daf4688f7f59839b50501b7e4941a9b93db9153",
   "source_blobs": {
     "tam_research/si_original_hybrid_v0.py": "575c17dc2f39a29d930d82179aa0c96dcbdc7d0f",
     "tam_research/si_pcma_v1_attempt_audit.py": "5773e16ee908d41c62656e6dff8cbbc89efb35c1",
     "tam_research/si_pcma_v1_calibration.py": "50532d071cb269510ce3c33c8102e92b6072f91f",
     "tam_research/si_pcma_v1_cost_profile.py": "963a4ef442daba76da739d000195ff2005f8201c",
-    "tam_research/si_pcma_v1_external_bandit.py": "6856049e1b97869ccf714eae98ec87d745801e76",
+    "tam_research/si_pcma_v1_external_bandit.py": "c8f1f8fe97f8feb9bf08489d074e5e20be7fb838",
     "tam_research/si_pcma_v1_factual_learning.py": "80a017190d68761c2c3ab0e0773c37eb53e58565",
     "tam_research/si_pcma_v1_fair_comparison.py": "5d7dcdc257674c44285d1a75c3e04845d31ddd09",
     "tam_research/si_pcma_v1_history_information.py": "23a6162d0cd1df9c094cae28ff3be0e77644834f",
