@@ -1,0 +1,82 @@
+{
+  "seed": 202610313,
+  "arm": "public_gate_prior",
+  "rows": [
+    {
+      "case": "first_set_length2048",
+      "gap": 2047,
+      "examples": 256,
+      "original_accuracy": 0.5,
+      "probe_accuracy": 0.515625,
+      "class0": 0.453125,
+      "class1": 0.578125,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "first_set_length4096",
+      "gap": 4095,
+      "examples": 256,
+      "original_accuracy": 0.5,
+      "probe_accuracy": 0.5,
+      "class0": 0.4375,
+      "class1": 0.5625,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap1",
+      "gap": 1,
+      "examples": 128,
+      "original_accuracy": 1.0,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 1.0
+    },
+    {
+      "case": "last_write_gap16",
+      "gap": 16,
+      "examples": 128,
+      "original_accuracy": 1.0,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap127",
+      "gap": 127,
+      "examples": 128,
+      "original_accuracy": 0.9765625,
+      "probe_accuracy": 0.8671875,
+      "class0": 1.0,
+      "class1": 0.734375,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap511",
+      "gap": 511,
+      "examples": 128,
+      "original_accuracy": 0.734375,
+      "probe_accuracy": 0.984375,
+      "class0": 0.984375,
+      "class1": 0.984375,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap1023",
+      "gap": 1023,
+      "examples": 128,
+      "original_accuracy": 0.515625,
+      "probe_accuracy": 0.9296875,
+      "class0": 0.921875,
+      "class1": 0.9375,
+      "erased_carry_probe_accuracy": 0.5
+    }
+  ],
+  "gate_passed": false,
+  "base_checkpoint_sha256": "5124eafd7d6d1be5cb516657b32d7de54839d5f5f559ae205f470be83745ef90",
+  "probe_checkpoint_sha256": "605ae90991985defd0f95aa0dfca76727ca31847c18290d208ce4061ddb6ce8e",
+  "source_sha256": "9afb38f29c29b9cfc6defdc4f163e8a89c40dd20f4efd23a7d2970d9bbf8d1c2",
+  "training_exposures": 0,
+  "breakthrough_demonstrated": false
+}

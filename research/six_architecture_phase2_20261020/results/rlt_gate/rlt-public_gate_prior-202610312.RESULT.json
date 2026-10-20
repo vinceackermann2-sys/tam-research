@@ -1,0 +1,78 @@
+{
+  "seed": 202610312,
+  "arm": "public_gate_prior",
+  "parameters": 27712,
+  "training_exposures": 1363200,
+  "rows": [
+    {
+      "length": 128,
+      "carry": true,
+      "accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "nll": 0.005171936471015215
+    },
+    {
+      "length": 256,
+      "carry": true,
+      "accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "nll": 0.005343144293874502
+    },
+    {
+      "length": 512,
+      "carry": true,
+      "accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "nll": 0.005759278312325478
+    },
+    {
+      "length": 1024,
+      "carry": true,
+      "accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "nll": 0.007619312033057213
+    },
+    {
+      "length": 128,
+      "carry": false,
+      "accuracy": 0.5,
+      "class0": 0.0,
+      "class1": 1.0,
+      "nll": 3.393744945526123
+    },
+    {
+      "length": 256,
+      "carry": false,
+      "accuracy": 0.5,
+      "class0": 0.0,
+      "class1": 1.0,
+      "nll": 3.393723964691162
+    },
+    {
+      "length": 512,
+      "carry": false,
+      "accuracy": 0.5,
+      "class0": 0.0,
+      "class1": 1.0,
+      "nll": 3.399787187576294
+    },
+    {
+      "length": 1024,
+      "carry": false,
+      "accuracy": 0.5,
+      "class0": 0.0,
+      "class1": 1.0,
+      "nll": 3.3976755142211914
+    }
+  ],
+  "seconds": 505.26600000000326,
+  "gate_passed": true,
+  "checkpoint_sha256": "f988e2e18133d7381e20df15be194e39d49530da903b7429369fddb3c1e7a735",
+  "source_sha256": "69aa5b4c6c9accfc9577ef4e8ac3483b84d9621f52922c7e3d3474c291c407dc",
+  "extra_visible_command_supervision": true,
+  "breakthrough_demonstrated": false
+}

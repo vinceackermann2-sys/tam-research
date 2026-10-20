@@ -1,0 +1,53 @@
+{
+  "seed": 202610302,
+  "rows": [
+    {
+      "condition": "baseline",
+      "forced_depth2_accuracy": 0.13525390625,
+      "forced_depth1_accuracy": 0.2666015625,
+      "gated_accuracy": 0.64990234375,
+      "searched_fraction": 0.4853515625
+    },
+    {
+      "condition": "repaired",
+      "forced_depth2_accuracy": 1.0,
+      "forced_depth1_accuracy": 1.0,
+      "gated_accuracy": 1.0,
+      "searched_fraction": 0.0
+    },
+    {
+      "condition": "restore_transition",
+      "forced_depth2_accuracy": 0.0556640625,
+      "forced_depth1_accuracy": 0.2666015625,
+      "gated_accuracy": 1.0,
+      "searched_fraction": 0.0
+    },
+    {
+      "condition": "restore_reward_head",
+      "forced_depth2_accuracy": 1.0,
+      "forced_depth1_accuracy": 1.0,
+      "gated_accuracy": 1.0,
+      "searched_fraction": 0.0
+    },
+    {
+      "condition": "restore_value_head",
+      "forced_depth2_accuracy": 1.0,
+      "forced_depth1_accuracy": 1.0,
+      "gated_accuracy": 1.0,
+      "searched_fraction": 0.0
+    },
+    {
+      "condition": "restore_verifier",
+      "forced_depth2_accuracy": 1.0,
+      "forced_depth1_accuracy": 1.0,
+      "gated_accuracy": 1.0,
+      "searched_fraction": 0.4853515625
+    }
+  ],
+  "baseline_checkpoint_sha256": "56f869d310f000cf2b1f86f54ef92cd0bdd534ccd4e97d6cb817dff203d66771",
+  "repaired_checkpoint_sha256": "663992a135000fa9a9f1dc1955c5d73204aa01829df118ad878e83912ea3ee79",
+  "source_sha256": "a011d745eb5f468e38e710ce21b9d627b294201616eec87020f3ecb13e05d170",
+  "optimizer_updates": 0,
+  "evaluation_samples_reused": true,
+  "representation_fixed_and_identical": true
+}

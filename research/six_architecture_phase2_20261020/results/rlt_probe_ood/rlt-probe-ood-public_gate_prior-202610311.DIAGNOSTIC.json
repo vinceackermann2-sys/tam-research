@@ -1,0 +1,82 @@
+{
+  "seed": 202610311,
+  "arm": "public_gate_prior",
+  "rows": [
+    {
+      "case": "first_set_length2048",
+      "gap": 2047,
+      "examples": 256,
+      "original_accuracy": 0.5,
+      "probe_accuracy": 0.5,
+      "class0": 0.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "first_set_length4096",
+      "gap": 4095,
+      "examples": 256,
+      "original_accuracy": 0.5,
+      "probe_accuracy": 0.5,
+      "class0": 0.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap1",
+      "gap": 1,
+      "examples": 128,
+      "original_accuracy": 1.0,
+      "probe_accuracy": 0.5,
+      "class0": 0.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap16",
+      "gap": 16,
+      "examples": 128,
+      "original_accuracy": 1.0,
+      "probe_accuracy": 0.5078125,
+      "class0": 0.015625,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap127",
+      "gap": 127,
+      "examples": 128,
+      "original_accuracy": 0.7265625,
+      "probe_accuracy": 0.8359375,
+      "class0": 1.0,
+      "class1": 0.671875,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap511",
+      "gap": 511,
+      "examples": 128,
+      "original_accuracy": 0.7265625,
+      "probe_accuracy": 0.71875,
+      "class0": 1.0,
+      "class1": 0.4375,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "case": "last_write_gap1023",
+      "gap": 1023,
+      "examples": 128,
+      "original_accuracy": 0.5,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    }
+  ],
+  "gate_passed": false,
+  "base_checkpoint_sha256": "004b9d80872ad0e5f3d132cecead05f891fbe5005382ab7c5ec99b4b082265b7",
+  "probe_checkpoint_sha256": "65bb19d5c99c1d4b3118759ffb441293d60ab8ef55f9e89cb12ed17cd6cc8e27",
+  "source_sha256": "9afb38f29c29b9cfc6defdc4f163e8a89c40dd20f4efd23a7d2970d9bbf8d1c2",
+  "training_exposures": 0,
+  "breakthrough_demonstrated": false
+}

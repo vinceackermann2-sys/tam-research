@@ -1,0 +1,74 @@
+{
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "torch": "2.11.0+cu130",
+  "python": "3.13.15",
+  "records": [
+    {
+      "variant": "transformer",
+      "parameters": 99837440,
+      "ff_hidden": 1968,
+      "batch": 16,
+      "context": 512,
+      "step_seconds": [
+        1.340372570999989,
+        0.09437394300002211,
+        0.09125637299999312,
+        0.08011394500002211,
+        0.08031574899999327,
+        0.08029368900000122,
+        0.08032377000000679,
+        0.0800564060000113
+      ],
+      "steady_tokens_per_second": 102118.26617074833,
+      "peak_gib": 9.29522705078125,
+      "flash_attention_required": true,
+      "tokens_seen": 65536,
+      "purpose": "synthetic hardware preflight; discarded model; no efficacy claim"
+    },
+    {
+      "variant": "attention8",
+      "parameters": 99829248,
+      "ff_hidden": 2651,
+      "batch": 16,
+      "context": 512,
+      "step_seconds": [
+        0.10610080799997945,
+        0.10313824300001784,
+        0.10324385399999869,
+        0.10308767899999793,
+        0.10321409200000176,
+        0.1031427899999926,
+        0.10318687399998794,
+        0.10323179400000981
+      ],
+      "steady_tokens_per_second": 79400.89096755681,
+      "peak_gib": 8.919132232666016,
+      "flash_attention_required": true,
+      "tokens_seen": 65536,
+      "purpose": "synthetic hardware preflight; discarded model; no efficacy claim"
+    },
+    {
+      "variant": "conv7",
+      "parameters": 99837456,
+      "ff_hidden": 2649,
+      "batch": 16,
+      "context": 512,
+      "step_seconds": [
+        0.14054010699999253,
+        0.11682180299999345,
+        0.11689299000002507,
+        0.11674398799999608,
+        0.11693310300000803,
+        0.11680229699999245,
+        0.11687400999997521,
+        0.11692977399999904
+      ],
+      "steady_tokens_per_second": 70102.99451171263,
+      "peak_gib": 9.425827980041504,
+      "flash_attention_required": true,
+      "tokens_seen": 65536,
+      "purpose": "synthetic hardware preflight; discarded model; no efficacy claim"
+    }
+  ],
+  "script_sha256": "c4ba3994c7ff4b38dba965355330b60550103d18effdc2666af08589686509fb"
+}

@@ -1,0 +1,4355 @@
+{
+  "seed": 202610203,
+  "summary": {
+    "1": {
+      "accuracy": 0.5,
+      "target_state_selected": 1.0,
+      "mean_target_query_coefficient": 0.0037043047365538464,
+      "target_coefficient_below_1e_3": 0.6,
+      "mean_slots_used": 1.1055555555555556,
+      "mean_most_used_slot_fraction": 0.9941357996728685
+    },
+    "2": {
+      "accuracy": 0.5,
+      "target_state_selected": 1.0,
+      "mean_target_query_coefficient": 0.0006726012603141701,
+      "target_coefficient_below_1e_3": 0.8,
+      "mean_slots_used": 1.1,
+      "mean_most_used_slot_fraction": 0.994722220963902
+    },
+    "4": {
+      "accuracy": 0.5,
+      "target_state_selected": 1.0,
+      "mean_target_query_coefficient": 2.2333596746499435e-05,
+      "target_coefficient_below_1e_3": 1.0,
+      "mean_slots_used": 1.2277777777777779,
+      "mean_most_used_slot_fraction": 0.9888888852463829
+    }
+  },
+  "rows": [
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.213695193466265e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.309541847964283e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.02773684982094e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.664894160872791e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.610272642617929e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.409359346231213e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.735729741398245e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.293179154046811e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00014506674779113382
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.5497573258471675e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.5644468375248834e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.766734491568059e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.000184977674507536
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0003204295935574919
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00034760148264467716
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0001715839171083644
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00025043392088264227
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00028842873871326447
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0006077532889321446
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015361299738287926
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018317754147574306
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00270080822519958
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0030112771783024073
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001967714400961995
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.016783863306045532
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.015116224996745586
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.015993725508451462
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0062542264349758625
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.014203331433236599
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.012928524054586887
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.0841456464258954e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.5868843042408116e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.0078221496078186e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.7374477415141882e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.024231076182332e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.878041520190891e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0001425000955350697
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.412063935888e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.049686660640873e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.788638448691927e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.9033834178117104e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00011854003241751343
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00028700067196041346
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00027196420705877244
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00044502419768832624
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00011437437206041068
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0010586599819362164
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0002665284264367074
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0016798606375232339
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002258081454783678
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.009333810769021511
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015848861075937748
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0023495920468121767
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0010838155867531896
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01196766085922718
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.012952003628015518
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.040739282965660095
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.013424300588667393
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.02880166471004486
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.010100072249770164
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.399536348704714e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.866354290948948e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.846418738045031e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.527891052130144e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.3311745280807372e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.94796665609465e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.49795406893827e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.973345726786647e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.029208296036813e-06
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.450421015964821e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.168222924112342e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.57877273322083e-05
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0005777909536845982
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00013375769776757807
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00010637311788741499
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00021437874238472432
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0004802703915629536
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0002315768360858783
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0020407892297953367
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0024579111486673355
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0026074263732880354
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003136261133477092
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002038237638771534
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018090729136019945
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.014633046463131905
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.013217730447649956
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.014349548146128654
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.011960354633629322
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.011603671126067638
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01742483302950859
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.4339457266032696e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.03706393273751e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.88651596949785e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.136520588981512e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.4720851595484419e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.1041993275284767e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.76786339681712e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.619738319888711e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.2202054676890839e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.942587111145258e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.6649933058943134e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.70702832697134e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.867793151992373e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.3024668886791915e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.5304518203483894e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.980166729888879e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00028616408235393465
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.1755800591781735e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00024386141740251333
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00028018056764267385
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00013975932961329818
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00024117993598338217
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0005947420722804964
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0003464529581833631
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003092409111559391
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015182545175775886
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0030885650776326656
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018696060869842768
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018230564892292023
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001559043419547379
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.882751328404993e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.38271921818523e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.3666754057339858e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.0474651617187192e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.741360382671701e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.778554049764352e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.6018959740904393e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.682047114736633e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.699891284573823e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.66609639665694e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.148428994696587e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.016838713345351e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.6644749090773985e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.020111711928621e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.9578295400133356e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.4047701521776617e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.182298577390611e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.473977969610132e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.000413135887356475
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 8.659182640258223e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00038750897510908544
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00021925607870798558
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0006312814075499773
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0002537716936785728
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0014709554379805923
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0019525740062817931
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01026573684066534
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001955009764060378
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0030232758726924658
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001956061227247119
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.4580289189325413e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.819702432243503e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.1637348507065326e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.31345653043536e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.4231682143872604e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 8.947208698373288e-07
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.198597581416834e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 8.266567419923376e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.017612339637708e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.4669329731259495e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.52030677581206e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.409526577044744e-06
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.6125151129672304e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.90878485632129e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.756277096224949e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.970168447471224e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.6238579670898616e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.10358009301126e-05
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.000490451930090785
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0002160988951800391
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00038195826346054673
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00030336296185851097
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0005039341049268842
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00034462418989278376
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0030161752365529537
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007046636193990707
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0023137256503105164
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0026126885786652565
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0027282091323286295
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018975100247189403
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.591744927675336e-09
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.05134007558172e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.271812852924995e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.6167644051611205e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.078928542294307e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 8.479845092779215e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.2678696609546023e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.0853262583386822e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.3480747586290818e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.975063383952147e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.0788269239346846e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.89732261901554e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.8975603097715066e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.082128945512522e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.336765975196613e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.1254802529947483e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.7796709244066733e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.1787800531237735e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.041581739031244e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.981940375932027e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.3313981071405578e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.197649104753509e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.1282248528441414e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.705976491299225e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00019598257495090365
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.707630068878643e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.000148977356730029
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.498760634101927e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 8.079380495473742e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.228891677688807e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.7576644967552966e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.7003711267070685e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.7904816113941706e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.5784169466191997e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.0602487533524254e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.29863577061451e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.9575093662970176e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.81760434165335e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.779355187636611e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.608884699384362e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.551574311837612e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.3022218442747544e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.1710105809470406e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.4209127812137012e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.2943704632562003e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.566663384750427e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.956008746783482e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 5.30124395936582e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.0773903341032565e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00028025233768858016
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.7500107787782326e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.549762484704843e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.3460592274204828e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.9892883048887597e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0001386583608109504
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.878422259935178e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.666357067937497e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.448524512350559e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00014446667046286166
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.696946052717976e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.120054969940611e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.0401723926634077e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 2.970538659496924e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.38146933892358e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00012825769954361022
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.4745878113872095e-09
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.4622414091245446e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.299977618416051e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.6656510126722424e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.050121553220379e-08
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.4707957752289076e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.77118593569503e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.917929466799251e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.999930744517769e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.560262376187893e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.60394551535137e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.0554468796472065e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 9.34026672894106e-07
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.57594625611091e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 1.9066798131461837e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.68795234762365e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.813140549231321e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 7.474404355889419e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 3.1064453196449904e-06
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 6.391100760083646e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.722030644188635e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00010544771066633984
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.741749580716714e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00010193978232564405
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 4.21582990384195e-05
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    }
+  ],
+  "checkpoint_sha256": "33ef226b488659cb5faf485d97a984db861aed0a38a16b2844a45f395e59700c",
+  "optimizer_updates": 0,
+  "source_sha256": "e35790c43cb96c346a79e63f60d2efc5c403a559ce4fc775030e965256c27b68",
+  "breakthrough_demonstrated": false
+}

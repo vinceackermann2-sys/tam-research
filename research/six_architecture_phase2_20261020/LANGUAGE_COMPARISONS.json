@@ -1,0 +1,16 @@
+[
+  {
+    "variant": "attention8",
+    "tokens": 99999744,
+    "delta_mean_nll": 0.05757848988287151,
+    "approximate_95_percent_block_bootstrap_interval": [
+      0.05486366671975702,
+      0.06034442773670889
+    ],
+    "blocks": 1024,
+    "interpretation": "paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction",
+    "training_speed_ratio": 1.1319520463090416,
+    "parameters": 99558912,
+    "control_parameters": 99837440
+  }
+]

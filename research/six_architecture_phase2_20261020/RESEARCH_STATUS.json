@@ -1,0 +1,16 @@
+{
+  "language_complete": false,
+  "language_lineages": 2,
+  "language_segments_complete": 2,
+  "language_max_parameters": 99837440,
+  "language_max_exposures": 99999744,
+  "si_lineages": 3,
+  "rlt_lineages": 6,
+  "pgw_diagnostics": 3,
+  "chm_diagnostics": 3,
+  "all_recorded_caps_passed": true,
+  "breakthrough_demonstrated": false,
+  "rlt_frozen_state_probes": 6,
+  "rlt_probe_ood_gates_passed": 0,
+  "gates": []
+}

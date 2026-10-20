@@ -1,0 +1,51 @@
+{
+  "seed": 202610311,
+  "arm": "native",
+  "rows": [
+    {
+      "length": 128,
+      "max_numeric_gate_pair_delta": 1.7881393432617188e-07,
+      "mean_absolute_bit_state_difference": 0.22119513154029846,
+      "max_absolute_bit_state_difference": 1.0646024942398071,
+      "exactly_identical_pair_fraction": 0.0,
+      "mean_largest_gate_survival_product": 0.9392095804214478,
+      "mean_theoretical_bit_state_difference": 0.22119510173797607,
+      "interpretation": "future gates differ by float32 rounding noise; diagonal-product comparison is approximate and native tiny state separation can include that noise; readout accuracy is separate"
+    },
+    {
+      "length": 256,
+      "max_numeric_gate_pair_delta": 1.7881393432617188e-07,
+      "mean_absolute_bit_state_difference": 0.17767763137817383,
+      "max_absolute_bit_state_difference": 0.9953207969665527,
+      "exactly_identical_pair_fraction": 0.0,
+      "mean_largest_gate_survival_product": 0.8782994747161865,
+      "mean_theoretical_bit_state_difference": 0.17767764627933502,
+      "interpretation": "future gates differ by float32 rounding noise; diagonal-product comparison is approximate and native tiny state separation can include that noise; readout accuracy is separate"
+    },
+    {
+      "length": 512,
+      "max_numeric_gate_pair_delta": 1.7881393432617188e-07,
+      "mean_absolute_bit_state_difference": 0.1297525316476822,
+      "max_absolute_bit_state_difference": 0.8702012300491333,
+      "exactly_identical_pair_fraction": 0.0,
+      "mean_largest_gate_survival_product": 0.7680814862251282,
+      "mean_theoretical_bit_state_difference": 0.12975256145000458,
+      "interpretation": "future gates differ by float32 rounding noise; diagonal-product comparison is approximate and native tiny state separation can include that noise; readout accuracy is separate"
+    },
+    {
+      "length": 1024,
+      "max_numeric_gate_pair_delta": 1.7881393432617188e-07,
+      "mean_absolute_bit_state_difference": 0.07598108798265457,
+      "max_absolute_bit_state_difference": 0.6649776697158813,
+      "exactly_identical_pair_fraction": 0.0,
+      "mean_largest_gate_survival_product": 0.5868958234786987,
+      "mean_theoretical_bit_state_difference": 0.07598112523555756,
+      "interpretation": "future gates differ by float32 rounding noise; diagonal-product comparison is approximate and native tiny state separation can include that noise; readout accuracy is separate"
+    }
+  ],
+  "checkpoint_sha256": "09451869e975d4159fa9e5f885efccd72d45a0852310819eb6c55562a4b93260",
+  "source_sha256": "e06f2498b08b766cb505c884ce3808b5627c7e5f01752042429240c9ce1ceadc",
+  "optimizer_updates": 0,
+  "classification": "POSTHOC_STATE_ATTENUATION_WITH_FLOAT32_TOLERANCE",
+  "new_examples_namespace": 73000000
+}

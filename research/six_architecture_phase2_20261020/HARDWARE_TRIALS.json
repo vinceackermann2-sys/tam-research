@@ -1,0 +1,16 @@
+{
+  "nearest_rounding_meta_counts": {
+    "transformer": 99837440,
+    "attention8": 99952128,
+    "conv7": 100009488,
+    "cpw_local": 99674432
+  },
+  "conv7_optimizer_updates": 0,
+  "guard_rejected": true,
+  "retained_hardware_only_record_files": [
+    "PREFLIGHT.json",
+    "ALIGNED_V2_PREFLIGHT.json"
+  ],
+  "failed_trial_has_no_efficacy_metrics": true,
+  "source": "aligned_preflight.py assert before optimizer creation/update"
+}

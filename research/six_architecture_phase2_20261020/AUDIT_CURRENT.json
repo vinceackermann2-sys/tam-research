@@ -1,0 +1,43 @@
+{
+  "utc": "2026-10-20T10:23:31.981019+00:00",
+  "all_checked_caps_passed": true,
+  "immutable_source_checks": 39,
+  "checkpoint_sets_checked": 20,
+  "checkpoint_sets": [
+    "results\\si_repair\\si-202610301-repair.pt",
+    "results\\si_repair\\si-202610301-policy.pt",
+    "results\\si_repair\\si-202610302-repair.pt",
+    "results\\si_repair\\si-202610302-policy.pt",
+    "results\\si_repair\\si-202610303-repair.pt",
+    "results\\si_repair\\si-202610303-policy.pt",
+    "results\\rlt_gate\\rlt-native-202610311.pt",
+    "results\\rlt_gate\\rlt-native-202610312.pt",
+    "results\\rlt_gate\\rlt-native-202610313.pt",
+    "results\\rlt_gate\\rlt-public_gate_prior-202610311.pt",
+    "results\\rlt_gate\\rlt-public_gate_prior-202610312.pt",
+    "results\\rlt_gate\\rlt-public_gate_prior-202610313.pt",
+    "results\\rlt_probe\\rlt-probe-native-202610311.pt",
+    "results\\rlt_probe\\rlt-probe-native-202610312.pt",
+    "results\\rlt_probe\\rlt-probe-native-202610313.pt",
+    "results\\rlt_probe\\rlt-probe-public_gate_prior-202610311.pt",
+    "results\\rlt_probe\\rlt-probe-public_gate_prior-202610312.pt",
+    "results\\rlt_probe\\rlt-probe-public_gate_prior-202610313.pt",
+    "research_phase2_20261020:transformer-s12207 full optimizer chunks",
+    "l4_panel:transformer-s2442 full optimizer chunks"
+  ],
+  "source_files": [
+    "chm_address_diagnostic.py",
+    "pgw_workspace_diagnostic.py",
+    "rlt_gate_repair.py",
+    "rlt_probe_ood.py",
+    "rlt_readout_probe.py",
+    "rlt_state_diagnostic_v2.py",
+    "si_component_diagnostic.py",
+    "si_head_repair.py",
+    "train_panel.py"
+  ],
+  "largest_recorded_language_parameters": 99837440,
+  "largest_recorded_language_exposures": 99999744,
+  "language_confirmation_complete": false,
+  "infrastructure_unknowns_preserved": "INTERRUPTED_PANEL.json; missing parent binary is not a failure outcome"
+}

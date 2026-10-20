@@ -1,0 +1,4355 @@
+{
+  "seed": 202610201,
+  "summary": {
+    "1": {
+      "accuracy": 0.5,
+      "target_state_selected": 0.9888888888888889,
+      "mean_target_query_coefficient": 0.008792221048820971,
+      "target_coefficient_below_1e_3": 0.022222222222222223,
+      "mean_slots_used": 1.4388888888888889,
+      "mean_most_used_slot_fraction": 0.9311728361580107
+    },
+    "2": {
+      "accuracy": 0.5,
+      "target_state_selected": 0.9666666666666667,
+      "mean_target_query_coefficient": 0.006805095568739085,
+      "target_coefficient_below_1e_3": 0.044444444444444446,
+      "mean_slots_used": 1.4555555555555555,
+      "mean_most_used_slot_fraction": 0.9347222195731268
+    },
+    "4": {
+      "accuracy": 0.5,
+      "target_state_selected": 0.9222222222222223,
+      "mean_target_query_coefficient": 0.005145720345252711,
+      "target_coefficient_below_1e_3": 0.2222222222222222,
+      "mean_slots_used": 1.5166666666666666,
+      "mean_most_used_slot_fraction": 0.9467592553959953
+    }
+  },
+  "rows": [
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002727902727201581
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0012093277182430029
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005116347223520279
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0013796405401080847
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.5,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008011797443032265
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018145475769415498
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0033426762092858553
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0035812025889754295
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0023977048695087433
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004446737933903933
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005308164283633232
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6111111044883728,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.009310630150139332
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008870712481439114
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01449164655059576
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0060730502009391785
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006678367964923382
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005502345971763134
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0055021606385707855
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008306453004479408
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6666666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0373099185526371
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007732795551419258
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7777777910232544
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004434516653418541
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.009117730893194675
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008706089109182358
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.7222222089767456
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.013031895272433758
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.014291641302406788
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008566483855247498
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005327968392521143
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008385375142097473
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.016400041058659554
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0012450162321329117
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5555555820465088,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005660051479935646
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6666666865348816
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004119044169783592
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00480306101962924
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006357988808304071
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0036358560901135206
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004736770875751972
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0049841636791825294
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0032569551840424538
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005047440994530916
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0065710474736988544
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0050188698805868626
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004661968909204006
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008165055885910988
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6666666865348816
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007840427570044994
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7777777910232544,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.009992824867367744
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004722003359347582
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004761871416121721
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6111111044883728
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.016625864431262016
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7222222089767456,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01750950887799263
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.014139528386294842
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.011539540253579617
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005623404867947102
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.011433463543653488
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.015615805052220821
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7222222089767456
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.013774819672107697
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7777777910232544,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.018526358529925346
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.014470976777374744
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.012366202659904957
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.6111111044883728
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0013365602353587747
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.6111111044883728
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0028702360577881336
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00245594116859138
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0022667672019451857
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0041169291362166405
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0009165929513983428
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0032560911495238543
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004944944754242897
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004457262344658375
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.5555555820465088
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002683166414499283
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6666666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.024310000240802765
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008941944688558578
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005979979410767555
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01211533322930336
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0046584950760006905
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005418722052127123
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005044178105890751
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.009904931299388409
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8888888955116272,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006469345651566982
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007824599742889404
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006805623881518841
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00986885279417038
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.013333861716091633
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7777777910232544
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0057875956408679485
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7777777910232544,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.027599453926086426
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.7222222089767456,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.039272889494895935
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.020350616425275803
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7777777910232544,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.026863420382142067
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9444444179534912,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.016489911824464798
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 1,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.020373884588479996
+    },
+    {
+      "delay": 1,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7222222089767456
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0028935179580003023
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0024554720148444176
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0014612473314628005
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.8500000238418579
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0013662794372066855
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001221505575813353
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002040692139416933
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.75,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.05017894506454468
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0017906484426930547
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0014411050360649824
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0035178293474018574
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002339995699003339
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002532315207645297
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005859008990228176
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006485718302428722
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003980009350925684
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004464015830308199
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.800000011920929
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004538181237876415
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015346865402534604
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.800000011920929
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.019429469481110573
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006078100297600031
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0037247880827635527
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0038228861521929502
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6499999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01844022609293461
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.75
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006496727932244539
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.8500000238418579
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0106784887611866
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007329809945076704
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008934207260608673
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.011100462637841702
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01594715751707554
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0038543101400136948
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0019573878962546587
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.08523283898830414
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0023783836513757706
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0013528140261769295
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002842308022081852
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002084547420963645
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0035360227338969707
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004936428740620613
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003138517728075385
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004452768713235855
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0031238633673638105
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0029697043355554342
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00417420594021678
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008128264918923378
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005819476209580898
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004328284878283739
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004805858712643385
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005227542016655207
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007919932715594769
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004471954889595509
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0022235678043216467
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008365504443645477
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004706250037997961
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005285849329084158
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005518560763448477
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.800000011920929,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01897135004401207
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004709860775619745
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.015128378756344318
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.699999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008342169225215912
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008582214824855328
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002359904581680894
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.800000011920929
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002510753693059087
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0008711154223419726
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001765394932590425
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6000000238418579,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0031621025409549475
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.699999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001410161261446774
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004510886967182159
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015482556773349643
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0024059165734797716
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00263939774595201
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.75
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003097543027251959
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.699999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005596150644123554
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.699999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0037534828297793865
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00438620476052165
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002257653046399355
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001638993388041854
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0051524885930120945
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0049660601653158665
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01304323785007
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.550000011920929
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.01105949841439724
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004408395383507013
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007869244553148746
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007463569287210703
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007625698111951351
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.008781573735177517
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8500000238418579,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.024302059784531593
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8999999761581421
+    },
+    {
+      "delay": 2,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.949999988079071,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.013220238499343395
+    },
+    {
+      "delay": 2,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5833333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0009848965564742684
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0008257266017608345
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0012617741012945771
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015221842331811786
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0007924124947749078
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.75,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.038400571793317795
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0006738270749337971
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002194675849750638
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0013408520026132464
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0013726636534556746
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004075000062584877
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0014331863494589925
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001437308732420206
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0033151728566735983
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0017947646556422114
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0012539955787360668
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018036654219031334
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0020961372647434473
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0050737448036670685
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.004082503728568554
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7916666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.006556815467774868
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.005005531944334507
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0035945542622357607
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001726476475596428
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00158461625687778
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003714875550940633
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0005872576730325818
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.021917466074228287
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0799952894449234
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00033795705530792475
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.5
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.042829662561416626
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0009733889019116759
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002377094468101859
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00110159523319453
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0012185421073809266
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.875
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.8333333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0021153315901756287
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0009555768338032067
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0009574793512001634
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7916666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0023601078428328037
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002262464025989175
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0025574034079909325
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00128322490490973
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00220682704821229
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0036578327417373657
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.002691633300855756
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001380615052767098
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.625
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.022740419954061508
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5833333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003025632817298174
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0029651375953108072
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7083333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.042833469808101654
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00532563915476203
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.003257053205743432
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.03389284014701843
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.7083333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007824000902473927
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.8333333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.001478406018577516
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": false,
+      "target_query_read_coefficient": 0.0
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018377184169366956
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0013403388438746333
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0011752406135201454
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00024263071827590466
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015465948963537812
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0016348969656974077
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0014039918314665556
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.6666666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.009690611623227596
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0009561023325659335
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0005421556998044252
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0017711591208353639
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018349805613979697
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0007601851830258965
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.5416666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018948715878650546
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9166666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0015809644246473908
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0011551622301340103
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0020031759049743414
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0022140983492136
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00157838873565197
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0037288854364305735
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.7916666865348816
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0021823805291205645
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0010194439673796296
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.875,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.00353531027212739
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0044553992338478565
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0031955752056092024
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 3,
+      "most_used_slot_fraction": 0.625
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.007327329833060503
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 2,
+      "most_used_slot_fraction": 0.9583333134651184,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0056146434508264065
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    },
+    {
+      "delay": 4,
+      "missing": false,
+      "correct": false,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0,
+      "target_value_visible_to_selected_state": true,
+      "target_query_read_coefficient": 0.0018653121078386903
+    },
+    {
+      "delay": 4,
+      "missing": true,
+      "correct": true,
+      "slots_used": 1,
+      "most_used_slot_fraction": 1.0
+    }
+  ],
+  "checkpoint_sha256": "f2302179b85e668dad7b3910e25ec9c83ead797097abc790be22a225f53e61d8",
+  "optimizer_updates": 0,
+  "source_sha256": "e35790c43cb96c346a79e63f60d2efc5c403a559ce4fc775030e965256c27b68",
+  "breakthrough_demonstrated": false
+}
