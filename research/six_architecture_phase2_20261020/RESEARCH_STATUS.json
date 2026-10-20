@@ -1,8 +1,10 @@
 {
   "language_complete": false,
+  "language_training_complete": false,
   "interrupted_a100_complete": false,
-  "language_lineages": 2,
-  "language_segments_complete": 2,
+  "language_lineages": 5,
+  "language_segments_complete": 5,
+  "interrupted_a100_segments_complete": 2,
   "language_max_parameters": 99837440,
   "language_max_exposures": 99999744,
   "si_lineages": 3,

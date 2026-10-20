@@ -1,6 +1,15 @@
 {
-  "utc": 1792493203.030286,
-  "phase": "awaiting_reservation_backup",
+  "utc": 1792493363.7136471,
+  "phase": "training",
   "current": "cpw_local",
+  "stage": 2442,
+  "progress": {
+    "step": 512,
+    "tokens": 4194304,
+    "loss": 6.349411964416504,
+    "lr": 0.00029999919645919647,
+    "train_seconds": 128.90295505900303,
+    "grad_norm": 0.8277333378791809
+  },
   "complete": false
 }

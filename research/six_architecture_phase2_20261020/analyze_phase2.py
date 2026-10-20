@@ -37,9 +37,16 @@ def main():
     write('LANGUAGE_COMPARISONS.json',comparisons)
     with (ROOT/'LANGUAGE_RESULTS.csv').open('w',newline='') as f:
         w=csv.DictWriter(f,fieldnames=['lineage','parameters','tokens','step','validation_nll','train_tps']);w.writeheader();w.writerows(ledger)
-    result={'language_complete':bool(l4 and l4['complete']),'interrupted_a100_complete':evidence.get('complete',False),'language_lineages':len({r['lineage'] for r in ledger}),
-        'language_segments_complete':len(ledger),'language_max_parameters':max([r['parameters'] for r in ledger],default=0),
-        'language_max_exposures':max([r['tokens'] for r in ledger],default=0),'si_lineages':len(si),'rlt_lineages':len(rlt),
+    l4_rows=l4['segment_records'] if l4 else []
+    all_parameters=[r['parameters'] for r in ledger]+[r['parameters'] for r in l4_rows]
+    all_exposures=[r['tokens'] for r in ledger]+[r['tokens_seen'] for r in l4_rows]
+    confirmation_complete=bool(l4 and l4['complete']) and all((ROOT/'l4_panel'/name).exists() and load('l4_panel/'+name).get('complete',False) for name in ('INFERENCE.json','BENCHMARKS.json'))
+    result={'language_complete':confirmation_complete,'language_training_complete':bool(l4 and l4['complete']),
+        'interrupted_a100_complete':evidence.get('complete',False),
+        'language_lineages':len({('interrupted_a100',r['lineage']) for r in ledger}|{('l4_paired',r['variant']) for r in l4_rows}),
+        'language_segments_complete':len(ledger)+len(l4_rows),'interrupted_a100_segments_complete':len(ledger),
+        'language_max_parameters':max(all_parameters,default=0),
+        'language_max_exposures':max(all_exposures,default=0),'si_lineages':len(si),'rlt_lineages':len(rlt),
         'pgw_diagnostics':len(pgw),'chm_diagnostics':len(chm),'all_recorded_caps_passed':True,'breakthrough_demonstrated':False,
         'rlt_frozen_state_probes':len(probes),'rlt_probe_ood_gates_passed':sum(r['gate_passed'] for r in probe_ood),
         'gates':evidence['gates'],'l4_scientific_comparisons':len(l4['scientific_comparisons']) if l4 else 0,
