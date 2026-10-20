@@ -1,0 +1,61 @@
+{
+  "trial": "L4_NEW_PAIRED_SEED",
+  "seed": 202610321,
+  "complete": false,
+  "segment_records": [
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "attention8",
+      "parameters": 99558912,
+      "tokens_seen": 20004864,
+      "step": 2442,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 20004864,
+      "validation_nll": 5.7423985889181495,
+      "training_tokens_per_second": 32000.48250492171
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "conv7",
+      "parameters": 99616272,
+      "tokens_seen": 20004864,
+      "step": 2442,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 20004864,
+      "validation_nll": 5.630748045630753,
+      "training_tokens_per_second": 28851.57630938534
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "transformer",
+      "parameters": 99837440,
+      "tokens_seen": 20004864,
+      "step": 2442,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 20004864,
+      "validation_nll": 5.735424724873155,
+      "training_tokens_per_second": 29859.187320373963
+    }
+  ],
+  "scientific_comparisons": [],
+  "unavailable_comparisons": [],
+  "gates": [],
+  "terminal": [],
+  "breakthrough_demonstrated": false,
+  "limitations": [
+    "One paired seed; token-block bootstrap intervals are descriptive.",
+    "Intermediate backup validations do not select checkpoints or authorize continuation.",
+    "Terminal models stopped at different budgets are not matched-budget comparisons.",
+    "A100 measurements belong to the separate interrupted trial.",
+    "Training throughput excludes input preparation, transfers, evaluation and backup time."
+  ]
+}

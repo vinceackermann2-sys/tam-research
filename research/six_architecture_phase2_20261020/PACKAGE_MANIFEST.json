@@ -12,17 +12,21 @@
       "bytes": 1696,
       "sha256": "1d623e05895de5001c08ca8cc2dd83f0452cdc845968c4e6e395db3a78da2055"
     },
+    "analyze_l4_panel.py": {
+      "bytes": 6515,
+      "sha256": "435333cf4313a021a3e999227202ce9efa9399b615750d9642d10d576c324d7b"
+    },
     "analyze_phase2.py": {
-      "bytes": 8516,
-      "sha256": "2d3e44c0a3acd00cf3a6341f894c2caf83adc45c22c8d0c705c7d5d70549ca94"
+      "bytes": 9101,
+      "sha256": "7838d433d70933189f2cedfba1c6bb41a46b0bae7497f83a95a06c87932edfe2"
     },
     "AUDIT_CURRENT.json": {
-      "bytes": 1898,
-      "sha256": "7da3a90924e0d7ae29ea6ce4bf7b658c58fb0e3715bfbf694f937f5c8a6f77f6"
+      "bytes": 3173,
+      "sha256": "a7f8411337a6e13e8db91daf48cf3d750c21b02165f78cf4a7d6541b4d39a143"
     },
     "audit_phase2.py": {
-      "bytes": 4578,
-      "sha256": "0ca2f3324f5f1965f2126749cb15b99b01a87724fe9805af853097bc381a29a7"
+      "bytes": 6655,
+      "sha256": "20cf06ea0271d57b8eebc002bf007332c48293c4e96956b7bccba50ff424a9fc"
     },
     "BENCHMARK_PREFLIGHT.json": {
       "bytes": 264,
@@ -79,6 +83,18 @@
     "INTERRUPTED_PANEL.json": {
       "bytes": 1415,
       "sha256": "749a120b2aeaab11064144fab7e2bf346c2516dfd8e7d3f9009f1e0d4e8bc1b6"
+    },
+    "L4_LANGUAGE_RESULTS.csv": {
+      "bytes": 545,
+      "sha256": "f1a6caf3fc559cdd954b51786bd896e15b185377603c498af2e3c46bfc47646d"
+    },
+    "L4_RESULTS.md": {
+      "bytes": 855,
+      "sha256": "194625039f56ec9335b96eb7fdda24bcd60734dcb6294285a0242468aec9114e"
+    },
+    "L4_SUMMARY.json": {
+      "bytes": 2022,
+      "sha256": "c56ed80c1123d5529e0b0296924af96fe802c312e428fcd702d9eb7a1e4dd739"
     },
     "language_benchmarks.py": {
       "bytes": 5607,
@@ -137,20 +153,20 @@
       "sha256": "7220010f1f9398c81e5c5bd8366a4cd1f7a8149c891c453b6183c96e441a8379"
     },
     "README.md": {
-      "bytes": 1801,
-      "sha256": "267d8a4130f80505832e5dccc26ff3cacc82735b6a5d8d079f48c0242c242f0a"
+      "bytes": 1977,
+      "sha256": "a69b8f927bc7240bda01dacd898bcd5224796712f6fed30c03c036c9d8a76b75"
     },
     "REPRODUCE.md": {
-      "bytes": 2826,
-      "sha256": "d76817d11281f39464f660b7c5cf6cf4b87ada4f667686726844b9aec7a4a140"
+      "bytes": 3298,
+      "sha256": "d900c452a7aeddee0467b6bd453256f30cab3ca337622ae77207ed707efcad96"
     },
     "RESEARCH_STATUS.json": {
-      "bytes": 430,
-      "sha256": "11b3cb0c9a4fc94f3d5592b5673217279e46bfad43d550c768583be3ee2d9fc4"
+      "bytes": 551,
+      "sha256": "1a7f8ddc78eb2ef0f298b28add465c1af60951e969e59d89bed3692510b51938"
     },
     "RESULTS.md": {
-      "bytes": 5283,
-      "sha256": "b4fa5e5d9af1ee405ed28e2897091a9944572090c959e52067dfa208c4b486b1"
+      "bytes": 5449,
+      "sha256": "3f2c4f02f52ec8ee6feb2c91d5d8cbc2c0e076a708827dc60c284e64568f3df6"
     },
     "rlt_gate_repair.png": {
       "bytes": 72477,
@@ -208,6 +224,10 @@
       "bytes": 323,
       "sha256": "1e0359715b3e5f20f5c0cca819fa76644f1d2f13825a95c5cbaebe14bf256cea"
     },
+    "test_l4_reporting.py": {
+      "bytes": 2357,
+      "sha256": "f267964b7610f80613d263dd7c0eaed73add8e6e7573e80b09a8e36c94e399dd"
+    },
     "test_phase2.py": {
       "bytes": 2297,
       "sha256": "271644d414d4157a0e4d4c93a2b7772d71d17d9601294492efca15b00f41b4ab"
@@ -217,8 +237,8 @@
       "sha256": "33d8ef6ef81d72c016bf6d17098a70188d6890e049aa9b131de2260a485657e7"
     },
     "VALIDATION.md": {
-      "bytes": 1981,
-      "sha256": "7fe4bb421bf3953eb714e49fa97f47a1b80b7d26b22208270f1d0bdb00874636"
+      "bytes": 2599,
+      "sha256": "aadf2e0ec4c93dcbfc2423acf462231ab312f5d1993be2e3ed4e6d9293ded645"
     },
     "results/attention8-s12207.RESULT.json": {
       "bytes": 30416,
@@ -445,12 +465,12 @@
       "sha256": "29c73e02d49170da63cbec87179d32d0067836a8a2f27f0ff7b814279c4631b4"
     },
     "l4_panel/ACTIVE_SEGMENT.json": {
-      "bytes": 388,
-      "sha256": "3765009776c0f7392dbac5e87e73c02f536ebf686e546639b643136b29c0051b"
+      "bytes": 386,
+      "sha256": "707ca79569ad93df578608fe2adc8bb6b0cdabcd41e28bad56fc90f9212a22ad"
     },
     "l4_panel/CHECKPOINT_CATALOG.json": {
-      "bytes": 3855,
-      "sha256": "f40092a55fd571417d8a4cac10476788b22be0a4049dde70931f78d82ddc18d1"
+      "bytes": 11429,
+      "sha256": "e175d7f4e4c9d2f4cca496da891947b8f58d5da34d7c03474eb510493f8d6ce4"
     },
     "l4_panel/data/DATA.json": {
       "bytes": 2106,
@@ -465,8 +485,8 @@
       "sha256": "a91298538b883a6848a27e4305902f1d300e0dbc6f4610ca456bd246fe85789b"
     },
     "l4_panel/EVIDENCE.json": {
-      "bytes": 41908,
-      "sha256": "c4a87d545859ea62294566bb85df08f61787a7b3854af4413bac03e079419728"
+      "bytes": 119932,
+      "sha256": "f54a4893d874e7a49a1f40c597dc52c8975d74a79e173e88522a433e78cafccc"
     },
     "l4_panel/INFERENCE_PROTOCOL.md": {
       "bytes": 1490,
@@ -492,9 +512,33 @@
       "bytes": 388,
       "sha256": "3765009776c0f7392dbac5e87e73c02f536ebf686e546639b643136b29c0051b"
     },
+    "l4_panel/reservations/conv7-s2442.json": {
+      "bytes": 378,
+      "sha256": "0d5e72cc27da12d1098f27e79e4feb7d8339a8befcdd84069016e0491e556973"
+    },
+    "l4_panel/reservations/cpw_local-s2442.json": {
+      "bytes": 386,
+      "sha256": "707ca79569ad93df578608fe2adc8bb6b0cdabcd41e28bad56fc90f9212a22ad"
+    },
     "l4_panel/reservations/transformer-s2442.json": {
       "bytes": 390,
       "sha256": "e39fa7f361e009d88fe982ceeaae3ddc870c5de09a573848c2034d631009386d"
+    },
+    "l4_panel/results/attention8-s2442/MANIFEST.json": {
+      "bytes": 3489,
+      "sha256": "84074c62ce4221fdfefb4c646f9a8a21732d522b46e7ebf8c92f989de65de81c"
+    },
+    "l4_panel/results/attention8-s2442.RESULT.json": {
+      "bytes": 30543,
+      "sha256": "ffed7a517195038bed2c8baecd814ca8c171719a843911ef062629c5f612c560"
+    },
+    "l4_panel/results/conv7-s2442/MANIFEST.json": {
+      "bytes": 3394,
+      "sha256": "aab9a63a7a3541aeddbe31c8f48755505a9b78116f2de740dfe4024acf0659dd"
+    },
+    "l4_panel/results/conv7-s2442.RESULT.json": {
+      "bytes": 30452,
+      "sha256": "f1a6a6deba6053d5e36a7c8ba08484e117e10d8779c2bfa6f9c4d60e1db423c6"
     },
     "l4_panel/results/transformer-s2442/MANIFEST.json": {
       "bytes": 3508,
@@ -505,8 +549,8 @@
       "sha256": "c21bfe9594c0e85834a7eaeb0e7f699caa65cf462b655466dddc083724f98e31"
     },
     "l4_panel/STATUS.json": {
-      "bytes": 324,
-      "sha256": "b7460509e0377924b532ed624fadf6c779f32bd97ac772f99c0df6a8f798f373"
+      "bytes": 119,
+      "sha256": "3c28c9c54601da4b4513f97bb04923898b6e49108146fa3d6ecd943c1e1bc7ce"
     },
     "l4_panel/worker.py": {
       "bytes": 798,

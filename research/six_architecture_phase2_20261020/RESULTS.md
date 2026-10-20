@@ -1,6 +1,8 @@
 # Phase-two measured results
 
-Language queue complete: False.
+L4 training complete: False. See [L4_RESULTS.md](L4_RESULTS.md) for the separate paired trial.
+
+The following language table belongs to the interrupted A100 trial. Candidate outcomes are unknown.
 
 | Model | Parameters | Training exposures | Development NLL | Training tokens/s |
 |---|---:|---:|---:|---:|

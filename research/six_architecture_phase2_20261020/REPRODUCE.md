@@ -8,13 +8,15 @@ Local verification (Python3.12, PyTorch2.10 CPU, NumPy, pytest): set CPW_REPO to
 checkout pinned at aad622d1eea591545a3482618ca8b269e4d9d43f, then run:
 
 ```text
-python -m pytest -q test_phase2.py
+python -m pytest -q test_phase2.py test_l4_reporting.py
 ```
 
 The three checks verify actual meta-device parameter counts/token flooring,
 future isolation and live convolution gradients, and exact scaled CPW output
 equivalence to the native source plus causal isolation. They do not validate
 training efficacy by themselves.
+The four reporting checks prevent intermediate, unpaired or over-budget
+measurements from being presented as scientific endpoint comparisons.
 
 GPU execution used A10040GB, Python3.13.15, torch2.11.0+cu130, NumPy,
 requests, tiktoken, huggingface_hub and pyarrow. The runtime's torch version is
@@ -31,6 +33,10 @@ recorded rather than assumed compatible. Scripts do not require private data.
    benchmark, runs a scoring-alignment fixture, and scores pinned public tasks.
 4. Analyze saved records with analyze_phase2.py. This only generates mutable
    summaries; it never changes trained sources or scientific result JSONs.
+   analyze_l4_panel.py generates separate L4_SUMMARY.json, L4_RESULTS.md and
+   L4_LANGUAGE_RESULTS.csv. Its scientific comparison table excludes backup
+   midpoints and requires matching exposures, seed, GPU and PyTorch version.
+   All segment rows remain available, with conservative lost-exposure charges.
 
 Tiny CPU tracks use independent package processes to prevent module collisions:
 

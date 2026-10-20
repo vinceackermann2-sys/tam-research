@@ -1,8 +1,8 @@
 {
-  "utc": "2026-10-20T10:23:31.981019+00:00",
+  "utc": "2026-10-20T10:46:51.923634+00:00",
   "all_checked_caps_passed": true,
-  "immutable_source_checks": 39,
-  "checkpoint_sets_checked": 20,
+  "immutable_source_checks": 41,
+  "checkpoint_sets_checked": 22,
   "checkpoint_sets": [
     "results\\si_repair\\si-202610301-repair.pt",
     "results\\si_repair\\si-202610301-policy.pt",
@@ -23,7 +23,9 @@
     "results\\rlt_probe\\rlt-probe-public_gate_prior-202610312.pt",
     "results\\rlt_probe\\rlt-probe-public_gate_prior-202610313.pt",
     "research_phase2_20261020:transformer-s12207 full optimizer chunks",
-    "l4_panel:transformer-s2442 full optimizer chunks"
+    "l4_panel:transformer-s2442 full optimizer chunks",
+    "l4_panel:attention8-s2442 full optimizer chunks",
+    "l4_panel:conv7-s2442 full optimizer chunks"
   ],
   "source_files": [
     "chm_address_diagnostic.py",
@@ -38,6 +40,44 @@
   ],
   "largest_recorded_language_parameters": 99837440,
   "largest_recorded_language_exposures": 99999744,
+  "reservation_checks": [
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s2442",
+      "digest": "cfb51e188d9fcb74544ff276c1ed61a456900e1891d989c390fdb5734a3e7d5e",
+      "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s2442",
+      "digest": "a4125f55663601648100197c05f8a899414f4b394f5ca0659f9a4d1526f4dc4f",
+      "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s2442",
+      "digest": "07bb9a30659bf8c4ecf4ff93b45027cb6ba3803b24872a32a682d610f3a140a7",
+      "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s2442",
+      "digest": "a4125f55663601648100197c05f8a899414f4b394f5ca0659f9a4d1526f4dc4f",
+      "cumulative_upper_bound": 20004864
+    }
+  ],
+  "charged_lost_reservation_ledgers": [
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "charges": {
+        "transformer": 0,
+        "attention8": 0,
+        "conv7": 0,
+        "cpw_local": 0
+      },
+      "lost_reservations": 0
+    }
+  ],
   "language_confirmation_complete": false,
   "infrastructure_unknowns_preserved": "INTERRUPTED_PANEL.json; missing parent binary is not a failure outcome"
 }

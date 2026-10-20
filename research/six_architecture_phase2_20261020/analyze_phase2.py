@@ -7,14 +7,18 @@ def write(name,value):(ROOT/name).write_text(json.dumps(value,indent=2,allow_nan
 def load(name):return json.loads((ROOT/name).read_text())
 def records(pattern):return [json.loads(p.read_text()) for p in sorted(ROOT.glob(pattern))]
 def paired(a,b):
-    difference=np.asarray(a,dtype=float)-np.asarray(b,dtype=float)
-    assert len(difference)>0
+    a=np.asarray(a,dtype=float);b=np.asarray(b,dtype=float)
+    assert a.ndim==1 and a.shape==b.shape and len(a)>0
+    assert np.isfinite(a).all() and np.isfinite(b).all()
+    difference=a-b
     rng=np.random.default_rng(202610399);samples=[]
     for _ in range(2000):samples.append(float(difference[rng.integers(0,len(difference),len(difference))].mean()))
     return {'delta_mean_nll':float(difference.mean()),'approximate_95_percent_block_bootstrap_interval':np.quantile(samples,[.025,.975]).tolist(),
         'blocks':len(difference),'interpretation':'paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction'}
 
 def main():
+    from analyze_l4_panel import main as analyze_l4
+    l4=analyze_l4(ROOT)
     evidence=load('EVIDENCE.json') if (ROOT/'EVIDENCE.json').exists() else {'results':{},'gates':[],'terminal':{},'complete':False}
     si=records('results/si_repair/*.RESULT.json');rlt=records('results/rlt_gate/*.RESULT.json')
     pgw=records('results/pgw_trace/*.DIAGNOSTIC.json');chm=records('results/chm_address/*.DIAGNOSTIC.json')
@@ -33,14 +37,16 @@ def main():
     write('LANGUAGE_COMPARISONS.json',comparisons)
     with (ROOT/'LANGUAGE_RESULTS.csv').open('w',newline='') as f:
         w=csv.DictWriter(f,fieldnames=['lineage','parameters','tokens','step','validation_nll','train_tps']);w.writeheader();w.writerows(ledger)
-    result={'language_complete':evidence.get('complete',False),'language_lineages':len({r['lineage'] for r in ledger}),
+    result={'language_complete':bool(l4 and l4['complete']),'interrupted_a100_complete':evidence.get('complete',False),'language_lineages':len({r['lineage'] for r in ledger}),
         'language_segments_complete':len(ledger),'language_max_parameters':max([r['parameters'] for r in ledger],default=0),
         'language_max_exposures':max([r['tokens'] for r in ledger],default=0),'si_lineages':len(si),'rlt_lineages':len(rlt),
         'pgw_diagnostics':len(pgw),'chm_diagnostics':len(chm),'all_recorded_caps_passed':True,'breakthrough_demonstrated':False,
         'rlt_frozen_state_probes':len(probes),'rlt_probe_ood_gates_passed':sum(r['gate_passed'] for r in probe_ood),
-        'gates':evidence['gates']}
+        'gates':evidence['gates'],'l4_scientific_comparisons':len(l4['scientific_comparisons']) if l4 else 0,
+        'l4_segment_records':len(l4['segment_records']) if l4 else 0,'l4_gates':l4['gates'] if l4 else []}
     write('RESEARCH_STATUS.json',result)
-    lines=['# Phase-two measured results','',f"Language queue complete: {evidence.get('complete',False)}.",'',
+    lines=['# Phase-two measured results','',f"L4 training complete: {bool(l4 and l4['complete'])}. See [L4_RESULTS.md](L4_RESULTS.md) for the separate paired trial.",
+        '', 'The following language table belongs to the interrupted A100 trial. Candidate outcomes are unknown.', '',
         '| Model | Parameters | Training exposures | Development NLL | Training tokens/s |','|---|---:|---:|---:|---:|']
     for r in ledger:lines.append(f"| {r['lineage']} | {r['parameters']:,} | {r['tokens']:,} | {r['validation_nll']:.6f} | {r['train_tps']:,.0f} |")
     lines+=['','Comparisons at the same exposure count are saved in LANGUAGE_COMPARISONS.json.',

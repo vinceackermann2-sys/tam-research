@@ -5,11 +5,15 @@ actual parameter counts and token-floor arithmetic; causal active convolution
 and live gradients; exact scaled CPW output equivalence to the pinned native
 source, including future-token isolation. This follows the separate phase-one
 51-check validation record. Model efficacy is judged from experiments, not the
-unit checks.
+unit checks. Four additional reporting checks pass: intermediate checkpoints
+cannot enter scientific comparisons; seed/device mismatches are excluded;
+different terminal budgets cannot receive a paired test comparison; and lost
+reservation charges and token-block alignment are enforced.
 
-AUDIT_CURRENT.json currently verifies39 immutable source references and20
-available checkpoint sets, including complete optimizer chunks for the100M-
-token A100 Transformer and the first20M-token L4 Transformer segment. Both the
+The10:46UTC AUDIT_CURRENT.json snapshot verifies41 immutable source references
+and22 available checkpoint sets, including complete optimizer chunks for the
+100M-token A100 Transformer and the first20M-token L4 Transformer, attention8
+and Conv7 segments. Both the
 individual chunk hashes and concatenated checkpoint hashes match. Intermediate
 L4 checkpoints can later be intentionally superseded; retain their manifests
 and pruning records and regenerate the audit for the final snapshot.
@@ -29,4 +33,8 @@ head repair; its stale-gradient coverage caveat is explicit in execution notes.
 Operational checks verified authenticated binary upload/download roundtrips at
 64MiB, atomic CLI acknowledgements, and a complete real optimizer backup before
 the L4 controller advanced. A runtime restoration plan has been validated in
-read-only mode; a full new-VM restoration is reserved for an actual interruption.
+read-only mode; offline recovery fixtures verify that an uncommitted reservation
+is charged once, its full details and orphaned result remain archived, and a
+corrupt recorded durable checkpoint blocks recovery. The cap audit now checks
+reservation digests/bounds and reconciles lost-reservation ledgers with lineage
+charges. A full new-VM restoration is reserved for an actual interruption.
