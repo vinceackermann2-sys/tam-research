@@ -1,0 +1,11 @@
+{
+  "protocol_sha256": "04cfe613bd9eeecf0daf07cab5539832763453357d4b22d6eefaeb2c440779fb",
+  "seeds": [
+    202610271,
+    202610272,
+    202610273
+  ],
+  "steps": 4096,
+  "native_test_opened": false,
+  "development_opened_only_after_training": true
+}

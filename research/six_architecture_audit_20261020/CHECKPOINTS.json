@@ -1,0 +1,302 @@
+[
+  {
+    "attempt": "chm-train-capacity-202610201",
+    "file": "results/chm/chm-train-capacity-202610201.pt",
+    "sha256": "dd88e4b4c88ee576a30f7ec2adbaf838f889247e0776ecdfb86e6ac8faed3b54",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "chm-train-capacity-202610202",
+    "file": "results/chm/chm-train-capacity-202610202.pt",
+    "sha256": "f939f06a92d69a2c800b1b9ef44ecd83c4d4823ff926c8ac862bce9a9981c85f",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "chm-train-capacity-202610203",
+    "file": "results/chm/chm-train-capacity-202610203.pt",
+    "sha256": "5a899eb963ad10c5738604299f03d6a68fae1a7d008a8c8c54605be996cf3fef",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "chm-broad-202610271",
+    "file": "results/chm_broad/chm-broad-202610271.pt",
+    "sha256": "735f2ecbf1399abd8d7c7b8d685272e93bf4db4554b14f33507a0fb3237e6fa4",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "chm-broad-202610272",
+    "file": "results/chm_broad/chm-broad-202610272.pt",
+    "sha256": "0f103ae5bc6d0a8a0bd32faeea1321dd3fbfc17765aa480cb12c750638198b4b",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "chm-broad-202610273",
+    "file": "results/chm_broad/chm-broad-202610273.pt",
+    "sha256": "00309b22b977f9e99d2618da189edfd8b17ff2eae5d007ab2fb6a0b67a2dfbc5",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "conv7-w128-attention8-202610201",
+    "file": "results/conv7/conv7-w128-attention8-202610201.pt",
+    "sha256": "2c7d74fb3edbda2114bbe832a304f22784f239be08c84890961fc703118b6696",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-attention8-202610202",
+    "file": "results/conv7/conv7-w128-attention8-202610202.pt",
+    "sha256": "63407abe9079f69ceb2bd4283f611e1c69aac8b6336f403ee98dd53d77b0c123",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-attention8-202610203",
+    "file": "results/conv7/conv7-w128-attention8-202610203.pt",
+    "sha256": "ca385fb0ec7ac5f7022f4ae60d6627dc89181d76e7c62da09083eee632ef58f5",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-conv7-202610201",
+    "file": "results/conv7/conv7-w128-conv7-202610201.pt",
+    "sha256": "756a318bb5163587e5efbb6a614a3de56ae5b476b2200bd0e28f6ff8dac92f99",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-conv7-202610202",
+    "file": "results/conv7/conv7-w128-conv7-202610202.pt",
+    "sha256": "9aa5d707bc9339e36c90c89a581f177045aba3684a4ccfcb0a3f632641ebd1e6",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-conv7-202610203",
+    "file": "results/conv7/conv7-w128-conv7-202610203.pt",
+    "sha256": "d1e31a189354dca823d34a25c62b6f20860f1edade1b6c56b93aaa41ae8a9746",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-transformer-202610201",
+    "file": "results/conv7/conv7-w128-transformer-202610201.pt",
+    "sha256": "eb38f58e1afd7e80a136c1a054008d48b7f900ae709d044886f626a54e0c6d0b",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-transformer-202610202",
+    "file": "results/conv7/conv7-w128-transformer-202610202.pt",
+    "sha256": "d7fa18dd5fee751d7e642f584403458e256a0b24ffbfdd444e6cbadd6b5549e3",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-w128-transformer-202610203",
+    "file": "results/conv7/conv7-w128-transformer-202610203.pt",
+    "sha256": "a914d1667b53b71e4dc45e3a27fea71f81a6b2ae89b53c023cac4fa164359e1f",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "conv7-recovery-w192-attention8-202610262",
+    "file": "results/conv7_recovery/conv7-recovery-w192-attention8-202610262.pt",
+    "sha256": "20e35e3c0cbb91c366652063a22ec201c7de01119bc3ad9891e4f2504dfd3c55",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "conv7-recovery-w192-conv7-202610262",
+    "file": "results/conv7_recovery/conv7-recovery-w192-conv7-202610262.pt",
+    "sha256": "919a4f7127fce21d3828fda97639ac038defceda1bfa2b993766ddd7f9fb3f54",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "conv7-recovery-w192-transformer-202610262",
+    "file": "results/conv7_recovery/conv7-recovery-w192-transformer-202610262.pt",
+    "sha256": "fdd5891c58cee0fa66a387532198e25326918e899966300b37c38f16b3553b14",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "cpw-afm_first1-202610201",
+    "file": "results/cpw/cpw-afm_first1-202610201.pt",
+    "sha256": "eb4b087656d981bbdf94e53362e6e3e07cad52dcace335fd0b743397e9745c20",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "cpw-afm_last1-202610201",
+    "file": "results/cpw/cpw-afm_last1-202610201.pt",
+    "sha256": "0c07caafd7b8a6cceb72060f91e6fdf8b629dba21feaa085807672125b16b6e0",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "cpw-sequence_only-202610201",
+    "file": "results/cpw/cpw-sequence_only-202610201.pt",
+    "sha256": "385066ae1f46142442e5d6736982a9f2dc693c3ed2805cf0c8bdef6a0c735e40",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "cpw-transformer-202610201",
+    "file": "results/cpw/cpw-transformer-202610201.pt",
+    "sha256": "0d6d9c3630e12e65d9b8616fe79a909fcb59627da76cd0612b4cc77f8aeff128",
+    "retrieved_and_verified_locally": false
+  },
+  {
+    "attempt": "cpw-recovery-transformer-202610261",
+    "file": "results/cpw_recovery/cpw-recovery-transformer-202610261.pt",
+    "sha256": "173d86c05c347f36f81a34109704e7959d4e46fd4a0284b57e0ff970539f187a",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-chunk_only-202610201",
+    "file": "results/pgw/pgw-chunk_only-202610201.pt",
+    "sha256": "8046f3664987c08341b63c530fa6dc69ff3c44b25a5eeaf5147189ef9441ea5a",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-chunk_only-202610202",
+    "file": "results/pgw/pgw-chunk_only-202610202.pt",
+    "sha256": "2a5691c0e4d5a7a5ab61a14612a615c1cb57f6583a758e2222c49418ed437d44",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-chunk_only-202610203",
+    "file": "results/pgw/pgw-chunk_only-202610203.pt",
+    "sha256": "9c0bd8e0974297a71b70aac54874cc65a37e6d4d2979edc0f7a00240510f15a4",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-full_global-202610201",
+    "file": "results/pgw/pgw-full_global-202610201.pt",
+    "sha256": "ab8b044666343d2f8eaf700851027a963fe467fe3a18e5a6f945710decd51399",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-full_global-202610202",
+    "file": "results/pgw/pgw-full_global-202610202.pt",
+    "sha256": "5930d16e5d023517bd03df137b3fdcfe06fcdd33b5d83f10ce216fe8e21bee74",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-full_global-202610203",
+    "file": "results/pgw/pgw-full_global-202610203.pt",
+    "sha256": "6c2fee5eb5e3ffb4986db0da462fc281e986a41cd2d23edc3cb4eca802f695f8",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-hybrid-202610201",
+    "file": "results/pgw/pgw-hybrid-202610201.pt",
+    "sha256": "f2302179b85e668dad7b3910e25ec9c83ead797097abc790be22a225f53e61d8",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-hybrid-202610202",
+    "file": "results/pgw/pgw-hybrid-202610202.pt",
+    "sha256": "4e5fc73a9f7eda8b83ad005ab00efc791d80d8215f5e5780270dc340ba3ad7d5",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-hybrid-202610203",
+    "file": "results/pgw/pgw-hybrid-202610203.pt",
+    "sha256": "33ef226b488659cb5faf485d97a984db861aed0a38a16b2844a45f395e59700c",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-control-strong_transformer-202610231",
+    "file": "results/pgw_control/pgw-control-strong_transformer-202610231.pt",
+    "sha256": "f58fa074a6ac9eb6c3093c194c3498c034e8d8d3541e9b8d0124d15d6f7c9b33",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-control-strong_transformer-202610232",
+    "file": "results/pgw_control/pgw-control-strong_transformer-202610232.pt",
+    "sha256": "6daa36880a1fdfb1f1384f43177534ae3490439d70edc75d09307680d4cea244",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "pgw-control-strong_transformer-202610233",
+    "file": "results/pgw_control/pgw-control-strong_transformer-202610233.pt",
+    "sha256": "622f9448e76924ac370181a9be3f6278fad467093e761894ebdd0fb80f15e7f9",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-bias4-202610201",
+    "file": "results/rlt/rlt-bias4-202610201.pt",
+    "sha256": "a6a60355bd3304ccda78227b8a21752148486f718949ab418a6952842734ebe3",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-bias4-202610202",
+    "file": "results/rlt/rlt-bias4-202610202.pt",
+    "sha256": "bda1fda99c5a864a1eba454d678e3636471a000949e770979f7db69e59e40663",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-bias4-202610203",
+    "file": "results/rlt/rlt-bias4-202610203.pt",
+    "sha256": "532c5507007527eb045451962794ed084cf2d401a32de8ecd0580d9c1bf5be53",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-carry-202610201",
+    "file": "results/rlt/rlt-carry-202610201.pt",
+    "sha256": "d8420def700a4476012b151b225f20ced97dd673ed2cf85d7c774c0ab5b66aa5",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-carry-202610202",
+    "file": "results/rlt/rlt-carry-202610202.pt",
+    "sha256": "1b13bf62f3d685d0acfdd60842f04b750fc0bcf091354c45e4f9dbe16c95105b",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-carry-202610203",
+    "file": "results/rlt/rlt-carry-202610203.pt",
+    "sha256": "9076adf6da8e898b99ff309aa2d5c8b99dd63862924c3ca8635a3165d9651fe9",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-reset-202610201",
+    "file": "results/rlt/rlt-reset-202610201.pt",
+    "sha256": "8bb3401e58a11a3f9150ed4ddbc36d5335bb39dc29528ef30fbd226ef9c9d755",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-reset-202610202",
+    "file": "results/rlt/rlt-reset-202610202.pt",
+    "sha256": "167a394e7eeadb2a4e67c1f034f389443e7c36201a6c74ecaee52529d3eccec5",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "rlt-reset-202610203",
+    "file": "results/rlt/rlt-reset-202610203.pt",
+    "sha256": "deb4604599d745d5b9de55cd1f4adb7eed21a314cea2f6c066c808a5ef143cec",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "si-transformer_system-202610201",
+    "file": "results/si/si-transformer_system-202610201.pt",
+    "sha256": "4dc8aec2c959aa5ae5f3ea48aca3f479e1038ab5e89e2bcbd5800f585d24423c",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "si-transformer_system-202610202",
+    "file": "results/si/si-transformer_system-202610202.pt",
+    "sha256": "1e20d75f242bc071fd2d4a6777baa047c90d6cb35e107bc7bc3afc880110e8eb",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "si-transformer_system-202610203",
+    "file": "results/si/si-transformer_system-202610203.pt",
+    "sha256": "ddf4de4880ea222529db0d8dd1b032c1c5958973a6c552d6ff270b4f6d58d05d",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "si-world_scoped_hybrid-202610201",
+    "file": "results/si/si-world_scoped_hybrid-202610201.pt",
+    "sha256": "3a581dd93052a3871c58b17f5d9e26962e71d988d46577bb1f73e61f62f6944f",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "si-world_scoped_hybrid-202610202",
+    "file": "results/si/si-world_scoped_hybrid-202610202.pt",
+    "sha256": "1ce31cee9d12a96c9d718df032bee18e6ac5f2472d3b4274d2257ce974a472d7",
+    "retrieved_and_verified_locally": true
+  },
+  {
+    "attempt": "si-world_scoped_hybrid-202610203",
+    "file": "results/si/si-world_scoped_hybrid-202610203.pt",
+    "sha256": "fd8d915dcff6585b7ff08fb3beb05d0631099a1c420291d45bb2fa6cc4ca63a6",
+    "retrieved_and_verified_locally": true
+  }
+]

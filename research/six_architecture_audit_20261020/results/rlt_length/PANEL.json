@@ -1,0 +1,22 @@
+{
+  "panels": {
+    "256": {
+      "clusters": 128,
+      "examples": 256,
+      "sha256": "aef7ea13377a26e62590908eea067f664dc96194b485d8954742353df1cebfbd"
+    },
+    "512": {
+      "clusters": 128,
+      "examples": 256,
+      "sha256": "69c10907d146944a36d74d4e281ee33dff022ad333e924b549fe7f21db5da30f"
+    },
+    "1024": {
+      "clusters": 128,
+      "examples": 256,
+      "sha256": "9f67e31be7752e36cebf083cff43fcf4edbac204c8ea470056a0b3393cc05692"
+    }
+  },
+  "protocol_sha256": "76ff97722e55ec01452bd98075bce1831b0c5128645b18b8488efe1f4079ab85",
+  "script_sha256": "8f0bcc54ef58ca44fb402def20fb1d635842006407fef22a954d525c890c338a",
+  "new_training_exposures": 0
+}

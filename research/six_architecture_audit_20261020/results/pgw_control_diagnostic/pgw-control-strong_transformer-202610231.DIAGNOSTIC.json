@@ -1,0 +1,42 @@
+{
+  "attempt": "pgw-control-strong_transformer-202610231",
+  "checkpoint_sha256": "f58fa074a6ac9eb6c3093c194c3498c034e8d8d3541e9b8d0124d15d6f7c9b33",
+  "rows": [
+    {
+      "delay": 1,
+      "answer_accuracy": 0.5,
+      "binary_presence_accuracy_at_fixed_half_threshold": 0.4166666567325592,
+      "conditional_payload_accuracy_excluding_NOT_FOUND": 0.18888889253139496,
+      "binary_presence_nll": 0.7264379858970642,
+      "conditional_payload_nll": 1.8949170112609863,
+      "total_nll": 1.6738964319229126,
+      "mean_not_found_probability_present": 0.5211528539657593,
+      "mean_not_found_probability_missing": 0.4994640052318573
+    },
+    {
+      "delay": 2,
+      "answer_accuracy": 0.5,
+      "binary_presence_accuracy_at_fixed_half_threshold": 0.49444442987442017,
+      "conditional_payload_accuracy_excluding_NOT_FOUND": 0.23333333432674408,
+      "binary_presence_nll": 0.7053915858268738,
+      "conditional_payload_nll": 2.003716230392456,
+      "total_nll": 1.7072497606277466,
+      "mean_not_found_probability_present": 0.504355788230896,
+      "mean_not_found_probability_missing": 0.5046396255493164
+    },
+    {
+      "delay": 4,
+      "answer_accuracy": 0.5,
+      "binary_presence_accuracy_at_fixed_half_threshold": 0.46666666865348816,
+      "conditional_payload_accuracy_excluding_NOT_FOUND": 0.2222222238779068,
+      "binary_presence_nll": 0.7116978764533997,
+      "conditional_payload_nll": 1.9659745693206787,
+      "total_nll": 1.6946852207183838,
+      "mean_not_found_probability_present": 0.514894962310791,
+      "mean_not_found_probability_missing": 0.5083457231521606
+    }
+  ],
+  "classification": "POSTHOC_SAME_CONSUMED_DEVELOPMENT_PANEL_NO_TUNING",
+  "conditional_payload_uses_known_presence_for_diagnosis_only": true,
+  "new_training_exposures": 0
+}

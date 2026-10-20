@@ -1,0 +1,13 @@
+{
+  "status": "FINITE_RESEARCH_PHASE_COMPLETE",
+  "utc": "2026-10-20T08:28:01.006825+00:00",
+  "completed_training_models": 50,
+  "completed_recorded_exposures": 194299104,
+  "all_recorded_models_within_user_ceilings": true,
+  "new_breakthrough_demonstrated": false,
+  "original_extension_interruption": "Preserved as unknown, not success/failure; no silent retry",
+  "native_chm_test_opened": false,
+  "native_chm_development_opened_only_by_separately_frozen_broad_study": true,
+  "recovery_checkpoints_and_data_exported": true,
+  "full_100m_2b_confirmation_completed": false
+}

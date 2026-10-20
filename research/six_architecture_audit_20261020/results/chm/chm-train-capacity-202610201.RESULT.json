@@ -1,0 +1,256 @@
+{
+  "attempt": "chm-train-capacity-202610201",
+  "parameters": 274187,
+  "recipe": {
+    "updates": 256,
+    "lr": 0.005,
+    "entity": 48,
+    "evaluation": "TRAIN ONLY",
+    "seed": 202610201
+  },
+  "torch": "2.10.0+cpu",
+  "device": "cpu",
+  "source_sha": "4362402592ac0cad5ed3d12f1d7defe68739a2b5",
+  "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+  "training_token_exposures": 18912,
+  "total_seconds": 48.14898760005599,
+  "total_input_tokens_per_second_including_eval": 392.78084426385755,
+  "result": {
+    "initial_loss": 2.685220956802368,
+    "final_loss": 0.00046235957415774465,
+    "predictions": [
+      {
+        "family": "direct",
+        "variant": 0,
+        "gold": 18004,
+        "answer": 18004,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "direct",
+        "variant": 1,
+        "gold": 18005,
+        "answer": 18005,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "direct",
+        "variant": 2,
+        "gold": 18006,
+        "answer": 18006,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "direct",
+        "variant": 3,
+        "gold": 18007,
+        "answer": 18007,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "direct",
+        "variant": 4,
+        "gold": 18008,
+        "answer": 18008,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "direct",
+        "variant": 5,
+        "gold": 18001,
+        "answer": 18001,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "direct",
+        "variant": 6,
+        "gold": 18002,
+        "answer": 18002,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "direct",
+        "variant": 7,
+        "gold": 18003,
+        "answer": 18003,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 0,
+        "gold": 18003,
+        "answer": 18003,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 1,
+        "gold": 18004,
+        "answer": 18004,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 2,
+        "gold": 18005,
+        "answer": 18005,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 3,
+        "gold": 18006,
+        "answer": 18006,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 4,
+        "gold": 18007,
+        "answer": 18007,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 5,
+        "gold": 18008,
+        "answer": 18008,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 6,
+        "gold": 18001,
+        "answer": 18001,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "overwrite",
+        "variant": 7,
+        "gold": 18002,
+        "answer": 18002,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 0,
+        "gold": 18006,
+        "answer": 18006,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 1,
+        "gold": 18007,
+        "answer": 18007,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 2,
+        "gold": 18008,
+        "answer": 18008,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 3,
+        "gold": 18001,
+        "answer": 18001,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 4,
+        "gold": 18002,
+        "answer": 18002,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 5,
+        "gold": 18003,
+        "answer": 18003,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 6,
+        "gold": 18004,
+        "answer": 18004,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "two_hop",
+        "variant": 7,
+        "gold": 18005,
+        "answer": 18005,
+        "first_correct": true,
+        "payload_correct": true,
+        "abstained": false
+      },
+      {
+        "family": "no_match",
+        "variant": 0,
+        "gold": null,
+        "answer": null,
+        "first_correct": false,
+        "payload_correct": false,
+        "abstained": true
+      }
+    ],
+    "positive_correct": 24,
+    "positive_total": 24,
+    "missing_correct": true,
+    "interpretation": "TRAIN memorization only; cannot establish generalization or architecture superiority."
+  },
+  "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+  "breakthrough_demonstrated": false,
+  "checkpoint_sha256": "dd88e4b4c88ee576a30f7ec2adbaf838f889247e0776ecdfb86e6ac8faed3b54"
+}

@@ -1,0 +1,18 @@
+{
+  "attempt": "pgw-control-strong_transformer-202610232",
+  "parameters": 176801,
+  "recipe": {
+    "seed": 202610232,
+    "updates": 5000,
+    "batch": 24,
+    "lr": 0.001,
+    "aux_lambda": 0
+  },
+  "source_sha256": "71de53521e47db6c13be3a37956e8093c624d476699483eb0b0ca3b5d9145998",
+  "device": "cpu",
+  "torch": "2.10.0+cpu",
+  "source_sha": "4362402592ac0cad5ed3d12f1d7defe68739a2b5",
+  "fair_parameter_compute_parity": false,
+  "classification": "EXPLORATORY_LEARNABILITY_CONTROL",
+  "breakthrough_demonstrated": false
+}

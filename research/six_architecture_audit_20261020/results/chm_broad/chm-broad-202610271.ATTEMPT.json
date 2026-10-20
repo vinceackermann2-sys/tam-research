@@ -1,0 +1,18 @@
+{
+  "attempt": "chm-broad-202610271",
+  "parameters": 274187,
+  "recipe": {
+    "seed": 202610271,
+    "updates": 4096,
+    "lr": 0.005,
+    "batch": 1,
+    "source_address_supervision": true
+  },
+  "source_sha": "4362402592ac0cad5ed3d12f1d7defe68739a2b5",
+  "script_sha256": "b264ef3e934a056779a3f1bd9726b5b68be8462deb0fca245a621c209629fdff",
+  "torch": "2.10.0+cpu",
+  "device": "cpu",
+  "train_panel_sha256": "e80a611ca2f0197964174c80dd754d3292871fc0c43b08876e60c4bc91f0be58",
+  "classification": "FRESH_BROAD_TRAIN_FIRST_RESERVED_DEVELOPMENT_STUDY",
+  "breakthrough_demonstrated": false
+}

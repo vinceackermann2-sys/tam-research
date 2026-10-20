@@ -1,0 +1,5 @@
+* -text whitespace=cr-at-eol
+results/**/*.json linguist-generated=true
+*SNAPSHOT.json linguist-generated=true
+SOURCE_INVENTORY.json linguist-generated=true
+EXPERIMENTS.csv linguist-generated=true

@@ -1,0 +1,25 @@
+{
+  "completed_models": 50,
+  "largest_trained_parameters": 20484672,
+  "largest_recorded_training_exposures": 51200000,
+  "total_recorded_training_exposures": 194299104,
+  "unverified_original_extension_maximum_planned_exposures": 330993664,
+  "verified_local_checkpoints": 37,
+  "unretrieved_checkpoint_paths": [
+    "results\\conv7\\conv7-w128-attention8-202610201.pt",
+    "results\\conv7\\conv7-w128-attention8-202610202.pt",
+    "results\\conv7\\conv7-w128-attention8-202610203.pt",
+    "results\\conv7\\conv7-w128-conv7-202610201.pt",
+    "results\\conv7\\conv7-w128-conv7-202610202.pt",
+    "results\\conv7\\conv7-w128-conv7-202610203.pt",
+    "results\\conv7\\conv7-w128-transformer-202610201.pt",
+    "results\\conv7\\conv7-w128-transformer-202610202.pt",
+    "results\\conv7\\conv7-w128-transformer-202610203.pt",
+    "results\\cpw\\cpw-afm_first1-202610201.pt",
+    "results\\cpw\\cpw-afm_last1-202610201.pt",
+    "results\\cpw\\cpw-sequence_only-202610201.pt",
+    "results\\cpw\\cpw-transformer-202610201.pt"
+  ],
+  "all_recorded_models_within_user_ceilings": true,
+  "si_extra_fast_and_latent_replay_accounting": "See EXECUTION_NOTES.md; direct modality-input counts are not language tokens."
+}

@@ -1,0 +1,86 @@
+{
+  "attempt": "cpw-recovery-transformer-202610261",
+  "parameters": 13123072,
+  "recipe": {
+    "seed": 202610261,
+    "steps": 5000,
+    "batch": 32,
+    "tokens_each": 51200000,
+    "lr": 0.001,
+    "weight_decay": 0.01,
+    "input_ids": "original corrected generator, unchanged IDs; vocab4096",
+    "positive_control_gate": "minimum accuracy across all four distances >=.80 AND all_four>=.70 at fixed step5000",
+    "arms_if_valid": [
+      "sequence_only",
+      "afm_last1",
+      "afm_first1",
+      "r1_final"
+    ],
+    "purpose": "ONE-SEED DEVELOPMENT CALIBRATION, capacity/control diagnostic, not matched architecture science",
+    "retry": false,
+    "resume": false,
+    "candidate_checkpoint_selection": false
+  },
+  "gpu": "NVIDIA A100-SXM4-80GB",
+  "torch": "2.11.0+cu130",
+  "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+  "script_sha256": "ee94029237e3ee0bba53045ee1f864a3cb57be62a6b7936bf9eb013c1d93c42a",
+  "tokens_seen": 51200000,
+  "train_seconds": 344.4550142510002,
+  "train_tokens_per_second": 148640.60002532342,
+  "result": {
+    "by_delay": [
+      {
+        "delay": 32,
+        "accuracy": 0.013671875,
+        "nll": 4.7568159103393555
+      },
+      {
+        "delay": 64,
+        "accuracy": 0.033203125,
+        "nll": 4.5891642570495605
+      },
+      {
+        "delay": 128,
+        "accuracy": 0.021484375,
+        "nll": 4.641469478607178
+      },
+      {
+        "delay": 256,
+        "accuracy": 0.041015625,
+        "nll": 4.608684539794922
+      }
+    ],
+    "all_four": 0.0,
+    "independent_source_groups": 128
+  },
+  "history": [
+    {
+      "step": 1000,
+      "train_loss": 4.823345184326172,
+      "tokens": 10240000
+    },
+    {
+      "step": 2000,
+      "train_loss": 4.87535285949707,
+      "tokens": 20480000
+    },
+    {
+      "step": 3000,
+      "train_loss": 4.72536039352417,
+      "tokens": 30720000
+    },
+    {
+      "step": 4000,
+      "train_loss": 4.712716102600098,
+      "tokens": 40960000
+    },
+    {
+      "step": 5000,
+      "train_loss": 4.535700798034668,
+      "tokens": 51200000
+    }
+  ],
+  "breakthrough_demonstrated": false,
+  "checkpoint_sha256": "173d86c05c347f36f81a34109704e7959d4e46fd4a0284b57e0ff970539f187a"
+}

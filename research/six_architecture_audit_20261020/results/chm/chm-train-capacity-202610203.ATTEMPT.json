@@ -1,0 +1,15 @@
+{
+  "attempt": "chm-train-capacity-202610203",
+  "parameters": 274187,
+  "recipe": {
+    "updates": 256,
+    "lr": 0.005,
+    "entity": 48,
+    "evaluation": "TRAIN ONLY",
+    "seed": 202610203
+  },
+  "torch": "2.10.0+cpu",
+  "device": "cpu",
+  "source_sha": "4362402592ac0cad5ed3d12f1d7defe68739a2b5",
+  "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+}
