@@ -2,8 +2,8 @@
   "language_complete": false,
   "language_training_complete": false,
   "interrupted_a100_complete": false,
-  "language_lineages": 5,
-  "language_segments_complete": 5,
+  "language_lineages": 6,
+  "language_segments_complete": 22,
   "interrupted_a100_segments_complete": 2,
   "language_max_parameters": 99837440,
   "language_max_exposures": 99999744,
@@ -15,8 +15,43 @@
   "breakthrough_demonstrated": false,
   "rlt_frozen_state_probes": 6,
   "rlt_probe_ood_gates_passed": 0,
-  "gates": [],
-  "l4_scientific_comparisons": 0,
-  "l4_segment_records": 3,
-  "l4_gates": []
+  "gates": [
+    {
+      "stage_tokens": 99999744,
+      "variant": "conv7",
+      "delta_nll_to_transformer": -0.03643520665355027,
+      "speed_ratio": 0.964036702406553,
+      "parent_benefit": 0.0940560451708734,
+      "passed": true
+    },
+    {
+      "stage_tokens": 99999744,
+      "variant": "cpw_local",
+      "delta_nll_to_transformer": 0.5130479305516928,
+      "speed_ratio": 1.0624373063887678,
+      "parent_benefit": null,
+      "passed": false
+    }
+  ],
+  "interrupted_a100_gates": [],
+  "l4_scientific_comparisons": 3,
+  "l4_segment_records": 20,
+  "l4_gates": [
+    {
+      "stage_tokens": 99999744,
+      "variant": "conv7",
+      "delta_nll_to_transformer": -0.03643520665355027,
+      "speed_ratio": 0.964036702406553,
+      "parent_benefit": 0.0940560451708734,
+      "passed": true
+    },
+    {
+      "stage_tokens": 99999744,
+      "variant": "cpw_local",
+      "delta_nll_to_transformer": 0.5130479305516928,
+      "speed_ratio": 1.0624373063887678,
+      "parent_benefit": null,
+      "passed": false
+    }
+  ]
 }

@@ -98,10 +98,12 @@ def main(root=ROOT):
     lines = ['# L4 paired language confirmation', '',
              f"Seed: {summary['seed']}. Training complete: {summary['complete']}.", '',
              'Only scientific endpoints enter the comparison table. Segment backup metrics remain in L4_LANGUAGE_RESULTS.csv.', '',
-             '| Candidate | Exposures | Development NLL minus Transformer | Training speed / Transformer |',
-             '|---|---:|---:|---:|']
+             '| Candidate | Exposures | Development NLL minus Transformer | Training speed / Transformer | Gate |',
+             '|---|---:|---:|---:|---|']
     for r in summary['scientific_comparisons']:
-        lines.append(f"| {r['variant']} | {r['tokens_seen']:,} | {r['delta_mean_nll']:+.6f} | {r['training_speed_ratio']:.4f} |")
+        gate=next((g for g in summary['gates'] if g['variant']==r['variant'] and g['stage_tokens']==r['tokens_seen']),None)
+        label=('pass' if gate['passed'] else 'fail') if gate else ('control' if r['variant']=='attention8' else 'pending')
+        lines.append(f"| {r['variant']} | {r['tokens_seen']:,} | {r['delta_mean_nll']:+.6f} | {r['training_speed_ratio']:.4f} | {label} |")
     if not summary['scientific_comparisons']:
         lines += ['', 'No matched scientific endpoint is complete yet.']
     lines += ['', '| Terminal model | Exposures | Test NLL | Matched terminal Transformer budget |',

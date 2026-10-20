@@ -1,8 +1,8 @@
 {
-  "utc": "2026-10-20T10:46:51.923634+00:00",
+  "utc": "2026-10-20T15:26:48.761799+00:00",
   "all_checked_caps_passed": true,
-  "immutable_source_checks": 41,
-  "checkpoint_sets_checked": 22,
+  "immutable_source_checks": 58,
+  "checkpoint_sets_checked": 23,
   "checkpoint_sets": [
     "results\\si_repair\\si-202610301-repair.pt",
     "results\\si_repair\\si-202610301-policy.pt",
@@ -23,9 +23,10 @@
     "results\\rlt_probe\\rlt-probe-public_gate_prior-202610312.pt",
     "results\\rlt_probe\\rlt-probe-public_gate_prior-202610313.pt",
     "research_phase2_20261020:transformer-s12207 full optimizer chunks",
-    "l4_panel:transformer-s2442 full optimizer chunks",
-    "l4_panel:attention8-s2442 full optimizer chunks",
-    "l4_panel:conv7-s2442 full optimizer chunks"
+    "l4_panel:transformer-s12207 full optimizer chunks",
+    "l4_panel:attention8-s12207 full optimizer chunks",
+    "l4_panel:conv7-s12207 full optimizer chunks",
+    "l4_panel:cpw_local-s12207 full optimizer chunks"
   ],
   "source_files": [
     "chm_address_diagnostic.py",
@@ -43,15 +44,105 @@
   "reservation_checks": [
     {
       "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s12207",
+      "digest": "0d762a29955abdfca9d22578b9a93513cc7068a7ab42a433edc835eca50492ee",
+      "cumulative_upper_bound": 99999744
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
       "reservation": "attention8-s2442",
       "digest": "cfb51e188d9fcb74544ff276c1ed61a456900e1891d989c390fdb5734a3e7d5e",
       "cumulative_upper_bound": 20004864
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s4884",
+      "digest": "3b70541b5cfe3ad68e6901210d2a2a41f0f1d6a2999e63ed6b6edb34ea8b8ebd",
+      "cumulative_upper_bound": 40009728
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s7325",
+      "digest": "e3a3749a1939ed47bac7677f11ba4fb2b631991dfcf37820ef2f79fe83ce7214",
+      "cumulative_upper_bound": 60006400
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s9766",
+      "digest": "528ae4ac81d7b9c5a2060dbcdce64136080a78068548af4cc623c53c8d5c74bf",
+      "cumulative_upper_bound": 80003072
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s12207",
+      "digest": "e200dd9677106765b46911e74e4ded591ca07d26bcba40d0d36deb7ee3c1a2c5",
+      "cumulative_upper_bound": 99999744
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
       "reservation": "conv7-s2442",
       "digest": "a4125f55663601648100197c05f8a899414f4b394f5ca0659f9a4d1526f4dc4f",
       "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s4884",
+      "digest": "50806d2d867628f61739209664480130a406a318b4317e64a2a85f1548e2eb44",
+      "cumulative_upper_bound": 40009728
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s7325",
+      "digest": "6e07d3536b0dc618b3eb4b62c4ac5146c690c470ad80fe0fdef1969367860952",
+      "cumulative_upper_bound": 60006400
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s9766",
+      "digest": "9d1aadbbec6324e565c04b7a04fb316fb7670cb555ee82e82ecdfc9cf4128ec6",
+      "cumulative_upper_bound": 80003072
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "cpw_local-s12207",
+      "digest": "816882655c62f008d5df225c04841aea96936654bca2385272c6896a4af44b87",
+      "cumulative_upper_bound": 99999744
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "cpw_local-s2442",
+      "digest": "61e46c08bc84a350995d8dc0579a992942a8c17d3c7e49548038388cdc992562",
+      "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "cpw_local-s4884",
+      "digest": "6a40273d50dbb537bd6661697fbf09127586dad78831ec0f3dbffc0eca300c2e",
+      "cumulative_upper_bound": 40009728
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "cpw_local-s7325",
+      "digest": "f9673fd2cf599432c674ffad85b13319e82cfe5f818f50e36320a106e77ba156",
+      "cumulative_upper_bound": 60006400
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "cpw_local-s9766",
+      "digest": "437b66405c00de9faa8e1927ed4e24fe4464e9b3b85369adbba2d96d05d03dd8",
+      "cumulative_upper_bound": 80003072
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s12207",
+      "digest": "5aa3770a8365ee4a58bd4b05fcbfe740d55d94ebf612ae75b6cc49b2a072689c",
+      "cumulative_upper_bound": 99999744
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s14920",
+      "digest": "7f5ec3cecb866db7a9e887fca3ca771ac6f3164016eadd193ec70a6cba9aa506",
+      "cumulative_upper_bound": 122224640
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -61,9 +152,27 @@
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
-      "reservation": "conv7-s2442",
-      "digest": "a4125f55663601648100197c05f8a899414f4b394f5ca0659f9a4d1526f4dc4f",
-      "cumulative_upper_bound": 20004864
+      "reservation": "transformer-s4884",
+      "digest": "a2e0b923ccd0e20e0c9912750194d37fc89947976ff51c8a1affd1d045303e83",
+      "cumulative_upper_bound": 40009728
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s7325",
+      "digest": "3b832050dd94cdfb18c26ea5f8e93769f313d327cc1214c3bed44ff2a7a2aa67",
+      "cumulative_upper_bound": 60006400
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s9766",
+      "digest": "1ab5d9620f79707be3f0588aba5240306b1b8fdae9213e2dd1d0ab2bfc97d4dc",
+      "cumulative_upper_bound": 80003072
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s14920",
+      "digest": "7f5ec3cecb866db7a9e887fca3ca771ac6f3164016eadd193ec70a6cba9aa506",
+      "cumulative_upper_bound": 122224640
     }
   ],
   "charged_lost_reservation_ledgers": [

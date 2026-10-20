@@ -1,0 +1,12 @@
+{
+  "id": "cpw_local-s9766",
+  "variant": "cpw_local",
+  "seed": 202610321,
+  "start": 7325,
+  "end": 9766,
+  "reserved_exposures": 19996672,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 80003072,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "437b66405c00de9faa8e1927ed4e24fe4464e9b3b85369adbba2d96d05d03dd8"
+}

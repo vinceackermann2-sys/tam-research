@@ -49,7 +49,8 @@ def main():
         'language_max_exposures':max(all_exposures,default=0),'si_lineages':len(si),'rlt_lineages':len(rlt),
         'pgw_diagnostics':len(pgw),'chm_diagnostics':len(chm),'all_recorded_caps_passed':True,'breakthrough_demonstrated':False,
         'rlt_frozen_state_probes':len(probes),'rlt_probe_ood_gates_passed':sum(r['gate_passed'] for r in probe_ood),
-        'gates':evidence['gates'],'l4_scientific_comparisons':len(l4['scientific_comparisons']) if l4 else 0,
+        'gates':l4['gates'] if l4 else [],'interrupted_a100_gates':evidence['gates'],
+        'l4_scientific_comparisons':len(l4['scientific_comparisons']) if l4 else 0,
         'l4_segment_records':len(l4['segment_records']) if l4 else 0,'l4_gates':l4['gates'] if l4 else []}
     write('RESEARCH_STATUS.json',result)
     lines=['# Phase-two measured results','',f"L4 training complete: {bool(l4 and l4['complete'])}. See [L4_RESULTS.md](L4_RESULTS.md) for the separate paired trial.",

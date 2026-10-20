@@ -1,14 +1,16 @@
 # Six-architecture research continuation
 
-Start with [CURRENT_ASSESSMENT.md](CURRENT_ASSESSMENT.md). The larger language
-confirmation is active, and no completed2B-token result is claimed.
+Start with [CURRENT_ASSESSMENT.md](CURRENT_ASSESSMENT.md). Conv7 passed the100M
+training-exposure gate and advances to300M with two controls; CPW local failed
+and stops at100M. No completed2B-token or breakthrough result is claimed.
 
 This folder preserves prospective protocols, executed source and measured
 results for Conv7, CPW, PGW, CHM, bounded RLT and the exact SI Original V2 branch.
 The first near100M A100 trial produced two complete100M-token control metrics;
 an infrastructure interruption left candidate outcomes unknown. A fresh paired
 L4 trial runs under acknowledged full-checkpoint backups and the same strict
-100M-parameter/2B-exposure ceilings. Its stages can stop below2B by the frozen
+100M-parameter/2B-exposure ceilings. All four L4 scientific100M checkpoints are
+verified locally. Its stages can stop below2B by the frozen
 continuation gates. It is a separate trial, not an undisclosed rescue.
 
 New CPU work includes three-seed SI planning-head repair with component

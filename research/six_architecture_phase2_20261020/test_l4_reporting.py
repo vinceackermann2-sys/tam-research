@@ -52,3 +52,25 @@ def test_lost_reservations_count_toward_the_lineage_ceiling():
 def test_block_alignment_is_required_including_single_block_input():
     with pytest.raises(AssertionError):
         paired([1., 2.], [1.])
+
+
+def test_current_gate_reporting_and_completion_require_terminal_benchmarks(tmp_path, monkeypatch):
+    import json
+    import analyze_phase2
+    e = trial(record('transformer', 99_999_744, True), record('conv7', 99_999_744, True))
+    e['complete'] = True
+    e['gates'] = [{'variant': 'conv7', 'stage_tokens': 99_999_744, 'passed': True}]
+    (tmp_path/'l4_panel').mkdir()
+    (tmp_path/'l4_panel/EVIDENCE.json').write_text(json.dumps(e))
+    (tmp_path/'EVIDENCE.json').write_text(json.dumps({'results': {}, 'gates': [], 'complete': False}))
+    monkeypatch.setattr(analyze_phase2, 'ROOT', tmp_path)
+    analyze_phase2.main()
+    status = json.loads((tmp_path/'RESEARCH_STATUS.json').read_text())
+    assert status['gates'] == e['gates']
+    assert status['interrupted_a100_gates'] == []
+    assert status['language_training_complete'] and not status['language_complete']
+    assert status['language_segments_complete'] == 2
+    for name in ('INFERENCE.json', 'BENCHMARKS.json'):
+        (tmp_path/'l4_panel'/name).write_text(json.dumps({'complete': True}))
+    analyze_phase2.main()
+    assert json.loads((tmp_path/'RESEARCH_STATUS.json').read_text())['language_complete']

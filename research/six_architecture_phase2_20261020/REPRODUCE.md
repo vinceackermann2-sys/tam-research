@@ -15,8 +15,9 @@ The three checks verify actual meta-device parameter counts/token flooring,
 future isolation and live convolution gradients, and exact scaled CPW output
 equivalence to the native source plus causal isolation. They do not validate
 training efficacy by themselves.
-The four reporting checks prevent intermediate, unpaired or over-budget
-measurements from being presented as scientific endpoint comparisons.
+The five reporting checks prevent intermediate, unpaired or over-budget
+measurements from being presented as scientific endpoint comparisons and require
+terminal benchmarks before reporting the language confirmation complete.
 
 GPU execution used A10040GB, Python3.13.15, torch2.11.0+cu130, NumPy,
 requests, tiktoken, huggingface_hub and pyarrow. The runtime's torch version is
@@ -37,6 +38,8 @@ recorded rather than assumed compatible. Scripts do not require private data.
    L4_LANGUAGE_RESULTS.csv. Its scientific comparison table excludes backup
    midpoints and requires matching exposures, seed, GPU and PyTorch version.
    All segment rows remain available, with conservative lost-exposure charges.
+   Run plot_l4_panel.py afterward for separate per-stage quality/throughput
+   figures. These use scientific endpoints and descriptive block intervals.
 
 Tiny CPU tracks use independent package processes to prevent module collisions:
 
