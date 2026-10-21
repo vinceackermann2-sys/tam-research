@@ -1,7 +1,7 @@
 {
-  "utc": "2026-10-21T08:56:13.244366+00:00",
+  "utc": "2026-10-21T12:18:45.392939+00:00",
   "all_checked_caps_passed": true,
-  "immutable_source_checks": 81,
+  "immutable_source_checks": 95,
   "checkpoint_sets_checked": 29,
   "checkpoint_sets": [
     "results\\si_repair\\si-202610301-repair.pt",
@@ -30,12 +30,15 @@
     "l4_panel:attention8-s12207 full optimizer chunks",
     "l4_panel:conv7-s12207 full optimizer chunks",
     "l4_panel:cpw_local-s12207 full optimizer chunks",
-    "l4_panel:attention8-s25772 full optimizer chunks",
-    "l4_panel:conv7-s25772 full optimizer chunks",
-    "l4_panel:transformer-s28485 full optimizer chunks"
+    "l4_panel:transformer-s36621 full optimizer chunks",
+    "l4_panel:attention8-s36621 full optimizer chunks",
+    "l4_panel:conv7-s36621 full optimizer chunks"
   ],
   "source_files": [
+    "audit_terminal_states.py",
     "chm_address_diagnostic.py",
+    "inference_benchmark.py",
+    "language_benchmarks.py",
     "native_si/si_original_crossmodal_learning_v1.py",
     "native_si/si_original_hybrid_v0.py",
     "native_si/si_original_integrated_v1.py",
@@ -51,9 +54,9 @@
     "train_panel.py"
   ],
   "largest_recorded_language_parameters": 99837440,
-  "largest_recorded_language_exposures": 233349120,
-  "largest_committed_plus_lost_exposure_bound": 233349120,
-  "largest_reserved_cumulative_exposure_bound": 255565824,
+  "largest_recorded_language_exposures": 299999232,
+  "largest_committed_plus_lost_exposure_bound": 322224128,
+  "largest_reserved_cumulative_exposure_bound": 322224128,
   "reservation_checks": [
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -100,8 +103,26 @@
     {
       "trial": "L4_NEW_PAIRED_SEED",
       "reservation": "attention8-s28485",
-      "digest": "41bd7735a9adef636f9203d55a78d0b01790dba45da515b760df4d437fc4b654",
-      "cumulative_upper_bound": 233349120
+      "digest": "82ae3a9b200d60ed885bf5ab6b317a49ce5eaebf8e3f9eb24f7656cb20a58a10",
+      "cumulative_upper_bound": 255574016
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s31197",
+      "digest": "64ccfcc1149ceba75864e70463d96eacd4390072adca68f7e64fee41642f8b1a",
+      "cumulative_upper_bound": 277790720
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s33909",
+      "digest": "53830a89683ec6001f8d7d73aa8f3e02bef72b4045a5b5cec0dfdf471115001e",
+      "cumulative_upper_bound": 300007424
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s36621",
+      "digest": "f289378e3ce6cf4956c4eb60c46b35dcfdda0cc08fa0705ec7d0808da4c8be81",
+      "cumulative_upper_bound": 322224128
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -162,6 +183,30 @@
       "reservation": "conv7-s25772",
       "digest": "c5287f8bd2d0cc46cf5780e4a4ba9a30a615780bc3f1d11e3dfce2ae560447ab",
       "cumulative_upper_bound": 211124224
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s28485",
+      "digest": "1e26c4bfec64f5f8233e6058a8b26b823012308b1f18dfad13ef16357cc32b2c",
+      "cumulative_upper_bound": 233349120
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s31197",
+      "digest": "afbb10dfeadfc3c1936b8fedb4323e518e8d65e4c568bded25b314b9fa41944b",
+      "cumulative_upper_bound": 255565824
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s33909",
+      "digest": "cd847755afc79517a0fd49d500062517c894890c6db35a3d48296b7d58ec4d01",
+      "cumulative_upper_bound": 277782528
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s36621",
+      "digest": "99b4dc685158a19e342082dc07fd20825a640d6700c352cb3a02b3b4c9efad7a",
+      "cumulative_upper_bound": 299999232
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -267,6 +312,18 @@
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s33909",
+      "digest": "db40e27cc57d1a83d021597e99a90723e55ab201bf1347b5cafb7931200a8980",
+      "cumulative_upper_bound": 277782528
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s36621",
+      "digest": "99f69464917d004d10ed1b15c9929a8535d3a888a3c3ae29b46674991cc71612",
+      "cumulative_upper_bound": 299999232
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
       "reservation": "transformer-s4884",
       "digest": "a2e0b923ccd0e20e0c9912750194d37fc89947976ff51c8a1affd1d045303e83",
       "cumulative_upper_bound": 40009728
@@ -285,9 +342,9 @@
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
-      "reservation": "transformer-s31197",
-      "digest": "6b2a91fb3c0d79131a41f84079934776c6aedfee95be85d03a501e301f1454e9",
-      "cumulative_upper_bound": 255565824
+      "reservation": "conv7-s36621",
+      "digest": "99b4dc685158a19e342082dc07fd20825a640d6700c352cb3a02b3b4c9efad7a",
+      "cumulative_upper_bound": 299999232
     }
   ],
   "charged_lost_reservation_ledgers": [
@@ -316,6 +373,68 @@
       "cache_remains_draft": true
     }
   ],
-  "language_confirmation_complete": false,
+  "terminal_optimizer_state_checks": [
+    {
+      "variant": "attention8",
+      "seed": 202610321,
+      "step": 36621,
+      "actual_parameters_from_frozen_constructor": 99558912,
+      "committed_training_exposures": 299999232,
+      "charged_lost_exposures": 22224896,
+      "committed_plus_conservative_charge": 322224128,
+      "checkpoint_sha256": "d28eecd2262499536399a9060617c9f439e18729f3b6324bf2e64752d8f99566",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 132,
+      "rng_states_present": true
+    },
+    {
+      "variant": "conv7",
+      "seed": 202610321,
+      "step": 36621,
+      "actual_parameters_from_frozen_constructor": 99616272,
+      "committed_training_exposures": 299999232,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 299999232,
+      "checkpoint_sha256": "7865dede41fe8507ac6bcbeda3e47123972a6f0a9a2029f68d793d90c52d52d5",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 164,
+      "rng_states_present": true
+    },
+    {
+      "variant": "cpw_local",
+      "seed": 202610321,
+      "step": 12207,
+      "actual_parameters_from_frozen_constructor": 99674432,
+      "committed_training_exposures": 99999744,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 99999744,
+      "checkpoint_sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 124,
+      "rng_states_present": true
+    },
+    {
+      "variant": "transformer",
+      "seed": 202610321,
+      "step": 36621,
+      "actual_parameters_from_frozen_constructor": 99837440,
+      "committed_training_exposures": 299999232,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 299999232,
+      "checkpoint_sha256": "ee50979e5a720d6151f4c3d82aa07748619d0b8a5af62f3f3d10ced4741b4808",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 196,
+      "rng_states_present": true
+    }
+  ],
+  "language_confirmation_complete": true,
   "infrastructure_unknowns_preserved": "INTERRUPTED_PANEL.json; missing parent binary is not a failure outcome"
 }

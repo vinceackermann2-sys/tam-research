@@ -104,13 +104,61 @@ def main():
             'scientific_sources_verified':len(remote['source_sha256']),'cache_remains_draft':True})
     if (ROOT/'l4_panel/data/DATA.json').exists():
         a=load(ROOT/'data/DATA.json');b=load(ROOT/'l4_panel/data/DATA.json');assert a['splits']==b['splits']
+    terminal_checks=[]
+    if (ROOT/'TERMINAL_SUMMARY.json').exists():
+        e=load(ROOT/'l4_panel/EVIDENCE.json');i=load(ROOT/'l4_panel/INFERENCE.json');b=load(ROOT/'l4_panel/BENCHMARKS.json')
+        assert e['complete'] and i['complete'] and b['complete']
+        source(i,'inference_benchmark.py');source(b,'language_benchmarks.py')
+        assert b['sources']==load(ROOT/'BENCHMARK_SOURCES.json')
+        preflight=load(ROOT/'BENCHMARK_PREFLIGHT.json')
+        assert b['source_files']['piqa_valid_sha256']==preflight['valid.jsonl']['sha256']
+        assert b['source_files']['piqa_labels_sha256']==preflight['valid-labels.lst']['sha256']
+        summary=load(ROOT/'TERMINAL_SUMMARY.json')
+        assert summary['complete'] and not summary['breakthrough_demonstrated']
+        for name,digest in summary['input_sha256'].items():assert sha(ROOT/'l4_panel'/name)==digest
+        states=load(ROOT/'TERMINAL_OPTIMIZER_AUDIT.json')
+        source(states,'audit_terminal_states.py')
+        assert states['complete'] and states['optimizer_updates']==0 and states['evidence_sha256']==sha(ROOT/'l4_panel/EVIDENCE.json')
+        assert {r['variant'] for r in states['records']}==set(e['terminal'])
+        for r in states['records']:
+            arm=r['variant'];t=e['terminal'][arm];trained=e['results'][f"{arm}-s{t['steps']}"]
+            assert r['checkpoint_sha256']==trained['checkpoint']['checkpoint_sha256']
+            assert r['actual_parameters_from_frozen_constructor']==trained['parameters']
+            assert r['step']==t['steps'] and r['committed_training_exposures']==t['tokens_seen']
+            assert r['committed_plus_conservative_charge']==t['tokens_seen']+e['charges'][arm]<=2_000_000_000
+            assert all(r[key] for key in ('individual_chunks_and_whole_hash_verified','all_model_and_optimizer_tensors_finite','all_optimizer_steps_match_checkpoint','rng_states_present'))
+            terminal_checks.append(r)
+        for g in e['gates']:
+            step=g['stage_tokens']//8192;r=e['results'][f"{g['variant']}-s{step}"];control=e['results'][f'transformer-s{step}']
+            delta=r['validation']['nll']-control['validation']['nll'];speed=r['train_tokens_per_second']/control['train_tokens_per_second']
+            assert abs(g['delta_nll_to_transformer']-delta)<1e-12 and abs(g['speed_ratio']-speed)<1e-12
+            passed=(delta<=.05 or (delta<=.10 and speed>=1.03)) if step==12207 else (delta<=-.03 or (delta<=.015 and speed>=1.03))
+            if g['variant']=='conv7':
+                benefit=e['results'][f'attention8-s{step}']['validation']['nll']-r['validation']['nll']
+                assert abs(g['parent_benefit']-benefit)<1e-12;passed=passed and benefit>=.005
+            assert g['passed']==passed
+        remote=load(ROOT/'l4_panel/FINAL_RUNTIME_AUDIT.json')
+        assert remote['complete'] and remote['runtime_released']
+        for name,digest in remote['source_sha256'].items():
+            q=ROOT/'l4_panel'/name if name in ('l4_controller.py','RECOVERY_PROTOCOL.md','INFERENCE_PROTOCOL.md') else ROOT/name
+            assert sha(q)==digest
+        for name,digest in remote['result_sha256'].items():assert sha(ROOT/'l4_panel'/name)==digest
+        assert remote['claims']['INFERENCE_CLAIM.json']['protocol_sha256']==sha(ROOT/'l4_panel/INFERENCE_PROTOCOL.md')
+        assert remote['claims']['BENCHMARK_CLAIM.json']['protocol_sha256']==sha(ROOT/'BENCHMARK_PROTOCOL.md')
+        if (ROOT/'TERMINAL_CHECKPOINT_CACHE.json').exists():
+            cache=load(ROOT/'TERMINAL_CHECKPOINT_CACHE.json')
+            assert cache['complete'] and cache['draft'] and cache['published_at'] is None and cache['server_sizes_and_sha256_verified']
+            assert {a['variant'] for a in cache['assets']}==set(e['terminal'])
+            for a in cache['assets']:
+                t=e['terminal'][a['variant']];m=e['results'][f"{a['variant']}-s{t['steps']}"]['checkpoint']
+                assert a['sha256']==m['checkpoint_sha256'] and a['step']==m['step'] and a['bytes']==m['bytes']
     result={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'all_checked_caps_passed':True,'immutable_source_checks':len(source_checks),
         'checkpoint_sets_checked':len(weight_checks),'checkpoint_sets':weight_checks,'source_files':sorted(set(source_checks)),
         'largest_recorded_language_parameters':max(r['parameters'] for r in language),'largest_recorded_language_exposures':max(r['tokens_seen'] for r in language),
         'largest_committed_plus_lost_exposure_bound':max(tokens for parameters,tokens in caps),
         'largest_reserved_cumulative_exposure_bound':max((r['cumulative_upper_bound'] for r in reservation_checks),default=0),
         'reservation_checks':reservation_checks,'charged_lost_reservation_ledgers':charge_ledgers,
-        'cached_runtime_restoration_checks':recovery_checks,
+        'cached_runtime_restoration_checks':recovery_checks,'terminal_optimizer_state_checks':terminal_checks,
         'language_confirmation_complete':all((ROOT/'l4_panel'/n).exists() and load(ROOT/'l4_panel'/n).get('complete',False) for n in ('EVIDENCE.json','INFERENCE.json','BENCHMARKS.json')),'infrastructure_unknowns_preserved':'INTERRUPTED_PANEL.json; missing parent binary is not a failure outcome'}
     (ROOT/'AUDIT_CURRENT.json').write_text(json.dumps(result,indent=2));print(json.dumps(result))
 if __name__=='__main__':main()

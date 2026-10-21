@@ -47,7 +47,11 @@ def main():
         'language_lineages':len({('interrupted_a100',r['lineage']) for r in ledger}|{('l4_paired',r['variant']) for r in l4_rows}),
         'language_segments_complete':len(ledger)+len(l4_rows),'interrupted_a100_segments_complete':len(ledger),
         'language_max_parameters':max(all_parameters,default=0),
-        'language_max_exposures':max(all_exposures,default=0),'si_lineages':len(si),'rlt_lineages':len(rlt),
+        'language_max_exposures':max(all_exposures,default=0),
+        'language_max_recorded_charged_exposures':max(
+            [r['charged_exposure_upper_bound'] for r in l4_rows]+[r['tokens'] for r in ledger],default=0),
+        'l4_terminal_committed_exposures':{r['variant']:r['tokens_seen'] for r in l4['terminal']} if l4 else {},
+        'si_lineages':len(si),'rlt_lineages':len(rlt),
         'si_native_memory_revision_diagnostics':len(si_memory),
         'pgw_diagnostics':len(pgw),'chm_diagnostics':len(chm),'all_recorded_caps_passed':True,'breakthrough_demonstrated':False,
         'rlt_frozen_state_probes':len(probes),'rlt_probe_ood_gates_passed':sum(r['gate_passed'] for r in probe_ood),

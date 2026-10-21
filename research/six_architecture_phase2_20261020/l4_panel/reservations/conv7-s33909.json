@@ -1,0 +1,12 @@
+{
+  "id": "conv7-s33909",
+  "variant": "conv7",
+  "seed": 202610321,
+  "start": 31197,
+  "end": 33909,
+  "reserved_exposures": 22216704,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 277782528,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "cd847755afc79517a0fd49d500062517c894890c6db35a3d48296b7d58ec4d01"
+}

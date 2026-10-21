@@ -102,3 +102,31 @@ dataset and frozen sources are restored on another L4. Common committed final
 ceiling becomes1,977,769,984 positions if there are no further losses, with the
 parent additionally charged22,224,896; no arm may exceed2B charged exposures.
 Scientific100M/300M/1B gates and the fixed2B-horizon learning schedule are unchanged.
+
+The completed300M gate failed for Conv7 (development delta-.0055620458443,
+timed TPS ratio.9665534865, parent benefit.0664781814). CPW local had already
+failed100M. The controller stopped all remaining training at299,999,232
+committed exposures; no1B/2B stage was released. Parent charged total is
+322,224,128 including its lost reservation; other L4 arms have no lost charge.
+The separate interrupted A100 and failed recovery attempts remain preserved.
+
+Exact terminal test coverage is2,096,640 target positions in4,095 blocks, drawn
+from the reserved2,097,152-token array. The frozen evaluator requires513 source
+tokens for each512-target block and floors (array_length-1)/512, leaving one
+partial final block unused. The protocol's rounded full-array description is
+therefore slightly larger than executed target coverage. All four models use
+the identical blocks; the implementation and test data were not changed.
+
+PIQA and LAMBADA were scored once per terminal checkpoint. PIQA's primary rule
+is mean target-token NLL, with summed and character-normalized results retained.
+LAMBADA measures all target tokens correct under teacher forcing, not free-running
+multi-token generation. All examples remain in immutable benchmark records.
+CPW is a100M terminal model and must not receive a matched-budget task or test
+claim against300M controls. No test/benchmark result changes the stopping gate.
+
+Inference used five warmups and20 timed forwards per context/batch setting,
+with dense vocabulary logits and no compiled convolution/serving optimization.
+The short generation benchmark has no KV cache. Conv7 is faster at batch1 but
+slower at batch8 in all tested prefill lengths. Erasing its trained gains raises
+development NLL by2.065969; this identifies reliance after coadaptation, rather
+than the counterfactual effect of training the architecture without convolution.

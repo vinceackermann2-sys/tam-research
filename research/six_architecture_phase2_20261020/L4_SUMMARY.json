@@ -1,7 +1,7 @@
 {
   "trial": "L4_NEW_PAIRED_SEED",
   "seed": 202610321,
-  "complete": false,
+  "complete": true,
   "segment_records": [
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -497,6 +497,34 @@
       "trial": "L4_NEW_PAIRED_SEED",
       "seed": 202610321,
       "gpu": "NVIDIA L4",
+      "variant": "attention8",
+      "parameters": 99558912,
+      "tokens_seen": 233349120,
+      "step": 28485,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 22224896,
+      "charged_exposure_upper_bound": 255574016,
+      "validation_nll": 4.257632720284164,
+      "training_tokens_per_second": 31779.09360116899
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "conv7",
+      "parameters": 99616272,
+      "tokens_seen": 233349120,
+      "step": 28485,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 233349120,
+      "validation_nll": 4.191735239932314,
+      "training_tokens_per_second": 28680.639527317882
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
       "variant": "transformer",
       "parameters": 99837440,
       "tokens_seen": 233349120,
@@ -506,6 +534,132 @@
       "charged_exposure_upper_bound": 233349120,
       "validation_nll": 4.198411059565842,
       "training_tokens_per_second": 29679.07847956424
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "attention8",
+      "parameters": 99558912,
+      "tokens_seen": 255565824,
+      "step": 31197,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 22224896,
+      "charged_exposure_upper_bound": 277790720,
+      "validation_nll": 4.2311673576477915,
+      "training_tokens_per_second": 31765.38581991265
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "conv7",
+      "parameters": 99616272,
+      "tokens_seen": 255565824,
+      "step": 31197,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 255565824,
+      "validation_nll": 4.166952222120017,
+      "training_tokens_per_second": 28678.485780225965
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "transformer",
+      "parameters": 99837440,
+      "tokens_seen": 255565824,
+      "step": 31197,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 255565824,
+      "validation_nll": 4.169480374082923,
+      "training_tokens_per_second": 29675.98046337331
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "attention8",
+      "parameters": 99558912,
+      "tokens_seen": 277782528,
+      "step": 33909,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 22224896,
+      "charged_exposure_upper_bound": 300007424,
+      "validation_nll": 4.207276677712798,
+      "training_tokens_per_second": 31753.43105697706
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "conv7",
+      "parameters": 99616272,
+      "tokens_seen": 277782528,
+      "step": 33909,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 277782528,
+      "validation_nll": 4.1450070852879435,
+      "training_tokens_per_second": 28676.702219707815
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "transformer",
+      "parameters": 99837440,
+      "tokens_seen": 277782528,
+      "step": 33909,
+      "scientific_endpoint": false,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 277782528,
+      "validation_nll": 4.146725246915594,
+      "training_tokens_per_second": 29673.1875459544
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "attention8",
+      "parameters": 99558912,
+      "tokens_seen": 299999232,
+      "step": 36621,
+      "scientific_endpoint": true,
+      "charged_lost_exposures": 22224896,
+      "charged_exposure_upper_bound": 322224128,
+      "validation_nll": 4.197557965060696,
+      "training_tokens_per_second": 31742.20858885138
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "conv7",
+      "parameters": 99616272,
+      "tokens_seen": 299999232,
+      "step": 36621,
+      "scientific_endpoint": true,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 299999232,
+      "validation_nll": 4.131079783663154,
+      "training_tokens_per_second": 28679.27263028616
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "transformer",
+      "parameters": 99837440,
+      "tokens_seen": 299999232,
+      "step": 36621,
+      "scientific_endpoint": true,
+      "charged_lost_exposures": 0,
+      "charged_exposure_upper_bound": 299999232,
+      "validation_nll": 4.136641829507425,
+      "training_tokens_per_second": 29671.687114346198
     }
   ],
   "scientific_comparisons": [
@@ -568,6 +722,49 @@
       "blocks": 1024,
       "interpretation": "paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction",
       "training_speed_ratio": 1.0624373063887678
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "attention8",
+      "tokens_seen": 299999232,
+      "parameters": 99558912,
+      "control_parameters": 99837440,
+      "delta_mean_nll": 0.06091613555327058,
+      "approximate_95_percent_block_bootstrap_interval": [
+        0.05823482822743244,
+        0.0637519255222287
+      ],
+      "blocks": 1024,
+      "interpretation": "paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction",
+      "training_speed_ratio": 1.0697810497436828
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "seed": 202610321,
+      "gpu": "NVIDIA L4",
+      "variant": "conv7",
+      "tokens_seen": 299999232,
+      "parameters": 99616272,
+      "control_parameters": 99837440,
+      "delta_mean_nll": -0.005562045844271779,
+      "approximate_95_percent_block_bootstrap_interval": [
+        -0.00823514863732271,
+        -0.003013307048240677
+      ],
+      "blocks": 1024,
+      "interpretation": "paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction",
+      "training_speed_ratio": 0.9665534864857682,
+      "delta_nll_to_attention8": {
+        "delta_mean_nll": -0.06647818139754236,
+        "approximate_95_percent_block_bootstrap_interval": [
+          -0.06928037983598187,
+          -0.06362349832779728
+        ],
+        "blocks": 1024,
+        "interpretation": "paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction"
+      }
     }
   ],
   "unavailable_comparisons": [],
@@ -587,15 +784,62 @@
       "speed_ratio": 1.0624373063887678,
       "parent_benefit": null,
       "passed": false
+    },
+    {
+      "stage_tokens": 299999232,
+      "variant": "conv7",
+      "delta_nll_to_transformer": -0.005562045844271779,
+      "speed_ratio": 0.9665534864857682,
+      "parent_benefit": 0.06647818139754236,
+      "passed": false
     }
   ],
   "terminal": [
+    {
+      "variant": "attention8",
+      "tokens_seen": 299999232,
+      "test_nll": 4.223945660818191,
+      "test_tokens": 2096640,
+      "matched_terminal_transformer": true,
+      "delta_test_nll_to_transformer": {
+        "delta_mean_nll": 0.060972561911931115,
+        "approximate_95_percent_block_bootstrap_interval": [
+          0.05957960780723628,
+          0.06231125625353011
+        ],
+        "blocks": 4095,
+        "interpretation": "paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction"
+      }
+    },
+    {
+      "variant": "conv7",
+      "tokens_seen": 299999232,
+      "test_nll": 4.157327393181304,
+      "test_tokens": 2096640,
+      "matched_terminal_transformer": true,
+      "delta_test_nll_to_transformer": {
+        "delta_mean_nll": -0.0056457057249560605,
+        "approximate_95_percent_block_bootstrap_interval": [
+          -0.0070264038760146814,
+          -0.004300403803113907
+        ],
+        "blocks": 4095,
+        "interpretation": "paired token-block resampling; adjacent blocks/documents dependent; descriptive, no multiplicity correction"
+      }
+    },
     {
       "variant": "cpw_local",
       "tokens_seen": 99999744,
       "test_nll": 5.051848462911752,
       "test_tokens": 2096640,
       "matched_terminal_transformer": false
+    },
+    {
+      "variant": "transformer",
+      "tokens_seen": 299999232,
+      "test_nll": 4.16297309890626,
+      "test_tokens": 2096640,
+      "matched_terminal_transformer": true
     }
   ],
   "breakthrough_demonstrated": false,

@@ -1,0 +1,69 @@
+{
+  "complete": true,
+  "utc": "2026-10-21T12:07:07.739642+00:00",
+  "source_sha256": "14f4474f14ca4986de04c16ff4e218dd30212bfb46b671cbd953fe8a7297f3b7",
+  "evidence_sha256": "f53e944e06d85e916fc6b4e7076ebcdb9c56463430250c84178e512a1c4302e2",
+  "optimizer_updates": 0,
+  "records": [
+    {
+      "variant": "attention8",
+      "seed": 202610321,
+      "step": 36621,
+      "actual_parameters_from_frozen_constructor": 99558912,
+      "committed_training_exposures": 299999232,
+      "charged_lost_exposures": 22224896,
+      "committed_plus_conservative_charge": 322224128,
+      "checkpoint_sha256": "d28eecd2262499536399a9060617c9f439e18729f3b6324bf2e64752d8f99566",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 132,
+      "rng_states_present": true
+    },
+    {
+      "variant": "conv7",
+      "seed": 202610321,
+      "step": 36621,
+      "actual_parameters_from_frozen_constructor": 99616272,
+      "committed_training_exposures": 299999232,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 299999232,
+      "checkpoint_sha256": "7865dede41fe8507ac6bcbeda3e47123972a6f0a9a2029f68d793d90c52d52d5",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 164,
+      "rng_states_present": true
+    },
+    {
+      "variant": "cpw_local",
+      "seed": 202610321,
+      "step": 12207,
+      "actual_parameters_from_frozen_constructor": 99674432,
+      "committed_training_exposures": 99999744,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 99999744,
+      "checkpoint_sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 124,
+      "rng_states_present": true
+    },
+    {
+      "variant": "transformer",
+      "seed": 202610321,
+      "step": 36621,
+      "actual_parameters_from_frozen_constructor": 99837440,
+      "committed_training_exposures": 299999232,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 299999232,
+      "checkpoint_sha256": "ee50979e5a720d6151f4c3d82aa07748619d0b8a5af62f3f3d10ced4741b4808",
+      "individual_chunks_and_whole_hash_verified": true,
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "optimizer_parameter_tensors": 196,
+      "rng_states_present": true
+    }
+  ]
+}

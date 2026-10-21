@@ -1,0 +1,12 @@
+{
+  "id": "transformer-s36621",
+  "variant": "transformer",
+  "seed": 202610321,
+  "start": 33909,
+  "end": 36621,
+  "reserved_exposures": 22216704,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 299999232,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "99f69464917d004d10ed1b15c9929a8535d3a888a3c3ae29b46674991cc71612"
+}

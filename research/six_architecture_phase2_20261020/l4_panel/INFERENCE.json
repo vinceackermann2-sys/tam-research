@@ -1,0 +1,266 @@
+{
+  "gpu": "NVIDIA L4",
+  "torch": "2.11.0+cu130",
+  "records": [
+    {
+      "variant": "cpw_local",
+      "steps": 12207,
+      "parameters": 99674432,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 9.00426500083995,
+          "p90_ms": 9.050691899574304,
+          "tokens_per_second": 14215.485660190998,
+          "peak_gib": 0.5886521339416504
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 10.515229500015266,
+          "p90_ms": 12.191403101132892,
+          "tokens_per_second": 97382.56307182962,
+          "peak_gib": 0.760502815246582
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 9.120618000451941,
+          "p90_ms": 9.17567320047965,
+          "tokens_per_second": 56136.54688472093,
+          "peak_gib": 0.6623525619506836
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 31.69565850021172,
+          "p90_ms": 33.389368798998476,
+          "tokens_per_second": 129229.05513929107,
+          "peak_gib": 1.3465051651000977
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 10.579368999970029,
+          "p90_ms": 10.773659400365432,
+          "tokens_per_second": 96792.16217932288,
+          "peak_gib": 0.760502815246582
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 63.74174999928073,
+          "p90_ms": 65.6360920993393,
+          "tokens_per_second": 128518.59260363011,
+          "peak_gib": 2.13167667388916
+        }
+      ],
+      "checkpoint_sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+      "distant_prefix_delta": 0.0,
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 66.41902499904973,
+        "new_tokens_per_second": 120.44741698804609
+      }
+    },
+    {
+      "variant": "conv7",
+      "steps": 36621,
+      "parameters": 99616272,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 12.143308499616978,
+          "p90_ms": 12.224382500971842,
+          "tokens_per_second": 10540.78466375431,
+          "peak_gib": 0.5881376266479492
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 13.163339999664458,
+          "p90_ms": 15.177304400458526,
+          "tokens_per_second": 77791.80664072359,
+          "peak_gib": 0.758458137512207
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 12.692262499513163,
+          "p90_ms": 12.830829599988647,
+          "tokens_per_second": 40339.53757414321,
+          "peak_gib": 0.6611318588256836
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 36.168736000036006,
+          "p90_ms": 38.11196560054668,
+          "tokens_per_second": 113246.97661527133,
+          "peak_gib": 1.3431329727172852
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 13.176823999856424,
+          "p90_ms": 13.376209899433888,
+          "tokens_per_second": 77712.20136287452,
+          "peak_gib": 0.758458137512207
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 75.5330279998816,
+          "p90_ms": 79.92151939979522,
+          "tokens_per_second": 108455.86648549084,
+          "peak_gib": 2.1217432022094727
+        }
+      ],
+      "checkpoint_sha256": "7865dede41fe8507ac6bcbeda3e47123972a6f0a9a2029f68d793d90c52d52d5",
+      "conv_erasure": {
+        "replay_nll": 4.131079783663154,
+        "zero_gain_nll": 6.197048805654049,
+        "delta_nll": 2.0659690219908953
+      },
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 93.4949910006253,
+        "new_tokens_per_second": 85.56608128821036
+      }
+    },
+    {
+      "variant": "attention8",
+      "steps": 36621,
+      "parameters": 99558912,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 8.710594999683963,
+          "p90_ms": 8.778358199924696,
+          "tokens_per_second": 14694.748177896468,
+          "peak_gib": 0.7492246627807617
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 9.963910499209305,
+          "p90_ms": 10.044841799754067,
+          "tokens_per_second": 102770.89502974364,
+          "peak_gib": 0.9195451736450195
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 9.15514699954656,
+          "p90_ms": 9.292363399435999,
+          "tokens_per_second": 55924.82567733304,
+          "peak_gib": 0.8222188949584961
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 32.33085200099595,
+          "p90_ms": 33.78192599975591,
+          "tokens_per_second": 126690.13485551892,
+          "peak_gib": 1.5042810440063477
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 10.132379499736999,
+          "p90_ms": 11.097781200260215,
+          "tokens_per_second": 101062.14438835216,
+          "peak_gib": 0.9195451736450195
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 64.97292350013595,
+          "p90_ms": 67.86753600008524,
+          "tokens_per_second": 126083.2906800455,
+          "peak_gib": 2.2840662002563477
+        }
+      ],
+      "checkpoint_sha256": "d28eecd2262499536399a9060617c9f439e18729f3b6324bf2e64752d8f99566",
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 66.11927900121373,
+        "new_tokens_per_second": 120.99345487196173
+      }
+    },
+    {
+      "variant": "transformer",
+      "steps": 36621,
+      "parameters": 99837440,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 13.444694499412435,
+          "p90_ms": 17.103412399774243,
+          "tokens_per_second": 9520.48408430507,
+          "peak_gib": 0.7675247192382812
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 14.500282501103356,
+          "p90_ms": 14.795411500017508,
+          "tokens_per_second": 70619.3137907542,
+          "peak_gib": 0.9439249038696289
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 13.530934000300476,
+          "p90_ms": 13.59747169954062,
+          "tokens_per_second": 37839.22085412805,
+          "peak_gib": 0.8396120071411133
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 32.770492999588896,
+          "p90_ms": 33.36915529980616,
+          "tokens_per_second": 124990.49068475669,
+          "peak_gib": 1.5206518173217773
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 14.526579999255773,
+          "p90_ms": 14.93679490085924,
+          "tokens_per_second": 70491.47149931102,
+          "peak_gib": 0.9439249038696289
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 71.31874700007756,
+          "p90_ms": 75.23925639925437,
+          "tokens_per_second": 114864.60916077354,
+          "peak_gib": 2.3001928329467773
+        }
+      ],
+      "checkpoint_sha256": "ee50979e5a720d6151f4c3d82aa07748619d0b8a5af62f3f3d10ced4741b4808",
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 104.85872400022345,
+        "new_tokens_per_second": 76.29312750346793
+      }
+    }
+  ],
+  "complete": true,
+  "source_sha256": "72c0945d423a6207092f3b4c95ec85ed0844703e1d5619d51dca9f3b52e365a6"
+}

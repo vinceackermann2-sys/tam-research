@@ -1,0 +1,58 @@
+{
+  "release_id": 419316092,
+  "tag": "research-checkpoint-cache-20261021",
+  "draft": true,
+  "url": "https://github.com/vinceackermann2-sys/tam-research/releases/tag/untagged-c5ea0b895a56ef22635a",
+  "assets": [
+    {
+      "variant": "transformer",
+      "step": 36621,
+      "asset_id": 662384978,
+      "name": "transformer-s36621-ee50979e5a72-attempt1.pt",
+      "bytes": 1198271019,
+      "sha256": "ee50979e5a720d6151f4c3d82aa07748619d0b8a5af62f3f3d10ced4741b4808"
+    },
+    {
+      "variant": "attention8",
+      "step": 36621,
+      "asset_id": 662391374,
+      "name": "attention8-s36621-d28eecd22624-attempt1.pt",
+      "bytes": 1194863403,
+      "sha256": "d28eecd2262499536399a9060617c9f439e18729f3b6324bf2e64752d8f99566"
+    },
+    {
+      "variant": "conv7",
+      "step": 36621,
+      "asset_id": 662397822,
+      "name": "conv7-s36621-7865dede41fe-attempt1.pt",
+      "bytes": 1195585259,
+      "sha256": "7865dede41fe8507ac6bcbeda3e47123972a6f0a9a2029f68d793d90c52d52d5"
+    },
+    {
+      "variant": "cpw_local",
+      "step": 12207,
+      "asset_id": 661859112,
+      "name": "cpw_local-s12207-aaac9b7e8fbe-attempt1.pt",
+      "bytes": 1196228907,
+      "sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41"
+    }
+  ],
+  "utc": "2026-10-21T12:17:37.199915+00:00",
+  "purpose": "Private draft-only cache for exact verified optimizer/RNG restoration; never publish automatically.",
+  "complete": true,
+  "server_sizes_and_sha256_verified": true,
+  "published_at": null,
+  "retained_total_release_assets": 7,
+  "terminal_committed_exposures": {
+    "cpw_local": 99999744,
+    "conv7": 299999232,
+    "attention8": 299999232,
+    "transformer": 299999232
+  },
+  "charges": {
+    "transformer": 0,
+    "attention8": 22224896,
+    "conv7": 0,
+    "cpw_local": 0
+  }
+}

@@ -1,15 +1,5 @@
 {
-  "utc": 1792573034.1204562,
-  "phase": "training",
-  "current": "transformer",
-  "stage": 31197,
-  "progress": {
-    "step": 29184,
-    "tokens": 239075328,
-    "loss": 4.186733245849609,
-    "lr": 0.00029072844454377167,
-    "train_seconds": 8055.253255035299,
-    "grad_norm": 1.3004066944122314
-  },
-  "complete": false
+  "utc": 1792584161.948647,
+  "phase": "finished",
+  "complete": true
 }

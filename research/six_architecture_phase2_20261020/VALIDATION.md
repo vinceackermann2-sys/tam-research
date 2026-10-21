@@ -1,5 +1,30 @@
 # Validation snapshot
 
+Final21 October language confirmation is complete. The full audit at12:08UTC
+passed95 immutable source references and29 retained checkpoint sets. Maximum
+actual language-model size is99,837,440; maximum committed exposure count is
+299,999,232 and maximum committed-plus-conservative-loss total is322,224,128.
+All reservation digests/bounds and the single idempotent parent-loss ledger
+reconcile. Conv7's300M failed gate is independently recalculated from recorded
+NLL/throughput/parent metrics, and no later training stage was released.
+
+TERMINAL_OPTIMIZER_AUDIT.json independently reconstructs all four final optimizer
+files, verifies individual chunk and concatenated hashes, all finite model/Adam
+tensors, every Adam step, RNG presence, exact frozen-constructor parameter counts
+and seed/exposure equality. These checks perform zero optimizer updates.
+Terminal test contains2,096,640 target positions per model; the unused partial
+block in the2,097,152-token array is disclosed in EXECUTION_NOTES.md.
+
+Terminal inference and PIQA1,838/LAMBADA5,153 are complete for all four models.
+The analysis checks checkpoint identities/budgets, source and pinned task hashes,
+PIQA normalization/aggregate accuracy, task-row alignment and all timing settings.
+Only equal committed-budget models receive paired task/test comparisons; no
+post-hoc terminal score changes the frozen training gate. Five reporting
+regressions passed again in0.44s. See TERMINAL_SUMMARY.json, AUDIT_CURRENT.json
+and the final remote source/result/claim audit under l4_panel.
+
+The earlier validation history below records checks performed during the study.
+
 The phase-two source/cap/equivalence suite passed3 checks on2026-10-20:
 actual parameter counts and token-floor arithmetic; causal active convolution
 and live gradients; exact scaled CPW output equivalence to the pinned native
@@ -22,7 +47,7 @@ and pruning records and regenerate the audit for the final snapshot.
 The L4 corpus split counts/document digests/token hashes exactly match the A100
 corpus. Actual language-model counts are99.56–99.84M. Completed scientific A100
 and L4 endpoints contain99,999,744 optimizer exposures each. Conv7 passed the
-100M gate, CPW local failed, and the three-model300M stage is running. The
+100M gate, CPW local failed, and the three-model300M stage was then running. The
 nearest-rounding oversized Conv7 preflight was rejected
 before an optimizer update. All checked trained models remain below both caps.
 

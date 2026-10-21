@@ -40,6 +40,13 @@ recorded rather than assumed compatible. Scripts do not require private data.
    All segment rows remain available, with conservative lost-exposure charges.
    Run plot_l4_panel.py afterward for separate per-stage quality/throughput
    figures. These use scientific endpoints and descriptive block intervals.
+5. After EVIDENCE.json, INFERENCE.json and BENCHMARKS.json are complete, run
+   analyze_terminal_benchmarks.py for budget-labeled terminal task/timing tables.
+   audit_terminal_states.py reassembles the terminal checkpoints, checks per-chunk
+   and whole hashes, finite model/Adam tensors, optimizer steps, RNG and actual
+   parameter/exposure counts. Run audit_phase2.py for the complete source/cap/
+   reservation/benchmark/checkpoint audit. These read saved results and perform
+   no optimizer updates. Checkpoint binaries must be present locally for audits.
 
 Tiny CPU tracks use independent package processes to prevent module collisions:
 

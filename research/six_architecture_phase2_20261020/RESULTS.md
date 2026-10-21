@@ -1,6 +1,6 @@
 # Phase-two measured results
 
-L4 training complete: False. See [L4_RESULTS.md](L4_RESULTS.md) for the separate paired trial.
+L4 training complete: True. See [L4_RESULTS.md](L4_RESULTS.md) for the separate paired trial.
 
 The following language table belongs to the interrupted A100 trial. Candidate outcomes are unknown.
 
