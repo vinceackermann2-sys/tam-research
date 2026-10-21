@@ -1,0 +1,16 @@
+{
+  "attempt": "cpw-afm_first1-202610201",
+  "parameters": 9904128,
+  "recipe": {
+    "updates": 500,
+    "batch": 16,
+    "lr": 0.001,
+    "seed": 202610201,
+    "vocab": 4096,
+    "ids_unchanged": true
+  },
+  "torch": "2.11.0+cu130",
+  "device": "cuda:0",
+  "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+  "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+}

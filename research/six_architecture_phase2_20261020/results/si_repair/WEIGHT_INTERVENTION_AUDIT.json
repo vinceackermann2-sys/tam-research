@@ -1,0 +1,59 @@
+[
+  {
+    "seed": 202610301,
+    "changed_heads": {
+      "transition.0.weight": 0.7008925676345825,
+      "transition.0.bias": 0.14013974368572235,
+      "transition.2.weight": 0.4992295801639557,
+      "transition.2.bias": 0.1556640863418579,
+      "reward_head.weight": 0.2511861026287079,
+      "reward_head.bias": 0.015421591699123383,
+      "value_head.weight": 0.11562968790531158,
+      "value_head.bias": 0.1350223273038864,
+      "verifier.0.weight": 0.4529705047607422,
+      "verifier.0.bias": 0.30770236253738403,
+      "verifier.2.weight": 0.28505849838256836,
+      "verifier.2.bias": 0.13896384835243225
+    },
+    "non_head_weights_identical": true,
+    "persistent_equal": true
+  },
+  {
+    "seed": 202610302,
+    "changed_heads": {
+      "transition.0.weight": 0.7649692296981812,
+      "transition.0.bias": 0.15538890659809113,
+      "transition.2.weight": 0.47437041997909546,
+      "transition.2.bias": 0.14588546752929688,
+      "reward_head.weight": 0.22468015551567078,
+      "reward_head.bias": 0.020956575870513916,
+      "value_head.weight": 0.16771943867206573,
+      "value_head.bias": 0.16665519773960114,
+      "verifier.0.weight": 0.3460920751094818,
+      "verifier.0.bias": 0.20186245441436768,
+      "verifier.2.weight": 0.15298213064670563,
+      "verifier.2.bias": 0.0595836266875267
+    },
+    "non_head_weights_identical": true,
+    "persistent_equal": true
+  },
+  {
+    "seed": 202610303,
+    "changed_heads": {
+      "transition.0.weight": 0.8123787045478821,
+      "transition.0.bias": 0.16606244444847107,
+      "transition.2.weight": 0.4984099864959717,
+      "transition.2.bias": 0.1327797770500183,
+      "reward_head.weight": 0.12983182072639465,
+      "reward_head.bias": 0.06574735045433044,
+      "value_head.weight": 0.11386340856552124,
+      "value_head.bias": 0.1054360494017601,
+      "verifier.0.weight": 0.37185078859329224,
+      "verifier.0.bias": 0.2527744174003601,
+      "verifier.2.weight": 0.295438677072525,
+      "verifier.2.bias": 0.08378402143716812
+    },
+    "non_head_weights_identical": true,
+    "persistent_equal": true
+  }
+]

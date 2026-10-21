@@ -1,0 +1,132 @@
+# Execution notes and interpretation limits
+
+Phase one remains in ../research_20261020 and draft PR1528. Phase-two sources
+are separate and frozen when launched. Git remote heads were rechecked during
+this phase and still matched all four pinned source commits. No research source
+branch was rewritten or merged.
+
+The previous A100 assignment had ended before this turn; its completed evidence
+was already backed up. One fresh A100 was allocated through the user's existing
+Colab entitlement under their explicit compute authorization. This session is
+NVIDIA A100-SXM4-40GB, torch2.11.0+cu130/Python3.13.15. No upgrade or credits were
+purchased. The models fit well below40GB. A private local exporter retrieves
+immutable results and full optimizer checkpoints in64MiB SHA256-verified chunks.
+Session credentials are confined to work/ and must never enter reports or Git.
+
+Hardware preparation retained the original unaligned model/source and its
+measurements. Nearest16 FFN rounding was subsequently attempted; the Conv7
+count100,009,488 triggered the mandatory parameter guard BEFORE an optimizer
+update. The final selected source uses floor16 and actual99,616,272 Conv7
+parameters. These were hardware-only synthetic runs, not language evidence.
+Unaligned Conv7's speed penalty substantially shrank with aligned FFN widths;
+the final language-training throughput remains the efficacy comparison.
+
+SI's recorded gradient_coverage includes stale gradients left by the last policy
+update when freezing parameters. It must not be interpreted as evidence that
+those frozen parameters were trained by the head-repair objective. Only the
+head parameters are in the repair optimizer, and WEIGHT_INTERVENTION_AUDIT.json
+independently verifies that all non-head weights are bitwise identical between
+policy and repaired checkpoints in every seed. The stale gradients also enter
+global norm clipping; this is the actual executed recipe, retained without a
+silent source edit. Direct logits are bitwise identical before/after repair.
+The three models' native persistent states are exported; memory/replay have no
+ingested episodes in this isolated experiment. Full-system memory/fast learning
+is not thereby validated. The finite cue task has only1024 distinct discrete
+cue/query combinations, with stochastic sampling and repeated combinations;
+perfect held-out sample accuracy is a small engineering result, not broad
+multimodal generalization or useful planning superiority over the direct policy.
+
+CHM diagnostic gold interventions use already consumed development labels and
+are never reported as deployable accuracy. Native TEST stays closed. PGW traces
+use new examples in the same development generator and the earlier tiny trained
+checkpoints; slot collapse is a measured failure mode of those checkpoints,
+not a family-wide impossibility proof. RLT's public gate prior adds explicit
+instruction-type supervision; any robustness gain needs broader tasks before
+language scaling. Neither memory diagnostic consumes optimizer token budget.
+
+The large language panel is one seed per lineage, staged on the fixed2B cosine
+schedule. Its gates can stop particular recipes below2B. Model size and token
+count are ceilings; continuation is conditional on measured research value.
+No claim of a completed2B run may be made until that terminal result is saved.
+
+Receptive-field wording clarification: CPW's15 one-step mixers can access the
+current token plus15 preceding tokens, a16-position field. The frozen protocol's
+"15-token temporal receptive field" refers to the15-token lookback, not the
+total number of positions including the current token. The inference check
+perturbs only positions more than15 steps back. The model equations are unchanged.
+
+PGW's traced coefficients decompose the final value read for the observed
+assignment/gate trajectory. Keys and routing/read weights also depend on prior
+content, so a small direct target-value coefficient is not a complete causal
+information bound. Slot collapse is observed; its causal responsibility for the
+retrieval failure remains a repair hypothesis until an intervention validates it.
+
+Language training TPS times synchronized forward, loss, backward, clipping and
+optimizer step. Batch preparation/transfer and zero_grad are outside that timer;
+evaluation and checkpoint/export work are also excluded. segment_wall_seconds
+includes the segment's training/evaluation/checkpoint work after model setup.
+Corpus preparation is a separately recorded shared cost. These are implementation
+measurements, not FLOP-matched training budgets or end-to-end service costs.
+
+SI post-hoc component restoration further limits the positive interpretation:
+the repaired verifier chooses zero searches on this easy task. Forced depth1/2
+search is also100% in all3 seeds. Restoring the original untrained transition
+reduces forced depth2 accuracy to24.46%/5.57%/50.63%; restoring either the old
+reward head or old value head individually leaves100%. The latter heads can
+remain useful fixed projections after the transition coadapts. Thus the small
+task supports a transition/planning-coordinate repair and appropriate search
+skipping, not an isolated causal benefit from training the value head or useful
+multistep planning. These are post-hoc consumed-domain diagnostics, not new
+held-out confirmations.
+
+The21 October SI memory follow-up is a prospective frozen-representation
+component fixture. It tests exact associations for previously observed contexts,
+cross-world interference, within-world reward changes, and restart persistence.
+There is no optimizer, new policy training, held-out task acquisition, or test
+of whether replay improves decisions. The dictionary comparison is a latest
+executed-record storage control, with identical factual input, rather than an
+independently trained neural competitor. All56 feedback events remain below
+memory capacity128; failures therefore do not result from eviction. Native
+weights are bitwise unchanged. Its616 additional online positions are counted
+alongside736,000 prior positions, not presented as a new full task benchmark.
+
+The first L4 assignment disappeared before the21 October continuation. Its
+last durable states were Transformer233,349,120 inputs, parent/Conv7211,124,224,
+and terminal CPW99,999,744. The parent's unfinished22,224,896-position reservation
+is conservatively spent, even though its exact completed updates are unknown.
+This is an infrastructure interruption, not an architecture failure. The
+pre-allocation resume archive preserves that reservation and its unique digest;
+subsequent recovery planning merges archived charges even if an evidence export
+lags a newer reservation ACK. The same-seed full optimizer/RNG states, pinned
+dataset and frozen sources are restored on another L4. Common committed final
+ceiling becomes1,977,769,984 positions if there are no further losses, with the
+parent additionally charged22,224,896; no arm may exceed2B charged exposures.
+Scientific100M/300M/1B gates and the fixed2B-horizon learning schedule are unchanged.
+
+The completed300M gate failed for Conv7 (development delta-.0055620458443,
+timed TPS ratio.9665534865, parent benefit.0664781814). CPW local had already
+failed100M. The controller stopped all remaining training at299,999,232
+committed exposures; no1B/2B stage was released. Parent charged total is
+322,224,128 including its lost reservation; other L4 arms have no lost charge.
+The separate interrupted A100 and failed recovery attempts remain preserved.
+
+Exact terminal test coverage is2,096,640 target positions in4,095 blocks, drawn
+from the reserved2,097,152-token array. The frozen evaluator requires513 source
+tokens for each512-target block and floors (array_length-1)/512, leaving one
+partial final block unused. The protocol's rounded full-array description is
+therefore slightly larger than executed target coverage. All four models use
+the identical blocks; the implementation and test data were not changed.
+
+PIQA and LAMBADA were scored once per terminal checkpoint. PIQA's primary rule
+is mean target-token NLL, with summed and character-normalized results retained.
+LAMBADA measures all target tokens correct under teacher forcing, not free-running
+multi-token generation. All examples remain in immutable benchmark records.
+CPW is a100M terminal model and must not receive a matched-budget task or test
+claim against300M controls. No test/benchmark result changes the stopping gate.
+
+Inference used five warmups and20 timed forwards per context/batch setting,
+with dense vocabulary logits and no compiled convolution/serving optimization.
+The short generation benchmark has no KV cache. Conv7 is faster at batch1 but
+slower at batch8 in all tested prefill lengths. Erasing its trained gains raises
+development NLL by2.065969; this identifies reliance after coadaptation, rather
+than the counterfactual effect of training the architecture without convolution.

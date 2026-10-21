@@ -1,0 +1,56 @@
+{
+  "seed": 202610313,
+  "arm": "public_gate_prior",
+  "parameters_including_frozen_backbone": 27778,
+  "accounted_training_positions": 3031040,
+  "rows": [
+    {
+      "length": 128,
+      "original_accuracy": 0.99609375,
+      "state_first": 0,
+      "count": 512,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "length": 256,
+      "original_accuracy": 0.98046875,
+      "state_first": 512,
+      "count": 512,
+      "probe_accuracy": 0.994140625,
+      "class0": 0.9921875,
+      "class1": 0.99609375,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "length": 512,
+      "original_accuracy": 0.775390625,
+      "state_first": 1024,
+      "count": 512,
+      "probe_accuracy": 0.990234375,
+      "class0": 0.984375,
+      "class1": 0.99609375,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "length": 1024,
+      "original_accuracy": 0.517578125,
+      "state_first": 1536,
+      "count": 512,
+      "probe_accuracy": 0.935546875,
+      "class0": 0.91015625,
+      "class1": 0.9609375,
+      "erased_carry_probe_accuracy": 0.5
+    }
+  ],
+  "integration_max_logit_delta": 0.0,
+  "gate_passed": false,
+  "source_sha256": "5f5e46953d10d026690a567476fdcac4e4c4abdea082a5e7861e20d2645dd368",
+  "checkpoint_sha256": "605ae90991985defd0f95aa0dfca76727ca31847c18290d208ce4061ddb6ce8e",
+  "base_checkpoint_sha256": "5124eafd7d6d1be5cb516657b32d7de54839d5f5f559ae205f470be83745ef90",
+  "seconds": 24.40600000001723,
+  "scope": "frozen-state long-context supervised linear probe; not unmodified model extrapolation",
+  "breakthrough_demonstrated": false
+}

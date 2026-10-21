@@ -1,0 +1,12 @@
+{
+  "id": "transformer-s23059",
+  "variant": "transformer",
+  "seed": 202610321,
+  "start": 20346,
+  "end": 23059,
+  "reserved_exposures": 22224896,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 188899328,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "20190b9b82bcc07bb682e0a413dc56df0eaf14a408cd346a4c26bb30b4ef9e03"
+}

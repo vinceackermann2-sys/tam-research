@@ -1,0 +1,22 @@
+{
+  "piqa_git_revision": "21edab439af693b961be2f069e8690a88d3b4e37",
+  "lambada_hf_revision": "900124bf3b8235c6daf21033af9948b3f07346c4",
+  "lambada_files": [
+    ".gitattributes",
+    "README.md",
+    "data/lambada_test.jsonl",
+    "data/lambada_test_de.jsonl",
+    "data/lambada_test_en.jsonl",
+    "data/lambada_test_es.jsonl",
+    "data/lambada_test_fr.jsonl",
+    "data/lambada_test_it.jsonl",
+    "de/test/de.parquet",
+    "default/test/default.parquet",
+    "en/test/en.parquet",
+    "es/test/es.parquet",
+    "fr/test/fr.parquet",
+    "it/test/it.parquet",
+    "lambada_openai.txt",
+    "translation_script.txt"
+  ]
+}

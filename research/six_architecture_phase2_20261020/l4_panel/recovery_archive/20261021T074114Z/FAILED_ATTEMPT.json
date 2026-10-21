@@ -1,0 +1,19 @@
+{
+  "status": "RUNTIME_DISAPPEARED_BEFORE_RESTORE_RELEASE",
+  "observed_utc": "2026-10-21T08:21:00Z",
+  "reason_for_runtime_loss": "unknown",
+  "restore_plan": "../20261021T074114Z.json",
+  "scientific_sources_verified": true,
+  "dataset_reproduction_verified": true,
+  "all_local_optimizer_states_verified": true,
+  "all_transfer_parts_uploaded": true,
+  "remote_reassembly_started": false,
+  "restore_complete_marker_written": false,
+  "training_controller_released": false,
+  "training_exposures_this_restore_attempt": 0,
+  "new_lost_training_exposure_charge": 0,
+  "prior_parent_conservative_charge_still_applies": 22224896,
+  "assignment_missing_confirmed_by_watcher_checks": 3,
+  "failure_is_not_an_architecture_outcome": true,
+  "next_transport": "Verified optimizer files cached as unpublished GitHub draft-release assets before allocating another runtime. No sources, gates, batch, seed or learning schedule change."
+}

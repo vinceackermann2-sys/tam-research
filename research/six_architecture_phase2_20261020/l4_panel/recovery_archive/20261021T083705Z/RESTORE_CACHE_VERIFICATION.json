@@ -1,0 +1,32 @@
+{
+  "complete": true,
+  "verified": [
+    {
+      "variant": "transformer",
+      "step": 28485,
+      "sha256": "962291b954dc288ed5167f41bd7041a98ae902dcb34b340b0088224dbf40c58f",
+      "asset_id": 661842000
+    },
+    {
+      "variant": "attention8",
+      "step": 25772,
+      "sha256": "2bfcf12663bca8eca6bf44671f8967c1c1c758ae744a2918ebed44f8b01c37e0",
+      "asset_id": 661848172
+    },
+    {
+      "variant": "conv7",
+      "step": 25772,
+      "sha256": "a083d57b11204ae24856875a39adb397b2a886eb606e0c8572305457425439ad",
+      "asset_id": 661854073
+    },
+    {
+      "variant": "cpw_local",
+      "step": 12207,
+      "sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+      "asset_id": 661859112
+    }
+  ],
+  "seconds": 289.68114835999995,
+  "release_id": 419316092,
+  "source_sha256": "e833d1418dcdd0f93b78034bb64e592d0a980f0d1b196d6e7fda17e0e1f64b39"
+}

@@ -1,0 +1,2151 @@
+{
+  "results/hardware.json": {
+    "torch": "2.11.0+cu130",
+    "cuda": true,
+    "gpu": "NVIDIA A100-SXM4-40GB"
+  },
+  "results/conv7/conv7-w128-attention8-202610201.ATTEMPT.json": {
+    "attempt": "conv7-w128-attention8-202610201",
+    "variant": "attention8",
+    "parameters": 11293056,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 683,
+    "seed": 202610201,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-attention8-202610201.RESULT.json": {
+    "attempt": "conv7-w128-attention8-202610201",
+    "variant": "attention8",
+    "parameters": 11293056,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 683,
+    "seed": 202610201,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.853281378746033,
+    "validation_nll": 6.398764371871948,
+    "train_seconds": 14.93637675999912,
+    "train_tokens_per_second": 70202.83545659983,
+    "peak_allocated_gib": 1.6957807540893555,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.819287836551666,
+        "training_seconds": 3.645116820999192
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.562182724475861,
+        "training_seconds": 7.253822019998779
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.448145568370819,
+        "training_seconds": 10.99131587899899
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.398764371871948,
+        "training_seconds": 14.93637675999912
+      }
+    ],
+    "checkpoint_sha256": "2c7d74fb3edbda2114bbe832a304f22784f239be08c84890961fc703118b6696"
+  },
+  "results/conv7/conv7-w128-attention8-202610202.ATTEMPT.json": {
+    "attempt": "conv7-w128-attention8-202610202",
+    "variant": "attention8",
+    "parameters": 11293056,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 683,
+    "seed": 202610202,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-conv7-202610203.ATTEMPT.json": {
+    "attempt": "conv7-w128-conv7-202610203",
+    "variant": "conv7",
+    "parameters": 11295120,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 681,
+    "seed": 202610203,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-attention8-202610203.RESULT.json": {
+    "attempt": "conv7-w128-attention8-202610203",
+    "variant": "attention8",
+    "parameters": 11293056,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 683,
+    "seed": 202610203,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.853472352027893,
+    "validation_nll": 6.406768977642059,
+    "train_seconds": 14.797592148000263,
+    "train_tokens_per_second": 70861.25833936462,
+    "peak_allocated_gib": 1.6965479850769043,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.81780731678009,
+        "training_seconds": 3.680153974999712
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.568868577480316,
+        "training_seconds": 7.432514139999739
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.459165275096893,
+        "training_seconds": 11.099233790000198
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.406768977642059,
+        "training_seconds": 14.797592148000263
+      }
+    ],
+    "checkpoint_sha256": "ca385fb0ec7ac5f7022f4ae60d6627dc89181d76e7c62da09083eee632ef58f5"
+  },
+  "results/conv7/conv7-w128-transformer-202610203.ATTEMPT.json": {
+    "attempt": "conv7-w128-transformer-202610203",
+    "variant": "transformer",
+    "parameters": 11295104,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 512,
+    "seed": 202610203,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-conv7-202610203.RESULT.json": {
+    "attempt": "conv7-w128-conv7-202610203",
+    "variant": "conv7",
+    "parameters": 11295120,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 681,
+    "seed": 202610203,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.848365187644958,
+    "validation_nll": 6.361249506473541,
+    "train_seconds": 19.89236602300025,
+    "train_tokens_per_second": 52712.4827075673,
+    "peak_allocated_gib": 1.727351188659668,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.785125374794006,
+        "training_seconds": 4.99894005399949
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.537166893482208,
+        "training_seconds": 9.984084255999619
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.416258335113525,
+        "training_seconds": 14.930885447999913
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.361249506473541,
+        "training_seconds": 19.89236602300025
+      }
+    ],
+    "checkpoint_sha256": "d1e31a189354dca823d34a25c62b6f20860f1edade1b6c56b93aaa41ae8a9746"
+  },
+  "results/conv7/conv7-w128-transformer-202610201.RESULT.json": {
+    "attempt": "conv7-w128-transformer-202610201",
+    "variant": "transformer",
+    "parameters": 11295104,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 512,
+    "seed": 202610201,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.860284209251404,
+    "validation_nll": 6.435054779052734,
+    "train_seconds": 22.408368303998714,
+    "train_tokens_per_second": 46793.94705472082,
+    "peak_allocated_gib": 1.7216310501098633,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.912661969661713,
+        "training_seconds": 5.88657995499932
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.611524224281311,
+        "training_seconds": 11.391880259999539
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.485516250133514,
+        "training_seconds": 16.931581923998806
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.435054779052734,
+        "training_seconds": 22.408368303998714
+      }
+    ],
+    "checkpoint_sha256": "eb38f58e1afd7e80a136c1a054008d48b7f900ae709d044886f626a54e0c6d0b"
+  },
+  "results/conv7/conv7-w128-transformer-202610202.RESULT.json": {
+    "attempt": "conv7-w128-transformer-202610202",
+    "variant": "transformer",
+    "parameters": 11295104,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 512,
+    "seed": 202610202,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.865783333778381,
+    "validation_nll": 6.42672073841095,
+    "train_seconds": 22.192815739998764,
+    "train_tokens_per_second": 47248.44347308848,
+    "peak_allocated_gib": 1.7211432456970215,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.9621741771698,
+        "training_seconds": 5.542107013000532
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.613694787025452,
+        "training_seconds": 11.090652930000033
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.479950428009033,
+        "training_seconds": 16.632890097999052
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.42672073841095,
+        "training_seconds": 22.192815739998764
+      }
+    ],
+    "checkpoint_sha256": "d7fa18dd5fee751d7e642f584403458e256a0b24ffbfdd444e6cbadd6b5549e3"
+  },
+  "results/conv7/conv7-w128-conv7-202610202.RESULT.json": {
+    "attempt": "conv7-w128-conv7-202610202",
+    "variant": "conv7",
+    "parameters": 11295120,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 681,
+    "seed": 202610202,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.855533599853516,
+    "validation_nll": 6.356422603130341,
+    "train_seconds": 19.77343759700034,
+    "train_tokens_per_second": 53029.524828756665,
+    "peak_allocated_gib": 1.727351188659668,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.806665003299713,
+        "training_seconds": 4.961765483001045
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.541359961032867,
+        "training_seconds": 9.914386040001432
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.413657248020172,
+        "training_seconds": 14.83527960200081
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.356422603130341,
+        "training_seconds": 19.77343759700034
+      }
+    ],
+    "checkpoint_sha256": "9aa5d707bc9339e36c90c89a581f177045aba3684a4ccfcb0a3f632641ebd1e6"
+  },
+  "results/conv7/conv7-w128-attention8-202610203.ATTEMPT.json": {
+    "attempt": "conv7-w128-attention8-202610203",
+    "variant": "attention8",
+    "parameters": 11293056,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 683,
+    "seed": 202610203,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-conv7-202610201.RESULT.json": {
+    "attempt": "conv7-w128-conv7-202610201",
+    "variant": "conv7",
+    "parameters": 11295120,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 681,
+    "seed": 202610201,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.843738555908203,
+    "validation_nll": 6.37042236328125,
+    "train_seconds": 19.87305152100066,
+    "train_tokens_per_second": 52763.71365977324,
+    "peak_allocated_gib": 1.727351188659668,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.854044079780579,
+        "training_seconds": 4.99920694100058
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.557246387004852,
+        "training_seconds": 9.959490433001065
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.426970183849335,
+        "training_seconds": 14.894368097000324
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.37042236328125,
+        "training_seconds": 19.87305152100066
+      }
+    ],
+    "checkpoint_sha256": "756a318bb5163587e5efbb6a614a3de56ae5b476b2200bd0e28f6ff8dac92f99"
+  },
+  "results/conv7/conv7-w128-conv7-202610201.ATTEMPT.json": {
+    "attempt": "conv7-w128-conv7-202610201",
+    "variant": "conv7",
+    "parameters": 11295120,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 681,
+    "seed": 202610201,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-transformer-202610202.ATTEMPT.json": {
+    "attempt": "conv7-w128-transformer-202610202",
+    "variant": "transformer",
+    "parameters": 11295104,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 512,
+    "seed": 202610202,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/PREFLIGHT.json": {
+    "parameter_counts": [
+      {
+        "width": 128,
+        "variant": "transformer",
+        "parameters": 11295104,
+        "ff_hidden": 512
+      },
+      {
+        "width": 128,
+        "variant": "attention8",
+        "parameters": 11293056,
+        "ff_hidden": 683
+      },
+      {
+        "width": 128,
+        "variant": "conv7",
+        "parameters": 11295120,
+        "ff_hidden": 681
+      },
+      {
+        "width": 504,
+        "variant": "transformer",
+        "parameters": 99051624,
+        "ff_hidden": 2016
+      },
+      {
+        "width": 504,
+        "variant": "attention8",
+        "parameters": 99059688,
+        "ff_hidden": 2689
+      },
+      {
+        "width": 504,
+        "variant": "conv7",
+        "parameters": 99043576,
+        "ff_hidden": 2686
+      }
+    ],
+    "future_leakage_max": 0.0,
+    "conv_weight_gradient_steps": [
+      0.0,
+      0.011753293685615063
+    ]
+  },
+  "results/conv7/conv7-w128-transformer-202610203.RESULT.json": {
+    "attempt": "conv7-w128-transformer-202610203",
+    "variant": "transformer",
+    "parameters": 11295104,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 512,
+    "seed": 202610203,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.861817479133606,
+    "validation_nll": 6.437548220157623,
+    "train_seconds": 22.37075893499855,
+    "train_tokens_per_second": 46872.61630447085,
+    "peak_allocated_gib": 1.7211432456970215,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.960309028625488,
+        "training_seconds": 5.5404181710008515
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.64109605550766,
+        "training_seconds": 11.259908973000165
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.4939945936203,
+        "training_seconds": 16.804261600999553
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.437548220157623,
+        "training_seconds": 22.37075893499855
+      }
+    ],
+    "checkpoint_sha256": "a914d1667b53b71e4dc45e3a27fea71f81a6b2ae89b53c023cac4fa164359e1f"
+  },
+  "results/conv7/conv7-w128-transformer-202610201.ATTEMPT.json": {
+    "attempt": "conv7-w128-transformer-202610201",
+    "variant": "transformer",
+    "parameters": 11295104,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 512,
+    "seed": 202610201,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-conv7-202610202.ATTEMPT.json": {
+    "attempt": "conv7-w128-conv7-202610202",
+    "variant": "conv7",
+    "parameters": 11295120,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 681,
+    "seed": 202610202,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT"
+  },
+  "results/conv7/conv7-w128-attention8-202610202.RESULT.json": {
+    "attempt": "conv7-w128-attention8-202610202",
+    "variant": "attention8",
+    "parameters": 11293056,
+    "width": 128,
+    "layers": 24,
+    "ff_hidden": 683,
+    "seed": 202610202,
+    "updates": 512,
+    "batch": 16,
+    "context": 128,
+    "planned_tokens": 1048576,
+    "script_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "data": {
+      "dataset": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "tokenizer": "gpt2",
+      "tokenizer_vocab": 50257,
+      "train": {
+        "tokens": 2403644,
+        "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+        "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+        "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+      },
+      "validation": {
+        "tokens": 248461,
+        "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+        "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+        "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.11.0+cu130",
+    "precision": "torch.bfloat16",
+    "preflight": {
+      "parameter_counts": [
+        {
+          "width": 128,
+          "variant": "transformer",
+          "parameters": 11295104,
+          "ff_hidden": 512
+        },
+        {
+          "width": 128,
+          "variant": "attention8",
+          "parameters": 11293056,
+          "ff_hidden": 683
+        },
+        {
+          "width": 128,
+          "variant": "conv7",
+          "parameters": 11295120,
+          "ff_hidden": 681
+        },
+        {
+          "width": 504,
+          "variant": "transformer",
+          "parameters": 99051624,
+          "ff_hidden": 2016
+        },
+        {
+          "width": 504,
+          "variant": "attention8",
+          "parameters": 99059688,
+          "ff_hidden": 2689
+        },
+        {
+          "width": 504,
+          "variant": "conv7",
+          "parameters": 99043576,
+          "ff_hidden": 2686
+        }
+      ],
+      "future_leakage_max": 0.0,
+      "conv_weight_gradient_steps": [
+        0.0,
+        0.011753293685615063
+      ]
+    },
+    "breakthrough_demonstrated": false,
+    "classification": "EXPLORATORY_LANGUAGE_PILOT",
+    "tokens_seen": 1048576,
+    "initial_validation_nll": 10.854955196380615,
+    "validation_nll": 6.381783306598663,
+    "train_seconds": 14.582187712999712,
+    "train_tokens_per_second": 71908.00314998117,
+    "peak_allocated_gib": 1.6965479850769043,
+    "history": [
+      {
+        "step": 128,
+        "tokens": 262144,
+        "nll": 6.79286515712738,
+        "training_seconds": 3.644769577999341
+      },
+      {
+        "step": 256,
+        "tokens": 524288,
+        "nll": 6.553656995296478,
+        "training_seconds": 7.286590396999941
+      },
+      {
+        "step": 384,
+        "tokens": 786432,
+        "nll": 6.4345743060112,
+        "training_seconds": 10.938939005000975
+      },
+      {
+        "step": 512,
+        "tokens": 1048576,
+        "nll": 6.381783306598663,
+        "training_seconds": 14.582187712999712
+      }
+    ],
+    "checkpoint_sha256": "63407abe9079f69ceb2bd4283f611e1c69aac8b6336f403ee98dd53d77b0c123"
+  },
+  "results/cpw/cpw-transformer-202610201.RESULT.json": {
+    "attempt": "cpw-transformer-202610201",
+    "parameters": 13123072,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+    "training_token_exposures": 2560000,
+    "total_seconds": 20.229585704999977,
+    "total_input_tokens_per_second_including_eval": 126547.32713420158,
+    "result": {
+      "by_delay": [
+        {
+          "delay": 32,
+          "accuracy": 0.0078125,
+          "nll": 4.95210599899292
+        },
+        {
+          "delay": 64,
+          "accuracy": 0.015625,
+          "nll": 4.997585773468018
+        },
+        {
+          "delay": 128,
+          "accuracy": 0.0,
+          "nll": 4.879695892333984
+        },
+        {
+          "delay": 256,
+          "accuracy": 0.015625,
+          "nll": 4.942991733551025
+        }
+      ],
+      "counterfactual_all_four": 0.0,
+      "train_seconds": 18.753246295000054,
+      "parameter_matched_to_transformer": false,
+      "positive_control_required": true,
+      "caveat": "First learnability screen; compact vocabulary differs from historical scientific models."
+    },
+    "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "0d6d9c3630e12e65d9b8616fe79a909fcb59627da76cd0612b4cc77f8aeff128"
+  },
+  "results/cpw/cpw-afm_last1-202610201.ATTEMPT.json": {
+    "attempt": "cpw-afm_last1-202610201",
+    "parameters": 9904128,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+  },
+  "results/cpw/cpw-afm_last1-202610201.RESULT.json": {
+    "attempt": "cpw-afm_last1-202610201",
+    "parameters": 9904128,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+    "training_token_exposures": 2560000,
+    "total_seconds": 14.644193365999968,
+    "total_input_tokens_per_second_including_eval": 174813.31583231196,
+    "result": {
+      "by_delay": [
+        {
+          "delay": 32,
+          "accuracy": 0.0078125,
+          "nll": 4.950299263000488
+        },
+        {
+          "delay": 64,
+          "accuracy": 0.015625,
+          "nll": 4.995050430297852
+        },
+        {
+          "delay": 128,
+          "accuracy": 0.0,
+          "nll": 4.888855934143066
+        },
+        {
+          "delay": 256,
+          "accuracy": 0.015625,
+          "nll": 4.946652412414551
+        }
+      ],
+      "counterfactual_all_four": 0.0,
+      "train_seconds": 14.154801141999997,
+      "parameter_matched_to_transformer": false,
+      "positive_control_required": true,
+      "caveat": "First learnability screen; compact vocabulary differs from historical scientific models."
+    },
+    "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "0c07caafd7b8a6cceb72060f91e6fdf8b629dba21feaa085807672125b16b6e0"
+  },
+  "results/cpw/cpw-transformer-202610201.ATTEMPT.json": {
+    "attempt": "cpw-transformer-202610201",
+    "parameters": 13123072,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+  },
+  "results/cpw/cpw-afm_first1-202610201.RESULT.json": {
+    "attempt": "cpw-afm_first1-202610201",
+    "parameters": 9904128,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+    "training_token_exposures": 2560000,
+    "total_seconds": 14.882702427000027,
+    "total_input_tokens_per_second_including_eval": 172011.77088347057,
+    "result": {
+      "by_delay": [
+        {
+          "delay": 32,
+          "accuracy": 0.0078125,
+          "nll": 4.953801155090332
+        },
+        {
+          "delay": 64,
+          "accuracy": 0.015625,
+          "nll": 4.995116233825684
+        },
+        {
+          "delay": 128,
+          "accuracy": 0.0,
+          "nll": 4.893901824951172
+        },
+        {
+          "delay": 256,
+          "accuracy": 0.015625,
+          "nll": 4.945467948913574
+        }
+      ],
+      "counterfactual_all_four": 0.0,
+      "train_seconds": 14.382605892000015,
+      "parameter_matched_to_transformer": false,
+      "positive_control_required": true,
+      "caveat": "First learnability screen; compact vocabulary differs from historical scientific models."
+    },
+    "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "eb4b087656d981bbdf94e53362e6e3e07cad52dcace335fd0b743397e9745c20"
+  },
+  "results/cpw/cpw-sequence_only-202610201.RESULT.json": {
+    "attempt": "cpw-sequence_only-202610201",
+    "parameters": 9928192,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+    "training_token_exposures": 2560000,
+    "total_seconds": 13.661773578000066,
+    "total_input_tokens_per_second_including_eval": 187384.16248695843,
+    "result": {
+      "by_delay": [
+        {
+          "delay": 32,
+          "accuracy": 0.0078125,
+          "nll": 4.9453887939453125
+        },
+        {
+          "delay": 64,
+          "accuracy": 0.015625,
+          "nll": 4.9950714111328125
+        },
+        {
+          "delay": 128,
+          "accuracy": 0.0,
+          "nll": 4.889286041259766
+        },
+        {
+          "delay": 256,
+          "accuracy": 0.015625,
+          "nll": 4.943026065826416
+        }
+      ],
+      "counterfactual_all_four": 0.0,
+      "train_seconds": 13.185231604000023,
+      "parameter_matched_to_transformer": false,
+      "positive_control_required": true,
+      "caveat": "First learnability screen; compact vocabulary differs from historical scientific models."
+    },
+    "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "385066ae1f46142442e5d6736982a9f2dc693c3ed2805cf0c8bdef6a0c735e40"
+  },
+  "results/cpw/cpw-sequence_only-202610201.ATTEMPT.json": {
+    "attempt": "cpw-sequence_only-202610201",
+    "parameters": 9928192,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+  },
+  "results/cpw/cpw-afm_first1-202610201.ATTEMPT.json": {
+    "attempt": "cpw-afm_first1-202610201",
+    "parameters": 9904128,
+    "recipe": {
+      "updates": 500,
+      "batch": 16,
+      "lr": 0.001,
+      "seed": 202610201,
+      "vocab": 4096,
+      "ids_unchanged": true
+    },
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+  },
+  "status.json": {
+    "running": null,
+    "complete": true,
+    "time": 1792480041.783601
+  },
+  "WORKER_CLAIM.json": {
+    "source": "six-architecture-development-20261020",
+    "no_retry": true,
+    "max_parameters": 100000000,
+    "max_training_tokens_per_model": 2000000000
+  },
+  "conv7.exit.json": {
+    "exit_code": 0
+  },
+  "cpw.exit.json": {
+    "exit_code": 0
+  },
+  "wikitext2/DATA.json": {
+    "dataset": "Salesforce/wikitext",
+    "config": "wikitext-2-raw-v1",
+    "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+    "tokenizer": "gpt2",
+    "tokenizer_vocab": 50257,
+    "train": {
+      "tokens": 2403644,
+      "text_sha256": "c58d555a94ada0882d1e8c0b3dc7ba68e1c269da5ad9e7a057300245d130c4e8",
+      "parquet_sha256": "e83889baabc497075506f91975be5fac0d45c5290b6b20582c8cd1e853d0c9f7",
+      "token_sha256": "f09b4edc296301fa736ba88647a48f0d3f2ddb51af961f3c19e914ecb6bd3a6e"
+    },
+    "validation": {
+      "tokens": 248461,
+      "text_sha256": "714a24a5de7459876f7cfdc64837e551dd7cde2a51f95b763ee083fff273e307",
+      "parquet_sha256": "204929b7ff9d6184953f867dedb860e40aa69c078fc1e54b3baaa8fb28511c4c",
+      "token_sha256": "1d8d6bc751bbe2b88312098a79f8d655f7b83670f43b0230ac619497d9c37f77"
+    }
+  },
+  "executed_source_sha256": {
+    "conv7_language.py": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "run_pilots.py": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+  }
+}

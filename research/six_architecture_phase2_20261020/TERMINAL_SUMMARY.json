@@ -1,0 +1,397 @@
+{
+  "complete": true,
+  "gpu": "NVIDIA L4",
+  "torch": "2.11.0+cu130",
+  "records": [
+    {
+      "variant": "attention8",
+      "parameters": 99558912,
+      "training_exposures": 299999232,
+      "charged_lost_exposures": 22224896,
+      "committed_plus_conservative_charge": 322224128,
+      "checkpoint_sha256": "d28eecd2262499536399a9060617c9f439e18729f3b6324bf2e64752d8f99566",
+      "development_nll": 4.197557965060696,
+      "test_nll": 4.223945660818191,
+      "test_tokens": 2096640,
+      "timed_training_tokens_per_second": 31742.20858885138,
+      "piqa_primary_token_normalized_accuracy": 0.5549510337323177,
+      "piqa_secondary_accuracies": {
+        "token_normalized": 0.5549510337323177,
+        "summed": 0.5478781284004353,
+        "character_normalized": 0.545157780195865
+      },
+      "lambada_teacher_forced_exact_word_accuracy": 0.07510188239860276,
+      "lambada_mean_word_nll": 9.388858482021135,
+      "lambada_word_perplexity": 11954.445326316665,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 8.710594999683963,
+          "p90_ms": 8.778358199924696,
+          "tokens_per_second": 14694.748177896468,
+          "peak_gib": 0.7492246627807617
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 9.963910499209305,
+          "p90_ms": 10.044841799754067,
+          "tokens_per_second": 102770.89502974364,
+          "peak_gib": 0.9195451736450195
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 9.15514699954656,
+          "p90_ms": 9.292363399435999,
+          "tokens_per_second": 55924.82567733304,
+          "peak_gib": 0.8222188949584961
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 32.33085200099595,
+          "p90_ms": 33.78192599975591,
+          "tokens_per_second": 126690.13485551892,
+          "peak_gib": 1.5042810440063477
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 10.132379499736999,
+          "p90_ms": 11.097781200260215,
+          "tokens_per_second": 101062.14438835216,
+          "peak_gib": 0.9195451736450195
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 64.97292350013595,
+          "p90_ms": 67.86753600008524,
+          "tokens_per_second": 126083.2906800455,
+          "peak_gib": 2.2840662002563477
+        }
+      ],
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 66.11927900121373,
+        "new_tokens_per_second": 120.99345487196173
+      }
+    },
+    {
+      "variant": "conv7",
+      "parameters": 99616272,
+      "training_exposures": 299999232,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 299999232,
+      "checkpoint_sha256": "7865dede41fe8507ac6bcbeda3e47123972a6f0a9a2029f68d793d90c52d52d5",
+      "development_nll": 4.131079783663154,
+      "test_nll": 4.157327393181304,
+      "test_tokens": 2096640,
+      "timed_training_tokens_per_second": 28679.27263028616,
+      "piqa_primary_token_normalized_accuracy": 0.5505984766050055,
+      "piqa_secondary_accuracies": {
+        "token_normalized": 0.5505984766050055,
+        "summed": 0.5495103373231773,
+        "character_normalized": 0.5408052230685527
+      },
+      "lambada_teacher_forced_exact_word_accuracy": 0.06792159906850379,
+      "lambada_mean_word_nll": 9.3479082118521,
+      "lambada_word_perplexity": 11474.795482018071,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 12.143308499616978,
+          "p90_ms": 12.224382500971842,
+          "tokens_per_second": 10540.78466375431,
+          "peak_gib": 0.5881376266479492
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 13.163339999664458,
+          "p90_ms": 15.177304400458526,
+          "tokens_per_second": 77791.80664072359,
+          "peak_gib": 0.758458137512207
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 12.692262499513163,
+          "p90_ms": 12.830829599988647,
+          "tokens_per_second": 40339.53757414321,
+          "peak_gib": 0.6611318588256836
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 36.168736000036006,
+          "p90_ms": 38.11196560054668,
+          "tokens_per_second": 113246.97661527133,
+          "peak_gib": 1.3431329727172852
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 13.176823999856424,
+          "p90_ms": 13.376209899433888,
+          "tokens_per_second": 77712.20136287452,
+          "peak_gib": 0.758458137512207
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 75.5330279998816,
+          "p90_ms": 79.92151939979522,
+          "tokens_per_second": 108455.86648549084,
+          "peak_gib": 2.1217432022094727
+        }
+      ],
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 93.4949910006253,
+        "new_tokens_per_second": 85.56608128821036
+      }
+    },
+    {
+      "variant": "cpw_local",
+      "parameters": 99674432,
+      "training_exposures": 99999744,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 99999744,
+      "checkpoint_sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+      "development_nll": 5.034012707648799,
+      "test_nll": 5.051848462911752,
+      "test_tokens": 2096640,
+      "timed_training_tokens_per_second": 31794.805553947936,
+      "piqa_primary_token_normalized_accuracy": 0.5375408052230686,
+      "piqa_secondary_accuracies": {
+        "token_normalized": 0.5375408052230686,
+        "summed": 0.5364526659412405,
+        "character_normalized": 0.5168661588683352
+      },
+      "lambada_teacher_forced_exact_word_accuracy": 0.0,
+      "lambada_mean_word_nll": 12.722027493846456,
+      "lambada_word_perplexity": 335047.4671807174,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 9.00426500083995,
+          "p90_ms": 9.050691899574304,
+          "tokens_per_second": 14215.485660190998,
+          "peak_gib": 0.5886521339416504
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 10.515229500015266,
+          "p90_ms": 12.191403101132892,
+          "tokens_per_second": 97382.56307182962,
+          "peak_gib": 0.760502815246582
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 9.120618000451941,
+          "p90_ms": 9.17567320047965,
+          "tokens_per_second": 56136.54688472093,
+          "peak_gib": 0.6623525619506836
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 31.69565850021172,
+          "p90_ms": 33.389368798998476,
+          "tokens_per_second": 129229.05513929107,
+          "peak_gib": 1.3465051651000977
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 10.579368999970029,
+          "p90_ms": 10.773659400365432,
+          "tokens_per_second": 96792.16217932288,
+          "peak_gib": 0.760502815246582
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 63.74174999928073,
+          "p90_ms": 65.6360920993393,
+          "tokens_per_second": 128518.59260363011,
+          "peak_gib": 2.13167667388916
+        }
+      ],
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 66.41902499904973,
+        "new_tokens_per_second": 120.44741698804609
+      }
+    },
+    {
+      "variant": "transformer",
+      "parameters": 99837440,
+      "training_exposures": 299999232,
+      "charged_lost_exposures": 0,
+      "committed_plus_conservative_charge": 299999232,
+      "checkpoint_sha256": "ee50979e5a720d6151f4c3d82aa07748619d0b8a5af62f3f3d10ced4741b4808",
+      "development_nll": 4.136641829507425,
+      "test_nll": 4.16297309890626,
+      "test_tokens": 2096640,
+      "timed_training_tokens_per_second": 29671.687114346198,
+      "piqa_primary_token_normalized_accuracy": 0.55930359085963,
+      "piqa_secondary_accuracies": {
+        "token_normalized": 0.55930359085963,
+        "summed": 0.5565832426550599,
+        "character_normalized": 0.5484221980413493
+      },
+      "lambada_teacher_forced_exact_word_accuracy": 0.08208810401707743,
+      "lambada_mean_word_nll": 9.118935261541273,
+      "lambada_word_perplexity": 9126.479128069132,
+      "prefill": [
+        {
+          "context": 128,
+          "batch": 1,
+          "median_ms": 13.444694499412435,
+          "p90_ms": 17.103412399774243,
+          "tokens_per_second": 9520.48408430507,
+          "peak_gib": 0.7675247192382812
+        },
+        {
+          "context": 128,
+          "batch": 8,
+          "median_ms": 14.500282501103356,
+          "p90_ms": 14.795411500017508,
+          "tokens_per_second": 70619.3137907542,
+          "peak_gib": 0.9439249038696289
+        },
+        {
+          "context": 512,
+          "batch": 1,
+          "median_ms": 13.530934000300476,
+          "p90_ms": 13.59747169954062,
+          "tokens_per_second": 37839.22085412805,
+          "peak_gib": 0.8396120071411133
+        },
+        {
+          "context": 512,
+          "batch": 8,
+          "median_ms": 32.770492999588896,
+          "p90_ms": 33.36915529980616,
+          "tokens_per_second": 124990.49068475669,
+          "peak_gib": 1.5206518173217773
+        },
+        {
+          "context": 1024,
+          "batch": 1,
+          "median_ms": 14.526579999255773,
+          "p90_ms": 14.93679490085924,
+          "tokens_per_second": 70491.47149931102,
+          "peak_gib": 0.9439249038696289
+        },
+        {
+          "context": 1024,
+          "batch": 8,
+          "median_ms": 71.31874700007756,
+          "p90_ms": 75.23925639925437,
+          "tokens_per_second": 114864.60916077354,
+          "peak_gib": 2.3001928329467773
+        }
+      ],
+      "naive_generation_without_kv_cache": {
+        "new_tokens": 8,
+        "batch": 1,
+        "prompt": 128,
+        "median_total_ms": 104.85872400022345,
+        "new_tokens_per_second": 76.29312750346793
+      }
+    }
+  ],
+  "matched_budget_task_comparisons": [
+    {
+      "variant": "attention8",
+      "control": "transformer",
+      "matched_committed_training_exposures": 299999232,
+      "piqa_primary": {
+        "candidate_minus_control_accuracy": -0.004352557127312296,
+        "descriptive_95_percent_example_bootstrap_interval": [
+          -0.020674646354733407,
+          0.011969532100108813
+        ],
+        "candidate_only_correct": 113,
+        "control_only_correct": 121,
+        "examples": 1838,
+        "interpretation": "One trained seed, paired task-example resampling; no multiplicity correction."
+      },
+      "lambada": {
+        "candidate_minus_control_accuracy": -0.006986221618474675,
+        "descriptive_95_percent_example_bootstrap_interval": [
+          -0.012419949543954978,
+          -0.0013584319813700757
+        ],
+        "candidate_only_correct": 84,
+        "control_only_correct": 120,
+        "examples": 5153,
+        "interpretation": "One trained seed, paired task-example resampling; no multiplicity correction."
+      }
+    },
+    {
+      "variant": "conv7",
+      "control": "transformer",
+      "matched_committed_training_exposures": 299999232,
+      "piqa_primary": {
+        "candidate_minus_control_accuracy": -0.008705114254624592,
+        "descriptive_95_percent_example_bootstrap_interval": [
+          -0.024483133841131665,
+          0.008705114254624592
+        ],
+        "candidate_only_correct": 115,
+        "control_only_correct": 131,
+        "examples": 1838,
+        "interpretation": "One trained seed, paired task-example resampling; no multiplicity correction."
+      },
+      "lambada": {
+        "candidate_minus_control_accuracy": -0.014166504948573647,
+        "descriptive_95_percent_example_bootstrap_interval": [
+          -0.019794294585678246,
+          -0.008732777023093344
+        ],
+        "candidate_only_correct": 68,
+        "control_only_correct": 141,
+        "examples": 5153,
+        "interpretation": "One trained seed, paired task-example resampling; no multiplicity correction."
+      }
+    }
+  ],
+  "conv7_trained_branch_erasure": {
+    "replay_nll": 4.131079783663154,
+    "zero_gain_nll": 6.197048805654049,
+    "delta_nll": 2.0659690219908953
+  },
+  "cpw_local_distant_prefix_logit_max_delta": 0.0,
+  "breakthrough_demonstrated": false,
+  "limitations": [
+    "One paired seed; example/block intervals do not measure training-seed uncertainty.",
+    "CPW stopped at 100M; other terminal models stopped at 300M. No paired CPW-versus-300M claim.",
+    "Parent has a separate conservative lost-exposure charge; matched committed tokens do not imply equal total compute.",
+    "LAMBADA uses teacher-forced all-target-token accuracy. PIQA primary scoring normalizes by target tokens.",
+    "No benchmark contamination audit or independent-seed replication.",
+    "Prefill returns dense vocabulary logits; generation is an eight-token implementation benchmark without KV caching.",
+    "Post-hoc Conv7 gain erasure measures trained-branch reliance, not the effect of training a model without that branch.",
+    "Terminal task benchmarks cannot overturn the predeclared development continuation gate."
+  ],
+  "input_sha256": {
+    "EVIDENCE.json": "f53e944e06d85e916fc6b4e7076ebcdb9c56463430250c84178e512a1c4302e2",
+    "INFERENCE.json": "50cabdd7d3a2e3b07e2d2474e1a28cca97df4683393ec048d56e29ea3f0cbcb2",
+    "BENCHMARKS.json": "ed39137296ca2fbe8feb4f852f874abe6b75b4f21d784569e43c81d321e05ccf"
+  }
+}

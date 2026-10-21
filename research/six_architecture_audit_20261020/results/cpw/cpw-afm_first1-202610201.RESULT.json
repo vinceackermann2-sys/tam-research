@@ -1,0 +1,51 @@
+{
+  "attempt": "cpw-afm_first1-202610201",
+  "parameters": 9904128,
+  "recipe": {
+    "updates": 500,
+    "batch": 16,
+    "lr": 0.001,
+    "seed": 202610201,
+    "vocab": 4096,
+    "ids_unchanged": true
+  },
+  "torch": "2.11.0+cu130",
+  "device": "cuda:0",
+  "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+  "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+  "training_token_exposures": 2560000,
+  "total_seconds": 14.882702427000027,
+  "total_input_tokens_per_second_including_eval": 172011.77088347057,
+  "result": {
+    "by_delay": [
+      {
+        "delay": 32,
+        "accuracy": 0.0078125,
+        "nll": 4.953801155090332
+      },
+      {
+        "delay": 64,
+        "accuracy": 0.015625,
+        "nll": 4.995116233825684
+      },
+      {
+        "delay": 128,
+        "accuracy": 0.0,
+        "nll": 4.893901824951172
+      },
+      {
+        "delay": 256,
+        "accuracy": 0.015625,
+        "nll": 4.945467948913574
+      }
+    ],
+    "counterfactual_all_four": 0.0,
+    "train_seconds": 14.382605892000015,
+    "parameter_matched_to_transformer": false,
+    "positive_control_required": true,
+    "caveat": "First learnability screen; compact vocabulary differs from historical scientific models."
+  },
+  "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+  "breakthrough_demonstrated": false,
+  "checkpoint_sha256": "eb4b087656d981bbdf94e53362e6e3e07cad52dcace335fd0b743397e9745c20"
+}

@@ -1,0 +1,1 @@
+{"optimizer_updates":0,"results_written":false,"reason":"Exact gate equality assertion rejected ordinary float32 encoder rounding (~1.2e-7); v2 records noise and uses2e-6 tolerance"}

@@ -1,0 +1,101 @@
+{
+  "variant": "attention8",
+  "step": 14920,
+  "tokens_seen": 122224640,
+  "checkpoint_sha256": "7fc34dadeee970dd3ae33691c0cbbf65676105f4fc2e37bc85ccd1017e28bab2",
+  "chunks": [
+    {
+      "path": "results/attention8-s14920/chunk000.bin",
+      "bytes": 67108864,
+      "sha256": "8655a93e21071c7b6c002b9ed5a247233df60692a40d0d4de1db017fa22c11c8"
+    },
+    {
+      "path": "results/attention8-s14920/chunk001.bin",
+      "bytes": 67108864,
+      "sha256": "81526f9883766db39e9a7a711a8fe867850f29cfd131a4948193d91428b6a8d4"
+    },
+    {
+      "path": "results/attention8-s14920/chunk002.bin",
+      "bytes": 67108864,
+      "sha256": "bfa007e5e75d433abc90c2dd20d183b8e66e5bb96b37c0538aab542993af276c"
+    },
+    {
+      "path": "results/attention8-s14920/chunk003.bin",
+      "bytes": 67108864,
+      "sha256": "8c6b00fd9bbe7ec88f3e02ef787ea1539fe31796c0f41bed7f74dcf6c73c2ac3"
+    },
+    {
+      "path": "results/attention8-s14920/chunk004.bin",
+      "bytes": 67108864,
+      "sha256": "fabf438926592208d1df32c5b7a5f8ebfb9ae92764d84dcbac66a708295906e3"
+    },
+    {
+      "path": "results/attention8-s14920/chunk005.bin",
+      "bytes": 67108864,
+      "sha256": "470c11db6c38d00cf118076db05733691bbd4fde651a4bbe18d119e2ca87f065"
+    },
+    {
+      "path": "results/attention8-s14920/chunk006.bin",
+      "bytes": 67108864,
+      "sha256": "3fb364db437573b3ac8142f21989301c8a3cf6733c91aa7b9e04d3cbd363f31c"
+    },
+    {
+      "path": "results/attention8-s14920/chunk007.bin",
+      "bytes": 67108864,
+      "sha256": "e330fb4daf379fc40cff73655ae35db2ce4e1b0a8c1b1e2ebe098a67d6a13400"
+    },
+    {
+      "path": "results/attention8-s14920/chunk008.bin",
+      "bytes": 67108864,
+      "sha256": "a15a142d670879c63fe21635713bef25a5f683b6550146de7348e8866a599d43"
+    },
+    {
+      "path": "results/attention8-s14920/chunk009.bin",
+      "bytes": 67108864,
+      "sha256": "1ef311ada3a7b663e7e02d014d94a2c638d1604bf367c8e7ec6fe8d987715684"
+    },
+    {
+      "path": "results/attention8-s14920/chunk010.bin",
+      "bytes": 67108864,
+      "sha256": "2956d7724718ac4a18a0b3432f450a3d454bf8d1b65c98836d3124c99814ff43"
+    },
+    {
+      "path": "results/attention8-s14920/chunk011.bin",
+      "bytes": 67108864,
+      "sha256": "662d16ba675d512679c46828b2276d903fb59e27cb82802209ad5f2445ad870a"
+    },
+    {
+      "path": "results/attention8-s14920/chunk012.bin",
+      "bytes": 67108864,
+      "sha256": "3a043d87945b9a3f2d9effae76fa9ddc1a916055883f506b063df448c0ada8fd"
+    },
+    {
+      "path": "results/attention8-s14920/chunk013.bin",
+      "bytes": 67108864,
+      "sha256": "2effb35965f5d256cb19a57e03b8aa32282f6b4444dd8a1375877a74e194f325"
+    },
+    {
+      "path": "results/attention8-s14920/chunk014.bin",
+      "bytes": 67108864,
+      "sha256": "43caa67d57894451980774378b1efb82204a7431a6a2b3df1cddf4857caa77a7"
+    },
+    {
+      "path": "results/attention8-s14920/chunk015.bin",
+      "bytes": 67108864,
+      "sha256": "7e5cf821cf8306198bca7466d3af2a160c2db743db83b9f00a1cdeafe4111c97"
+    },
+    {
+      "path": "results/attention8-s14920/chunk016.bin",
+      "bytes": 67108864,
+      "sha256": "9b08d53d8e81db4721df9ec81a1dcbfa1a14093b508365e2c1227d6b33b9ff57"
+    },
+    {
+      "path": "results/attention8-s14920/chunk017.bin",
+      "bytes": 54004523,
+      "sha256": "ee3e604b71c275cff79e64425ce98f8d2b96e58d1be61e1a89fa2f01b6aadf60"
+    }
+  ],
+  "bytes": 1194855211,
+  "includes_optimizer": true,
+  "source_sha256": "33d8ef6ef81d72c016bf6d17098a70188d6890e049aa9b131de2260a485657e7"
+}

@@ -1,0 +1,10 @@
+{
+  "protocol_sha256": "e43fcb565852076a31a5fe068d4d83170ecec4e6041ec3a919d57145d5459f9a",
+  "source_sha256": "462a365353e73992babc43e09cebd80da5f18eb82188d4430e0198aa047707c2",
+  "panel_sha256": "f0b936b785ceb8ccc2280d6bd4b00dbf941c03993137eb62f8a48f8e30a41b12",
+  "examples": 1575,
+  "entities_per_family": 63,
+  "namespace": "native TRAIN, optimizer excluded entities",
+  "reserved_development_test_opened": false,
+  "new_training_exposures": 0
+}

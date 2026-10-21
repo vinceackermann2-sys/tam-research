@@ -1,0 +1,928 @@
+{
+  "recovery_status.json": {
+    "phase": "finished",
+    "complete": true,
+    "all_jobs_exit_zero": true,
+    "exits": {
+      "cpw_binding_recovery": 0,
+      "conv7_fineweb_recovery": 0
+    },
+    "utc": "2026-10-20T08:18:07.710222+00:00"
+  },
+  "RECOVERY_ENVIRONMENT.json": {
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "python": "3.13.15 (main, Aug  6 2026, 11:06:22) [GCC 13.3.0]",
+    "packages": {
+      "numpy": "2.1.3",
+      "datasets": "4.8.5",
+      "tiktoken": "0.14.0"
+    },
+    "source_sha256": {
+      "conv7_language.py": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+      "cpw_binding_recovery.py": "ee94029237e3ee0bba53045ee1f864a3cb57be62a6b7936bf9eb013c1d93c42a",
+      "conv7_fineweb_recovery.py": "856cec469032e7b9fb2e0983facc560a7dea1add074df122677088a49c2ff033",
+      "RECOVERY_PROTOCOL.md": "ecf6e2106f8dbd537dbb340ce6bb2449c14d9f1e286f44683cee6efff3114c58"
+    }
+  },
+  "RECOVERY_CLAIM.json": {
+    "fresh_seeds": [
+      202610261,
+      202610262
+    ],
+    "previous_extension": "interrupted/unverified; never resumed",
+    "duplicate_guard": true
+  },
+  "cpw_binding_recovery.exit.json": {
+    "returncode": 0
+  },
+  "conv7_fineweb_recovery.exit.json": {
+    "returncode": 0
+  },
+  "fineweb25m/DATA.json": {
+    "dataset": "HuggingFaceFW/fineweb-edu",
+    "config": "sample-10BT",
+    "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+    "split_rule": "first8hex(SHA256(UTF8(document))) mod20 ==0 gives validation; duplicate document hashes skipped",
+    "tokenizer": "gpt2",
+    "eos_between_documents": 50256,
+    "train": {
+      "tokens": 25100000,
+      "token_sha256": "ef12593eeadd8f7ea827b1a7ade30bc27ddbad1ee708fb4eca2ddb6d6bffab4c",
+      "document_count": 23477,
+      "document_hash_root": "e58f6fdabbd3a3a8242041e8c31d4b6cd009ea1cd98679e5c624816db3dd7b71"
+    },
+    "validation": {
+      "tokens": 250000,
+      "token_sha256": "7775092f61861d7761458fe2129e649d0b924397d122bbed62f24bbb51adda28",
+      "document_count": 259,
+      "document_hash_root": "5865e818d768f025d5b60e55d9be4f0db2893dca223987bb982cbe837d04ef65"
+    }
+  },
+  "results/conv7_recovery/PREREGISTRATION.json": {
+    "width": 192,
+    "layers": 24,
+    "context": 256,
+    "batch": 16,
+    "steps": 6103,
+    "tokens": 24997888,
+    "seed": 202610262,
+    "optimizer": "AdamW",
+    "lr": 0.0003,
+    "betas": [
+      0.9,
+      0.95
+    ],
+    "wd": 0.1,
+    "warmup_steps": 122,
+    "end_lr": 3e-05,
+    "arms": [
+      "transformer",
+      "attention8",
+      "conv7"
+    ],
+    "retries": 0,
+    "resume": false,
+    "interpretation": "ONE-SEED DEVELOPMENT SCREEN; no 100M/2B or breakthrough inference",
+    "gate": "Conv7 NLL-T <= .015 AND TPS/T >=1.03; mechanism benefit requires attention8 NLL-Conv7 NLL >=.005"
+  },
+  "results/conv7_recovery/conv7-recovery-w192-attention8-202610262.PROGRESS.json": {
+    "tokens": 24997888,
+    "history": [
+      {
+        "step": 1024,
+        "tokens": 4194304,
+        "training_seconds": 33.68036088599956,
+        "nll": 6.53323957324028
+      },
+      {
+        "step": 2048,
+        "tokens": 8388608,
+        "training_seconds": 66.13363777900213,
+        "nll": 6.244920194149017
+      },
+      {
+        "step": 3072,
+        "tokens": 12582912,
+        "training_seconds": 98.59866219700189,
+        "nll": 6.03872749209404
+      },
+      {
+        "step": 4096,
+        "tokens": 16777216,
+        "training_seconds": 132.37923195599478,
+        "nll": 5.906242102384567
+      },
+      {
+        "step": 5120,
+        "tokens": 20971520,
+        "training_seconds": 165.81867216699084,
+        "nll": 5.835797220468521
+      },
+      {
+        "step": 6103,
+        "tokens": 24997888,
+        "training_seconds": 197.48955907600066,
+        "nll": 5.801374465227127
+      }
+    ]
+  },
+  "results/conv7_recovery/conv7-recovery-w192-conv7-202610262.ABLATION.json": {
+    "checkpoint_sha256": "919a4f7127fce21d3828fda97639ac038defceda1bfa2b993766ddd7f9fb3f54",
+    "original_gains": {
+      "1": -0.0018666789401322603,
+      "2": -0.21760903298854828,
+      "4": -0.26049503684043884,
+      "5": -0.2741589844226837,
+      "7": 0.23681508004665375,
+      "8": 0.2332056611776352,
+      "10": 0.17983245849609375,
+      "11": -0.1491231620311737,
+      "13": 0.12587061524391174,
+      "14": 0.10320968925952911,
+      "16": -0.09982719272375107,
+      "17": -0.0925818383693695,
+      "19": 0.06676796823740005,
+      "20": -0.06172046437859535,
+      "22": -0.06663859635591507,
+      "23": 0.04506929963827133
+    },
+    "recorded_terminal_nll": 5.706767499446869,
+    "replayed_nll": 5.706767499446869,
+    "replay_delta": 0.0,
+    "gains_zero_nll": 6.342701494693756,
+    "erasure_nll_delta": 0.6359339952468872,
+    "source_sha256": "b72951902db030b44ab82857f748cd116ea0b58741707847e62886f91c5b6afa",
+    "classification": "SAME_DEVELOPMENT_CHECKPOINT_CAUSAL_DEPENDENCE_NOT_TRAINING_ATTRIBUTION",
+    "new_training_exposures": 0,
+    "breakthrough_demonstrated": false
+  },
+  "results/conv7_recovery/conv7-recovery-w192-attention8-202610262.RESULT.json": {
+    "attempt": "conv7-recovery-w192-attention8-202610262",
+    "recipe": {
+      "width": 192,
+      "layers": 24,
+      "context": 256,
+      "batch": 16,
+      "steps": 6103,
+      "tokens": 24997888,
+      "seed": 202610262,
+      "optimizer": "AdamW",
+      "lr": 0.0003,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "wd": 0.1,
+      "warmup_steps": 122,
+      "end_lr": 3e-05,
+      "arms": [
+        "transformer",
+        "attention8",
+        "conv7"
+      ],
+      "retries": 0,
+      "resume": false,
+      "interpretation": "ONE-SEED DEVELOPMENT SCREEN; no 100M/2B or breakthrough inference",
+      "gate": "Conv7 NLL-T <= .015 AND TPS/T >=1.03; mechanism benefit requires attention8 NLL-Conv7 NLL >=.005"
+    },
+    "parameters": 20484672,
+    "seed": 202610262,
+    "variant": "attention8",
+    "width": 192,
+    "data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "config": "sample-10BT",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "split_rule": "first8hex(SHA256(UTF8(document))) mod20 ==0 gives validation; duplicate document hashes skipped",
+      "tokenizer": "gpt2",
+      "eos_between_documents": 50256,
+      "train": {
+        "tokens": 25100000,
+        "token_sha256": "ef12593eeadd8f7ea827b1a7ade30bc27ddbad1ee708fb4eca2ddb6d6bffab4c",
+        "document_count": 23477,
+        "document_hash_root": "e58f6fdabbd3a3a8242041e8c31d4b6cd009ea1cd98679e5c624816db3dd7b71"
+      },
+      "validation": {
+        "tokens": 250000,
+        "token_sha256": "7775092f61861d7761458fe2129e649d0b924397d122bbed62f24bbb51adda28",
+        "document_count": 259,
+        "document_hash_root": "5865e818d768f025d5b60e55d9be4f0db2893dca223987bb982cbe837d04ef65"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "script_sha256": "856cec469032e7b9fb2e0983facc560a7dea1add074df122677088a49c2ff033",
+    "model_source_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "tokens_seen": 24997888,
+    "validation_nll": 5.801374465227127,
+    "initial_validation_nll": 10.871183514595032,
+    "train_seconds": 197.48955907600066,
+    "train_tokens_per_second": 126578.27642614751,
+    "history": [
+      {
+        "step": 1024,
+        "tokens": 4194304,
+        "training_seconds": 33.68036088599956,
+        "nll": 6.53323957324028
+      },
+      {
+        "step": 2048,
+        "tokens": 8388608,
+        "training_seconds": 66.13363777900213,
+        "nll": 6.244920194149017
+      },
+      {
+        "step": 3072,
+        "tokens": 12582912,
+        "training_seconds": 98.59866219700189,
+        "nll": 6.03872749209404
+      },
+      {
+        "step": 4096,
+        "tokens": 16777216,
+        "training_seconds": 132.37923195599478,
+        "nll": 5.906242102384567
+      },
+      {
+        "step": 5120,
+        "tokens": 20971520,
+        "training_seconds": 165.81867216699084,
+        "nll": 5.835797220468521
+      },
+      {
+        "step": 6103,
+        "tokens": 24997888,
+        "training_seconds": 197.48955907600066,
+        "nll": 5.801374465227127
+      }
+    ],
+    "peak_allocated_gib": 3.539524555206299,
+    "classification": "FRESH_ONE_SEED_DEVELOPMENT_SCREEN",
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "20e35e3c0cbb91c366652063a22ec201c7de01119bc3ad9891e4f2504dfd3c55"
+  },
+  "results/conv7_recovery/conv7-recovery-w192-transformer-202610262.ATTEMPT.json": {
+    "attempt": "conv7-recovery-w192-transformer-202610262",
+    "recipe": {
+      "width": 192,
+      "layers": 24,
+      "context": 256,
+      "batch": 16,
+      "steps": 6103,
+      "tokens": 24997888,
+      "seed": 202610262,
+      "optimizer": "AdamW",
+      "lr": 0.0003,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "wd": 0.1,
+      "warmup_steps": 122,
+      "end_lr": 3e-05,
+      "arms": [
+        "transformer",
+        "attention8",
+        "conv7"
+      ],
+      "retries": 0,
+      "resume": false,
+      "interpretation": "ONE-SEED DEVELOPMENT SCREEN; no 100M/2B or breakthrough inference",
+      "gate": "Conv7 NLL-T <= .015 AND TPS/T >=1.03; mechanism benefit requires attention8 NLL-Conv7 NLL >=.005"
+    },
+    "parameters": 20481600,
+    "seed": 202610262,
+    "variant": "transformer",
+    "width": 192,
+    "data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "config": "sample-10BT",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "split_rule": "first8hex(SHA256(UTF8(document))) mod20 ==0 gives validation; duplicate document hashes skipped",
+      "tokenizer": "gpt2",
+      "eos_between_documents": 50256,
+      "train": {
+        "tokens": 25100000,
+        "token_sha256": "ef12593eeadd8f7ea827b1a7ade30bc27ddbad1ee708fb4eca2ddb6d6bffab4c",
+        "document_count": 23477,
+        "document_hash_root": "e58f6fdabbd3a3a8242041e8c31d4b6cd009ea1cd98679e5c624816db3dd7b71"
+      },
+      "validation": {
+        "tokens": 250000,
+        "token_sha256": "7775092f61861d7761458fe2129e649d0b924397d122bbed62f24bbb51adda28",
+        "document_count": 259,
+        "document_hash_root": "5865e818d768f025d5b60e55d9be4f0db2893dca223987bb982cbe837d04ef65"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "script_sha256": "856cec469032e7b9fb2e0983facc560a7dea1add074df122677088a49c2ff033",
+    "model_source_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11"
+  },
+  "results/conv7_recovery/COMPLETE.json": {
+    "complete": true
+  },
+  "results/conv7_recovery/conv7-recovery-w192-transformer-202610262.RESULT.json": {
+    "attempt": "conv7-recovery-w192-transformer-202610262",
+    "recipe": {
+      "width": 192,
+      "layers": 24,
+      "context": 256,
+      "batch": 16,
+      "steps": 6103,
+      "tokens": 24997888,
+      "seed": 202610262,
+      "optimizer": "AdamW",
+      "lr": 0.0003,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "wd": 0.1,
+      "warmup_steps": 122,
+      "end_lr": 3e-05,
+      "arms": [
+        "transformer",
+        "attention8",
+        "conv7"
+      ],
+      "retries": 0,
+      "resume": false,
+      "interpretation": "ONE-SEED DEVELOPMENT SCREEN; no 100M/2B or breakthrough inference",
+      "gate": "Conv7 NLL-T <= .015 AND TPS/T >=1.03; mechanism benefit requires attention8 NLL-Conv7 NLL >=.005"
+    },
+    "parameters": 20481600,
+    "seed": 202610262,
+    "variant": "transformer",
+    "width": 192,
+    "data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "config": "sample-10BT",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "split_rule": "first8hex(SHA256(UTF8(document))) mod20 ==0 gives validation; duplicate document hashes skipped",
+      "tokenizer": "gpt2",
+      "eos_between_documents": 50256,
+      "train": {
+        "tokens": 25100000,
+        "token_sha256": "ef12593eeadd8f7ea827b1a7ade30bc27ddbad1ee708fb4eca2ddb6d6bffab4c",
+        "document_count": 23477,
+        "document_hash_root": "e58f6fdabbd3a3a8242041e8c31d4b6cd009ea1cd98679e5c624816db3dd7b71"
+      },
+      "validation": {
+        "tokens": 250000,
+        "token_sha256": "7775092f61861d7761458fe2129e649d0b924397d122bbed62f24bbb51adda28",
+        "document_count": 259,
+        "document_hash_root": "5865e818d768f025d5b60e55d9be4f0db2893dca223987bb982cbe837d04ef65"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "script_sha256": "856cec469032e7b9fb2e0983facc560a7dea1add074df122677088a49c2ff033",
+    "model_source_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "tokens_seen": 24997888,
+    "validation_nll": 5.742762207984924,
+    "initial_validation_nll": 10.844819903373718,
+    "train_seconds": 287.5553214999752,
+    "train_tokens_per_second": 86932.44788377931,
+    "history": [
+      {
+        "step": 1024,
+        "tokens": 4194304,
+        "training_seconds": 49.22468640499983,
+        "nll": 6.525892913341522
+      },
+      {
+        "step": 2048,
+        "tokens": 8388608,
+        "training_seconds": 96.46238552499949,
+        "nll": 6.206680029630661
+      },
+      {
+        "step": 3072,
+        "tokens": 12582912,
+        "training_seconds": 144.68372149999163,
+        "nll": 5.9829742312431335
+      },
+      {
+        "step": 4096,
+        "tokens": 16777216,
+        "training_seconds": 193.19156795298636,
+        "nll": 5.848448693752289
+      },
+      {
+        "step": 5120,
+        "tokens": 20971520,
+        "training_seconds": 240.7654317679769,
+        "nll": 5.777923375368118
+      },
+      {
+        "step": 6103,
+        "tokens": 24997888,
+        "training_seconds": 287.5553214999752,
+        "nll": 5.742762207984924
+      }
+    ],
+    "peak_allocated_gib": 3.613029956817627,
+    "classification": "FRESH_ONE_SEED_DEVELOPMENT_SCREEN",
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "fdd5891c58cee0fa66a387532198e25326918e899966300b37c38f16b3553b14"
+  },
+  "results/conv7_recovery/conv7-recovery-w192-transformer-202610262.PROGRESS.json": {
+    "tokens": 24997888,
+    "history": [
+      {
+        "step": 1024,
+        "tokens": 4194304,
+        "training_seconds": 49.22468640499983,
+        "nll": 6.525892913341522
+      },
+      {
+        "step": 2048,
+        "tokens": 8388608,
+        "training_seconds": 96.46238552499949,
+        "nll": 6.206680029630661
+      },
+      {
+        "step": 3072,
+        "tokens": 12582912,
+        "training_seconds": 144.68372149999163,
+        "nll": 5.9829742312431335
+      },
+      {
+        "step": 4096,
+        "tokens": 16777216,
+        "training_seconds": 193.19156795298636,
+        "nll": 5.848448693752289
+      },
+      {
+        "step": 5120,
+        "tokens": 20971520,
+        "training_seconds": 240.7654317679769,
+        "nll": 5.777923375368118
+      },
+      {
+        "step": 6103,
+        "tokens": 24997888,
+        "training_seconds": 287.5553214999752,
+        "nll": 5.742762207984924
+      }
+    ]
+  },
+  "results/conv7_recovery/conv7-recovery-w192-attention8-202610262.ATTEMPT.json": {
+    "attempt": "conv7-recovery-w192-attention8-202610262",
+    "recipe": {
+      "width": 192,
+      "layers": 24,
+      "context": 256,
+      "batch": 16,
+      "steps": 6103,
+      "tokens": 24997888,
+      "seed": 202610262,
+      "optimizer": "AdamW",
+      "lr": 0.0003,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "wd": 0.1,
+      "warmup_steps": 122,
+      "end_lr": 3e-05,
+      "arms": [
+        "transformer",
+        "attention8",
+        "conv7"
+      ],
+      "retries": 0,
+      "resume": false,
+      "interpretation": "ONE-SEED DEVELOPMENT SCREEN; no 100M/2B or breakthrough inference",
+      "gate": "Conv7 NLL-T <= .015 AND TPS/T >=1.03; mechanism benefit requires attention8 NLL-Conv7 NLL >=.005"
+    },
+    "parameters": 20484672,
+    "seed": 202610262,
+    "variant": "attention8",
+    "width": 192,
+    "data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "config": "sample-10BT",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "split_rule": "first8hex(SHA256(UTF8(document))) mod20 ==0 gives validation; duplicate document hashes skipped",
+      "tokenizer": "gpt2",
+      "eos_between_documents": 50256,
+      "train": {
+        "tokens": 25100000,
+        "token_sha256": "ef12593eeadd8f7ea827b1a7ade30bc27ddbad1ee708fb4eca2ddb6d6bffab4c",
+        "document_count": 23477,
+        "document_hash_root": "e58f6fdabbd3a3a8242041e8c31d4b6cd009ea1cd98679e5c624816db3dd7b71"
+      },
+      "validation": {
+        "tokens": 250000,
+        "token_sha256": "7775092f61861d7761458fe2129e649d0b924397d122bbed62f24bbb51adda28",
+        "document_count": 259,
+        "document_hash_root": "5865e818d768f025d5b60e55d9be4f0db2893dca223987bb982cbe837d04ef65"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "script_sha256": "856cec469032e7b9fb2e0983facc560a7dea1add074df122677088a49c2ff033",
+    "model_source_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11"
+  },
+  "results/conv7_recovery/conv7-recovery-w192-conv7-202610262.PROGRESS.json": {
+    "tokens": 24997888,
+    "history": [
+      {
+        "step": 1024,
+        "tokens": 4194304,
+        "training_seconds": 44.022138620005535,
+        "nll": 6.41871052980423
+      },
+      {
+        "step": 2048,
+        "tokens": 8388608,
+        "training_seconds": 87.7516576750013,
+        "nll": 6.104408890008926
+      },
+      {
+        "step": 3072,
+        "tokens": 12582912,
+        "training_seconds": 131.56816636499934,
+        "nll": 5.9202969670295715
+      },
+      {
+        "step": 4096,
+        "tokens": 16777216,
+        "training_seconds": 175.54233485299437,
+        "nll": 5.802238494157791
+      },
+      {
+        "step": 5120,
+        "tokens": 20971520,
+        "training_seconds": 219.9234158589893,
+        "nll": 5.736820161342621
+      },
+      {
+        "step": 6103,
+        "tokens": 24997888,
+        "training_seconds": 261.21428957899707,
+        "nll": 5.706767499446869
+      }
+    ]
+  },
+  "results/conv7_recovery/conv7-recovery-w192-conv7-202610262.ATTEMPT.json": {
+    "attempt": "conv7-recovery-w192-conv7-202610262",
+    "recipe": {
+      "width": 192,
+      "layers": 24,
+      "context": 256,
+      "batch": 16,
+      "steps": 6103,
+      "tokens": 24997888,
+      "seed": 202610262,
+      "optimizer": "AdamW",
+      "lr": 0.0003,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "wd": 0.1,
+      "warmup_steps": 122,
+      "end_lr": 3e-05,
+      "arms": [
+        "transformer",
+        "attention8",
+        "conv7"
+      ],
+      "retries": 0,
+      "resume": false,
+      "interpretation": "ONE-SEED DEVELOPMENT SCREEN; no 100M/2B or breakthrough inference",
+      "gate": "Conv7 NLL-T <= .015 AND TPS/T >=1.03; mechanism benefit requires attention8 NLL-Conv7 NLL >=.005"
+    },
+    "parameters": 20478544,
+    "seed": 202610262,
+    "variant": "conv7",
+    "width": 192,
+    "data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "config": "sample-10BT",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "split_rule": "first8hex(SHA256(UTF8(document))) mod20 ==0 gives validation; duplicate document hashes skipped",
+      "tokenizer": "gpt2",
+      "eos_between_documents": 50256,
+      "train": {
+        "tokens": 25100000,
+        "token_sha256": "ef12593eeadd8f7ea827b1a7ade30bc27ddbad1ee708fb4eca2ddb6d6bffab4c",
+        "document_count": 23477,
+        "document_hash_root": "e58f6fdabbd3a3a8242041e8c31d4b6cd009ea1cd98679e5c624816db3dd7b71"
+      },
+      "validation": {
+        "tokens": 250000,
+        "token_sha256": "7775092f61861d7761458fe2129e649d0b924397d122bbed62f24bbb51adda28",
+        "document_count": 259,
+        "document_hash_root": "5865e818d768f025d5b60e55d9be4f0db2893dca223987bb982cbe837d04ef65"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "script_sha256": "856cec469032e7b9fb2e0983facc560a7dea1add074df122677088a49c2ff033",
+    "model_source_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11"
+  },
+  "results/conv7_recovery/conv7-recovery-w192-conv7-202610262.RESULT.json": {
+    "attempt": "conv7-recovery-w192-conv7-202610262",
+    "recipe": {
+      "width": 192,
+      "layers": 24,
+      "context": 256,
+      "batch": 16,
+      "steps": 6103,
+      "tokens": 24997888,
+      "seed": 202610262,
+      "optimizer": "AdamW",
+      "lr": 0.0003,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "wd": 0.1,
+      "warmup_steps": 122,
+      "end_lr": 3e-05,
+      "arms": [
+        "transformer",
+        "attention8",
+        "conv7"
+      ],
+      "retries": 0,
+      "resume": false,
+      "interpretation": "ONE-SEED DEVELOPMENT SCREEN; no 100M/2B or breakthrough inference",
+      "gate": "Conv7 NLL-T <= .015 AND TPS/T >=1.03; mechanism benefit requires attention8 NLL-Conv7 NLL >=.005"
+    },
+    "parameters": 20478544,
+    "seed": 202610262,
+    "variant": "conv7",
+    "width": 192,
+    "data": {
+      "dataset": "HuggingFaceFW/fineweb-edu",
+      "config": "sample-10BT",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "split_rule": "first8hex(SHA256(UTF8(document))) mod20 ==0 gives validation; duplicate document hashes skipped",
+      "tokenizer": "gpt2",
+      "eos_between_documents": 50256,
+      "train": {
+        "tokens": 25100000,
+        "token_sha256": "ef12593eeadd8f7ea827b1a7ade30bc27ddbad1ee708fb4eca2ddb6d6bffab4c",
+        "document_count": 23477,
+        "document_hash_root": "e58f6fdabbd3a3a8242041e8c31d4b6cd009ea1cd98679e5c624816db3dd7b71"
+      },
+      "validation": {
+        "tokens": 250000,
+        "token_sha256": "7775092f61861d7761458fe2129e649d0b924397d122bbed62f24bbb51adda28",
+        "document_count": 259,
+        "document_hash_root": "5865e818d768f025d5b60e55d9be4f0db2893dca223987bb982cbe837d04ef65"
+      }
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "script_sha256": "856cec469032e7b9fb2e0983facc560a7dea1add074df122677088a49c2ff033",
+    "model_source_sha256": "3c3b36c2aa3c06be6ef93534214eac3749d4c9fa284a3dce9ac22709a9528b11",
+    "tokens_seen": 24997888,
+    "validation_nll": 5.706767499446869,
+    "initial_validation_nll": 10.868600368499756,
+    "train_seconds": 261.21428957899707,
+    "train_tokens_per_second": 95698.7768176445,
+    "history": [
+      {
+        "step": 1024,
+        "tokens": 4194304,
+        "training_seconds": 44.022138620005535,
+        "nll": 6.41871052980423
+      },
+      {
+        "step": 2048,
+        "tokens": 8388608,
+        "training_seconds": 87.7516576750013,
+        "nll": 6.104408890008926
+      },
+      {
+        "step": 3072,
+        "tokens": 12582912,
+        "training_seconds": 131.56816636499934,
+        "nll": 5.9202969670295715
+      },
+      {
+        "step": 4096,
+        "tokens": 16777216,
+        "training_seconds": 175.54233485299437,
+        "nll": 5.802238494157791
+      },
+      {
+        "step": 5120,
+        "tokens": 20971520,
+        "training_seconds": 219.9234158589893,
+        "nll": 5.736820161342621
+      },
+      {
+        "step": 6103,
+        "tokens": 24997888,
+        "training_seconds": 261.21428957899707,
+        "nll": 5.706767499446869
+      }
+    ],
+    "peak_allocated_gib": 3.6336922645568848,
+    "classification": "FRESH_ONE_SEED_DEVELOPMENT_SCREEN",
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "919a4f7127fce21d3828fda97639ac038defceda1bfa2b993766ddd7f9fb3f54"
+  },
+  "results/cpw_recovery/PREREGISTRATION.json": {
+    "seed": 202610261,
+    "steps": 5000,
+    "batch": 32,
+    "tokens_each": 51200000,
+    "lr": 0.001,
+    "weight_decay": 0.01,
+    "input_ids": "original corrected generator, unchanged IDs; vocab4096",
+    "positive_control_gate": "minimum accuracy across all four distances >=.80 AND all_four>=.70 at fixed step5000",
+    "arms_if_valid": [
+      "sequence_only",
+      "afm_last1",
+      "afm_first1",
+      "r1_final"
+    ],
+    "purpose": "ONE-SEED DEVELOPMENT CALIBRATION, capacity/control diagnostic, not matched architecture science",
+    "retry": false,
+    "resume": false,
+    "candidate_checkpoint_selection": false
+  },
+  "results/cpw_recovery/CONTROL_GATE.json": {
+    "passed": false,
+    "result": {
+      "by_delay": [
+        {
+          "delay": 32,
+          "accuracy": 0.013671875,
+          "nll": 4.7568159103393555
+        },
+        {
+          "delay": 64,
+          "accuracy": 0.033203125,
+          "nll": 4.5891642570495605
+        },
+        {
+          "delay": 128,
+          "accuracy": 0.021484375,
+          "nll": 4.641469478607178
+        },
+        {
+          "delay": 256,
+          "accuracy": 0.041015625,
+          "nll": 4.608684539794922
+        }
+      ],
+      "all_four": 0.0,
+      "independent_source_groups": 128
+    },
+    "candidate_training_started": false
+  },
+  "results/cpw_recovery/cpw-recovery-transformer-202610261.ATTEMPT.json": {
+    "attempt": "cpw-recovery-transformer-202610261",
+    "parameters": 13123072,
+    "recipe": {
+      "seed": 202610261,
+      "steps": 5000,
+      "batch": 32,
+      "tokens_each": 51200000,
+      "lr": 0.001,
+      "weight_decay": 0.01,
+      "input_ids": "original corrected generator, unchanged IDs; vocab4096",
+      "positive_control_gate": "minimum accuracy across all four distances >=.80 AND all_four>=.70 at fixed step5000",
+      "arms_if_valid": [
+        "sequence_only",
+        "afm_last1",
+        "afm_first1",
+        "r1_final"
+      ],
+      "purpose": "ONE-SEED DEVELOPMENT CALIBRATION, capacity/control diagnostic, not matched architecture science",
+      "retry": false,
+      "resume": false,
+      "candidate_checkpoint_selection": false
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "ee94029237e3ee0bba53045ee1f864a3cb57be62a6b7936bf9eb013c1d93c42a"
+  },
+  "results/cpw_recovery/COMPLETE.json": {
+    "complete": true
+  },
+  "results/cpw_recovery/cpw-recovery-transformer-202610261.PROGRESS.json": [
+    {
+      "step": 1000,
+      "train_loss": 4.823345184326172,
+      "tokens": 10240000
+    },
+    {
+      "step": 2000,
+      "train_loss": 4.87535285949707,
+      "tokens": 20480000
+    },
+    {
+      "step": 3000,
+      "train_loss": 4.72536039352417,
+      "tokens": 30720000
+    },
+    {
+      "step": 4000,
+      "train_loss": 4.712716102600098,
+      "tokens": 40960000
+    },
+    {
+      "step": 5000,
+      "train_loss": 4.535700798034668,
+      "tokens": 51200000
+    }
+  ],
+  "results/cpw_recovery/cpw-recovery-transformer-202610261.RESULT.json": {
+    "attempt": "cpw-recovery-transformer-202610261",
+    "parameters": 13123072,
+    "recipe": {
+      "seed": 202610261,
+      "steps": 5000,
+      "batch": 32,
+      "tokens_each": 51200000,
+      "lr": 0.001,
+      "weight_decay": 0.01,
+      "input_ids": "original corrected generator, unchanged IDs; vocab4096",
+      "positive_control_gate": "minimum accuracy across all four distances >=.80 AND all_four>=.70 at fixed step5000",
+      "arms_if_valid": [
+        "sequence_only",
+        "afm_last1",
+        "afm_first1",
+        "r1_final"
+      ],
+      "purpose": "ONE-SEED DEVELOPMENT CALIBRATION, capacity/control diagnostic, not matched architecture science",
+      "retry": false,
+      "resume": false,
+      "candidate_checkpoint_selection": false
+    },
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.11.0+cu130",
+    "source_sha": "aad622d1eea591545a3482618ca8b269e4d9d43f",
+    "script_sha256": "ee94029237e3ee0bba53045ee1f864a3cb57be62a6b7936bf9eb013c1d93c42a",
+    "tokens_seen": 51200000,
+    "train_seconds": 344.4550142510002,
+    "train_tokens_per_second": 148640.60002532342,
+    "result": {
+      "by_delay": [
+        {
+          "delay": 32,
+          "accuracy": 0.013671875,
+          "nll": 4.7568159103393555
+        },
+        {
+          "delay": 64,
+          "accuracy": 0.033203125,
+          "nll": 4.5891642570495605
+        },
+        {
+          "delay": 128,
+          "accuracy": 0.021484375,
+          "nll": 4.641469478607178
+        },
+        {
+          "delay": 256,
+          "accuracy": 0.041015625,
+          "nll": 4.608684539794922
+        }
+      ],
+      "all_four": 0.0,
+      "independent_source_groups": 128
+    },
+    "history": [
+      {
+        "step": 1000,
+        "train_loss": 4.823345184326172,
+        "tokens": 10240000
+      },
+      {
+        "step": 2000,
+        "train_loss": 4.87535285949707,
+        "tokens": 20480000
+      },
+      {
+        "step": 3000,
+        "train_loss": 4.72536039352417,
+        "tokens": 30720000
+      },
+      {
+        "step": 4000,
+        "train_loss": 4.712716102600098,
+        "tokens": 40960000
+      },
+      {
+        "step": 5000,
+        "train_loss": 4.535700798034668,
+        "tokens": 51200000
+      }
+    ],
+    "breakthrough_demonstrated": false,
+    "checkpoint_sha256": "173d86c05c347f36f81a34109704e7959d4e46fd4a0284b57e0ff970539f187a"
+  }
+}

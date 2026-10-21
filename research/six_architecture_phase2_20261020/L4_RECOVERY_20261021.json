@@ -1,0 +1,233 @@
+{
+  "utc": "2026-10-21T08:55:42.288974+00:00",
+  "status": "VERIFIED_CONTINUATION",
+  "same_lineage_seed": 202610321,
+  "replacement_gpu": "NVIDIA L4",
+  "replacement_torch": "2.11.0+cu130",
+  "replacement_python": "3.13.15 (main, Aug  6 2026, 11:06:22) [GCC 13.3.0]",
+  "no_purchase_or_upgrade": true,
+  "old_runtime_disappearance_confirmed_before_one_replacement_allocation": true,
+  "optimizer_states_verified": [
+    {
+      "variant": "transformer",
+      "step": 28485,
+      "committed_training_exposures": 233349120,
+      "charged_lost_exposures": 0,
+      "cumulative_committed_and_conservative_exposures": 233349120,
+      "actual_parameters_from_frozen_constructor": 99837440,
+      "checkpoint_sha256": "962291b954dc288ed5167f41bd7041a98ae902dcb34b340b0088224dbf40c58f",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 196
+    },
+    {
+      "variant": "attention8",
+      "step": 25772,
+      "committed_training_exposures": 211124224,
+      "charged_lost_exposures": 22224896,
+      "cumulative_committed_and_conservative_exposures": 233349120,
+      "actual_parameters_from_frozen_constructor": 99558912,
+      "checkpoint_sha256": "2bfcf12663bca8eca6bf44671f8967c1c1c758ae744a2918ebed44f8b01c37e0",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 132
+    },
+    {
+      "variant": "conv7",
+      "step": 25772,
+      "committed_training_exposures": 211124224,
+      "charged_lost_exposures": 0,
+      "cumulative_committed_and_conservative_exposures": 211124224,
+      "actual_parameters_from_frozen_constructor": 99616272,
+      "checkpoint_sha256": "a083d57b11204ae24856875a39adb397b2a886eb606e0c8572305457425439ad",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 164
+    },
+    {
+      "variant": "cpw_local",
+      "step": 12207,
+      "committed_training_exposures": 99999744,
+      "charged_lost_exposures": 0,
+      "cumulative_committed_and_conservative_exposures": 99999744,
+      "actual_parameters_from_frozen_constructor": 99674432,
+      "checkpoint_sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 124
+    }
+  ],
+  "optimizer_state_audit_reference": "l4_panel/recovery_archive/20261021T074114Z/LOCAL_OPTIMIZER_AUDIT.json",
+  "immutable_remote_sources_verified": {
+    "complete": true,
+    "source_sha256": {
+      "phase2_model.py": "2e55d338be151900c5e383e39c01e2328337193d9642d8cabf7a1b1bc8334748",
+      "phase2_aligned_model.py": "c06383f33adcce353bfe56659b4fa234518bac86bbac2e44133e023a6c4efd33",
+      "phase2_aligned_v2.py": "a85ec9f80b24b41761c2422c4834cbf07e9716531a74659dbb260a6575701e82",
+      "train_panel.py": "33d8ef6ef81d72c016bf6d17098a70188d6890e049aa9b131de2260a485657e7",
+      "prepare_corpus.py": "c59324ba85f49d0167bfae2899855a898002e6a61e1cfa9b90a315fb5f15f1f8",
+      "PROTOCOL.md": "7220010f1f9398c81e5c5bd8366a4cd1f7a8149c891c453b6183c96e441a8379",
+      "inference_benchmark.py": "72c0945d423a6207092f3b4c95ec85ed0844703e1d5619d51dca9f3b52e365a6",
+      "language_benchmarks.py": "ad41b3b01b3ba1b76b0b3fcfc9ebd315888a8d42c9e91d21733ec81a82aa9f53",
+      "BENCHMARK_PROTOCOL.md": "7f08a5874fa51fa1d66df1f460a24f2b4d1646b6a4aad14bde3dba5ecaa81039",
+      "BENCHMARK_SOURCES.json": "6e7ce79e328abcf2653266b44564780060ab30e0d2f46c5594dc8af1cacfe954",
+      "l4_controller.py": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+      "RECOVERY_PROTOCOL.md": "6c610b908113eee4cc99d20d3ebe120a88a681eec87533b53f4e6c3c37a79877",
+      "INFERENCE_PROTOCOL.md": "baabe05b1ad27bec238a7f261584fdc0d9a7cf9bef462e504c20f0c29e34def5"
+    },
+    "restore_worker_sha256": "263564c2083a5f0f09d279fce2435f98c39db13da9f96b13c1d03e7e199e313d"
+  },
+  "dataset_splits_and_hashes_match_original": true,
+  "lost_reservations": [
+    {
+      "reservation": {
+        "id": "attention8-s28485",
+        "variant": "attention8",
+        "seed": 202610321,
+        "start": 25772,
+        "end": 28485,
+        "reserved_exposures": 22224896,
+        "charged_lost_exposures": 0,
+        "cumulative_upper_bound": 233349120,
+        "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+        "digest": "41bd7735a9adef636f9203d55a78d0b01790dba45da515b760df4d437fc4b654"
+      },
+      "verified_step_at_loss": 25772,
+      "charged_exposures": 22224896,
+      "reason": "Runtime missing; reserved updates beyond the latest verified optimizer state are conservatively spent."
+    }
+  ],
+  "conservative_charges": {
+    "transformer": 0,
+    "attention8": 22224896,
+    "conv7": 0,
+    "cpw_local": 0
+  },
+  "charges_exported_by_restored_controller": true,
+  "all_restored_checkpoint_hashes_verified_remotely": true,
+  "controller_continuation_observed": true,
+  "status_snapshot": {
+    "utc": 1792572892.030987,
+    "phase": "training",
+    "current": "transformer",
+    "stage": 31197,
+    "progress": {
+      "step": 28672,
+      "tokens": 234881024,
+      "loss": 4.195744514465332,
+      "lr": 0.00029104996240385934,
+      "train_seconds": 7913.584020124302,
+      "grad_norm": 1.1785154342651367
+    },
+    "complete": false
+  },
+  "common_committed_final_ceiling_without_further_losses": 1977769984,
+  "scientific_gate_thresholds_and_fixed_learning_schedule_unchanged": true,
+  "transport_attempts": "First restore runtime disappeared after direct uploads, before reassembly/release: zero training updates. Exact checkpoint files then cached in an unpublished GitHub draft release, downloaded and reverified on the replacement before controller release.",
+  "prior_failed_attempts": [
+    {
+      "status": "RUNTIME_DISAPPEARED_BEFORE_RESTORE_RELEASE",
+      "observed_utc": "2026-10-21T08:21:00Z",
+      "reason_for_runtime_loss": "unknown",
+      "restore_plan": "../20261021T074114Z.json",
+      "scientific_sources_verified": true,
+      "dataset_reproduction_verified": true,
+      "all_local_optimizer_states_verified": true,
+      "all_transfer_parts_uploaded": true,
+      "remote_reassembly_started": false,
+      "restore_complete_marker_written": false,
+      "training_controller_released": false,
+      "training_exposures_this_restore_attempt": 0,
+      "new_lost_training_exposure_charge": 0,
+      "prior_parent_conservative_charge_still_applies": 22224896,
+      "assignment_missing_confirmed_by_watcher_checks": 3,
+      "failure_is_not_an_architecture_outcome": true,
+      "next_transport": "Verified optimizer files cached as unpublished GitHub draft-release assets before allocating another runtime. No sources, gates, batch, seed or learning schedule change."
+    }
+  ],
+  "unpublished_checkpoint_cache": {
+    "release_id": 419316092,
+    "tag": "research-checkpoint-cache-20261021",
+    "draft": true,
+    "url": "https://github.com/vinceackermann2-sys/tam-research/releases/tag/untagged-c5ea0b895a56ef22635a",
+    "assets": [
+      {
+        "variant": "transformer",
+        "step": 28485,
+        "asset_id": 661842000,
+        "name": "transformer-s28485-962291b954dc-attempt1.pt",
+        "bytes": 1198267947,
+        "sha256": "962291b954dc288ed5167f41bd7041a98ae902dcb34b340b0088224dbf40c58f"
+      },
+      {
+        "variant": "attention8",
+        "step": 25772,
+        "asset_id": 661848172,
+        "name": "attention8-s25772-2bfcf12663bc-attempt1.pt",
+        "bytes": 1194859243,
+        "sha256": "2bfcf12663bca8eca6bf44671f8967c1c1c758ae744a2918ebed44f8b01c37e0"
+      },
+      {
+        "variant": "conv7",
+        "step": 25772,
+        "asset_id": 661854073,
+        "name": "conv7-s25772-a083d57b1120-attempt1.pt",
+        "bytes": 1195581163,
+        "sha256": "a083d57b11204ae24856875a39adb397b2a886eb606e0c8572305457425439ad"
+      },
+      {
+        "variant": "cpw_local",
+        "step": 12207,
+        "asset_id": 661859112,
+        "name": "cpw_local-s12207-aaac9b7e8fbe-attempt1.pt",
+        "bytes": 1196228907,
+        "sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41"
+      }
+    ],
+    "utc": 1792571762.2809832,
+    "purpose": "Private draft-only cache for exact verified optimizer/RNG restoration; never publish automatically."
+  },
+  "cache_download_verification": {
+    "complete": true,
+    "verified": [
+      {
+        "variant": "transformer",
+        "step": 28485,
+        "sha256": "962291b954dc288ed5167f41bd7041a98ae902dcb34b340b0088224dbf40c58f",
+        "asset_id": 661842000
+      },
+      {
+        "variant": "attention8",
+        "step": 25772,
+        "sha256": "2bfcf12663bca8eca6bf44671f8967c1c1c758ae744a2918ebed44f8b01c37e0",
+        "asset_id": 661848172
+      },
+      {
+        "variant": "conv7",
+        "step": 25772,
+        "sha256": "a083d57b11204ae24856875a39adb397b2a886eb606e0c8572305457425439ad",
+        "asset_id": 661854073
+      },
+      {
+        "variant": "cpw_local",
+        "step": 12207,
+        "sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+        "asset_id": 661859112
+      }
+    ],
+    "seconds": 289.68114835999995,
+    "release_id": 419316092,
+    "source_sha256": "e833d1418dcdd0f93b78034bb64e592d0a980f0d1b196d6e7fda17e0e1f64b39"
+  },
+  "charge_persistence": "Merge unique lost-reservation digests from immutable pre-allocation archives, including when a local evidence snapshot lags a later ACK.",
+  "scope": "Infrastructure recovery is not an architecture failure or a new independent experimental seed.",
+  "terminal_inference_and_task_benchmarks_pending": true
+}

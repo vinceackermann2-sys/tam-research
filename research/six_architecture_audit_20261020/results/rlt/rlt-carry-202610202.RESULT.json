@@ -1,0 +1,57 @@
+{
+  "attempt": "rlt-carry-202610202",
+  "parameters": 27712,
+  "recipe": {
+    "easy_updates": 2100,
+    "long_updates": 1200,
+    "batch": 8,
+    "seed": 202610202,
+    "gate_bias": 2
+  },
+  "torch": "2.10.0+cpu",
+  "device": "cpu",
+  "source_sha": "6dd09e019a65ea307f9027f6aabd4f31b11a5b3c",
+  "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+  "training_token_exposures": 1363200,
+  "total_seconds": 339.1742677000002,
+  "total_input_tokens_per_second_including_eval": 4019.1728259460738,
+  "result": {
+    "by_gap": {
+      "1": {
+        "accuracy": 1.0,
+        "class0": 1.0,
+        "class1": 1.0,
+        "nll": 8.372032607439905e-05
+      },
+      "4": {
+        "accuracy": 1.0,
+        "class0": 1.0,
+        "class1": 1.0,
+        "nll": 8.079249528236687e-05
+      },
+      "16": {
+        "accuracy": 1.0,
+        "class0": 1.0,
+        "class1": 1.0,
+        "nll": 7.790156087139621e-05
+      },
+      "64": {
+        "accuracy": 1.0,
+        "class0": 1.0,
+        "class1": 1.0,
+        "nll": 6.455997936427593e-05
+      },
+      "127": {
+        "accuracy": 1.0,
+        "class0": 1.0,
+        "class1": 1.0,
+        "nll": 6.532502447953448e-05
+      }
+    },
+    "long_retention_pass": true,
+    "caveat": "Fixed synthetic state task. Reset control has inaccessible history; not a general Transformer superiority test."
+  },
+  "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+  "breakthrough_demonstrated": false,
+  "checkpoint_sha256": "1b13bf62f3d685d0acfdd60842f04b750fc0bcf091354c45e4f9dbe16c95105b"
+}

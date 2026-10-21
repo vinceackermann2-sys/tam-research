@@ -1,0 +1,20 @@
+{
+  "seed": 202610261,
+  "steps": 5000,
+  "batch": 32,
+  "tokens_each": 51200000,
+  "lr": 0.001,
+  "weight_decay": 0.01,
+  "input_ids": "original corrected generator, unchanged IDs; vocab4096",
+  "positive_control_gate": "minimum accuracy across all four distances >=.80 AND all_four>=.70 at fixed step5000",
+  "arms_if_valid": [
+    "sequence_only",
+    "afm_last1",
+    "afm_first1",
+    "r1_final"
+  ],
+  "purpose": "ONE-SEED DEVELOPMENT CALIBRATION, capacity/control diagnostic, not matched architecture science",
+  "retry": false,
+  "resume": false,
+  "candidate_checkpoint_selection": false
+}

@@ -1,0 +1,56 @@
+{
+  "seed": 202610313,
+  "arm": "native",
+  "parameters_including_frozen_backbone": 27778,
+  "accounted_training_positions": 3031040,
+  "rows": [
+    {
+      "length": 128,
+      "original_accuracy": 1.0,
+      "state_first": 0,
+      "count": 512,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "length": 256,
+      "original_accuracy": 1.0,
+      "state_first": 512,
+      "count": 512,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "length": 512,
+      "original_accuracy": 1.0,
+      "state_first": 1024,
+      "count": 512,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    },
+    {
+      "length": 1024,
+      "original_accuracy": 0.99609375,
+      "state_first": 1536,
+      "count": 512,
+      "probe_accuracy": 1.0,
+      "class0": 1.0,
+      "class1": 1.0,
+      "erased_carry_probe_accuracy": 0.5
+    }
+  ],
+  "integration_max_logit_delta": 0.0,
+  "gate_passed": true,
+  "source_sha256": "5f5e46953d10d026690a567476fdcac4e4c4abdea082a5e7861e20d2645dd368",
+  "checkpoint_sha256": "855ae42229e9eba5b1cca120ff66530deeb9dcd40b553e3fc9aa51f508b9aed8",
+  "base_checkpoint_sha256": "be41ce39d4f66eccfe878e9d82f05dc7981c3b5723546c918033386cd63df5c7",
+  "seconds": 27.0,
+  "scope": "frozen-state long-context supervised linear probe; not unmodified model extrapolation",
+  "breakthrough_demonstrated": false
+}

@@ -1,0 +1,62 @@
+{
+  "complete": true,
+  "records": [
+    {
+      "variant": "transformer",
+      "step": 28485,
+      "committed_training_exposures": 233349120,
+      "charged_lost_exposures": 0,
+      "cumulative_committed_and_conservative_exposures": 233349120,
+      "actual_parameters_from_frozen_constructor": 99837440,
+      "checkpoint_sha256": "962291b954dc288ed5167f41bd7041a98ae902dcb34b340b0088224dbf40c58f",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 196
+    },
+    {
+      "variant": "attention8",
+      "step": 25772,
+      "committed_training_exposures": 211124224,
+      "charged_lost_exposures": 22224896,
+      "cumulative_committed_and_conservative_exposures": 233349120,
+      "actual_parameters_from_frozen_constructor": 99558912,
+      "checkpoint_sha256": "2bfcf12663bca8eca6bf44671f8967c1c1c758ae744a2918ebed44f8b01c37e0",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 132
+    },
+    {
+      "variant": "conv7",
+      "step": 25772,
+      "committed_training_exposures": 211124224,
+      "charged_lost_exposures": 0,
+      "cumulative_committed_and_conservative_exposures": 211124224,
+      "actual_parameters_from_frozen_constructor": 99616272,
+      "checkpoint_sha256": "a083d57b11204ae24856875a39adb397b2a886eb606e0c8572305457425439ad",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 164
+    },
+    {
+      "variant": "cpw_local",
+      "step": 12207,
+      "committed_training_exposures": 99999744,
+      "charged_lost_exposures": 0,
+      "cumulative_committed_and_conservative_exposures": 99999744,
+      "actual_parameters_from_frozen_constructor": 99674432,
+      "checkpoint_sha256": "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41",
+      "all_model_and_optimizer_tensors_finite": true,
+      "all_optimizer_steps_match_checkpoint": true,
+      "rng_states_present": true,
+      "seed": 202610321,
+      "optimizer_parameter_tensors": 124
+    }
+  ],
+  "restore_plan_sha256": "763af16be1d7c340ac307c90a79d96c9d39ee4e6bd88d63d65ad503df742d653"
+}

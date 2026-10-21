@@ -1,0 +1,12 @@
+{
+  "id": "transformer-s4884",
+  "variant": "transformer",
+  "seed": 202610321,
+  "start": 2442,
+  "end": 4884,
+  "reserved_exposures": 20004864,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 40009728,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "a2e0b923ccd0e20e0c9912750194d37fc89947976ff51c8a1affd1d045303e83"
+}

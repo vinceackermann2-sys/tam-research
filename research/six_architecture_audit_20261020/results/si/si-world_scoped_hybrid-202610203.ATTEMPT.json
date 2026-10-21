@@ -1,0 +1,15 @@
+{
+  "attempt": "si-world_scoped_hybrid-202610203",
+  "parameters": 62366,
+  "recipe": {
+    "updates": 128,
+    "batch": 16,
+    "lr": 0.003,
+    "seed": 202610203,
+    "feedback": "actual fixed logged random actions in source-authored cue environment"
+  },
+  "torch": "2.10.0+cpu",
+  "device": "cpu",
+  "source_sha": "9298c117e736676269107374a402519e45e52f71",
+  "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d"
+}

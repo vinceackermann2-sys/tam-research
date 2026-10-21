@@ -1,0 +1,39 @@
+{
+  "complete": true,
+  "source_sha256": {
+    "phase2_model.py": "2e55d338be151900c5e383e39c01e2328337193d9642d8cabf7a1b1bc8334748",
+    "phase2_aligned_model.py": "c06383f33adcce353bfe56659b4fa234518bac86bbac2e44133e023a6c4efd33",
+    "phase2_aligned_v2.py": "a85ec9f80b24b41761c2422c4834cbf07e9716531a74659dbb260a6575701e82",
+    "train_panel.py": "33d8ef6ef81d72c016bf6d17098a70188d6890e049aa9b131de2260a485657e7",
+    "prepare_corpus.py": "c59324ba85f49d0167bfae2899855a898002e6a61e1cfa9b90a315fb5f15f1f8",
+    "PROTOCOL.md": "7220010f1f9398c81e5c5bd8366a4cd1f7a8149c891c453b6183c96e441a8379",
+    "inference_benchmark.py": "72c0945d423a6207092f3b4c95ec85ed0844703e1d5619d51dca9f3b52e365a6",
+    "language_benchmarks.py": "ad41b3b01b3ba1b76b0b3fcfc9ebd315888a8d42c9e91d21733ec81a82aa9f53",
+    "BENCHMARK_PROTOCOL.md": "7f08a5874fa51fa1d66df1f460a24f2b4d1646b6a4aad14bde3dba5ecaa81039",
+    "BENCHMARK_SOURCES.json": "6e7ce79e328abcf2653266b44564780060ab30e0d2f46c5594dc8af1cacfe954",
+    "l4_controller.py": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+    "RECOVERY_PROTOCOL.md": "6c610b908113eee4cc99d20d3ebe120a88a681eec87533b53f4e6c3c37a79877",
+    "INFERENCE_PROTOCOL.md": "baabe05b1ad27bec238a7f261584fdc0d9a7cf9bef462e504c20f0c29e34def5"
+  },
+  "result_sha256": {
+    "EVIDENCE.json": "f53e944e06d85e916fc6b4e7076ebcdb9c56463430250c84178e512a1c4302e2",
+    "INFERENCE.json": "50cabdd7d3a2e3b07e2d2474e1a28cca97df4683393ec048d56e29ea3f0cbcb2",
+    "BENCHMARKS.json": "ed39137296ca2fbe8feb4f852f874abe6b75b4f21d784569e43c81d321e05ccf"
+  },
+  "claims": {
+    "L4_CLAIM.json": {
+      "seed": 202610321,
+      "protocol_sha256": "6c610b908113eee4cc99d20d3ebe120a88a681eec87533b53f4e6c3c37a79877",
+      "created_utc": 1792572792.8728006
+    },
+    "INFERENCE_CLAIM.json": {
+      "protocol_sha256": "baabe05b1ad27bec238a7f261584fdc0d9a7cf9bef462e504c20f0c29e34def5"
+    },
+    "BENCHMARK_CLAIM.json": {
+      "protocol_sha256": "7f08a5874fa51fa1d66df1f460a24f2b4d1646b6a4aad14bde3dba5ecaa81039"
+    }
+  },
+  "utc": "2026-10-21T12:12:35.672442+00:00",
+  "runtime_released": true,
+  "released_utc": "2026-10-21T12:12:39.688842+00:00"
+}

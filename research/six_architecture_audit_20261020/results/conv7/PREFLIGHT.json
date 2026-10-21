@@ -1,0 +1,45 @@
+{
+  "parameter_counts": [
+    {
+      "width": 128,
+      "variant": "transformer",
+      "parameters": 11295104,
+      "ff_hidden": 512
+    },
+    {
+      "width": 128,
+      "variant": "attention8",
+      "parameters": 11293056,
+      "ff_hidden": 683
+    },
+    {
+      "width": 128,
+      "variant": "conv7",
+      "parameters": 11295120,
+      "ff_hidden": 681
+    },
+    {
+      "width": 504,
+      "variant": "transformer",
+      "parameters": 99051624,
+      "ff_hidden": 2016
+    },
+    {
+      "width": 504,
+      "variant": "attention8",
+      "parameters": 99059688,
+      "ff_hidden": 2689
+    },
+    {
+      "width": 504,
+      "variant": "conv7",
+      "parameters": 99043576,
+      "ff_hidden": 2686
+    }
+  ],
+  "future_leakage_max": 0.0,
+  "conv_weight_gradient_steps": [
+    0.0,
+    0.011753293685615063
+  ]
+}

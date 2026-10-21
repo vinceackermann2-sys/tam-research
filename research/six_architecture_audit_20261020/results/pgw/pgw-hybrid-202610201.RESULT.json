@@ -1,0 +1,54 @@
+{
+  "attempt": "pgw-hybrid-202610201",
+  "parameters": 20354,
+  "recipe": {
+    "updates": 256,
+    "batch": 12,
+    "lr": 0.003,
+    "aux_lambda": 0.01,
+    "seed": 202610201
+  },
+  "torch": "2.10.0+cpu",
+  "device": "cpu",
+  "source_sha": "4362402592ac0cad5ed3d12f1d7defe68739a2b5",
+  "script_sha256": "21f3107ae49e2f4eebeddcb4a9596f5b58821baa7faea4603fb64a45f5471a1d",
+  "training_token_exposures": 278400,
+  "total_seconds": 96.35304099996574,
+  "total_input_tokens_per_second_including_eval": 2889.3742959300994,
+  "result": {
+    "by_delay": [
+      {
+        "delay": 1,
+        "examples": 60,
+        "accuracy": 0.5,
+        "present_accuracy": 0.0,
+        "missing_accuracy": 1.0,
+        "nll": 2.456583261489868
+      },
+      {
+        "delay": 2,
+        "examples": 60,
+        "accuracy": 0.5,
+        "present_accuracy": 0.0,
+        "missing_accuracy": 1.0,
+        "nll": 2.4248335361480713
+      },
+      {
+        "delay": 4,
+        "examples": 60,
+        "accuracy": 0.5,
+        "present_accuracy": 0.0,
+        "missing_accuracy": 1.0,
+        "nll": 2.4095091819763184
+      }
+    ],
+    "train_seconds": 68.41845719999401,
+    "final_loss": 2.561086654663086,
+    "objective_parity": false,
+    "active_parameter_parity": false,
+    "caveat": "Native hidden-target auxiliary losses have differing accessible histories. Full-global must learn before efficacy can be judged."
+  },
+  "classification": "EXPLORATORY_DEVELOPMENT_ONLY",
+  "breakthrough_demonstrated": false,
+  "checkpoint_sha256": "f2302179b85e668dad7b3910e25ec9c83ead797097abc790be22a225f53e61d8"
+}

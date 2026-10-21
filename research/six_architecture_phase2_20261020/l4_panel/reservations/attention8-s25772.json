@@ -1,0 +1,12 @@
+{
+  "id": "attention8-s25772",
+  "variant": "attention8",
+  "seed": 202610321,
+  "start": 23059,
+  "end": 25772,
+  "reserved_exposures": 22224896,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 211124224,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "f7cc8ac234c9e4495bfc74a1dc75bcfa617425b137515eed4ff6404b670ac0ae"
+}

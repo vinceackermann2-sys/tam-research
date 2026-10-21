@@ -1,0 +1,23 @@
+{
+  "classification": "INFRASTRUCTURE_INTERRUPTION_OUTCOMES_UNVERIFIED",
+  "original_hardware": "NVIDIA A100-SXM4-40GB",
+  "original_worker_launch_acknowledged": true,
+  "original_worker_pid": 6045,
+  "agent_websocket_disconnected_local": "2026-10-20 09:18:07 Europe/Stockholm",
+  "original_initialization_seeds": [202610221, 202610211],
+  "original_protocol": "EXTENSION_PROTOCOL.md",
+  "original_final_outcomes": "unavailable; never infer either success or architecture failure",
+  "original_actual_token_counts": "unknown; scripts imposed the declared per-model hard ceilings",
+  "original_checkpoints": "not retrieved",
+  "current_assignment_verified_local": "2026-10-20 09:55 Europe/Stockholm",
+  "current_hardware": "NVIDIA A100-SXM4-80GB",
+  "current_uptime_seconds_at_identity_check": 1348.15,
+  "original_research_root_present_on_current_assignment": false,
+  "runtime_replacement_cause": "unknown",
+  "first_batch_terminal_metrics_preserved_locally": true,
+  "first_batch_remote_checkpoint_binaries_retrieved": false,
+  "new_independent_recovery_protocol": "RECOVERY_PROTOCOL.md",
+  "new_initialization_seeds": [202610261, 202610262],
+  "silent_retry_or_resume": false,
+  "new_runtime_allocated_by_recovery": false
+}

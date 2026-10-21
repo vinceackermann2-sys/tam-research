@@ -1,0 +1,81 @@
+{
+  "language_complete": true,
+  "language_training_complete": true,
+  "interrupted_a100_complete": false,
+  "language_lineages": 6,
+  "language_segments_complete": 49,
+  "interrupted_a100_segments_complete": 2,
+  "language_max_parameters": 99837440,
+  "language_max_exposures": 299999232,
+  "language_max_recorded_charged_exposures": 322224128,
+  "l4_terminal_committed_exposures": {
+    "attention8": 299999232,
+    "conv7": 299999232,
+    "cpw_local": 99999744,
+    "transformer": 299999232
+  },
+  "si_lineages": 3,
+  "rlt_lineages": 6,
+  "si_native_memory_revision_diagnostics": 3,
+  "pgw_diagnostics": 3,
+  "chm_diagnostics": 3,
+  "all_recorded_caps_passed": true,
+  "breakthrough_demonstrated": false,
+  "rlt_frozen_state_probes": 6,
+  "rlt_probe_ood_gates_passed": 0,
+  "gates": [
+    {
+      "stage_tokens": 99999744,
+      "variant": "conv7",
+      "delta_nll_to_transformer": -0.03643520665355027,
+      "speed_ratio": 0.964036702406553,
+      "parent_benefit": 0.0940560451708734,
+      "passed": true
+    },
+    {
+      "stage_tokens": 99999744,
+      "variant": "cpw_local",
+      "delta_nll_to_transformer": 0.5130479305516928,
+      "speed_ratio": 1.0624373063887678,
+      "parent_benefit": null,
+      "passed": false
+    },
+    {
+      "stage_tokens": 299999232,
+      "variant": "conv7",
+      "delta_nll_to_transformer": -0.005562045844271779,
+      "speed_ratio": 0.9665534864857682,
+      "parent_benefit": 0.06647818139754236,
+      "passed": false
+    }
+  ],
+  "interrupted_a100_gates": [],
+  "l4_scientific_comparisons": 5,
+  "l4_segment_records": 47,
+  "l4_gates": [
+    {
+      "stage_tokens": 99999744,
+      "variant": "conv7",
+      "delta_nll_to_transformer": -0.03643520665355027,
+      "speed_ratio": 0.964036702406553,
+      "parent_benefit": 0.0940560451708734,
+      "passed": true
+    },
+    {
+      "stage_tokens": 99999744,
+      "variant": "cpw_local",
+      "delta_nll_to_transformer": 0.5130479305516928,
+      "speed_ratio": 1.0624373063887678,
+      "parent_benefit": null,
+      "passed": false
+    },
+    {
+      "stage_tokens": 299999232,
+      "variant": "conv7",
+      "delta_nll_to_transformer": -0.005562045844271779,
+      "speed_ratio": 0.9665534864857682,
+      "parent_benefit": 0.06647818139754236,
+      "passed": false
+    }
+  ]
+}

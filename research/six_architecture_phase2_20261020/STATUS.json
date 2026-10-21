@@ -1,0 +1,15 @@
+{
+  "utc": 1792488537.8916147,
+  "phase": "training",
+  "current": "attention8",
+  "stage": 12207,
+  "progress": {
+    "step": 12207,
+    "tokens": 99999744,
+    "loss": 4.505378723144531,
+    "lr": 0.0002984004230006365,
+    "train_seconds": 881.863873232003,
+    "grad_norm": 1.1453691720962524
+  },
+  "complete": false
+}
