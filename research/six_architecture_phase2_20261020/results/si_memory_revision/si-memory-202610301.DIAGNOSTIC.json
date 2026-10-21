@@ -1,0 +1,265 @@
+{
+  "seed": 202610301,
+  "parameters": 62366,
+  "optimizer_updates": 0,
+  "training_exposures": 0,
+  "additional_online_feedback_raw_positions": 616,
+  "prior_accounted_training_positions": 736000,
+  "total_accounted_training_and_feedback_positions": 736616,
+  "feedback_events": 56,
+  "public_feedback_digest": "a7f4181728760330f33150d29d82073ba48adb3386d090a2a2ed29a98ff9c117",
+  "stage_associations": {
+    "after_A": {
+      "A": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "after_B": {
+      "A": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "B": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "after_C": {
+      "A": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "B": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "C": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "after_A_revision": {
+      "A": {
+        "associations": 16,
+        "native_latest_association_accuracy": 0.5,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 1.6817119121551514,
+        "per_context_delta_error": [
+          1.664839744567871,
+          1.5266166925430298,
+          1.6291792392730713,
+          1.130494475364685,
+          1.6817119121551514,
+          1.5012762546539307,
+          1.6302363872528076,
+          1.6530351638793945,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "B": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "C": {
+        "associations": 16,
+        "native_latest_association_accuracy": 1.0,
+        "latest_record_control_accuracy": 1.0,
+        "maximum_delta_error": 0.0,
+        "per_context_delta_error": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "world_A_logits_max_change_after_other_worlds": {
+    "after_B": 0.0,
+    "after_C": 0.0
+  },
+  "native_export_roundtrip_max_change": {
+    "logits": 0.0,
+    "state": 0.0,
+    "retrieval": 0.0
+  },
+  "native_export_replay_before": 56,
+  "native_export_replay_after": 0,
+  "explicit_full_restore_replay_after": 56,
+  "external_state": {
+    "memory_records": 56,
+    "memory_float_scalars": 2688,
+    "world_fast_float_scalars": 150,
+    "replay_latent_float_scalars": 2688,
+    "native_json_bytes": 64406,
+    "explicit_full_checkpoint_bytes": 369335
+  },
+  "neural_parameters_unchanged": true,
+  "seconds": 1.1560000000026776,
+  "source_sha256": "d3012c1931fe341cd7a52624c3f1478f1b3385e4c76fd4ac47ee0cdd748fffd8",
+  "protocol_sha256": "571b92a5f4a1971d3b60b8dcebd62fa71517e67b9384440fe8fa3b77906726bb",
+  "input_checkpoint_sha256": "e459232fa37eb949f56354810501e9def772ee1b8d4d62e46da7d2b8a2a64cf2",
+  "checkpoint_sha256": "c21bbeeec8faf156134af1c239a7c404adc65e716ed463b171b6ce4accb81e21",
+  "scope": "frozen trained-representation memory association and persistence, not action utility",
+  "breakthrough_demonstrated": false
+}

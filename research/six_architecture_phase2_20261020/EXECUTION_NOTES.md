@@ -78,3 +78,27 @@ task supports a transition/planning-coordinate repair and appropriate search
 skipping, not an isolated causal benefit from training the value head or useful
 multistep planning. These are post-hoc consumed-domain diagnostics, not new
 held-out confirmations.
+
+The21 October SI memory follow-up is a prospective frozen-representation
+component fixture. It tests exact associations for previously observed contexts,
+cross-world interference, within-world reward changes, and restart persistence.
+There is no optimizer, new policy training, held-out task acquisition, or test
+of whether replay improves decisions. The dictionary comparison is a latest
+executed-record storage control, with identical factual input, rather than an
+independently trained neural competitor. All56 feedback events remain below
+memory capacity128; failures therefore do not result from eviction. Native
+weights are bitwise unchanged. Its616 additional online positions are counted
+alongside736,000 prior positions, not presented as a new full task benchmark.
+
+The first L4 assignment disappeared before the21 October continuation. Its
+last durable states were Transformer233,349,120 inputs, parent/Conv7211,124,224,
+and terminal CPW99,999,744. The parent's unfinished22,224,896-position reservation
+is conservatively spent, even though its exact completed updates are unknown.
+This is an infrastructure interruption, not an architecture failure. The
+pre-allocation resume archive preserves that reservation and its unique digest;
+subsequent recovery planning merges archived charges even if an evidence export
+lags a newer reservation ACK. The same-seed full optimizer/RNG states, pinned
+dataset and frozen sources are restored on another L4. Common committed final
+ceiling becomes1,977,769,984 positions if there are no further losses, with the
+parent additionally charged22,224,896; no arm may exceed2B charged exposures.
+Scientific100M/300M/1B gates and the fixed2B-horizon learning schedule are unchanged.

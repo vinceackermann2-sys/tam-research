@@ -1,0 +1,50 @@
+{
+  "worker.log": {
+    "bytes": 276,
+    "error_types": [],
+    "known_failures": {
+      "could not find": false,
+      "no matching distribution": false,
+      "traceback": false,
+      "CUDA": false,
+      "timed out": false
+    },
+    "cache_markers": []
+  },
+  "work/cache_download.private.log": {
+    "bytes": 276,
+    "error_types": [
+      "ChunkedEncodingError"
+    ],
+    "known_failures": {
+      "could not find": false,
+      "no matching distribution": false,
+      "traceback": false,
+      "CUDA": false,
+      "timed out": false
+    },
+    "cache_markers": [
+      "CACHE_CHECKPOINT_VERIFIED transformer 28485",
+      "CACHE_CHECKPOINT_VERIFIED attention8 25772",
+      "CACHE_DOWNLOAD_RETRY conv7 1 ChunkedEncodingError",
+      "CACHE_CHECKPOINT_VERIFIED cpw_local 12207",
+      "CACHE_CHECKPOINT_VERIFIED conv7 25772",
+      "ALL_CACHED_OPTIMIZER_STATES_VERIFIED_CONTINUATION_RELEASED"
+    ]
+  },
+  "temporary_files": [],
+  "files_present": {
+    "ENVIRONMENT.json": true,
+    "DATA_PROGRESS.json": true,
+    "data/DATA.json": false,
+    "RESTORE_COMPLETE.json": true,
+    "REMOTE_SOURCE_AUDIT.json": true,
+    "CACHE_RESTORE_ERROR.json": false
+  },
+  "processes": [
+    {
+      "pid": 5037,
+      "script": "restore_worker.py"
+    }
+  ]
+}

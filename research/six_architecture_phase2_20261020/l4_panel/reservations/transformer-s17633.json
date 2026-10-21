@@ -1,0 +1,12 @@
+{
+  "id": "transformer-s17633",
+  "variant": "transformer",
+  "seed": 202610321,
+  "start": 14920,
+  "end": 17633,
+  "reserved_exposures": 22224896,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 144449536,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "5b66340e116090b8c227727e28f2cc0ff890a539e03efa8b6cddfaa3d7565783"
+}

@@ -1,0 +1,54 @@
+{
+  "dataset": "HuggingFaceFW/fineweb-edu",
+  "config": "sample-10BT",
+  "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+  "sources": [
+    {
+      "path": "sample/10BT/013_00000.parquet",
+      "bytes": 540632672,
+      "sha256": "b393f51fefab26cd6f4c8f65707c1924f6666c4961a0ebebe04bb57f7ec832de"
+    },
+    {
+      "path": "sample/10BT/000_00000.parquet",
+      "bytes": 2152819114,
+      "sha256": "b1ba7b2ce4cb5ea6ef42dca40263eabb85f37700d01693a68e9b30a31d78e871"
+    },
+    {
+      "path": "sample/10BT/001_00000.parquet",
+      "bytes": 2152222432,
+      "sha256": "3fcf2dc69cd52503986276d3d2d26a8c356d0f2ea28a0de4fdbda8cf87755693"
+    },
+    {
+      "path": "sample/10BT/002_00000.parquet",
+      "bytes": 2151796315,
+      "sha256": "547ae182d132c9f06b6ce63149567208ea9f57630bfd9b1a2938e504f0c9ebd7"
+    }
+  ],
+  "tokenizer": "gpt2 tiktoken",
+  "eos": 50256,
+  "split_rule": "SHA256(document) first32bits mod20: validation0/test1 from shard013, train2..19 from shards000 onward",
+  "deduplication": "exact document SHA only; retained shared set across all processed source shards",
+  "train_order": "source order, one pass; no random-window replacement",
+  "splits": {
+    "train": {
+      "tokens": 2000001024,
+      "documents": 1933646,
+      "document_order_digest": "538b009ab8aa8c49e68c300d1c6c625655c82b70a77b9cb428bc234502858da4",
+      "token_sha256": "d3f26b0c875bf9a6af70ecac3d21b2e254e487b79d3b83af6b1fe59769abac9b"
+    },
+    "validation": {
+      "tokens": 1048576,
+      "documents": 1015,
+      "document_order_digest": "0f3faf2194c4c6759e2a5496a1f0146090f6b2937c248e9ec4057b2390de69c5",
+      "token_sha256": "3c4fa4c3a657769e3ef40ca08ef5ee279de78c0a074ee5bba090f522e92ec1ba"
+    },
+    "test": {
+      "tokens": 2097152,
+      "documents": 2199,
+      "document_order_digest": "d796edb195799bd48534cae7640dfc16df92b4c8abcadfc6bf81599d02ee105d",
+      "token_sha256": "bed2f99f332e6f7e2724c7cb16c048d44ee045cdd4d8c28605f2cefc1c8ef15a"
+    }
+  },
+  "preparation_seconds": 600.6691597069998,
+  "source_sha256": "c59324ba85f49d0167bfae2899855a898002e6a61e1cfa9b90a315fb5f15f1f8"
+}

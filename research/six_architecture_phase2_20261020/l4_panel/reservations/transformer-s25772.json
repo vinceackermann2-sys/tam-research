@@ -1,0 +1,12 @@
+{
+  "id": "transformer-s25772",
+  "variant": "transformer",
+  "seed": 202610321,
+  "start": 23059,
+  "end": 25772,
+  "reserved_exposures": 22224896,
+  "charged_lost_exposures": 0,
+  "cumulative_upper_bound": 211124224,
+  "controller_source_sha256": "9cb5da72f3c0243f977331cca992fe2df2af4cd756ec0c9b720180e82abf7df9",
+  "digest": "4cc8b0ab7a7b2d5167ca423e8489c86609dd0c4a7e5d61e92e0d9473af50a518"
+}

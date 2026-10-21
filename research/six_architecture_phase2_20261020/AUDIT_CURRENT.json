@@ -1,8 +1,8 @@
 {
-  "utc": "2026-10-20T15:26:48.761799+00:00",
+  "utc": "2026-10-21T08:56:13.244366+00:00",
   "all_checked_caps_passed": true,
-  "immutable_source_checks": 58,
-  "checkpoint_sets_checked": 23,
+  "immutable_source_checks": 81,
+  "checkpoint_sets_checked": 29,
   "checkpoint_sets": [
     "results\\si_repair\\si-202610301-repair.pt",
     "results\\si_repair\\si-202610301-policy.pt",
@@ -10,6 +10,9 @@
     "results\\si_repair\\si-202610302-policy.pt",
     "results\\si_repair\\si-202610303-repair.pt",
     "results\\si_repair\\si-202610303-policy.pt",
+    "results\\si_memory_revision\\si-memory-202610301.pt",
+    "results\\si_memory_revision\\si-memory-202610302.pt",
+    "results\\si_memory_revision\\si-memory-202610303.pt",
     "results\\rlt_gate\\rlt-native-202610311.pt",
     "results\\rlt_gate\\rlt-native-202610312.pt",
     "results\\rlt_gate\\rlt-native-202610313.pt",
@@ -26,10 +29,17 @@
     "l4_panel:transformer-s12207 full optimizer chunks",
     "l4_panel:attention8-s12207 full optimizer chunks",
     "l4_panel:conv7-s12207 full optimizer chunks",
-    "l4_panel:cpw_local-s12207 full optimizer chunks"
+    "l4_panel:cpw_local-s12207 full optimizer chunks",
+    "l4_panel:attention8-s25772 full optimizer chunks",
+    "l4_panel:conv7-s25772 full optimizer chunks",
+    "l4_panel:transformer-s28485 full optimizer chunks"
   ],
   "source_files": [
     "chm_address_diagnostic.py",
+    "native_si/si_original_crossmodal_learning_v1.py",
+    "native_si/si_original_hybrid_v0.py",
+    "native_si/si_original_integrated_v1.py",
+    "native_si/si_original_world_scoped_v2.py",
     "pgw_workspace_diagnostic.py",
     "rlt_gate_repair.py",
     "rlt_probe_ood.py",
@@ -37,10 +47,13 @@
     "rlt_state_diagnostic_v2.py",
     "si_component_diagnostic.py",
     "si_head_repair.py",
+    "si_memory_revision.py",
     "train_panel.py"
   ],
   "largest_recorded_language_parameters": 99837440,
-  "largest_recorded_language_exposures": 99999744,
+  "largest_recorded_language_exposures": 233349120,
+  "largest_committed_plus_lost_exposure_bound": 233349120,
+  "largest_reserved_cumulative_exposure_bound": 255565824,
   "reservation_checks": [
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -50,9 +63,45 @@
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s14920",
+      "digest": "1013f2e796237f3a838cac6e6e7288e645b29f7a90c80b3919a7c6f85d5c055a",
+      "cumulative_upper_bound": 122224640
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s17633",
+      "digest": "a34d285e2bec3ad4bb96247a483a2bdb6733df9443d33a69784b1bdecf1e8697",
+      "cumulative_upper_bound": 144449536
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s20346",
+      "digest": "df89c9aa9d30439c5f852fe1d35da978d960baf9f996d29469bd20ed5f186593",
+      "cumulative_upper_bound": 166674432
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s23059",
+      "digest": "2982d3433cd292b2803b96e3a826cacbd72d4f7f406bb5fc0f0a4c069f4338ee",
+      "cumulative_upper_bound": 188899328
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
       "reservation": "attention8-s2442",
       "digest": "cfb51e188d9fcb74544ff276c1ed61a456900e1891d989c390fdb5734a3e7d5e",
       "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s25772",
+      "digest": "f7cc8ac234c9e4495bfc74a1dc75bcfa617425b137515eed4ff6404b670ac0ae",
+      "cumulative_upper_bound": 211124224
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "attention8-s28485",
+      "digest": "41bd7735a9adef636f9203d55a78d0b01790dba45da515b760df4d437fc4b654",
+      "cumulative_upper_bound": 233349120
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -80,9 +129,39 @@
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s14920",
+      "digest": "162a2d27c2337683dede365d05247479f4ef6a5b9963660c0a503de0f05c7d16",
+      "cumulative_upper_bound": 122224640
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s17633",
+      "digest": "60e1cdb0830f69d17010bb4e2afe0f6db37002a9c9065b90d34edf7f67944e1e",
+      "cumulative_upper_bound": 144449536
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s20346",
+      "digest": "72d05eb56afbdcc67479644c916d09bbc3758b95d575b05fe433f6416c505789",
+      "cumulative_upper_bound": 166674432
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s23059",
+      "digest": "6441d9cf56a2b0d7e07a4c22a8424a52afb4df605b9051baa22ad6a10694be04",
+      "cumulative_upper_bound": 188899328
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
       "reservation": "conv7-s2442",
       "digest": "a4125f55663601648100197c05f8a899414f4b394f5ca0659f9a4d1526f4dc4f",
       "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "conv7-s25772",
+      "digest": "c5287f8bd2d0cc46cf5780e4a4ba9a30a615780bc3f1d11e3dfce2ae560447ab",
+      "cumulative_upper_bound": 211124224
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -146,9 +225,45 @@
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s17633",
+      "digest": "5b66340e116090b8c227727e28f2cc0ff890a539e03efa8b6cddfaa3d7565783",
+      "cumulative_upper_bound": 144449536
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s20346",
+      "digest": "7605ddfd1aefe938ae07ea786978fdf5f64b1ec7176dd4bb1a9a4b9df5398a6d",
+      "cumulative_upper_bound": 166674432
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s23059",
+      "digest": "20190b9b82bcc07bb682e0a413dc56df0eaf14a408cd346a4c26bb30b4ef9e03",
+      "cumulative_upper_bound": 188899328
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
       "reservation": "transformer-s2442",
       "digest": "07bb9a30659bf8c4ecf4ff93b45027cb6ba3803b24872a32a682d610f3a140a7",
       "cumulative_upper_bound": 20004864
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s25772",
+      "digest": "4cc8b0ab7a7b2d5167ca423e8489c86609dd0c4a7e5d61e92e0d9473af50a518",
+      "cumulative_upper_bound": 211124224
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s28485",
+      "digest": "2d83d2abd3ac4c0c94860041f8f6eea364d3dbc7f3b3521529cd7566b0198a28",
+      "cumulative_upper_bound": 233349120
+    },
+    {
+      "trial": "L4_NEW_PAIRED_SEED",
+      "reservation": "transformer-s31197",
+      "digest": "6b2a91fb3c0d79131a41f84079934776c6aedfee95be85d03a501e301f1454e9",
+      "cumulative_upper_bound": 255565824
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
@@ -170,9 +285,9 @@
     },
     {
       "trial": "L4_NEW_PAIRED_SEED",
-      "reservation": "transformer-s14920",
-      "digest": "7f5ec3cecb866db7a9e887fca3ca771ac6f3164016eadd193ec70a6cba9aa506",
-      "cumulative_upper_bound": 122224640
+      "reservation": "transformer-s31197",
+      "digest": "6b2a91fb3c0d79131a41f84079934776c6aedfee95be85d03a501e301f1454e9",
+      "cumulative_upper_bound": 255565824
     }
   ],
   "charged_lost_reservation_ledgers": [
@@ -180,11 +295,25 @@
       "trial": "L4_NEW_PAIRED_SEED",
       "charges": {
         "transformer": 0,
-        "attention8": 0,
+        "attention8": 22224896,
         "conv7": 0,
         "cpw_local": 0
       },
-      "lost_reservations": 0
+      "lost_reservations": 1
+    }
+  ],
+  "cached_runtime_restoration_checks": [
+    {
+      "archive": "l4_panel\\recovery_archive\\20261021T083705Z",
+      "full_checkpoint_hashes": [
+        "2bfcf12663bca8eca6bf44671f8967c1c1c758ae744a2918ebed44f8b01c37e0",
+        "962291b954dc288ed5167f41bd7041a98ae902dcb34b340b0088224dbf40c58f",
+        "a083d57b11204ae24856875a39adb397b2a886eb606e0c8572305457425439ad",
+        "aaac9b7e8fbe97274278660fe7070f55c8f403e471caa13a79a550522cfcfd41"
+      ],
+      "download_seconds": 289.68114835999995,
+      "scientific_sources_verified": 13,
+      "cache_remains_draft": true
     }
   ],
   "language_confirmation_complete": false,

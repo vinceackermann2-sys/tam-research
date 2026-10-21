@@ -45,6 +45,7 @@ Tiny CPU tracks use independent package processes to prevent module collisions:
 
 ```text
 python si_head_repair.py --repo <SI-V2-checkout>
+python si_memory_revision.py --repo <SI-V2-checkout>
 python rlt_gate_repair.py --repo <bounded-RLT-checkout>
 python chm_address_diagnostic.py --repo <main-checkout>
 python pgw_workspace_diagnostic.py --repo <main-checkout>
@@ -55,6 +56,13 @@ SI source commit9298c117e736676269107374a402519e45e52f71; RLT commit
 6dd09e019a65ea307f9027f6aabd4f31b11a5b3c; main commit
 4362402592ac0cad5ed3d12f1d7defe68739a2b5. Original experiment protocol files
 specify the exact budgets and interpretation restrictions.
+
+The SI memory-revision diagnostic consumes the existing three repair checkpoints
+in results/si_repair, writes a new exclusive preregistration/result directory,
+and performs no optimizer updates. SI_MEMORY_REVISION_PROTOCOL.md defines the
+same-feedback latest-record control,56 actual feedback events per checkpoint,
+and scope limits. The explicit full diagnostic checkpoint adds replay to native
+weights+fast/memory state; this does not alter the selected architecture's APIs.
 
 Checkpoint chunks and prepared corpus binaries remain local rather than in
 Git. Reassemble chunks in MANIFEST order and verify the complete SHA256 before

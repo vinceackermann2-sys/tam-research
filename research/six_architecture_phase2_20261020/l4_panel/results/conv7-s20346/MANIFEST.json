@@ -1,0 +1,101 @@
+{
+  "variant": "conv7",
+  "step": 20346,
+  "tokens_seen": 166674432,
+  "checkpoint_sha256": "0bc51234243ab471c0e56f440bc565154a756a6c9d74a83399c0ca58e42f7ff0",
+  "chunks": [
+    {
+      "path": "results/conv7-s20346/chunk000.bin",
+      "bytes": 67108864,
+      "sha256": "9b10eb4746bda49a2b4c742c0013e10a6537808ec1ca530c0c4cc8366b163717"
+    },
+    {
+      "path": "results/conv7-s20346/chunk001.bin",
+      "bytes": 67108864,
+      "sha256": "8fadecb0fd3e7c35e48ddaaa32a31879f202e86adff4d7aa8157c4817f653300"
+    },
+    {
+      "path": "results/conv7-s20346/chunk002.bin",
+      "bytes": 67108864,
+      "sha256": "67b55f20e7bd327d6923f767720c8db8acd60fe8ef288b318cb03b7253ffe453"
+    },
+    {
+      "path": "results/conv7-s20346/chunk003.bin",
+      "bytes": 67108864,
+      "sha256": "f6e8c8015f532f97faa1011078e3eb36c3baf125f71ff237d76b5e46b59ca487"
+    },
+    {
+      "path": "results/conv7-s20346/chunk004.bin",
+      "bytes": 67108864,
+      "sha256": "eae3f65fbd39d2e8938ba4ed8992ab0a7fb915791feb64790312a6ed26dd3f43"
+    },
+    {
+      "path": "results/conv7-s20346/chunk005.bin",
+      "bytes": 67108864,
+      "sha256": "a0150bcc751c6a857488e3279e5037246c15f98d1d82bdd06d069e141829fce4"
+    },
+    {
+      "path": "results/conv7-s20346/chunk006.bin",
+      "bytes": 67108864,
+      "sha256": "1a88a3f968141fe36b3d9c91145f5c8b724f81d99366a7bf223818b66708bba2"
+    },
+    {
+      "path": "results/conv7-s20346/chunk007.bin",
+      "bytes": 67108864,
+      "sha256": "ed29239fd632df1a1e2331e2675fbbd210ba88ac20e24f54e58137763b406322"
+    },
+    {
+      "path": "results/conv7-s20346/chunk008.bin",
+      "bytes": 67108864,
+      "sha256": "d0261f8be4d97109e42a93d629dfab01874529c81d0fcc06d2d39f930509ed81"
+    },
+    {
+      "path": "results/conv7-s20346/chunk009.bin",
+      "bytes": 67108864,
+      "sha256": "e0d629707c2bf446dbdcfcf273eb1cfc5a598d687a83aacc3d5e687ce9f78126"
+    },
+    {
+      "path": "results/conv7-s20346/chunk010.bin",
+      "bytes": 67108864,
+      "sha256": "7e8a4c0f7ebb306a67b5425e20ac425b339739e849b6011b6bddf1e1205b3142"
+    },
+    {
+      "path": "results/conv7-s20346/chunk011.bin",
+      "bytes": 67108864,
+      "sha256": "c7b076a4c75b15a3f8cc6730a425837eba1f8da801697d688a170654f80c0acc"
+    },
+    {
+      "path": "results/conv7-s20346/chunk012.bin",
+      "bytes": 67108864,
+      "sha256": "117c0f408b3d27c96e4a862cad74b00a6f4c8ff367e17f52c6f49950d841fecb"
+    },
+    {
+      "path": "results/conv7-s20346/chunk013.bin",
+      "bytes": 67108864,
+      "sha256": "5da339ae8c96faa2c904bad960e59b44fcb59fbf04e1794a68ab3db8f46a64a6"
+    },
+    {
+      "path": "results/conv7-s20346/chunk014.bin",
+      "bytes": 67108864,
+      "sha256": "8ad8fd6d46b80747e891475eb5fad67127185ea3a71a27f778d05e275bdcf601"
+    },
+    {
+      "path": "results/conv7-s20346/chunk015.bin",
+      "bytes": 67108864,
+      "sha256": "88dac9ed19c1c7a8e3c090182d6cde9bca6dc5fb8c1d7614bafc0cd69d8028eb"
+    },
+    {
+      "path": "results/conv7-s20346/chunk016.bin",
+      "bytes": 67108864,
+      "sha256": "0d6ea8112b57b14d173013df7c6cb024ac42cb346cf223ee33b3bbf92f8babfa"
+    },
+    {
+      "path": "results/conv7-s20346/chunk017.bin",
+      "bytes": 54728427,
+      "sha256": "6fb6826cb56a41538de0ab3baefb23129a6547c631a5c12ac86549263163b230"
+    }
+  ],
+  "bytes": 1195579115,
+  "includes_optimizer": true,
+  "source_sha256": "33d8ef6ef81d72c016bf6d17098a70188d6890e049aa9b131de2260a485657e7"
+}

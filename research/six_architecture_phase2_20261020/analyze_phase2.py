@@ -21,6 +21,7 @@ def main():
     l4=analyze_l4(ROOT)
     evidence=load('EVIDENCE.json') if (ROOT/'EVIDENCE.json').exists() else {'results':{},'gates':[],'terminal':{},'complete':False}
     si=records('results/si_repair/*.RESULT.json');rlt=records('results/rlt_gate/*.RESULT.json')
+    si_memory=records('results/si_memory_revision/*.DIAGNOSTIC.json')
     pgw=records('results/pgw_trace/*.DIAGNOSTIC.json');chm=records('results/chm_address/*.DIAGNOSTIC.json')
     probes=records('results/rlt_probe/*.RESULT.json');probe_ood=records('results/rlt_probe_ood/*.DIAGNOSTIC.json')
     comparisons=[];ledger=[]
@@ -47,6 +48,7 @@ def main():
         'language_segments_complete':len(ledger)+len(l4_rows),'interrupted_a100_segments_complete':len(ledger),
         'language_max_parameters':max(all_parameters,default=0),
         'language_max_exposures':max(all_exposures,default=0),'si_lineages':len(si),'rlt_lineages':len(rlt),
+        'si_native_memory_revision_diagnostics':len(si_memory),
         'pgw_diagnostics':len(pgw),'chm_diagnostics':len(chm),'all_recorded_caps_passed':True,'breakthrough_demonstrated':False,
         'rlt_frozen_state_probes':len(probes),'rlt_probe_ood_gates_passed':sum(r['gate_passed'] for r in probe_ood),
         'gates':l4['gates'] if l4 else [],'interrupted_a100_gates':evidence['gates'],
@@ -96,6 +98,14 @@ def main():
             follow=next((q for q in probe_ood if q['seed']==r['seed'] and q['arm']==r['arm']),None)
             extra.append(f"| {r['seed']} | {r['arm']} | {'/'.join(format(z['probe_accuracy'],'.2%') for z in r['rows'])} | {follow['gate_passed'] if follow else 'pending'} |")
         extra+=['','All three native-state probes decode the constrained first-SET task through1024 perfectly, with erased carry50%. All OOD follow-up gates fail: extrapolation to4096 is near chance and many last-write gaps fail. This identifies recoverable information without establishing a general readout fix.']
+        with (ROOT/'RESULTS.md').open('a') as f:f.write('\n'.join(extra)+'\n')
+    if si_memory:
+        extra=['','SI native memory revision and persistence: frozen trained representations, no optimizer updates; association correctness is not action utility. Each checkpoint receives56 actual fixture feedback events/616 raw positions, on top of736,000 prior positions.','',
+            '| SI seed | A after learning B/C | A after8 revised outcomes | Native replay restored | Explicit full replay restored |','|---|---:|---:|---:|---:|']
+        for r in si_memory:
+            stages=r['stage_associations']
+            extra.append(f"| {r['seed']} | {stages['after_C']['A']['native_latest_association_accuracy']:.0%} | {stages['after_A_revision']['A']['native_latest_association_accuracy']:.0%} | {r['native_export_replay_after']}/{r['native_export_replay_before']} | {r['explicit_full_restore_replay_after']} |")
+        extra+=['','All eight revised A associations return old deltas in every seed; the eight unchanged associations remain correct. Native append-only memory retains duplicate keys, and cosine argmax chooses the first tied key. The same-feedback latest-record dictionary returns all current deltas by construction. No capacity overflow occurs. World A logits are bitwise unchanged after B/C feedback, and native weight+fast/memory import preserves outputs exactly, but native export omits replay. The separate diagnostic checkpoint saves/restores all56 replay records. These identify changing-fact and lifetime-checkpoint repair targets, without establishing continual decision improvement or family-wide failure. See SI_MEMORY_REVISION_PROTOCOL.md and CONTINUAL_LEARNING_STATUS.md.']
         with (ROOT/'RESULTS.md').open('a') as f:f.write('\n'.join(extra)+'\n')
     print(json.dumps(result))
 if __name__=='__main__':main()

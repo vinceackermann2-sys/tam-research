@@ -1,0 +1,1 @@
+{"tokens": {"train": 2000001024, "validation": 1048576, "test": 2097152}, "documents": {"train": 1933646, "validation": 1015, "test": 2199}, "elapsed_seconds": 588.7601812639998, "current_source": "sample/10BT/002_00000.parquet"}

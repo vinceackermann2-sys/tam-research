@@ -89,3 +89,13 @@ Frozen RLT state readout: additional supervised long-context linear-head trainin
 | 202610313 | public_gate_prior | 100.00%/99.41%/99.02%/93.55% | False |
 
 All three native-state probes decode the constrained first-SET task through1024 perfectly, with erased carry50%. All OOD follow-up gates fail: extrapolation to4096 is near chance and many last-write gaps fail. This identifies recoverable information without establishing a general readout fix.
+
+SI native memory revision and persistence: frozen trained representations, no optimizer updates; association correctness is not action utility. Each checkpoint receives56 actual fixture feedback events/616 raw positions, on top of736,000 prior positions.
+
+| SI seed | A after learning B/C | A after8 revised outcomes | Native replay restored | Explicit full replay restored |
+|---|---:|---:|---:|---:|
+| 202610301 | 100% | 50% | 0/56 | 56 |
+| 202610302 | 100% | 50% | 0/56 | 56 |
+| 202610303 | 100% | 50% | 0/56 | 56 |
+
+All eight revised A associations return old deltas in every seed; the eight unchanged associations remain correct. Native append-only memory retains duplicate keys, and cosine argmax chooses the first tied key. The same-feedback latest-record dictionary returns all current deltas by construction. No capacity overflow occurs. World A logits are bitwise unchanged after B/C feedback, and native weight+fast/memory import preserves outputs exactly, but native export omits replay. The separate diagnostic checkpoint saves/restores all56 replay records. These identify changing-fact and lifetime-checkpoint repair targets, without establishing continual decision improvement or family-wide failure. See SI_MEMORY_REVISION_PROTOCOL.md and CONTINUAL_LEARNING_STATUS.md.
